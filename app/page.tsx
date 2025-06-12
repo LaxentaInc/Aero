@@ -41,11 +41,9 @@ const SmoothCursor = () => {
     let trailId = 0
     
     const handleMouseMove = (e: MouseEvent) => {
-      mouseX = e.clientX
-      mouseY = e.clientY
-      
-      // Add trail
-      if (Math.random() > 0.3) {
+      mouseX = e.clientX + window.scrollX
+      mouseY = e.clientY + window.scrollY
+            if (Math.random() > 0.3) {
         setTrails(prev => [...prev.slice(-10), { x: mouseX, y: mouseY, id: trailId++ }])
       }
     }
@@ -56,15 +54,23 @@ const SmoothCursor = () => {
       }
       
       if (cursorOutline) {
-        outlineX += (mouseX - outlineX) * 0.1
-        outlineY += (mouseY - outlineY) * 0.1
+        outlineX += (mouseX - outlineX) * 0.35
+        outlineY += (mouseY - outlineY) * 0.35
         cursorOutline.style.transform = `translate3d(${outlineX - 20}px, ${outlineY - 20}px, 0)`
       }
       
       requestAnimationFrame(animateCursor)
     }
     
+    const handleScroll = () => {
+      if (cursor) {
+        mouseX = mouseX + window.scrollX
+        mouseY = mouseY + window.scrollY
+      }
+    }
+    
     window.addEventListener('mousemove', handleMouseMove)
+    window.addEventListener('scroll', handleScroll)
     animateCursor()
     
     const handleMouseEnter = () => setCursorVariant('hover')
@@ -78,6 +84,7 @@ const SmoothCursor = () => {
     
     return () => {
       window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('scroll', handleScroll)
       clickables.forEach(el => {
         el.removeEventListener('mouseenter', handleMouseEnter)
         el.removeEventListener('mouseleave', handleMouseLeave)
@@ -96,13 +103,13 @@ const SmoothCursor = () => {
     <>
       <div
         ref={cursorRef}
-        className={`fixed w-4 h-4 rounded-full pointer-events-none z-[100] mix-blend-difference transition-transform duration-0
+        className={`fixed w-4 h-4 rounded-full pointer-events-none z-[100] mix-blend-difference transition-transform duration-75
           ${cursorVariant === 'hover' ? 'scale-150' : 'scale-100'}`}
         style={{ backgroundColor: 'white', willChange: 'transform' }}
       />
       <div
         ref={cursorOutlineRef}
-        className={`fixed w-10 h-10 rounded-full pointer-events-none z-[99] mix-blend-difference transition-all duration-300
+        className={`fixed w-10 h-10 rounded-full pointer-events-none z-[99] mix-blend-difference transition-all duration-200
           ${cursorVariant === 'hover' ? 'scale-150 opacity-50' : 'scale-100 opacity-100'}`}
         style={{ border: '1px solid white', willChange: 'transform' }}
       />
@@ -510,7 +517,7 @@ export default function ServylLanding() {
       />
       
       <MegaCard
-        title="SOURCEXCHANGE" 
+        title="SOURCEXCHANGE :3" 
         description="Exclusive access to cutting-edge server optimizations. Advanced modifications for the most demanding infrastructures."
         platform="sourcexchange.net/servyl"
         bgComponent={<AnimatedBg1 theme={theme} />}
@@ -519,7 +526,7 @@ export default function ServylLanding() {
       />
       
       <MegaCard
-        title="CUSTOM WORK"
+        title="CUSTOM SOLUTIONS"
         description="Tailored solutions built from scratch. We craft modifications that perfectly fit your unique requirements."
         platform="hello@servyl.com"
         bgComponent={<AnimatedBg1 theme={theme} />}
@@ -531,7 +538,7 @@ export default function ServylLanding() {
       <footer className={`py-12 px-8 border-t ${theme === 'dark' ? 'border-white/10' : 'border-black/10'}`}>
         <div className="max-w-7xl mx-auto text-center">
           <p className={`font-mono text-sm ${theme === 'dark' ? 'text-white/40' : 'text-black/40'}`}>
-            © 2025 SERVYL • RIC-RAC SARL • MADE IN FRANCE
+            © 2025 SERVYL • BY LAXENTA CORP LTD • MADE IN A RICE COOKER
           </p>
         </div>
       </footer>
