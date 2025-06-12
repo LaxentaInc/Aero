@@ -1,0 +1,185 @@
+'use client' import { useState, useEffect, useRef } from 'react' import { motion, useScroll, useTransform, useSpring, AnimatePresence, useInView } from 'framer-motion' import { useTheme } from './contexts/ThemeContext' // Add this import
+
+//cursor with trails const SmoothCursor = () => { const cursorRef = useRef(null) const cursorOutlineRef = useRef(null) const [trails, setTrails] = useState>([]) const [cursorVariant, setCursorVariant] = useState('default') const [isMobile, setIsMobile] = useState(false)
+
+useEffect(() => { // Check if it's mobile/touch device const checkMobile = () => { setIsMobile(window.innerWidth < 768 || 'ontouchstart' in window) }
+
+checkMobile() window.addEventListener('resize', checkMobile)
+
+if (isMobile) return
+
+const cursor = cursorRef.current const cursorOutline = cursorOutlineRef.current let mouseX = 0 let mouseY = 0 let outlineX = 0 let outlineY = 0 let trailId = 0
+
+const handleMouseMove = (e: MouseEvent) => { mouseX = e.clientX + window.scrollX mouseY = e.clientY + window.scrollY if (Math.random() > 0.3) { setTrails(prev => [...prev.slice(-10), { x: mouseX, y: mouseY, id: trailId++ }]) } }
+
+const animateCursor = () => { if (cursor) { cursor.style.transform = translate3d( 𝑚 𝑜 𝑢 𝑠 𝑒 𝑋 − 8 𝑝 𝑥 , mouseX−8px,{mouseY - 8}px, 0) }
+
+if (cursorOutline) { outlineX += (mouseX - outlineX) * 0.35 outlineY += (mouseY - outlineY) * 0.35 cursorOutline.style.transform = translate3d( 𝑜 𝑢 𝑡 𝑙 𝑖 𝑛 𝑒 𝑋 − 20 𝑝 𝑥 , outlineX−20px,{outlineY - 20}px, 0) }
+
+requestAnimationFrame(animateCursor) }
+
+const handleScroll = () => { if (cursor) { mouseX = mouseX + window.scrollX mouseY = mouseY + window.scrollY } }
+
+window.addEventListener('mousemove', handleMouseMove) window.addEventListener('scroll', handleScroll) animateCursor()
+
+const handleMouseEnter = () => setCursorVariant('hover') const handleMouseLeave = () => setCursorVariant('default')
+
+const clickables = document.querySelectorAll('a, button, [data-cursor="pointer"]') clickables.forEach(el => { el.addEventListener('mouseenter', handleMouseEnter) el.addEventListener('mouseleave', handleMouseLeave) })
+
+return () => { window.removeEventListener('mousemove', handleMouseMove) window.removeEventListener('scroll', handleScroll) window.removeEventListener('resize', checkMobile) clickables.forEach(el => { el.removeEventListener('mouseenter', handleMouseEnter) el.removeEventListener('mouseleave', handleMouseLeave) }) }
+
+}, [isMobile])
+
+useEffect(() => { if (isMobile) return const interval = setInterval(() => { setTrails(prev => prev.slice(-5)) }, 100) return () => clearInterval(interval) }, [isMobile])
+
+if (isMobile) return null
+
+return ( <>
+
+fixed w-4 h-4 rounded-full pointer-events-none z-[100] mix-blend-difference transition-transform duration-75 {cursorVariant === 'hover' ? 'scale-150' : 'scale-100'}} style={{ backgroundColor: 'white', willChange: 'transform' }} /> fixed w-10 h-10 rounded-full pointer-events-none z-[99] mix-blend-difference transition-all duration-200 {cursorVariant === 'hover' ? 'scale-150 opacity-50' : 'scale-100 opacity-100'}} style={{ border: '1px solid white', willChange: 'transform' }} /> {/* Cute Cursor trails */} {trails.map(trail => ( ))} ) }
+
+// ugh page transition overlay const PageTransition = ({ onComplete }: { onComplete: () => void }) => { return ( ) }
+
+// Updated Typewriter for theme support const Typewriter = ({ text, delay = 0, speed = 50, theme }: { text: string, delay?: number, speed?: number, theme: 'dark' | 'light' }) => { const [displayText, setDisplayText] = useState('') const [currentIndex, setCurrentIndex] = useState(0) const [showCursor, setShowCursor] = useState(true)
+
+useEffect(() => { setDisplayText('') setCurrentIndex(0) setShowCursor(true) }, [text])
+
+useEffect(() => { const timeout = setTimeout(() => { if (currentIndex < text.length) { const timer = setTimeout(() => { setDisplayText(prev => prev + text[currentIndex]) setCurrentIndex(prev => prev + 1) }, speed) return () => clearTimeout(timer) } else { setTimeout(() => setShowCursor(false), 1000) } }, delay)
+
+return () => clearTimeout(timeout)
+
+}, [currentIndex, text, delay, speed])
+
+return ( {displayText} {showCursor && ( inline-block w-[2px] sm:w-[3px] h-[1.1em] ${theme === 'dark' ? 'bg-white' : 'bg-black'} ml-1 align-middle} animate={{ opacity: [1, 1, 0, 0] }} transition={{ duration: 1, repeat: Infinity, times: [0, 0.5, 0.5, 1] }} /> )} ) }
+
+// Animated backgrounds with theme support const AnimatedBg1 = ({ theme }: { theme: 'dark' | 'light' }) => { const color = theme === 'dark' ? 'white' : 'black' return (
+
+{[...Array(5)].map((_, i) => (
+
+))}
+
+) }
+
+// Sleek CTA Button Component const CTAButton = ({ text, onClick, theme, variant = 'primary' }: { text: string onClick: (e: React.MouseEvent) => void theme: 'dark' | 'light' variant?: 'primary' | 'secondary' }) => { return ( group relative px-6 sm:px-8 py-3 sm:py-4 font-mono text-xs sm:text-sm font-bold tracking-wider {variant === 'primary' ? theme === 'dark' ? 'bg-white text-black hover:bg-white/90' : 'bg-black text-white hover:bg-black/90' : theme === 'dark' ? 'border border-white/20 text-white hover:border-white/40 hover:bg-white/5' : 'border border-black/20 text-black hover:border-black/40 hover:bg-black/5' } transition-all duration-300 overflow-hidden} data-cursor="pointer" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} > {text} absolute inset-0{ variant === 'primary' ? theme === 'dark' ? 'bg-black' : 'bg-white' : theme === 'dark' ? 'bg-white' : 'bg-black' } opacity-0 group-hover:opacity-10} initial={false} whileHover={{ opacity: 0.1 }} /> ) }
+
+// Updated Mega Card with better mobile support const MegaCard = ({ title, description, platform, bgComponent, index, theme, isHosting = false }: { title: string description: string platform: string bgComponent: React.ReactNode index: number theme: 'dark' | 'light' isHosting?: boolean }) => { const ref = useRef(null) const isInView = useInView(ref, { once: true, margin: "-10%" }) const [isNavigating, setIsNavigating] = useState(false)
+
+const handleCardClick = () => { setIsNavigating(true) setTimeout(() => { window.location.href = '/products' }, 1500) }
+
+const handleCTAClick = (e: React.MouseEvent) => { e.stopPropagation() setIsNavigating(true) setTimeout(() => { window.location.href = isHosting ? '/hosting' : '/products' }, 1500) }
+
+return ( <> {isNavigating && {}} />}
+
+{/* Animated background */}
+
+
+  {bgComponent}
+
+
+
+{/* Hover effect overlay */}
+
+
+
+
+  
+
+    
+
+      {/* Text content */}
+      
+        
+
+          {isInView && }
+        
+
+        
+
+
+          {description}
+        
+
+
+        
+
+          
+          
+
+
+{platform}
+
+        {/* CTA Button */}
+        
+
+          
+          
+        
+
+        
+        {/* Click hint - hidden on mobile */}
+        
+          CLICK ANYWHERE TO EXPLORE →
+        
+      
+      
+      {/* Visual content */}
+      
+        
+
+          
+
+𝑡 ℎ 𝑒 𝑚 𝑒
+=
+
+′ 𝑑 𝑎 𝑟 𝑘 ′ ? ′ 𝑏 𝑔 − 𝑤 ℎ 𝑖 𝑡 𝑒 / 5 ′ : ′ 𝑏 𝑔 − 𝑏 𝑙 𝑎 𝑐 𝑘 / 5 ′ 𝑏 𝑎 𝑐 𝑘 𝑑 𝑟 𝑜 𝑝 − 𝑏 𝑙 𝑢 𝑟 − 𝑚 𝑑 𝑟 𝑜 𝑢 𝑛 𝑑 𝑒 𝑑 − 2 𝑥 𝑙 𝑠 𝑚 : 𝑟 𝑜 𝑢 𝑛 𝑑 𝑒 𝑑 − 3 𝑥 𝑙 𝑏 𝑜 𝑟 𝑑 𝑒 𝑟 theme=== ′ dark ′ ? ′ bg−white/5 ′ : ′ bg−black/5 ′ backdrop−blur−mdrounded−2xlsm:rounded−3xlborder{theme === 'dark' ? 'border-white/10' : 'border-black/10'}`} />
+
+          {/* Unique visuals per card */}
+          
+
+            
+              
+
+
+{index === 0 ? 'GAMING' : index === 1 ? 'AMAZON' : 'CUSTOM'}
+
+) }
+
+export default function ServylLanding() { const { theme } = useTheme() // Use the imported context hook const { scrollYProgress } = useScroll() const heroScale = useTransform(scrollYProgress, [0, 0.3], [1, 0.9]) const heroOpacity = useTransform(scrollYProgress, [0, 0.3], [1, 0])
+
+// Theme toggle button
+
+return ( min-h-screen transition-colors duration-500 ${ theme === 'dark' ? 'bg-black text-white cursor-none' : 'bg-white text-black cursor-none' }} initial={false} animate={{ backgroundColor: theme === 'dark' ? '#000000' : '#ffffff' }} transition={{ duration: 0.5 }} >
+
+absolute inset-0 {theme === 'dark' ? 'bg-black' : 'bg-white'}} /> absolute inset-0 bg-gradient-to-b from-transparent via-transparent { theme === 'dark' ? 'to-black/50' : 'to-white/50' }} />
+
+{/* Hero Section */}
+
+    SERVYL
+  
+  
+  
+    {''}
+  
+  
+  {/* Scroll indicator */}
+  
+    
+
+  
+
+
+{/* Updated Product Cards */} } index={0} theme={theme} isHosting={true} />
+
+} index={1} theme={theme} />
+
+} index={2} theme={theme} />
+
+{/* Footer */}
+
+    © 2025 SERVYL • BY LAXENTA CORP LTD • MADE IN A RICE COOKER
+  
+
+
+) }
+
+the svgs for the cards are bad, overhaul them with something better, they are so so dumb -_- add some other shit if u think its necessary, yk grok type feel frfr, if possible, can u add a text (send message) like box under the logo? like so people can send messages directly to our discord channel fr fr using webhooks : 3 fr fr only once per browser yk yk yk yk : 3 after it just gently close it and make it small chatlike box, or whatever, just sleek and in same theme, : 3 and btw make the learn more cards point to /docs :3
