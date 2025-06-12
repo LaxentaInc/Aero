@@ -3,25 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
-
-const useTheme = () => {
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark')
-  
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('servyl-theme') as 'dark' | 'light' | null
-    if (savedTheme) {
-      setTheme(savedTheme)
-    }
-  }, [])
-  
-  const toggleTheme = () => {
-    const newTheme = theme === 'dark' ? 'light' : 'dark'
-    setTheme(newTheme)
-    localStorage.setItem('servyl-theme', newTheme)
-  }
-  
-  return { theme, toggleTheme }
-}
+import { useTheme } from '../contexts/ThemeContext'
 
 const GlitchText = ({ children, className = "" }: { children: string, className?: string }) => {
   return (
@@ -145,7 +127,7 @@ const ThemeToggle = ({ theme, toggleTheme }: { theme: 'dark' | 'light', toggleTh
 }
 
 export default function Navbar() {
-  const { theme, toggleTheme } = useTheme()
+  const { theme, toggleTheme } = useTheme() // Use the context
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)

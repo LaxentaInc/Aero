@@ -2,29 +2,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, useScroll, useTransform, useSpring, AnimatePresence, useInView } from 'framer-motion'
 import { useRouter } from 'next/navigation'
+import { useTheme } from './contexts/ThemeContext' //added import for theme context
+import './globals.css' // for no reason but vscode ai suggested this ;-; 
 
-// Theme Context
-const useTheme = () => {
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark')
-  
-  useEffect(() => {
-    // Load saved theme
-    const savedTheme = localStorage.getItem('servyl-theme') as 'dark' | 'light' | null
-    if (savedTheme) {
-      setTheme(savedTheme)
-    }
-  }, [])
-  
-  const toggleTheme = () => {
-    const newTheme = theme === 'dark' ? 'light' : 'dark'
-    setTheme(newTheme)
-    localStorage.setItem('servyl-theme', newTheme)
-  }
-  
-  return { theme, toggleTheme }
-}
-
-// Better cursor with trails
+//cursor with trails
 const SmoothCursor = () => {
   const cursorRef = useRef<HTMLDivElement>(null)
   const cursorOutlineRef = useRef<HTMLDivElement>(null)
@@ -168,53 +149,6 @@ const PageTransition = ({ onComplete }: { onComplete: () => void }) => {
         />
       </motion.svg>
     </motion.div>
-  )
-}
-
-// toggle button
-const ThemeToggle = ({ theme, toggleTheme }: { theme: 'dark' | 'light', toggleTheme: () => void }) => {
-  return (
-    <motion.button
-      onClick={toggleTheme}
-      className="fixed top-8 right-8 z-50 p-2 rounded-full"
-      whileHover={{ scale: 1.1 }}
-      whileTap={{ scale: 0.9 }}
-      data-cursor="pointer"
-      aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-    >
-      <motion.svg
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        initial={false}
-        animate={{ rotate: theme === 'dark' ? 0 : 180 }}
-        transition={{ type: "spring", stiffness: 200, damping: 10 }}
-        className={`${theme === 'dark' ? 'stroke-white' : 'stroke-black'}`}
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        {theme === 'dark' ? (
-          // Moon icon
-          <motion.path
-            initial={false}
-            d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
-            fill="none"
-            className="drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]"
-          />
-        ) : (
-          // Sun icon with center circle
-          <>
-            <circle cx="12" cy="12" r="4" fill="currentColor" />
-            <motion.path
-              initial={false}
-              d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
-              className="drop-shadow-[0_0_10px_rgba(0,0,0,0.3)]"
-            />
-          </>
-        )}
-      </motion.svg>
-    </motion.button>
   )
 }
 
@@ -452,9 +386,7 @@ export default function ServylLanding() {
       transition={{ duration: 0.5 }}
     >
       <SmoothCursor />
-      <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
       
-      {/* Background with theme support */}
       <motion.div 
         className="fixed inset-0 -z-10"
         animate={{ opacity: theme === 'dark' ? 1 : 0.5 }}
