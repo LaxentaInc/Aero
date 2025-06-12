@@ -12,7 +12,7 @@ const SmoothCursor = () => {
   const [isMobile, setIsMobile] = useState(false)
   const positionRef = useRef({ mouseX: 0, mouseY: 0, outlineX: 0, outlineY: 0 })
   const cursorVariantRef = useRef<'default' | 'hover'>('default')
-  const frameRef = useRef<number>()
+  const frameRef = useRef<number>(0) // Initialize with 0
 
   // Mobile detection - runs once
   useEffect(() => {
@@ -441,106 +441,61 @@ export default function ServylLanding() {
   const { scrollYProgress } = useScroll()
   const heroScale = useTransform(scrollYProgress, [0, 0.3], [1, 0.9])
   const heroOpacity = useTransform(scrollYProgress, [0, 0.3], [1, 0])
-  const [isLoaded, setIsLoaded] = useState(false)
-
-  // Load sequence effect
-  useEffect(() => {
-    setIsLoaded(true)
-  }, [])
 
   return (
     <motion.div 
-      className={`min-h-screen transition-colors duration-500 ${
-        theme === 'dark' ? 'bg-black text-white cursor-none' : 'bg-white text-black cursor-none'
-      }`}
-      initial={false}
-      animate={{ backgroundColor: theme === 'dark' ? '#000000' : '#ffffff' }}
-      transition={{ duration: 0.5 }}
+      className={`min-h-screen ${
+        theme === 'dark' ? 'bg-black text-white' : 'bg-white text-black'
+      }`} // Removed overflow-auto from here
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
     >
-      <SmoothCursor />      
-      <motion.div 
-        className="fixed inset-0 -z-10"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: theme === 'dark' ? 1 : 0.5 }}
-        transition={{ delay: 0.5, duration: 1 }}
-      >
-        <div className={`absolute inset-0 ${theme === 'dark' ? 'bg-black' : 'bg-white'}`} />
-        <div className={`absolute inset-0 bg-gradient-to-b from-transparent via-transparent ${
-          theme === 'dark' ? 'to-black/50' : 'to-white/50'
-        }`} />
-      </motion.div>
+      <SmoothCursor />
       
-      {/* Hero Section with Sequential Load */}
       <motion.section 
         style={{ scale: heroScale, opacity: heroOpacity }}
         className="min-h-screen flex items-center justify-center relative overflow-hidden px-4"
+        initial="hidden"
+        animate="visible"
+        variants={{
+          hidden: { opacity: 0 },
+          visible: { opacity: 1 }
+        }}
       >
-        <motion.div 
-          className="absolute inset-0 opacity-20"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: isLoaded ? 0.2 : 0 }}
-          transition={{ delay: 1, duration: 1 }}
-        >
-          <AnimatedBg1 theme={theme} />
-        </motion.div>
-        
-        <div className="relative z-10 text-center">
+        <div className="relative z-10 text-center space-y-6">
           <motion.h1
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: isLoaded ? 1 : 0, y: isLoaded ? 0 : 50 }}
-            transition={{ 
-              duration: 1,
-              ease: [0.22, 1, 0.36, 1], // Custom ease curve
-              delay: 0.2
-            }}
-            className="text-5xl sm:text-7xl md:text-9xl lg:text-[12rem] font-black tracking-tighter mb-4 sm:mb-8 select-none"
+            className="text-5xl sm:text-7xl md:text-9xl lg:text-[12rem] font-black tracking-tighter select-none"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
           >
             SERVYL
           </motion.h1>
           
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: isLoaded ? 0.6 : 0, y: isLoaded ? 0 : 20 }}
-            transition={{ 
-              duration: 0.8,
-              delay: 0.8,
-              ease: "easeOut"
-            }}
-            className={`text-sm sm:text-xl md:text-2xl font-mono ${theme === 'dark' ? 'text-white/60' : 'text-black/60'} mb-8 sm:mb-12 px-4`}
+            className={`text-sm sm:text-xl md:text-2xl font-mono ${
+              theme === 'dark' ? 'text-white/60' : 'text-black/60'
+            }`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.6 }}
+            transition={{ duration: 0.3 }}
           >
             {'</'} premium hosting & amazon solutions {'>'}
           </motion.p>
-          
-          {/* Scroll indicator with delayed appearance */}
-          <motion.div
-            className="absolute bottom-8 sm:bottom-12 left-1/2 transform -translate-x-1/2"
-            initial={{ opacity: 0 }}
-            animate={{ 
-              opacity: isLoaded ? 1 : 0,
-              y: isLoaded ? [0, 10, 0] : 0 
-            }}
-            transition={{
-              opacity: { delay: 1.2, duration: 0.8 },
-              y: { duration: 2, repeat: Infinity, delay: 1.2 }
-            }}
-          >
-            <div className={`w-[1px] h-12 sm:h-16 bg-gradient-to-b ${
-              theme === 'dark' ? 'from-white/40 to-transparent' : 'from-black/40 to-transparent'
-            }`} />
-          </motion.div>
         </div>
       </motion.section>
 
-      {/* Product Cards with sequential load */}
       <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: isLoaded ? 1 : 0, y: isLoaded ? 0 : 50 }}
-        transition={{ delay: 1.4, duration: 1 }}
+        className="w-full"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
       >
         <MegaCard
           title="GAME HOSTING"
-          description="Premium game server hosting with unbeatable performance. Minecraft, Discord bots, and custom applications with 99.9% uptime guarantee."
-          platform="servyl.com/hosting"
+          description="Premium game server hosting with advanced features and DDoS protection."
+          platform="PTERODACTYL"
           bgComponent={<AnimatedBg1 theme={theme} />}
           index={0}
           theme={theme}
@@ -548,9 +503,9 @@ export default function ServylLanding() {
         />
         
         <MegaCard
-          title="AMAZON FBA"
-          description="Complete Amazon FBA branding solutions. From product research to listing optimization, we help you dominate the marketplace with data-driven strategies."
-          platform="servyl.com/amazon"
+          title="AMAZON STORE"
+          description="Professional Amazon store management and optimization services."
+          platform="AMAZON"
           bgComponent={<AnimatedBg1 theme={theme} />}
           index={1}
           theme={theme}
@@ -558,29 +513,14 @@ export default function ServylLanding() {
         
         <MegaCard
           title="CUSTOM SOLUTIONS"
-          description="Tailored solutions built from scratch. We craft modifications and services that perfectly fit your unique business requirements and scale with your growth."
-          platform="hello@servyl.com"
+          description="Tailored hosting solutions for your specific needs."
+          platform="ENTERPRISE"
           bgComponent={<AnimatedBg1 theme={theme} />}
           index={2}
           theme={theme}
+          isHosting={true}
         />
       </motion.div>
-
-      {/* Footer with delayed fade in */}
-      <motion.footer
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isLoaded ? 1 : 0 }}
-        transition={{ delay: 1.6, duration: 0.8 }}
-        className={`py-8 sm:py-12 px-4 sm:px-8 border-t ${
-          theme === 'dark' ? 'border-white/10' : 'border-black/10'
-        }`}
-      >
-        <div className="max-w-7xl mx-auto text-center">
-          <p className={`font-mono text-xs sm:text-sm ${theme === 'dark' ? 'text-white/40' : 'text-black/40'}`}>
-            © 2025 SERVYL • BY LAXENTA CORP LTD • MADE IN A RICE COOKER
-          </p>
-        </div>
-      </motion.footer>
     </motion.div>
   )
 }
