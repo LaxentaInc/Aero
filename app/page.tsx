@@ -7,54 +7,37 @@ import { useTheme } from './contexts/ThemeContext' // Add this import
 const SmoothCursor = () => {
   const cursorRef = useRef<HTMLDivElement>(null)
   const cursorOutlineRef = useRef<HTMLDivElement>(null)
-  const trailsRef = useRef<Array<{ x: number, y: number, id: number }>>([])
-  const trailIdRef = useRef(0)
-  const [isMobile, setIsMobile] = useState(false)
   const positionRef = useRef({ mouseX: 0, mouseY: 0, outlineX: 0, outlineY: 0 })
   const cursorVariantRef = useRef<'default' | 'hover'>('default')
-  const frameRef = useRef<number>(0) // Initialize with 0
+  const frameRef = useRef<number>(0)
+  const [isMobile, setIsMobile] = useState(false)
 
-  // Mobile detection - runs once
+  // Simplified mobile detection
   useEffect(() => {
-    setIsMobile(window.innerWidth < 768 || 'ontouchstart' in window)
-    
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768 || 'ontouchstart' in window)
-    }
-    
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
+    const isTouchDevice = 'ontouchstart' in window
+    setIsMobile(isTouchDevice)
   }, [])
 
-  // Combined animation and event handling
   useEffect(() => {
     if (isMobile) return
 
+    // Add cursor:none to body
+    document.body.style.cursor = 'none'
+
     const handleMouseMove = (e: MouseEvent) => {
-      positionRef.current.mouseX = e.clientX + window.scrollX
-      positionRef.current.mouseY = e.clientY + window.scrollY
+      // Use client coordinates instead of page coordinates
+      positionRef.current.mouseX = e.clientX
+      positionRef.current.mouseY = e.clientY
     }
 
     const handleMouseEnter = (e: Event) => {
       if ((e.target as HTMLElement).hasAttribute('data-cursor-pointer')) {
         cursorVariantRef.current = 'hover'
-        if (cursorRef.current) {
-          cursorRef.current.style.transform = `translate3d(${positionRef.current.mouseX - 8}px, ${positionRef.current.mouseY - 8}px, 0) scale(1.5)`
-        }
-        if (cursorOutlineRef.current) {
-          cursorOutlineRef.current.style.transform = `translate3d(${positionRef.current.outlineX - 20}px, ${positionRef.current.outlineY - 20}px, 0) scale(1.5)`
-        }
       }
     }
 
     const handleMouseLeave = () => {
       cursorVariantRef.current = 'default'
-      if (cursorRef.current) {
-        cursorRef.current.style.transform = `translate3d(${positionRef.current.mouseX - 8}px, ${positionRef.current.mouseY - 8}px, 0) scale(1)`
-      }
-      if (cursorOutlineRef.current) {
-        cursorOutlineRef.current.style.transform = `translate3d(${positionRef.current.outlineX - 20}px, ${positionRef.current.outlineY - 20}px, 0) scale(1)`
-      }
     }
 
     const animateFrame = () => {
@@ -63,11 +46,12 @@ const SmoothCursor = () => {
       const cursorOutline = cursorOutlineRef.current
 
       if (cursor && cursorOutline) {
-        // Update positions with scale preservation
         const scale = cursorVariantRef.current === 'hover' ? 1.5 : 1
+        
+        // Direct transform without calculations
         cursor.style.transform = `translate3d(${mouseX - 8}px, ${mouseY - 8}px, 0) scale(${scale})`
         
-        // Smoother outline following
+        // Smoother outline with spring effect
         positionRef.current.outlineX += (mouseX - outlineX) * 0.2
         positionRef.current.outlineY += (mouseY - outlineY) * 0.2
         cursorOutline.style.transform = `translate3d(${positionRef.current.outlineX - 20}px, ${positionRef.current.outlineY - 20}px, 0) scale(${scale})`
@@ -77,15 +61,16 @@ const SmoothCursor = () => {
     }
 
     window.addEventListener('mousemove', handleMouseMove, { passive: true })
-    document.body.addEventListener('mouseenter', handleMouseEnter, true)
-    document.body.addEventListener('mouseleave', handleMouseLeave, true)
+    document.addEventListener('mouseenter', handleMouseEnter, true)
+    document.addEventListener('mouseleave', handleMouseLeave, true)
     frameRef.current = requestAnimationFrame(animateFrame)
 
     return () => {
+      document.body.style.cursor = ''
       window.removeEventListener('mousemove', handleMouseMove)
-      document.body.removeEventListener('mouseenter', handleMouseEnter, true)
-      document.body.removeEventListener('mouseleave', handleMouseLeave, true)
-      if (frameRef.current) cancelAnimationFrame(frameRef.current)
+      document.removeEventListener('mouseenter', handleMouseEnter, true)
+      document.removeEventListener('mouseleave', handleMouseLeave, true)
+      cancelAnimationFrame(frameRef.current)
     }
   }, [isMobile])
 
@@ -95,13 +80,16 @@ const SmoothCursor = () => {
     <>
       <div
         ref={cursorRef}
-        className="fixed w-4 h-4 rounded-full pointer-events-none z-[100] mix-blend-difference bg-white"
-        style={{ willChange: 'transform' }}
+        className="fixed w-4 h-4 rounded-full pointer-events-none z-[100] mix-blend-difference bg-white will-change-transform"
+        style={{ transform: 'translate3d(-100px, -100px, 0)' }} // Initial off-screen position
       />
       <div
         ref={cursorOutlineRef}
-        className="fixed w-10 h-10 rounded-full pointer-events-none z-[99] mix-blend-difference"
-        style={{ border: '1px solid white', willChange: 'transform' }}
+        className="fixed w-10 h-10 rounded-full pointer-events-none z-[99] mix-blend-difference will-change-transform"
+        style={{ 
+          border: '1px solid white',
+          transform: 'translate3d(-100px, -100px, 0)' // Initial off-screen position
+        }}
       />
     </>
   )
