@@ -1,0 +1,596 @@
+'use client'
+import { useState, useEffect, useRef } from 'react'
+import { motion, useScroll, useTransform, useSpring, AnimatePresence, useInView } from 'framer-motion'
+
+// Custom cursor that follows mouse
+const CustomCursor = () => {
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
+  
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePos({ x: e.clientX, y: e.clientY })
+    }
+    window.addEventListener('mousemove', handleMouseMove)
+    return () => window.removeEventListener('mousemove', handleMouseMove)
+  }, [])
+  
+  return (
+    <>
+      <motion.div
+        className="fixed w-4 h-4 bg-white rounded-full pointer-events-none z-50 mix-blend-difference"
+        animate={{ x: mousePos.x - 8, y: mousePos.y - 8 }}
+        transition={{ type: "spring", stiffness: 500, damping: 28 }}
+      />
+      <motion.div
+        className="fixed w-8 h-8 border border-white rounded-full pointer-events-none z-50 mix-blend-difference"
+        animate={{ x: mousePos.x - 16, y: mousePos.y - 16 }}
+        transition={{ type: "spring", stiffness: 250, damping: 20 }}
+      />
+    </>
+  )
+}
+
+// Sexy typewriter that actually works
+const Typewriter = ({ text, delay = 0, speed = 50 }: { text: string, delay?: number, speed?: number }) => {
+  const [displayText, setDisplayText] = useState('')
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [showCursor, setShowCursor] = useState(true)
+  
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (currentIndex < text.length) {
+        const timer = setTimeout(() => {
+          setDisplayText(prev => prev + text[currentIndex])
+          setCurrentIndex(prev => prev + 1)
+        }, speed)
+        return () => clearTimeout(timer)
+      } else {
+        // Hide cursor after typing
+        setTimeout(() => setShowCursor(false), 1000)
+      }
+    }, delay)
+    
+    return () => clearTimeout(timeout)
+  }, [currentIndex, text, delay, speed])
+  
+  return (
+    <span className="relative">
+      {displayText}
+      {showCursor && (
+        <motion.span
+          className="inline-block w-[3px] h-[1.1em] bg-white ml-1 align-middle"
+          animate={{ opacity: [1, 1, 0, 0] }}
+          transition={{ duration: 1, repeat: Infinity, times: [0, 0.5, 0.5, 1] }}
+        />
+      )}
+    </span>
+  )
+}
+
+// Complex animated SVG backgrounds
+const AnimatedBg1 = () => {
+  return (
+    <svg className="absolute inset-0 w-full h-full" viewBox="0 0 1000 1000">
+      <defs>
+        <filter id="goo">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
+          <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -8" />
+        </filter>
+      </defs>
+      
+      {/* Morphing blobs */}
+      {[...Array(5)].map((_, i) => (
+        <motion.circle
+          key={i}
+          r="80"
+          fill="white"
+          fillOpacity="0.03"
+          filter="url(#goo)"
+          animate={{
+            cx: [
+              500 + Math.cos(i * 72 * Math.PI / 180) * 200,
+              500 + Math.cos((i * 72 + 180) * Math.PI / 180) * 200,
+              500 + Math.cos(i * 72 * Math.PI / 180) * 200,
+            ],
+            cy: [
+              500 + Math.sin(i * 72 * Math.PI / 180) * 200,
+              500 + Math.sin((i * 72 + 180) * Math.PI / 180) * 200,
+              500 + Math.sin(i * 72 * Math.PI / 180) * 200,
+            ],
+          }}
+          transition={{
+            duration: 10 + i * 2,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+      ))}
+      
+      {/* Rotating lines */}
+      <g className="opacity-10">
+        {[...Array(12)].map((_, i) => (
+          <motion.line
+            key={`line-${i}`}
+            x1="500"
+            y1="500"
+            x2="900"
+            y2="500"
+            stroke="white"
+            strokeWidth="0.5"
+            initial={{ rotate: i * 30 }}
+            animate={{ rotate: i * 30 + 360 }}
+            transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+            style={{ transformOrigin: "500px 500px" }}
+          />
+        ))}
+      </g>
+    </svg>
+  )
+}
+
+const AnimatedBg2 = () => {
+  return (
+    <svg className="absolute inset-0 w-full h-full opacity-20" viewBox="0 0 1000 1000">
+      {/* Grid that warps */}
+      <defs>
+        <pattern id="grid" x="0" y="0" width="50" height="50" patternUnits="userSpaceOnUse">
+          <path d="M 50 0 L 0 0 0 50" fill="none" stroke="white" strokeWidth="0.5" />
+        </pattern>
+      </defs>
+      
+      <motion.rect
+        width="1000"
+        height="1000"
+        fill="url(#grid)"
+        initial={{ scale: 1 }}
+        animate={{ scale: [1, 1.2, 1] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+        style={{ transformOrigin: "center" }}
+      />
+      
+      {/* Scanning line */}
+      <motion.line
+        x1="0"
+        y1="0"
+        x2="1000"
+        y2="0"
+        stroke="white"
+        strokeWidth="1"
+        strokeOpacity="0.5"
+        animate={{ y: [0, 1000, 0] }}
+        transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+      />
+    </svg>
+  )
+}
+
+const AnimatedBg3 = () => {
+  return (
+    <svg className="absolute inset-0 w-full h-full" viewBox="0 0 1000 1000">
+      {/* Neural network animation */}
+      {[...Array(20)].map((_, i) => {
+        const x = Math.random() * 1000
+        const y = Math.random() * 1000
+        return (
+          <g key={i}>
+            <motion.circle
+              cx={x}
+              cy={y}
+              r="2"
+              fill="white"
+              fillOpacity="0.5"
+              animate={{
+                r: [2, 4, 2],
+                fillOpacity: [0.3, 0.8, 0.3]
+              }}
+              transition={{
+                duration: 2 + Math.random() * 2,
+                repeat: Infinity,
+                delay: Math.random() * 2
+              }}
+            />
+            {/* Connect to nearby nodes */}
+            {[...Array(3)].map((_, j) => {
+              const x2 = x + (Math.random() - 0.5) * 200
+              const y2 = y + (Math.random() - 0.5) * 200
+              return (
+                <motion.line
+                  key={j}
+                  x1={x}
+                  y1={y}
+                  x2={x2}
+                  y2={y2}
+                  stroke="white"
+                  strokeWidth="0.5"
+                  initial={{ pathLength: 0, opacity: 0 }}
+                  animate={{ 
+                    pathLength: [0, 1, 0],
+                    opacity: [0, 0.3, 0]
+                  }}
+                  transition={{
+                    duration: 3,
+                    repeat: Infinity,
+                    delay: Math.random() * 3,
+                    ease: "easeInOut"
+                  }}
+                />
+              )
+            })}
+          </g>
+        )
+      })}
+    </svg>
+  )
+}
+
+// Smaller, sexier terminal
+const CompactTerminal = () => {
+  const commands = [
+    { text: '$ servyl inject --force', delay: 0 },
+    { text: '[OK] Module loaded', delay: 500 },
+    { text: '[OK] Performance +420%', delay: 1000 },
+    { text: '$ _', delay: 1500, cursor: true }
+  ]
+  
+  const [visibleCommands, setVisibleCommands] = useState<number[]>([])
+  
+  useEffect(() => {
+    commands.forEach((cmd, i) => {
+      setTimeout(() => {
+        setVisibleCommands(prev => [...prev, i])
+      }, cmd.delay)
+    })
+  }, [])
+  
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-black/80 backdrop-blur-sm border border-white/20 rounded-lg p-4 font-mono text-xs max-w-md"
+    >
+      <div className="flex gap-2 mb-3">
+        <div className="w-2 h-2 rounded-full bg-white/50" />
+        <div className="w-2 h-2 rounded-full bg-white/50" />
+        <div className="w-2 h-2 rounded-full bg-white/50" />
+      </div>
+      <div className="space-y-1">
+        {commands.map((cmd, i) => (
+          <AnimatePresence key={i}>
+            {visibleCommands.includes(i) && (
+              <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="text-white/80"
+              >
+                {cmd.text}
+                {cmd.cursor && (
+                  <motion.span
+                    className="inline-block w-2 h-3 bg-white/80 ml-1"
+                    animate={{ opacity: [1, 0] }}
+                    transition={{ duration: 0.8, repeat: Infinity }}
+                  />
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        ))}
+      </div>
+    </motion.div>
+  )
+}
+
+// Full screen card with split layout
+const MegaCard = ({ 
+  title, 
+  description, 
+  platform,
+  bgComponent,
+  index,
+  bgGif
+}: {
+  title: string
+  description: string
+  platform: string
+  bgComponent: React.ReactNode
+  index: number
+  bgGif?: string
+}) => {
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: "-20%" })
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start end", "end start"]
+  })
+  
+  const opacity = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0, 1, 1, 0])
+  const scale = useTransform(scrollYProgress, [0, 0.3, 0.7, 1], [0.8, 1, 1, 0.8])
+  
+  return (
+    <motion.section
+      ref={ref}
+      style={{ opacity, scale }}
+      className="min-h-screen flex items-center relative overflow-hidden"
+    >
+      {/* Background GIF if provided */}
+      {bgGif && (
+        <div 
+          className="absolute inset-0 opacity-5"
+          style={{
+            backgroundImage: `url(${bgGif})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            filter: 'contrast(2) grayscale(1)'
+          }}
+        />
+      )}
+      
+      {/* Animated background */}
+      <div className="absolute inset-0 opacity-30">
+        {bgComponent}
+      </div>
+      
+      <div className="relative z-10 w-full">
+        <div className="max-w-7xl mx-auto px-8">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            {/* Text content */}
+            <motion.div
+              className={index % 2 === 0 ? 'lg:order-1' : 'lg:order-2'}
+              initial={{ opacity: 0, x: index % 2 === 0 ? -100 : 100 }}
+              animate={isInView ? { opacity: 1, x: 0 } : {}}
+              transition={{ duration: 1, ease: "easeOut" }}
+            >
+              <h2 className="text-6xl md:text-8xl font-black mb-8 leading-none">
+                {isInView && <Typewriter text={title} speed={80} />}
+              </h2>
+              <p className="text-xl md:text-2xl text-white/60 mb-8 leading-relaxed">
+                {description}
+              </p>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-[1px] bg-white/40" />
+                <p className="font-mono text-sm text-white/40">{platform}</p>
+              </div>
+            </motion.div>
+            
+            {/* Visual content */}
+            <motion.div
+              className={`relative ${index % 2 === 0 ? 'lg:order-2' : 'lg:order-1'}`}
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={isInView ? { opacity: 1, scale: 1 } : {}}
+              transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
+            >
+              <div className="relative aspect-square max-w-lg mx-auto">
+                {/* Glass morphism container */}
+                <div className="absolute inset-0 bg-white/5 backdrop-blur-md rounded-3xl border border-white/10" />
+                
+                {/* Content based on index */}
+                {index === 0 && (
+                  <div className="absolute inset-0 flex items-center justify-center p-12">
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                      className="w-full h-full"
+                    >
+                      <svg viewBox="0 0 200 200" className="w-full h-full">
+                        <path
+                          d="M100,20 L180,80 L150,180 L50,180 L20,80 Z"
+                          fill="none"
+                          stroke="white"
+                          strokeWidth="2"
+                        />
+                        <circle cx="100" cy="100" r="40" fill="none" stroke="white" strokeWidth="1" />
+                        <text x="100" y="105" textAnchor="middle" fill="white" fontSize="20" fontFamily="monospace">BBB</text>
+                      </svg>
+                    </motion.div>
+                  </div>
+                )}
+                
+                {index === 1 && (
+                  <div className="absolute inset-0 flex items-center justify-center p-12">
+                    <div className="grid grid-cols-3 gap-4 w-full">
+                      {[...Array(9)].map((_, i) => (
+                        <motion.div
+                          key={i}
+                          className="aspect-square bg-white/10 rounded-lg"
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{ delay: i * 0.1, type: "spring" }}
+                          whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.2)" }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {index === 2 && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <CompactTerminal />
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </div>
+    </motion.section>
+  )
+}
+
+// Platform cards with transparency
+const PlatformCard = ({ icon, label, delay }: { icon: string, label: string, delay: number }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay, duration: 0.5 }}
+      whileHover={{ scale: 1.05, y: -10 }}
+      className="relative group"
+    >
+      <div className="absolute inset-0 bg-white/10 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      <div className="relative bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-8 text-center">
+        <div className="text-4xl mb-4">{icon}</div>
+        <p className="font-mono text-sm">{label}</p>
+      </div>
+    </motion.div>
+  )
+}
+
+export default function ServylLanding() {
+  const { scrollYProgress } = useScroll()
+  const heroScale = useTransform(scrollYProgress, [0, 0.3], [1, 0.8])
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.3], [1, 0])
+  
+  return (
+    <div className="min-h-screen bg-black text-white cursor-none">
+      <CustomCursor />
+      
+      {/* Pure black background with subtle gradient */}
+      <div className="fixed inset-0 -z-10">
+        <div className="absolute inset-0 bg-black" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/50" />
+      </div>
+      
+      {/* Hero Section */}
+      <motion.section 
+        style={{ scale: heroScale, opacity: heroOpacity }}
+        className="min-h-screen flex items-center justify-center relative overflow-hidden"
+      >
+        {/* Animated background elements */}
+        <div className="absolute inset-0 opacity-20">
+          <AnimatedBg1 />
+        </div>
+        
+        <div className="relative z-10 text-center px-6">
+          <motion.h1
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1.5, ease: "easeOut" }}
+            className="text-7xl md:text-9xl lg:text-[12rem] font-black tracking-tighter mb-8 select-none"
+          >
+            SERVYL
+          </motion.h1>
+          
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5, duration: 1 }}
+            className="text-xl md:text-2xl font-mono text-white/60 mb-12"
+          >
+            {'</'} pterodactyl modifications {'>'}
+          </motion.p>
+          
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1, duration: 1 }}
+          >
+            <CompactTerminal />
+          </motion.div>
+          
+          {/* Scroll indicator */}
+          <motion.div
+            className="absolute bottom-12 left-1/2 transform -translate-x-1/2"
+            animate={{ y: [0, 10, 0] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            <div className="w-[1px] h-16 bg-gradient-to-b from-white/40 to-transparent" />
+          </motion.div>
+        </div>
+      </motion.section>
+      
+      {/* Product Cards - Full Screen */}
+      <MegaCard
+        title="BUILTBYBIT"
+        description="Premium Pterodactyl modifications trusted by thousands. Top-rated resources with lifetime updates and dedicated support."
+        platform="marketplace.builtbybit.com"
+        bgComponent={<AnimatedBg1 />}
+        index={0}
+      />
+      
+      <MegaCard
+        title="SOURCEXCHANGE"
+        description="Exclusive access to cutting-edge server optimizations. Advanced modifications for the most demanding infrastructures."
+        platform="sourcexchange.net/servyl"
+        bgComponent={<AnimatedBg2 />}
+        index={1}
+      />
+      
+      <MegaCard
+        title="CUSTOM WORK"
+        description="Tailored solutions built from scratch. We craft modifications that perfectly fit your unique requirements."
+        platform="hello@servyl.com"
+        bgComponent={<AnimatedBg3 />}
+        index={2}
+      />
+      
+      {/* Platforms Section */}
+      <section className="min-h-screen flex items-center justify-center px-8">
+        <div className="max-w-6xl w-full">
+          <motion.h2
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-6xl md:text-8xl font-black text-center mb-20"
+          >
+            <Typewriter text="EVERYWHERE" speed={100} />
+          </motion.h2>
+          
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <PlatformCard icon="◐" label="WEB PANEL" delay={0} />
+            <PlatformCard icon="◑" label="REST API" delay={0.1} />
+            <PlatformCard icon="◒" label="CLI TOOLS" delay={0.2} />
+            <PlatformCard icon="◓" label="MOBILE" delay={0.3} />
+          </div>
+        </div>
+      </section>
+      
+      {/* Contact Section */}
+      <section className="min-h-screen flex items-center justify-center px-8">
+        <div className="text-center">
+          <motion.h2
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="text-5xl md:text-7xl font-black mb-20"
+          >
+            <Typewriter text="GET IN TOUCH" speed={80} />
+          </motion.h2>
+          
+          <div className="space-y-8">
+            {[
+              { type: 'DISCORD', value: '@servyl' },
+              { type: 'EMAIL', value: 'hello@servyl.com' },
+              { type: 'PHONE', value: '+33 6 11 19 49 71' }
+            ].map((contact, i) => (
+              <motion.div
+                key={contact.type}
+                initial={{ opacity: 0, x: i % 2 === 0 ? -50 : 50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.2 }}
+                className="group"
+              >
+                <a
+                  href="#"
+                  className="inline-flex items-center gap-8 text-2xl md:text-3xl font-mono hover:text-white/60 transition-colors"
+                >
+                  <span className="text-white/40">{contact.type}</span>
+                  <span className="group-hover:translate-x-2 transition-transform">{contact.value}</span>
+                </a>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+      
+      {/* Footer */}
+      <footer className="py-12 px-8 border-t border-white/10">
+        <div className="max-w-7xl mx-auto text-center">
+          <p className="font-mono text-sm text-white/40">
+            © 2025 SERVYL • MADE IN FRANCE
+          </p>
+        </div>
+      </footer>
+    </div>
+  )
+}
