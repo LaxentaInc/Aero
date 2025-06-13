@@ -13,16 +13,19 @@ const LoadingAnimation = ({
   theme: 'dark' | 'light', 
   onComplete?: () => void 
 }) => {
+  const [videoLoaded, setVideoLoaded] = useState(false);
   const [shouldExit, setShouldExit] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setShouldExit(true);
-    }, 1000);
+      if (videoLoaded) {
+        setShouldExit(true);
+      }
+    }, 3000);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [videoLoaded]);
 
   useEffect(() => {
     if (shouldExit && onComplete) {
@@ -41,7 +44,8 @@ const LoadingAnimation = ({
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <div className="absolute inset-0">
+      {/*Background video*/}
+      <div className="absolute inset-0 overflow-hidden">
         <video
           ref={videoRef}
           className="w-full h-full object-cover"
@@ -49,15 +53,23 @@ const LoadingAnimation = ({
           loop
           muted
           playsInline
+          onLoadedData={() => setVideoLoaded(true)}
+          preload="auto"
         >
           <source 
-            src="https://www.shutterstock.com/shutterstock/videos/3506486839/preview/stock-footage-a-girl-and-a-cat-sitting-on-a-train-looking-out-the-window-loop-animation.webm" 
-            type="video/webm" 
+            src="/videos/Eyeloading-bg.mp4" 
+            type="video/mp4"
           />
         </video>
+        {/* OUR VIDEO IS USED HERE <UWU></UWU> */}
+        {/* Overlay for better text visibility */}
+        <div className={`absolute inset-0 ${
+          theme === 'dark' 
+            ? 'bg-black/50' 
+            : 'bg-white/50'
+        }`} />
       </div>
 
-      <div className="absolute inset-0 bg-black/40" />
       <div className="relative z-10 flex flex-col items-center space-y-8">
         <motion.div
           className="relative w-24 h-24"
@@ -100,7 +112,6 @@ const LoadingAnimation = ({
           </svg>
         </motion.div>
 
-        {/* Brand text */}
         <motion.h1
           className="font-mono font-black text-2xl tracking-wider text-white drop-shadow-lg"
           initial={{ opacity: 0, y: 10 }}
@@ -110,7 +121,6 @@ const LoadingAnimation = ({
           SERVYL
         </motion.h1>
 
-        {/* Progress bar */}
         <motion.div
           className="w-48 h-1 rounded-full overflow-hidden bg-white/10"
           initial={{ opacity: 0, scale: 0.8 }}
