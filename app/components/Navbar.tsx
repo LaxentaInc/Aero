@@ -51,25 +51,25 @@ const GlitchText = ({ children, className = "" }: { children: string, className?
 
 const AnimatedIcon = ({ isOpen, theme }: { isOpen: boolean, theme: 'dark' | 'light' }) => {
   return (
-    <motion.div className="w-6 h-6 relative">
+    <motion.div className="w-6 h-6 flex flex-col justify-center items-center relative">
       <motion.span
-        className={`absolute block w-6 h-0.5 ${theme === 'dark' ? 'bg-white' : 'bg-black'} transform transition-all duration-300`}
+        className={`absolute w-6 h-0.5 ${theme === 'dark' ? 'bg-white' : 'bg-black'} transform transition-all duration-300`}
         animate={{
           rotate: isOpen ? 45 : 0,
-          y: isOpen ? 0 : -8
+          y: isOpen ? 0 : -6
         }}
       />
       <motion.span
-        className={`absolute block w-6 h-0.5 ${theme === 'dark' ? 'bg-white' : 'bg-black'} transform transition-all duration-300`}
+        className={`absolute w-6 h-0.5 ${theme === 'dark' ? 'bg-white' : 'bg-black'} transform transition-all duration-300`}
         animate={{
           opacity: isOpen ? 0 : 1
         }}
       />
       <motion.span
-        className={`absolute block w-6 h-0.5 ${theme === 'dark' ? 'bg-white' : 'bg-black'} transform transition-all duration-300`}
+        className={`absolute w-6 h-0.5 ${theme === 'dark' ? 'bg-white' : 'bg-black'} transform transition-all duration-300`}
         animate={{
           rotate: isOpen ? -45 : 0,
-          y: isOpen ? 0 : 8
+          y: isOpen ? 0 : 6
         }}
       />
     </motion.div>
@@ -283,7 +283,7 @@ export default function Navbar() {
               <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
               <motion.button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2"
+                className="p-2 flex items-center justify-center"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
               >

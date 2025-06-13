@@ -3,7 +3,6 @@ import { useState, useEffect, useRef } from 'react'
 import { motion, useScroll, useTransform, useSpring, AnimatePresence, useInView } from 'framer-motion'
 import { useTheme } from './contexts/ThemeContext'
 
-// Enhanced cursor with trails
 const SmoothCursor = () => {
   const cursorRef = useRef<HTMLDivElement>(null)
   const cursorOutlineRef = useRef<HTMLDivElement>(null)
@@ -91,7 +90,7 @@ const SmoothCursor = () => {
   )
 }
 
-// Enhanced Loading Screen with Cool SVG
+// loading Screen with Cool SVG
 const LoadingScreen = ({ theme }: { theme: 'dark' | 'light' }) => {
   return (
     <motion.div
@@ -102,7 +101,7 @@ const LoadingScreen = ({ theme }: { theme: 'dark' | 'light' }) => {
       transition={{ duration: 0.3 }}
     >
       <div className="relative">
-        {/* Cool Animated Loading SVG */}
+        {/* cool animated loading svgs */}
         <svg viewBox="0 0 300 300" className="w-48 h-48 sm:w-64 sm:h-64">
           <defs>
             <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -122,7 +121,7 @@ const LoadingScreen = ({ theme }: { theme: 'dark' | 'light' }) => {
             </filter>
           </defs>
 
-          {/* Hexagon Grid Pattern */}
+          {/* hex grid Pattern */}
           {[0, 1, 2, 3, 4, 5].map((i) => (
             <motion.g key={i}>
               <motion.path
@@ -139,7 +138,7 @@ const LoadingScreen = ({ theme }: { theme: 'dark' | 'light' }) => {
             </motion.g>
           ))}
 
-          {/* Central Rotating Element */}
+          {/* central rotating element */}
           <motion.g
             animate={{ rotate: 360 }}
             transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
@@ -195,7 +194,7 @@ const LoadingScreen = ({ theme }: { theme: 'dark' | 'light' }) => {
           />
         </svg>
 
-        {/* Loading text with glitch effect */}
+        {/* Loading text with glitch effect i thought i removed this eh? idk lmao ngl fk it*/}
         <motion.div
           className={`absolute -bottom-16 left-1/2 transform -translate-x-1/2 font-mono text-sm ${
             theme === 'dark' ? 'text-white/80' : 'text-black/80'
@@ -215,7 +214,7 @@ const LoadingScreen = ({ theme }: { theme: 'dark' | 'light' }) => {
             animate={{ opacity: [0, 1] }}
             transition={{ duration: 0.5, repeat: Infinity }}
           >
-            ...
+            ....
           </motion.span>
         </motion.div>
       </div>
@@ -223,7 +222,7 @@ const LoadingScreen = ({ theme }: { theme: 'dark' | 'light' }) => {
   )
 }
 
-// Discord Message Component with Email Validation
+// Discord Message Component with Email Validation ( we change it later a lil as needed )
 const DiscordMessage = ({ theme }: { theme: 'dark' | 'light' }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [email, setEmail] = useState('')
@@ -267,7 +266,7 @@ const DiscordMessage = ({ theme }: { theme: 'dark' | 'light' }) => {
 //cute
 //webhook
 //url
-//uwu
+//uwu yea holy fk i needa do it in env but meh im // lazy rn
     const webhookUrl = 'https://discord.com/api/webhooks/1382899705360679072/yn-5r_tmBxG4Oi3xCAvNv5nKAxB5sv8jwhpkwGdxCU52bzMyGF_JgvMSp7uGlVHI0X8E'
     
     try {
@@ -297,7 +296,7 @@ const DiscordMessage = ({ theme }: { theme: 'dark' | 'light' }) => {
         setIsMinimized(true)
       }, 2000)
     } catch (error) {
-      setError('Failed to send message. Please try again.')
+      setError('Failed to send message. Please fuck off ;c')
     }
   }
 
@@ -484,12 +483,12 @@ const GameServerIcon = ({ theme }: { theme: 'dark' | 'light' }) => (
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
   >
-    {/* Game Controller */}
+    {/* game Controller */}
     <motion.g
       animate={{ y: [-2, 2, -2] }}
       transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
     >
-      {/* Controller body */}
+      {/* controller body */}
       <path
         d="M60 100 Q60 80 80 80 L120 80 Q140 80 140 100 L140 110 Q140 130 120 130 L80 130 Q60 130 60 110 Z"
         fill="none"
@@ -505,18 +504,18 @@ const GameServerIcon = ({ theme }: { theme: 'dark' | 'light' }) => (
         strokeLinecap="round"
       />
       
-      {/* Buttons */}
+      {/* buttons */}
       <circle cx="115" cy="95" r="3" fill={theme === 'dark' ? 'white' : 'black'} />
       <circle cx="125" cy="100" r="3" fill={theme === 'dark' ? 'white' : 'black'} />
       <circle cx="115" cy="105" r="3" fill={theme === 'dark' ? 'white' : 'black'} />
       <circle cx="105" cy="100" r="3" fill={theme === 'dark' ? 'white' : 'black'} />
       
-      {/* Analog sticks */}
+      {/* analog stinks */}
       <circle cx="90" cy="115" r="5" fill="none" stroke={theme === 'dark' ? 'white' : 'black'} strokeWidth="1.5" />
       <circle cx="110" cy="115" r="5" fill="none" stroke={theme === 'dark' ? 'white' : 'black'} strokeWidth="1.5" />
     </motion.g>
     
-    {/* Server indicators */}
+    {/* indicators */}
     <motion.g
       animate={{ opacity: [0.3, 1, 0.3] }}
       transition={{ duration: 2, repeat: Infinity }}
@@ -526,7 +525,7 @@ const GameServerIcon = ({ theme }: { theme: 'dark' | 'light' }) => (
       <rect x="70" y="160" width="60" height="5" rx="2" fill={theme === 'dark' ? 'white' : 'black'} opacity="0.7" />
     </motion.g>
     
-    {/* Connection waves */}
+    {/*Connection waves */}
     <motion.path
       d="M50 70 Q50 60 60 60 M45 75 Q45 55 65 55 M40 80 Q40 50 70 50"
       stroke={theme === 'dark' ? 'white' : 'black'}
@@ -545,7 +544,7 @@ const AmazonStoreIcon = ({ theme }: { theme: 'dark' | 'light' }) => (
     viewBox="0 0 200 200"
     className="w-full h-full"
   >
-    {/* Shopping cart */}
+    {/*condom cart */}
     <motion.g
       animate={{ x: [-5, 5, -5] }}
       transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
@@ -559,20 +558,20 @@ const AmazonStoreIcon = ({ theme }: { theme: 'dark' | 'light' }) => (
         strokeLinejoin="round"
       />
       
-      {/* Wheels */}
+      {/* your mom's heels (wheels) */}
       <circle cx="80" cy="110" r="5" fill={theme === 'dark' ? 'white' : 'black'} />
       <circle cx="120" cy="110" r="5" fill={theme === 'dark' ? 'white' : 'black'} />
     </motion.g>
     
-    {/* Amazon smile arrow */}
+    {/*smile arrow */}
     <motion.path
       d="M70 130 Q100 150 130 130"
       fill="none"
       stroke={theme === 'dark' ? 'white' : 'black'}
-      strokeWidth="2"
+      strokeWidth="3"
       strokeLinecap="round"
       initial={{ pathLength: 0 }}
-      animate={{ pathLength: 1 }}
+      animate={{ pathLength: 3 }}
       transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
     />
     
@@ -783,11 +782,17 @@ const MegaCard = ({
   }
 
   const handleCTAClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
+    e.preventDefault()
     setIsNavigating(true)
-    setTimeout(() => {
-      window.location.href = isHosting ? '/hosting' : '/products'
-    }, 1500)
+
+    // Add navigation logic based on the title
+    if (title === 'CUSTOM SOLUTIONS') {
+      window.location.href = '/products'
+    } else if (title === 'GAME HOSTING') {
+      window.location.href = 'https://cp.servyl.com'
+    } else if (title === 'AMAZON STORE') {
+      window.open('https://amazon.com/shops/servyl', '_blank')
+    }
   }
 
   const handleTooltipClick = (e: React.MouseEvent) => {

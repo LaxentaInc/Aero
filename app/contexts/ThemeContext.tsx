@@ -19,7 +19,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (savedTheme) {
       setTheme(savedTheme)
     } else {
-      // Check system preference
+      // system preference
       const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
       setTheme(systemPrefersDark ? 'dark' : 'light')
     }
@@ -31,7 +31,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('servyl-theme', newTheme)
   }
 
-  // Prevent hydration mismatch by not rendering until mounted
+  // prevent hydration mismatch by not rendering until mounted
   if (!mounted) {
     return null
   }
