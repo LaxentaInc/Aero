@@ -3,7 +3,136 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useTheme } from '../contexts/ThemeContext'
+
+const LoadingAnimation = ({ 
+  theme, 
+  onComplete 
+}: { 
+  theme: 'dark' | 'light', 
+  onComplete?: () => void 
+}) => {
+  const [shouldExit, setShouldExit] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShouldExit(true);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (shouldExit && onComplete) {
+      const exitTimer = setTimeout(onComplete, 300);
+      return () => clearTimeout(exitTimer);
+    }
+  }, [shouldExit, onComplete]);
+
+  return (
+    <motion.div
+      className={`fixed inset-0 z-[9999] flex items-center justify-center ${
+        theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100'
+      }`}
+      initial={{ opacity: 1 }}
+      animate={{ opacity: shouldExit ? 0 : 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <div className="absolute inset-0">
+        <video
+          ref={videoRef}
+          className="w-full h-full object-cover"
+          autoPlay
+          loop
+          muted
+          playsInline
+        >
+          <source 
+            src="https://www.shutterstock.com/shutterstock/videos/3506486839/preview/stock-footage-a-girl-and-a-cat-sitting-on-a-train-looking-out-the-window-loop-animation.webm" 
+            type="video/webm" 
+          />
+        </video>
+      </div>
+
+      <div className="absolute inset-0 bg-black/40" />
+      <div className="relative z-10 flex flex-col items-center space-y-8">
+        <motion.div
+          className="relative w-24 h-24"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+        >
+          <svg
+            className="w-full h-full text-white drop-shadow-lg"
+            viewBox="0 0 100 100"
+          >
+            <circle
+              cx="50"
+              cy="50"
+              r="45"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeDasharray="70 200"
+              strokeLinecap="round"
+              className="opacity-20"
+            />
+            <motion.circle
+              cx="50"
+              cy="50"
+              r="45"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeDasharray="70 200"
+              strokeLinecap="round"
+              animate={{
+                strokeDashoffset: [0, -280],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "linear"
+              }}
+            />
+          </svg>
+        </motion.div>
+
+        {/* Brand text */}
+        <motion.h1
+          className="font-mono font-black text-2xl tracking-wider text-white drop-shadow-lg"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          SERVYL
+        </motion.h1>
+
+        {/* Progress bar */}
+        <motion.div
+          className="w-48 h-1 rounded-full overflow-hidden bg-white/10"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.4 }}
+        >
+          <motion.div
+            className="h-full bg-white"
+            animate={{
+              x: ["-100%", "100%"],
+            }}
+            transition={{
+              duration: 1.5,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+        </motion.div>
+      </div>
+    </motion.div>
+  )
+}
 
 const GlitchText = ({ children, className = "" }: { children: string, className?: string }) => {
   return (
@@ -127,10 +256,12 @@ const ThemeToggle = ({ theme, toggleTheme }: { theme: 'dark' | 'light', toggleTh
 }
 
 export default function Navbar() {
-  const { theme, toggleTheme } = useTheme() // Use the context
+  const { theme, toggleTheme } = useTheme()
+  const router = useRouter()
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const audioContextRef = useRef<AudioContext | null>(null)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -141,21 +272,119 @@ export default function Navbar() {
   }, [])
 
   useEffect(() => {
-    // Create audio context for hover sounds (optional)
-    if (typeof window !== 'undefined') {
-      audioRef.current = new Audio()
+    const initAudioContext = () => {
+      if (!audioContextRef.current) {
+        audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)()
+      }
+    }
+    
+    window.addEventListener('click', initAudioContext, { once: true })
+    window.addEventListener('touchstart', initAudioContext, { once: true })
+    
+    return () => {
+      window.removeEventListener('click', initAudioContext)
+      window.removeEventListener('touchstart', initAudioContext)
     }
   }, [])
 
-  const playHoverSound = () => {
-    // Optional: Add subtle click/hover sound
-    // You can add a small audio file for this
+  const playSound = (type: 'click' | 'hover' | 'theme') => {
+    if (!audioContextRef.current || typeof window === 'undefined') return
+    
+    const audioContext = audioContextRef.current
+    
+    requestAnimationFrame(() => {
+      switch (type) {
+        case 'click':
+          const clickOsc = audioContext.createOscillator()
+          const clickGain = audioContext.createGain()
+          
+          clickOsc.connect(clickGain)
+          clickGain.connect(audioContext.destination)
+          
+          clickOsc.type = 'sine'
+          clickOsc.frequency.setValueAtTime(600, audioContext.currentTime)
+          clickOsc.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.01)
+          
+          clickGain.gain.setValueAtTime(0.1, audioContext.currentTime)
+          clickGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1)
+          
+          clickOsc.start(audioContext.currentTime)
+          clickOsc.stop(audioContext.currentTime + 0.1)
+          break
+          
+        case 'hover':
+          const hoverOsc = audioContext.createOscillator()
+          const hoverGain = audioContext.createGain()
+          
+          hoverOsc.connect(hoverGain)
+          hoverGain.connect(audioContext.destination)
+          
+          hoverOsc.type = 'sine'
+          hoverOsc.frequency.setValueAtTime(800, audioContext.currentTime)
+          
+          hoverGain.gain.setValueAtTime(0.05, audioContext.currentTime)
+          hoverGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.05)
+          
+          hoverOsc.start(audioContext.currentTime)
+          hoverOsc.stop(audioContext.currentTime + 0.05)
+          break
+          
+        case 'theme':
+          const themeOsc = audioContext.createOscillator()
+          const themeGain = audioContext.createGain()
+          
+          themeOsc.connect(themeGain)
+          themeGain.connect(audioContext.destination)
+          
+          themeOsc.type = 'sine'
+          if (theme === 'dark') {
+            themeOsc.frequency.setValueAtTime(400, audioContext.currentTime)
+            themeOsc.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.15)
+          } else {
+            themeOsc.frequency.setValueAtTime(800, audioContext.currentTime)
+            themeOsc.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.15)
+          }
+          
+          themeGain.gain.setValueAtTime(0.1, audioContext.currentTime)
+          themeGain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15)
+          
+          themeOsc.start(audioContext.currentTime)
+          themeOsc.stop(audioContext.currentTime + 0.15)
+          break
+      }
+    })
   }
 
-  const navItems = ['products', 'docs', 'community', 'about']
+  const handleNavigation = (href: string) => {
+    playSound('click')
+    setIsLoading(true)
+    setMobileMenuOpen(false)
+    
+    router.push(href)
+  }
+
+  const handleLoadingComplete = () => {
+    setIsLoading(false)
+  }
+
+  const handleThemeToggle = () => {
+    playSound('theme')
+    toggleTheme()
+  }
+
+  const navItems = ['products', 'hosting', 'docs', 'about']
 
   return (
     <>
+      <AnimatePresence>
+        {isLoading && (
+          <LoadingAnimation 
+            theme={theme} 
+            onComplete={handleLoadingComplete}
+          />
+        )}
+      </AnimatePresence>
+
       <motion.nav
         className={`fixed top-0 w-full z-50 transition-all duration-500 ${
           scrolled 
@@ -170,7 +399,6 @@ export default function Navbar() {
         animate={{ y: 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
-        {/* Animated background grid */}
         <div className="absolute inset-0 overflow-hidden">
           <motion.div
             className={`absolute inset-0 opacity-5 ${theme === 'dark' ? 'bg-white' : 'bg-black'}`}
@@ -192,8 +420,11 @@ export default function Navbar() {
         <div className="max-w-7xl mx-auto px-6 relative">
           <div className="flex justify-between items-center h-16">
             
-            {/* Logo with glitch effect */}
-            <Link href="/" className="flex items-center space-x-3 z-10 group">
+            <button
+              onClick={() => handleNavigation('/')}
+              className="flex items-center space-x-3 z-10 group"
+              onMouseEnter={() => playSound('hover')}
+            >
               <motion.div
                 className={`w-8 h-8 relative font-mono font-black text-lg flex items-center justify-center ${
                   theme === 'dark' ? 'text-white' : 'text-black'
@@ -217,9 +448,8 @@ export default function Navbar() {
               <GlitchText className={`text-xl font-black font-mono ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
                 SERVYL
               </GlitchText>
-            </Link>
+            </button>
 
-            {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-8">
               {navItems.map((item, index) => (
                 <motion.div
@@ -228,12 +458,12 @@ export default function Navbar() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                 >
-                  <Link
-                    href={`/${item}`}
+                  <button
+                    onClick={() => handleNavigation(`/${item}`)}
                     className={`font-mono text-sm uppercase tracking-wide transition-all duration-300 relative group ${
                       theme === 'dark' ? 'text-white/70 hover:text-white' : 'text-black/70 hover:text-black'
                     }`}
-                    onMouseEnter={playHoverSound}
+                    onMouseEnter={() => playSound('hover')}
                   >
                     <span className="relative z-10">{item}</span>
                     <motion.span
@@ -242,27 +472,26 @@ export default function Navbar() {
                       transition={{ duration: 0.2 }}
                     />
                     
-                    {/* Underline animation */}
                     <motion.span
                       className={`absolute -bottom-1 left-0 h-0.5 ${theme === 'dark' ? 'bg-white' : 'bg-black'} w-0 group-hover:w-full transition-all duration-300`}
                     />
-                  </Link>
+                  </button>
                 </motion.div>
               ))}
               
-              {/* CTA Button */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.4 }}
               >
-                <Link
-                  href="/try"
+                <button
+                  onClick={() => handleNavigation('/try')}
                   className={`relative px-6 py-2 font-mono text-sm font-bold uppercase tracking-wide transition-all duration-300 overflow-hidden group ${
                     theme === 'dark' 
                       ? 'bg-white text-black hover:bg-transparent hover:text-white border border-white' 
                       : 'bg-black text-white hover:bg-transparent hover:text-black border border-black'
                   }`}
+                  onMouseEnter={() => playSound('hover')}
                 >
                   <span className="relative z-10">TRY IT</span>
                   <motion.span
@@ -271,18 +500,25 @@ export default function Navbar() {
                     whileHover={{ scaleX: 0 }}
                     transition={{ duration: 0.3 }}
                   />
-                </Link>
+                </button>
               </motion.div>
 
               {/* Theme Toggle */}
-              <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
+              <div onClick={handleThemeToggle}>
+                <ThemeToggle theme={theme} toggleTheme={() => {}} />
+              </div>
             </div>
 
             {/* Mobile Menu Button */}
             <div className="md:hidden flex items-center space-x-4">
-              <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
+              <div onClick={handleThemeToggle}>
+                <ThemeToggle theme={theme} toggleTheme={() => {}} />
+              </div>
               <motion.button
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                onClick={() => {
+                  playSound('click')
+                  setMobileMenuOpen(!mobileMenuOpen)
+                }}
                 className="p-2 flex items-center justify-center"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -294,7 +530,6 @@ export default function Navbar() {
         </div>
       </motion.nav>
 
-      {/* Mobile Menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <>
@@ -323,15 +558,15 @@ export default function Navbar() {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.1 }}
                   >
-                    <Link
-                      href={`/${item}`}
-                      onClick={() => setMobileMenuOpen(false)}
+                    <button
+                      onClick={() => handleNavigation(`/${item}`)}
                       className={`block font-mono text-lg uppercase tracking-wide ${
                         theme === 'dark' ? 'text-white' : 'text-black'
                       } hover:text-opacity-70 transition-all duration-300`}
+                      onMouseEnter={() => playSound('hover')}
                     >
                       <GlitchText>{item}</GlitchText>
-                    </Link>
+                    </button>
                   </motion.div>
                 ))}
                 
@@ -341,17 +576,17 @@ export default function Navbar() {
                   transition={{ delay: 0.4 }}
                   className="pt-4 border-t border-opacity-20"
                 >
-                  <Link
-                    href="/try"
-                    onClick={() => setMobileMenuOpen(false)}
+                  <button
+                    onClick={() => handleNavigation('/try')}
                     className={`block w-full text-center py-3 font-mono text-sm font-bold uppercase tracking-wide transition-all duration-300 ${
                       theme === 'dark' 
                         ? 'bg-white text-black hover:bg-transparent hover:text-white border border-white' 
                         : 'bg-black text-white hover:bg-transparent hover:text-black border border-black'
                     }`}
+                    onMouseEnter={() => playSound('hover')}
                   >
                     TRY IT
-                  </Link>
+                  </button>
                 </motion.div>
               </div>
             </motion.div>
