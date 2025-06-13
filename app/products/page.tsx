@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, useScroll, useTransform, AnimatePresence, useInView } from 'framer-motion'
 import { useRouter } from 'next/navigation'
-import { useTheme } from '../contexts/ThemeContext' // Add this import
+import { useTheme } from '../contexts/ThemeContext'
 
 const products = [
 	{

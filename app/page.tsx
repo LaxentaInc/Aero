@@ -1,9 +1,9 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { motion, useScroll, useTransform, useSpring, AnimatePresence, useInView } from 'framer-motion'
-import { useTheme } from './contexts/ThemeContext' // Add this import
+import { useTheme } from './contexts/ThemeContext'
 
-//cursor with trails
+// Enhanced cursor with trails
 const SmoothCursor = () => {
   const cursorRef = useRef<HTMLDivElement>(null)
   const cursorOutlineRef = useRef<HTMLDivElement>(null)
@@ -12,7 +12,6 @@ const SmoothCursor = () => {
   const frameRef = useRef<number>(0)
   const [isMobile, setIsMobile] = useState(false)
 
-  // Simplified mobile detection
   useEffect(() => {
     const isTouchDevice = 'ontouchstart' in window
     setIsMobile(isTouchDevice)
@@ -21,17 +20,16 @@ const SmoothCursor = () => {
   useEffect(() => {
     if (isMobile) return
 
-    // Add cursor:none to body
     document.body.style.cursor = 'none'
 
     const handleMouseMove = (e: MouseEvent) => {
-      // Use client coordinates instead of page coordinates
       positionRef.current.mouseX = e.clientX
       positionRef.current.mouseY = e.clientY
     }
 
     const handleMouseEnter = (e: Event) => {
-      if ((e.target as HTMLElement).hasAttribute('data-cursor-pointer')) {
+      const target = e.target
+      if (target && target instanceof Element && target.hasAttribute('data-cursor-pointer')) {
         cursorVariantRef.current = 'hover'
       }
     }
@@ -48,10 +46,8 @@ const SmoothCursor = () => {
       if (cursor && cursorOutline) {
         const scale = cursorVariantRef.current === 'hover' ? 1.5 : 1
         
-        // Direct transform without calculations
         cursor.style.transform = `translate3d(${mouseX - 8}px, ${mouseY - 8}px, 0) scale(${scale})`
         
-        // Smoother outline with spring effect
         positionRef.current.outlineX += (mouseX - outlineX) * 0.2
         positionRef.current.outlineY += (mouseY - outlineY) * 0.2
         cursorOutline.style.transform = `translate3d(${positionRef.current.outlineX - 20}px, ${positionRef.current.outlineY - 20}px, 0) scale(${scale})`
@@ -81,148 +77,625 @@ const SmoothCursor = () => {
       <div
         ref={cursorRef}
         className="fixed w-4 h-4 rounded-full pointer-events-none z-[100] mix-blend-difference bg-white will-change-transform"
-        style={{ transform: 'translate3d(-100px, -100px, 0)' }} // Initial off-screen position
+        style={{ transform: 'translate3d(-100px, -100px, 0)' }}
       />
       <div
         ref={cursorOutlineRef}
         className="fixed w-10 h-10 rounded-full pointer-events-none z-[99] mix-blend-difference will-change-transform"
         style={{ 
           border: '1px solid white',
-          transform: 'translate3d(-100px, -100px, 0)' // Initial off-screen position
+          transform: 'translate3d(-100px, -100px, 0)'
         }}
       />
     </>
   )
 }
 
-// ugh page transition overlay
-const PageTransition = ({ onComplete }: { onComplete: () => void }) => {
+// Enhanced Loading Screen with Cool SVG
+const LoadingScreen = ({ theme }: { theme: 'dark' | 'light' }) => {
   return (
     <motion.div
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-black"
+      className={`fixed inset-0 z-[300] ${theme === 'dark' ? 'bg-black' : 'bg-white'} flex items-center justify-center`}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.5 }}
-      onAnimationComplete={onComplete}
+      transition={{ duration: 0.3 }}
     >
-      <motion.svg
-        viewBox="0 0 200 200"
-        className="w-24 h-24 sm:w-32 sm:h-32"
-        initial={{ scale: 0, rotate: 0 }}
-        animate={{ scale: [0, 1, 1.2, 0], rotate: [0, 180, 360] }}
-        transition={{ duration: 1.5, times: [0, 0.4, 0.8, 1] }}
-      >
-        <motion.path
-          d="M100,20 L180,100 L100,180 L20,100 Z"
-          fill="none"
-          stroke="white"
-          strokeWidth="2"
-          initial={{ pathLength: 0 }}
-          animate={{ pathLength: 1 }}
-          transition={{ duration: 1.5 }}
-        />
-        <motion.circle
-          cx="100"
-          cy="100"
-          r="30"
-          fill="none"
-          stroke="white"
-          strokeWidth="1"
-          initial={{ scale: 0 }}
-          animate={{ scale: [0, 1, 0] }}
-          transition={{ duration: 1.5, times: [0.2, 0.6, 1] }}
-        />
-      </motion.svg>
+      <div className="relative">
+        {/* Cool Animated Loading SVG */}
+        <svg viewBox="0 0 300 300" className="w-48 h-48 sm:w-64 sm:h-64">
+          <defs>
+            <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor={theme === 'dark' ? '#fff' : '#000'} stopOpacity="0">
+                <animate attributeName="stop-opacity" values="0;1;0" dur="2s" repeatCount="indefinite" />
+              </stop>
+              <stop offset="100%" stopColor={theme === 'dark' ? '#fff' : '#000'} stopOpacity="1">
+                <animate attributeName="stop-opacity" values="1;0;1" dur="2s" repeatCount="indefinite" />
+              </stop>
+            </linearGradient>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+
+          {/* Hexagon Grid Pattern */}
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <motion.g key={i}>
+              <motion.path
+                d={`M${150 + Math.cos(i * Math.PI / 3) * 60} ${150 + Math.sin(i * Math.PI / 3) * 60} 
+                    L${150 + Math.cos((i + 1) * Math.PI / 3) * 60} ${150 + Math.sin((i + 1) * Math.PI / 3) * 60}`}
+                stroke="url(#gradient1)"
+                strokeWidth="2"
+                fill="none"
+                filter="url(#glow)"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 1, delay: i * 0.1, repeat: Infinity, repeatType: "reverse" }}
+              />
+            </motion.g>
+          ))}
+
+          {/* Central Rotating Element */}
+          <motion.g
+            animate={{ rotate: 360 }}
+            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+            style={{ transformOrigin: '150px 150px' }}
+          >
+            <motion.polygon
+              points="150,100 175,125 175,175 150,200 125,175 125,125"
+              fill="none"
+              stroke={theme === 'dark' ? '#fff' : '#000'}
+              strokeWidth="2"
+              filter="url(#glow)"
+              animate={{
+                scale: [1, 1.1, 1],
+                opacity: [0.5, 1, 0.5]
+              }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
+          </motion.g>
+
+          {/* Orbiting Particles */}
+          {[0, 120, 240].map((angle) => (
+            <motion.circle
+              key={angle}
+              r="3"
+              fill={theme === 'dark' ? '#fff' : '#000'}
+              filter="url(#glow)"
+              animate={{
+                x: [
+                  150 + Math.cos((angle * Math.PI) / 180) * 80,
+                  150 + Math.cos(((angle + 360) * Math.PI) / 180) * 80
+                ],
+                y: [
+                  150 + Math.sin((angle * Math.PI) / 180) * 80,
+                  150 + Math.sin(((angle + 360) * Math.PI) / 180) * 80
+                ]
+              }}
+              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+            />
+          ))}
+
+          {/* Pulsing Core */}
+          <motion.circle
+            cx="150"
+            cy="150"
+            r="10"
+            fill={theme === 'dark' ? '#fff' : '#000'}
+            filter="url(#glow)"
+            animate={{
+              scale: [1, 1.5, 1],
+              opacity: [1, 0.3, 1]
+            }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+          />
+        </svg>
+
+        {/* Loading text with glitch effect */}
+        <motion.div
+          className={`absolute -bottom-16 left-1/2 transform -translate-x-1/2 font-mono text-sm ${
+            theme === 'dark' ? 'text-white/80' : 'text-black/80'
+          }`}
+        >
+          <motion.span
+            animate={{
+              opacity: [1, 0.8, 1],
+              x: [-1, 1, -1, 0]
+            }}
+            transition={{ duration: 0.2, repeat: Infinity }}
+            style={{ display: 'inline-block' }}
+          >
+            LOADING
+          </motion.span>
+          <motion.span
+            animate={{ opacity: [0, 1] }}
+            transition={{ duration: 0.5, repeat: Infinity }}
+          >
+            ...
+          </motion.span>
+        </motion.div>
+      </div>
     </motion.div>
   )
 }
 
-// Updated Typewriter for theme support
-const Typewriter = ({ text, delay = 0, speed = 50, theme }: { text: string, delay?: number, speed?: number, theme: 'dark' | 'light' }) => {
-  const [displayText, setDisplayText] = useState('')
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [showCursor, setShowCursor] = useState(true)
-  
+// Discord Message Component with Email Validation
+const DiscordMessage = ({ theme }: { theme: 'dark' | 'light' }) => {
+  const [isOpen, setIsOpen] = useState(false)
+  const [email, setEmail] = useState('')
+  const [message, setMessage] = useState('')
+  const [isSent, setIsSent] = useState(false)
+  const [isMinimized, setIsMinimized] = useState(false)
+  const [error, setError] = useState('')
+  const hasSentRef = useRef(false)
+
   useEffect(() => {
-    setDisplayText('')
-    setCurrentIndex(0)
-    setShowCursor(true)
-  }, [text])
-  
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (currentIndex < text.length) {
-        const timer = setTimeout(() => {
-          setDisplayText(prev => prev + text[currentIndex])
-          setCurrentIndex(prev => prev + 1)
-        }, speed)
-        return () => clearTimeout(timer)
-      } else {
-        setTimeout(() => setShowCursor(false), 1000)
-      }
-    }, delay)
+    const hasMessagedBefore = localStorage.getItem('servyl-discord-sent')
+    if (hasMessagedBefore) {
+      hasSentRef.current = true
+      setIsSent(true)
+    } else {
+      const timer = setTimeout(() => setIsOpen(true), 3000)
+      return () => clearTimeout(timer)
+    }
+  }, [])
+
+  const validateEmail = (email: string) => {
+    const gmailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/
+    return gmailRegex.test(email)
+  }
+
+  const sendToDiscord = async () => {
+    setError('')
     
-    return () => clearTimeout(timeout)
-  }, [currentIndex, text, delay, speed])
-  
-  return (
-    <span className="relative">
-      {displayText}
-      {showCursor && (
-        <motion.span
-          className={`inline-block w-[2px] sm:w-[3px] h-[1.1em] ${theme === 'dark' ? 'bg-white' : 'bg-black'} ml-1 align-middle`}
-          animate={{ opacity: [1, 1, 0, 0] }}
-          transition={{ duration: 1, repeat: Infinity, times: [0, 0.5, 0.5, 1] }}
-        />
-      )}
-    </span>
-  )
-}
-
-// Animated backgrounds with theme support
-const AnimatedBg1 = ({ theme }: { theme: 'dark' | 'light' }) => {
-  const color = theme === 'dark' ? 'white' : 'black'
-  return (
-    <svg className="absolute inset-0 w-full h-full" viewBox="0 0 1000 1000">
-      <defs>
-        <filter id="goo">
-          <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
-          <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -8" />
-        </filter>
-      </defs>
+    if (!validateEmail(email)) {
+      setError('Please enter a valid @gmail.com email')
+      return
+    }
+    
+    if (!message.trim()) {
+      setError('Please enter a message')
+      return
+    }
+    
+    if (hasSentRef.current) return
+//our
+//cute
+//webhook
+//url
+//uwu
+    const webhookUrl = 'https://discord.com/api/webhooks/1382899705360679072/yn-5r_tmBxG4Oi3xCAvNv5nKAxB5sv8jwhpkwGdxCU52bzMyGF_JgvMSp7uGlVHI0X8E'
+    
+    try {
+      await fetch(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: `New message from Servyl website`,
+          embeds: [{
+            color: theme === 'dark' ? 0xffffff : 0x000000,
+            fields: [
+              { name: 'Email', value: email },
+              { name: 'Message', value: message },
+              { name: 'Timestamp', value: new Date().toISOString() }
+            ]
+          }]
+        })
+      })
       
-      {[...Array(5)].map((_, i) => (
-        <motion.circle
-          key={i}
-          r="60"
-          fill={color}
-          fillOpacity="0.03"
-          filter="url(#goo)"
-          animate={{
-            cx: [
-              500 + Math.cos(i * 72 * Math.PI / 180) * 150,
-              500 + Math.cos((i * 72 + 180) * Math.PI / 180) * 150,
-              500 + Math.cos(i * 72 * Math.PI / 180) * 150,
-            ],
-            cy: [
-              500 + Math.sin(i * 72 * Math.PI / 180) * 150,
-              500 + Math.sin((i * 72 + 180) * Math.PI / 180) * 150,
-              500 + Math.sin(i * 72 * Math.PI / 180) * 150,
-            ],
-          }}
-          transition={{
-            duration: 10 + i * 2,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-      ))}
-    </svg>
+      localStorage.setItem('servyl-discord-sent', 'true')
+      hasSentRef.current = true
+      setIsSent(true)
+      setMessage('')
+      setEmail('')
+      
+      setTimeout(() => {
+        setIsMinimized(true)
+      }, 2000)
+    } catch (error) {
+      setError('Failed to send message. Please try again.')
+    }
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8, y: 20 }}
+        animate={{ 
+          opacity: 1, 
+          scale: isMinimized ? 0.9 : 1, 
+          y: 0,
+          width: isMinimized ? 60 : 340,
+          height: isMinimized ? 60 : 'auto'
+        }}
+        exit={{ opacity: 0, scale: 0.8, y: 20 }}
+        className={`fixed bottom-8 right-8 z-50 ${
+          theme === 'dark' ? 'bg-black/90' : 'bg-white/90'
+        } backdrop-blur-xl border ${
+          theme === 'dark' ? 'border-white/20' : 'border-black/20'
+        } rounded-2xl shadow-2xl overflow-hidden`}
+        data-cursor-pointer
+      >
+        {!isMinimized ? (
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <motion.svg
+                  viewBox="0 0 24 24"
+                  className="w-8 h-8"
+                  animate={{ rotate: [0, 360] }}
+                  transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                >
+                  <path
+                    d="M12 2L2 7L12 12L22 7L12 2Z"
+                    stroke={theme === 'dark' ? 'white' : 'black'}
+                    strokeWidth="2"
+                    fill="none"
+                  />
+                  <path
+                    d="M2 17L12 22L22 17"
+                    stroke={theme === 'dark' ? 'white' : 'black'}
+                    strokeWidth="2"
+                    fill="none"
+                  />
+                  <path
+                    d="M2 12L12 17L22 12"
+                    stroke={theme === 'dark' ? 'white' : 'black'}
+                    strokeWidth="2"
+                    fill="none"
+                  />
+                </motion.svg>
+                <h3 className={`font-mono text-sm font-bold ${
+                  theme === 'dark' ? 'text-white' : 'text-black'
+                }`}>
+                  {isSent ? 'MESSAGE SENT!' : 'QUICK MESSAGE'}
+                </h3>
+              </div>
+              <button
+                onClick={() => setIsMinimized(true)}
+                className={`p-1 rounded-lg hover:bg-white/10 transition-colors`}
+                data-cursor-pointer
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill={theme === 'dark' ? 'white' : 'black'}>
+                  <path d="M2 8h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </button>
+            </div>
+
+            {!isSent ? (
+              <>
+                <p className={`text-xs ${
+                  theme === 'dark' ? 'text-white/60' : 'text-black/60'
+                } mb-3`}>
+                  Send us a quick message via Discord!
+                </p>
+                <div className="space-y-3">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="your@gmail.com"
+                    className={`w-full p-3 text-sm rounded-lg ${
+                      theme === 'dark' 
+                        ? 'bg-white/10 text-white placeholder-white/40 border-white/20' 
+                        : 'bg-black/10 text-black placeholder-black/40 border-black/20'
+                    } border focus:outline-none focus:ring-2 ${
+                      theme === 'dark' ? 'focus:ring-white/50' : 'focus:ring-black/50'
+                    }`}
+                  />
+                  <textarea
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Type your message..."
+                    className={`w-full p-3 text-sm rounded-lg ${
+                      theme === 'dark' 
+                        ? 'bg-white/10 text-white placeholder-white/40 border-white/20' 
+                        : 'bg-black/10 text-black placeholder-black/40 border-black/20'
+                    } border focus:outline-none focus:ring-2 ${
+                      theme === 'dark' ? 'focus:ring-white/50' : 'focus:ring-black/50'
+                    } resize-none`}
+                    rows={3}
+                  />
+                  {error && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className={`text-xs ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}
+                    >
+                      {error}
+                    </motion.p>
+                  )}
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={sendToDiscord}
+                    className={`w-full py-2 px-4 rounded-lg font-mono text-xs font-bold ${
+                      theme === 'dark' 
+                        ? 'bg-white text-black hover:bg-white/90' 
+                        : 'bg-black text-white hover:bg-black/90'
+                    } transition-colors`}
+                    data-cursor-pointer
+                  >
+                    SEND MESSAGE
+                  </motion.button>
+                </div>
+              </>
+            ) : (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-center py-4"
+              >
+                <motion.svg
+                  className="w-12 h-12 mx-auto mb-2"
+                  viewBox="0 0 24 24"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 200 }}
+                >
+                  <circle cx="12" cy="12" r="10" stroke={theme === 'dark' ? 'white' : 'black'} strokeWidth="2" fill="none"/>
+                  <path d="M7 12l3 3 7-7" stroke={theme === 'dark' ? 'white' : 'black'} strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                </motion.svg>
+                <p className={`text-sm ${theme === 'dark' ? 'text-white/80' : 'text-black/80'}`}>
+                  Thanks for reaching out!
+                </p>
+              </motion.div>
+            )}
+          </div>
+        ) : (
+          <button
+            onClick={() => setIsMinimized(false)}
+            className="w-full h-full flex items-center justify-center"
+            data-cursor-pointer
+          >
+            <motion.svg
+              viewBox="0 0 24 24"
+              className="w-6 h-6"
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <path
+                d="M8 10h8M8 14h8M7 18h10l3 3V6a2 2 0 00-2-2H6a2 2 0 00-2 2v10a2 2 0 002 2z"
+                stroke={theme === 'dark' ? 'white' : 'black'}
+                strokeWidth="2"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </motion.svg>
+          </button>
+        )}
+      </motion.div>
+    </AnimatePresence>
   )
 }
 
-// Sleek CTA Button Component
+// Proper service-themed SVG icons
+const GameServerIcon = ({ theme }: { theme: 'dark' | 'light' }) => (
+  <motion.svg
+    viewBox="0 0 200 200"
+    className="w-full h-full"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+  >
+    {/* Game Controller */}
+    <motion.g
+      animate={{ y: [-2, 2, -2] }}
+      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+    >
+      {/* Controller body */}
+      <path
+        d="M60 100 Q60 80 80 80 L120 80 Q140 80 140 100 L140 110 Q140 130 120 130 L80 130 Q60 130 60 110 Z"
+        fill="none"
+        stroke={theme === 'dark' ? 'white' : 'black'}
+        strokeWidth="2"
+      />
+      
+      {/* D-pad */}
+      <path
+        d="M80 95 L80 105 M75 100 L85 100"
+        stroke={theme === 'dark' ? 'white' : 'black'}
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      
+      {/* Buttons */}
+      <circle cx="115" cy="95" r="3" fill={theme === 'dark' ? 'white' : 'black'} />
+      <circle cx="125" cy="100" r="3" fill={theme === 'dark' ? 'white' : 'black'} />
+      <circle cx="115" cy="105" r="3" fill={theme === 'dark' ? 'white' : 'black'} />
+      <circle cx="105" cy="100" r="3" fill={theme === 'dark' ? 'white' : 'black'} />
+      
+      {/* Analog sticks */}
+      <circle cx="90" cy="115" r="5" fill="none" stroke={theme === 'dark' ? 'white' : 'black'} strokeWidth="1.5" />
+      <circle cx="110" cy="115" r="5" fill="none" stroke={theme === 'dark' ? 'white' : 'black'} strokeWidth="1.5" />
+    </motion.g>
+    
+    {/* Server indicators */}
+    <motion.g
+      animate={{ opacity: [0.3, 1, 0.3] }}
+      transition={{ duration: 2, repeat: Infinity }}
+    >
+      <rect x="70" y="140" width="60" height="5" rx="2" fill={theme === 'dark' ? 'white' : 'black'} opacity="0.3" />
+      <rect x="70" y="150" width="60" height="5" rx="2" fill={theme === 'dark' ? 'white' : 'black'} opacity="0.5" />
+      <rect x="70" y="160" width="60" height="5" rx="2" fill={theme === 'dark' ? 'white' : 'black'} opacity="0.7" />
+    </motion.g>
+    
+    {/* Connection waves */}
+    <motion.path
+      d="M50 70 Q50 60 60 60 M45 75 Q45 55 65 55 M40 80 Q40 50 70 50"
+      stroke={theme === 'dark' ? 'white' : 'black'}
+      strokeWidth="1.5"
+      fill="none"
+      strokeLinecap="round"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: [0, 1, 0] }}
+      transition={{ duration: 1.5, repeat: Infinity }}
+    />
+  </motion.svg>
+)
+
+const AmazonStoreIcon = ({ theme }: { theme: 'dark' | 'light' }) => (
+  <motion.svg
+    viewBox="0 0 200 200"
+    className="w-full h-full"
+  >
+    {/* Shopping cart */}
+    <motion.g
+      animate={{ x: [-5, 5, -5] }}
+      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+    >
+      <path
+        d="M50 60 L60 60 L70 100 L130 100 L140 70 L80 70"
+        fill="none"
+        stroke={theme === 'dark' ? 'white' : 'black'}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      
+      {/* Wheels */}
+      <circle cx="80" cy="110" r="5" fill={theme === 'dark' ? 'white' : 'black'} />
+      <circle cx="120" cy="110" r="5" fill={theme === 'dark' ? 'white' : 'black'} />
+    </motion.g>
+    
+    {/* Amazon smile arrow */}
+    <motion.path
+      d="M70 130 Q100 150 130 130"
+      fill="none"
+      stroke={theme === 'dark' ? 'white' : 'black'}
+      strokeWidth="2"
+      strokeLinecap="round"
+      initial={{ pathLength: 0 }}
+      animate={{ pathLength: 1 }}
+      transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
+    />
+    
+    {/* Package boxes */}
+    <motion.g
+      animate={{ rotate: [0, 10, -10, 0] }}
+      transition={{ duration: 3, repeat: Infinity }}
+      style={{ transformOrigin: '100px 100px' }}
+    >
+      <rect x="85" y="75" width="15" height="15" fill="none" stroke={theme === 'dark' ? 'white' : 'black'} strokeWidth="1.5" />
+      <rect x="105" y="80" width="12" height="12" fill="none" stroke={theme === 'dark' ? 'white' : 'black'} strokeWidth="1.5" />
+      <path d="M85 82 L100 82 M105 86 L117 86" stroke={theme === 'dark' ? 'white' : 'black'} strokeWidth="1" />
+    </motion.g>
+    
+    {/* Stars for ratings */}
+    {[0, 1, 2, 3, 4].map((i) => (
+      <motion.path
+        key={i}
+        d={`M${65 + i * 15} 45 L${67 + i * 15} 49 L${71 + i * 15} 49 L${68 + i * 15} 51 L${69 + i * 15} 55 L${65 + i * 15} 52 L${61 + i * 15} 55 L${62 + i * 15} 51 L${59 + i * 15} 49 L${63 + i * 15} 49 Z`}
+        fill={theme === 'dark' ? 'white' : 'black'}
+        initial={{ scale: 0 }}
+        animate={{ scale: [0, 1.2, 1] }}
+        transition={{ duration: 0.5, delay: i * 0.1, repeat: Infinity, repeatDelay: 3 }}
+        style={{ transformOrigin: `${65 + i * 15}px 50px` }}
+      />
+    ))}
+  </motion.svg>
+)
+
+const CustomSolutionsIcon = ({ theme }: { theme: 'dark' | 'light' }) => (
+  <motion.svg
+    viewBox="0 0 200 200"
+    className="w-full h-full"
+  >
+    {/* Central server */}
+    <rect
+      x="85"
+      y="85"
+      width="30"
+      height="30"
+      rx="2"
+      fill="none"
+      stroke={theme === 'dark' ? 'white' : 'black'}
+      strokeWidth="2"
+    />
+    
+    {/* Server lights */}
+    <motion.circle
+      cx="95"
+      cy="95"
+      r="2"
+      fill={theme === 'dark' ? 'white' : 'black'}
+      animate={{ opacity: [0.3, 1, 0.3] }}
+      transition={{ duration: 1, repeat: Infinity }}
+    />
+    <motion.circle
+      cx="105"
+      cy="95"
+      r="2"
+      fill={theme === 'dark' ? 'white' : 'black'}
+      animate={{ opacity: [0.3, 1, 0.3] }}
+      transition={{ duration: 1, delay: 0.3, repeat: Infinity }}
+    />
+    
+    {/* Connected nodes */}
+    {[
+      { x: 50, y: 50, delay: 0 },
+      { x: 150, y: 50, delay: 0.2 },
+      { x: 150, y: 150, delay: 0.4 },
+      { x: 50, y: 150, delay: 0.6 }
+    ].map((node, i) => (
+      <g key={i}>
+        <motion.line
+          x1="100"
+          y1="100"
+          x2={node.x}
+          y2={node.y}
+          stroke={theme === 'dark' ? 'white' : 'black'}
+          strokeWidth="1"
+          strokeDasharray="5 5"
+          initial={{ pathLength: 0 }}
+          animate={{ pathLength: 1 }}
+          transition={{ duration: 1, delay: node.delay, repeat: Infinity, repeatDelay: 2 }}
+        />
+        <motion.circle
+          cx={node.x}
+          cy={node.y}
+          r="8"
+          fill="none"
+          stroke={theme === 'dark' ? 'white' : 'black'}
+          strokeWidth="2"
+          animate={{ scale: [1, 1.2, 1] }}
+          transition={{ duration: 2, delay: node.delay, repeat: Infinity }}
+        />
+        <motion.circle
+          cx={node.x}
+          cy={node.y}
+          r="3"
+          fill={theme === 'dark' ? 'white' : 'black'}
+          animate={{ opacity: [0.3, 1, 0.3] }}
+          transition={{ duration: 1.5, delay: node.delay, repeat: Infinity }}
+        />
+      </g>
+    ))}
+    
+    {/* Customization gears */}
+    <motion.g
+      animate={{ rotate: 360 }}
+      transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+      style={{ transformOrigin: '130px 130px' }}
+    >
+      <path
+        d="M125 130 L127 125 L130 123 L133 125 L135 130 L133 135 L130 137 L127 135 Z"
+        fill="none"
+        stroke={theme === 'dark' ? 'white' : 'black'}
+        strokeWidth="1.5"
+      />
+      <circle cx="130" cy="130" r="3" fill={theme === 'dark' ? 'white' : 'black'} />
+    </motion.g>
+  </motion.svg>
+)
+
+// Sleek CTA Button Component with loading state
 const CTAButton = ({ 
   text, 
   onClick, 
@@ -234,43 +707,56 @@ const CTAButton = ({
   theme: 'dark' | 'light'
   variant?: 'primary' | 'secondary'
 }) => {
+  const [isLoading, setIsLoading] = useState(false)
+  
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    setIsLoading(true)
+    onClick(e)
+  }
+  
   return (
-    <motion.button
-      onClick={onClick}
-      className={`group relative px-6 sm:px-8 py-3 sm:py-4 font-mono text-xs sm:text-sm font-bold tracking-wider 
-        ${variant === 'primary' 
-          ? theme === 'dark' 
-            ? 'bg-white text-black hover:bg-white/90' 
-            : 'bg-black text-white hover:bg-black/90'
-          : theme === 'dark'
-            ? 'border border-white/20 text-white hover:border-white/40 hover:bg-white/5'
-            : 'border border-black/20 text-black hover:border-black/40 hover:bg-black/5'
-        } 
-        transition-all duration-300 overflow-hidden`}
-      data-cursor="pointer"
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-    >
-      <span className="relative z-10">{text}</span>
-      <motion.div
-        className={`absolute inset-0 ${
-          variant === 'primary'
-            ? theme === 'dark' ? 'bg-black' : 'bg-white'
-            : theme === 'dark' ? 'bg-white' : 'bg-black'
-        } opacity-0 group-hover:opacity-10`}
-        initial={false}
-        whileHover={{ opacity: 0.1 }}
-      />
-    </motion.button>
+    <>
+      <AnimatePresence>
+        {isLoading && <LoadingScreen theme={theme} />}
+      </AnimatePresence>
+      
+      <motion.button
+        onClick={handleClick}
+        className={`group relative px-6 sm:px-8 py-3 sm:py-4 font-mono text-xs sm:text-sm font-bold tracking-wider 
+          ${variant === 'primary' 
+            ? theme === 'dark' 
+              ? 'bg-white text-black hover:bg-white/90' 
+              : 'bg-black text-white hover:bg-black/90'
+            : theme === 'dark'
+              ? 'border border-white/20 text-white hover:border-white/40 hover:bg-white/5'
+              : 'border border-black/20 text-black hover:border-black/40 hover:bg-black/5'
+          } 
+          transition-all duration-300 overflow-hidden`}
+        data-cursor-pointer
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        <span className="relative z-10">{text}</span>
+        <motion.div
+          className={`absolute inset-0 ${
+            variant === 'primary'
+              ? theme === 'dark' ? 'bg-black' : 'bg-white'
+              : theme === 'dark' ? 'bg-white' : 'bg-black'
+          } opacity-0 group-hover:opacity-10`}
+          initial={false}
+          whileHover={{ opacity: 0.1 }}
+        />
+      </motion.button>
+    </>
   )
 }
 
-// Updated Mega Card with better mobile support
+// Enhanced Mega Card with hover tooltips
 const MegaCard = ({ 
   title, 
   description, 
   platform,
-  bgComponent,
+  icon,
   index,
   theme,
   isHosting = false
@@ -278,19 +764,21 @@ const MegaCard = ({
   title: string
   description: string
   platform: string
-  bgComponent: React.ReactNode
+  icon: React.ReactNode
   index: number
   theme: 'dark' | 'light'
   isHosting?: boolean
 }) => {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: "-10%" })
+  const [showTooltip, setShowTooltip] = useState(false)
   const [isNavigating, setIsNavigating] = useState(false)
   
-  const handleCardClick = () => {
+  const handleLearnMore = (e: React.MouseEvent) => {
+    e.stopPropagation()
     setIsNavigating(true)
     setTimeout(() => {
-      window.location.href = '/products'
+      window.location.href = '/docs'
     }, 1500)
   }
 
@@ -301,29 +789,31 @@ const MegaCard = ({
       window.location.href = isHosting ? '/hosting' : '/products'
     }, 1500)
   }
-  
+
+  const handleTooltipClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setIsNavigating(true)
+    setTimeout(() => {
+      window.location.href = '/docs'
+    }, 1500)
+  }
+
+  const tooltipTexts = {
+    'GAME HOSTING': 'Premium game servers with 99.9% uptime, DDoS protection, and instant deployment',
+    'AMAZON STORE': 'Full-service Amazon FBA management, listing optimization, and growth strategies',
+    'CUSTOM SOLUTIONS': 'Enterprise-grade custom hosting tailored to your specific requirements'
+  }
+
   return (
     <>
       <AnimatePresence>
-        {isNavigating && <PageTransition onComplete={() => {}} />}
+        {isNavigating && <LoadingScreen theme={theme} />}
       </AnimatePresence>
       
       <motion.section
         ref={ref}
-        className="min-h-screen flex items-center relative overflow-hidden cursor-pointer group py-8 sm:py-0"
-        onClick={handleCardClick}
-        data-cursor="pointer"
+        className="min-h-screen flex items-center relative overflow-hidden py-8 sm:py-0"
       >
-        {/* Animated background */}
-        <div className="absolute inset-0 opacity-20 sm:opacity-30">
-          {bgComponent}
-        </div>
-        
-        {/* Hover effect overlay */}
-        <motion.div
-          className={`absolute inset-0 ${theme === 'dark' ? 'bg-white' : 'bg-black'} opacity-0 group-hover:opacity-5 transition-opacity duration-500`}
-        />
-        
         <div className="relative z-10 w-full">
           <div className="max-w-7xl mx-auto px-4 sm:px-8">
             <div className="grid lg:grid-cols-2 gap-8 lg:gap-16 items-center">
@@ -332,10 +822,10 @@ const MegaCard = ({
                 className={`${index % 2 === 0 ? 'lg:order-1' : 'lg:order-2'} text-center lg:text-left`}
                 initial={{ opacity: 0, y: 50 }}
                 animate={isInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 1, ease: "easeOut" }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
               >
                 <h2 className={`text-4xl sm:text-6xl lg:text-8xl font-black mb-4 sm:mb-8 leading-none ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-                  {isInView && <Typewriter text={title} speed={80} theme={theme} />}
+                  {title}
                 </h2>
                 <p className={`text-base sm:text-xl lg:text-2xl ${theme === 'dark' ? 'text-white/60' : 'text-black/60'} mb-6 sm:mb-8 leading-relaxed px-4 sm:px-0`}>
                   {description}
@@ -345,12 +835,12 @@ const MegaCard = ({
                     className={`h-[1px] ${theme === 'dark' ? 'bg-white/40' : 'bg-black/40'}`}
                     initial={{ width: 0 }}
                     animate={isInView ? { width: 32 } : {}}
-                    transition={{ delay: 0.5, duration: 0.8 }}
+                    transition={{ delay: 0.3, duration: 0.6 }}
                   />
                   <p className={`font-mono text-xs sm:text-sm ${theme === 'dark' ? 'text-white/40' : 'text-black/40'}`}>{platform}</p>
                 </div>
                 
-                {/* CTA Button */}
+                {/* CTA Buttons */}
                 <div className="flex flex-col sm:flex-row gap-4 items-center justify-center lg:justify-start">
                   <CTAButton
                     text={isHosting ? "GET HOSTING" : "EXPLORE PRODUCTS"}
@@ -360,60 +850,77 @@ const MegaCard = ({
                   />
                   <CTAButton
                     text="LEARN MORE"
-                    onClick={handleCTAClick}
+                    onClick={handleLearnMore}
                     theme={theme}
                     variant="secondary"
                   />
                 </div>
-                
-                {/* Click hint - hidden on mobile */}
-                <motion.div
-                  className={`hidden sm:block mt-6 lg:mt-8 font-mono text-xs ${theme === 'dark' ? 'text-white/20' : 'text-black/20'}`}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 1 }}
-                >
-                  CLICK ANYWHERE TO EXPLORE →
-                </motion.div>
               </motion.div>
               
-              {/* Visual content */}
+              {/* Visual content with hover tooltip */}
               <motion.div
-                className={`relative ${index % 2 === 0 ? 'lg:order-2' : 'lg:order-1'}`}
+                className={`relative ${index % 2 === 0 ? 'lg:order-2' : 'lg:order-1'} group cursor-pointer`}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={isInView ? { opacity: 1, scale: 1 } : {}}
-                transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
+                transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
+                onMouseEnter={() => setShowTooltip(true)}
+                onMouseLeave={() => setShowTooltip(false)}
+                onClick={handleTooltipClick}
+                data-cursor-pointer
               >
                 <div className="relative aspect-square max-w-sm sm:max-w-lg mx-auto">
                   <div className={`absolute inset-0 ${theme === 'dark' ? 'bg-white/5' : 'bg-black/5'} backdrop-blur-md rounded-2xl sm:rounded-3xl border ${theme === 'dark' ? 'border-white/10' : 'border-black/10'}`} />
                   
-                  {/* Unique visuals per card */}
+                  {/* Icon */}
                   <div className="absolute inset-0 flex items-center justify-center p-8 sm:p-12">
-                    <motion.div
-                      animate={{ rotate: index === 0 ? 360 : 0 }}
-                      transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                      className="w-full h-full"
-                    >
-                      <svg viewBox="0 0 200 200" className="w-full h-full">
-                        <path
-                          d={index === 0 ? "M100,20 L180,80 L150,180 L50,180 L20,80 Z" : "M50,50 L150,50 L150,150 L50,150 Z"}
-                          fill="none"
-                          stroke={theme === 'dark' ? 'white' : 'black'}
-                          strokeWidth="2"
-                        />
-                        <text 
-                          x="100" 
-                          y="105" 
-                          textAnchor="middle" 
-                          fill={theme === 'dark' ? 'white' : 'black'} 
-                          fontSize="16" 
-                          fontFamily="monospace"
-                        >
-                          {index === 0 ? 'GAMING' : index === 1 ? 'AMAZON' : 'CUSTOM'}
-                        </text>
-                      </svg>
-                    </motion.div>
+                    {icon}
                   </div>
+
+                  {/* Hover Tooltip */}
+                  <AnimatePresence>
+                    {showTooltip && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className={`absolute inset-0 ${
+                          theme === 'dark' ? 'bg-black/95' : 'bg-white/95'
+                        } backdrop-blur-xl rounded-2xl sm:rounded-3xl flex flex-col items-center justify-center p-8 cursor-pointer`}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <motion.div
+                          initial={{ scale: 0, rotate: -180 }}
+                          animate={{ scale: 1, rotate: 0 }}
+                          transition={{ type: "spring", stiffness: 200 }}
+                          className="mb-4 w-24 h-24"
+                        >
+                          {icon}
+                        </motion.div>
+                        <h3 className={`font-mono text-lg font-bold mb-2 ${
+                          theme === 'dark' ? 'text-white' : 'text-black'
+                        }`}>
+                          LEARN MORE
+                        </h3>
+                        <p className={`text-sm text-center mb-4 ${
+                          theme === 'dark' ? 'text-white/60' : 'text-black/60'
+                        }`}>
+                          {tooltipTexts[title as keyof typeof tooltipTexts]}
+                        </p>
+                        <motion.div
+                          className={`font-mono text-xs ${
+                            theme === 'dark' ? 'text-white' : 'text-black'
+                          } flex items-center gap-2`}
+                          animate={{ x: [0, 5, 0] }}
+                          transition={{ duration: 1, repeat: Infinity }}
+                        >
+                          CLICK TO VIEW DOCS
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </motion.div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               </motion.div>
             </div>
@@ -429,86 +936,82 @@ export default function ServylLanding() {
   const { scrollYProgress } = useScroll()
   const heroScale = useTransform(scrollYProgress, [0, 0.3], [1, 0.9])
   const heroOpacity = useTransform(scrollYProgress, [0, 0.3], [1, 0])
+  const [showMainLoading, setShowMainLoading] = useState(false)
 
   return (
-    <motion.div 
-      className={`min-h-screen ${
-        theme === 'dark' ? 'bg-black text-white' : 'bg-white text-black'
-      }`} // Removed overflow-auto from here
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
-    >
-      <SmoothCursor />
+    <>
+      <AnimatePresence>
+        {showMainLoading && <LoadingScreen theme={theme} />}
+      </AnimatePresence>
       
-      <motion.section 
-        style={{ scale: heroScale, opacity: heroOpacity }}
-        className="min-h-screen flex items-center justify-center relative overflow-hidden px-4"
-        initial="hidden"
-        animate="visible"
-        variants={{
-          hidden: { opacity: 0 },
-          visible: { opacity: 1 }
-        }}
+      <motion.div 
+        className={`min-h-screen ${
+          theme === 'dark' ? 'bg-black text-white' : 'bg-white text-black'
+        }`}
+        initial={{ opacity: 1 }}
+        animate={{ opacity: 1 }}
       >
-        <div className="relative z-10 text-center space-y-6">
-          <motion.h1
-            className="text-5xl sm:text-7xl md:text-9xl lg:text-[12rem] font-black tracking-tighter select-none"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            SERVYL
-          </motion.h1>
-          
-          <motion.p
-            className={`text-sm sm:text-xl md:text-2xl font-mono ${
-              theme === 'dark' ? 'text-white/60' : 'text-black/60'
-            }`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.6 }}
-            transition={{ duration: 0.3 }}
-          >
-            {'</'} premium hosting & amazon solutions {'>'}
-          </motion.p>
-        </div>
-      </motion.section>
+        <SmoothCursor />
+        <DiscordMessage theme={theme} />
+        
+        <motion.section 
+          style={{ scale: heroScale, opacity: heroOpacity }}
+          className="min-h-screen flex items-center justify-center relative overflow-hidden px-4"
+        >
+          <div className="relative z-10 text-center space-y-6">
+            <h1
+              className="text-5xl sm:text-7xl md:text-9xl lg:text-[12rem] font-black tracking-tighter select-none"
+            >
+              SERVYL
+            </h1>
+            
+            <motion.p
+              className={`text-sm sm:text-xl md:text-2xl font-mono ${
+                theme === 'dark' ? 'text-white/60' : 'text-black/60'
+              }`}
+              initial={{ opacity: 0.6 }}
+              animate={{ opacity: 0.6 }}
+            >
+              {'</'} premium hosting & amazon solutions {'>'}
+            </motion.p>
+          </div>
+        </motion.section>
 
-      <motion.div
-        className="w-full"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        <MegaCard
-          title="GAME HOSTING"
-          description="Premium game server hosting with advanced features and DDoS protection."
-          platform="PTERODACTYL"
-          bgComponent={<AnimatedBg1 theme={theme} />}
-          index={0}
-          theme={theme}
-          isHosting={true}
-        />
-        
-        <MegaCard
-          title="AMAZON STORE"
-          description="Professional Amazon store management and optimization services."
-          platform="AMAZON"
-          bgComponent={<AnimatedBg1 theme={theme} />}
-          index={1}
-          theme={theme}
-        />
-        
-        <MegaCard
-          title="CUSTOM SOLUTIONS"
-          description="Tailored hosting solutions for your specific needs."
-          platform="ENTERPRISE"
-          bgComponent={<AnimatedBg1 theme={theme} />}
-          index={2}
-          theme={theme}
-          isHosting={true}
-        />
+        <motion.div
+          className="w-full"
+          initial={{ opacity: 1, y: 0 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <MegaCard
+            title="GAME HOSTING"
+            description="Premium game server hosting with advanced features and DDoS protection."
+            platform="PTERODACTYL"
+            icon={<GameServerIcon theme={theme} />}
+            index={0}
+            theme={theme}
+            isHosting={true}
+          />
+          
+          <MegaCard
+            title="AMAZON STORE"
+            description="Professional Amazon store management and optimization services."
+            platform="AMAZON"
+            icon={<AmazonStoreIcon theme={theme} />}
+            index={1}
+            theme={theme}
+          />
+          
+          <MegaCard
+            title="CUSTOM SOLUTIONS"
+            description="Tailored hosting solutions for your specific needs."
+            platform="ENTERPRISE"
+            icon={<CustomSolutionsIcon theme={theme} />}
+            index={2}
+            theme={theme}
+            isHosting={true}
+          />
+        </motion.div>
       </motion.div>
-    </motion.div>
+    </>
   )
 }
