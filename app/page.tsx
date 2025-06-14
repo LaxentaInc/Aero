@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import { motion, useScroll, useTransform, useSpring, AnimatePresence, useInView } from 'framer-motion'
+import { createRoot } from 'react-dom/client'
+import { motion, useScroll, useTransform, useSpring, AnimatePresence, useInView, animate, spring } from 'framer-motion'
 import { useTheme } from './contexts/ThemeContext'
 
 const SmoothCursor = () => {
@@ -936,12 +937,114 @@ const MegaCard = ({
   )
 }
 
+// Enhanced protection hook
+const useProtection = () => {
+  useEffect(() => {
+    const preventDefaultKeys = (e: KeyboardEvent) => {
+      if (
+        (e.ctrlKey && (e.key === 'c' || e.key === 'C' || e.key === 'u' || e.key === 'U')) ||
+        e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && e.key === 'i') ||
+        (e.ctrlKey && e.shiftKey && e.key === 'I')
+      ) {
+        e.preventDefault()
+        return false
+      }
+    }
+
+    const preventContextMenu = (e: Event) => {
+      // Check if the click is on the custom menu
+      const target = e.target as HTMLElement
+      if (target.closest('.custom-context-menu')) {
+        return
+      }
+      e.preventDefault()
+      return false
+    }
+
+    const preventSelection = () => {
+      return false
+    }
+
+    // Disable right-click
+    document.addEventListener('contextmenu', preventContextMenu)
+    document.addEventListener('keydown', preventDefaultKeys)
+    document.onselectstart = preventSelection
+    document.onmousedown = preventSelection
+    
+    // Disable image dragging ( that will be just gay )
+    const images = document.getElementsByTagName('img')
+    Array.from(images).forEach(img => {
+      img.addEventListener('dragstart', preventContextMenu)
+      img.style.webkitUserDrag = 'none'
+      img.style.userDrag = 'none'
+    })
+
+    // Disable copy/paste
+    document.addEventListener('copy', preventContextMenu)
+    document.addEventListener('paste', preventContextMenu)
+    document.addEventListener('cut', preventContextMenu)
+
+    return () => {
+      document.removeEventListener('contextmenu', preventContextMenu)
+      document.removeEventListener('keydown', preventDefaultKeys)
+      document.onselectstart = null
+      document.onmousedown = null
+      Array.from(images).forEach(img => {
+        img.removeEventListener('dragstart', preventContextMenu)
+      })
+      document.removeEventListener('copy', preventContextMenu)
+      document.removeEventListener('paste', preventContextMenu)
+      document.removeEventListener('cut', preventContextMenu)
+    }
+  }, [])
+}
+
+export const ScrollArrow = ({ theme }: { theme: 'dark' | 'light' }) => {
+  const handleClick = () => {
+    window.scrollTo({
+      top: window.innerHeight,
+      behavior: 'smooth'
+    })
+  }
+
+  return (
+    <motion.div
+      className="absolute bottom-8 left-1/2 -translate-x-1/2 cursor-pointer"
+      initial={{ y: 0 }}
+      animate={{ y: [0, 10, 0] }}
+      transition={{ duration: 2, repeat: Infinity }}
+      onClick={handleClick}
+    >
+      <svg 
+        width="40" 
+        height="40" 
+        viewBox="0 0 40 40" 
+        fill="none"
+      >
+        <motion.path
+          d="M20 5 L20 35 M10 25 L20 35 L30 25"
+          stroke={theme === 'dark' ? 'white' : 'black'}
+          strokeWidth="2"
+          strokeLinecap="round"
+          initial={{ pathLength: 0, opacity: 0 }}
+          animate={{ pathLength: 1, opacity: 1 }}
+          transition={{ duration: 1.5, repeat: Infinity }}
+        />
+      </svg>
+    </motion.div>
+  )
+}
+
+
 export default function ServylLanding() {
   const { theme } = useTheme()
   const { scrollYProgress } = useScroll()
   const heroScale = useTransform(scrollYProgress, [0, 0.3], [1, 0.9])
   const heroOpacity = useTransform(scrollYProgress, [0, 0.3], [1, 0])
   const [showMainLoading, setShowMainLoading] = useState(false)
+
+  useProtection()
 
   return (
     <>
@@ -950,11 +1053,9 @@ export default function ServylLanding() {
       </AnimatePresence>
       
       <motion.div 
-        className={`min-h-screen ${
+        className={`relative min-h-screen ${
           theme === 'dark' ? 'bg-black text-white' : 'bg-white text-black'
-        }`}
-        initial={{ opacity: 1 }}
-        animate={{ opacity: 1 }}
+        } select-none`}
       >
         <SmoothCursor />
         <DiscordMessage theme={theme} />
@@ -964,9 +1065,7 @@ export default function ServylLanding() {
           className="min-h-screen flex items-center justify-center relative overflow-hidden px-4"
         >
           <div className="relative z-10 text-center space-y-6">
-            <h1
-              className="text-5xl sm:text-7xl md:text-9xl lg:text-[12rem] font-black tracking-tighter select-none"
-            >
+            <h1 className="text-5xl sm:text-7xl md:text-9xl lg:text-[12rem] font-black tracking-tighter select-none">
               SERVYL
             </h1>
             
@@ -980,6 +1079,9 @@ export default function ServylLanding() {
               {'</'} premium hosting & amazon solutions {'>'}
             </motion.p>
           </div>
+
+          {/* Add the ScrollArrow here */}
+          <ScrollArrow theme={theme} />
         </motion.section>
 
         <motion.div
