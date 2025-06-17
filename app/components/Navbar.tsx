@@ -268,19 +268,20 @@ const ThemeToggle = ({ theme, toggleTheme }: { theme: 'dark' | 'light', toggleTh
 
 export default function Navbar() {
   const pathname = usePathname()
-  
-  // Check if current route should hide navbar completely
-  if (AUTO_HIDE_ROUTES.includes(pathname)) {
-    return null // Return null to completely hide navbar on specified routes
-  }
-
   const { theme, toggleTheme } = useTheme()
   const router = useRouter()
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [isHovering, setIsHovering] = useState(false)
+  const [navbarVisible, setNavbarVisible] = useState(true) // Add this state
   const audioContextRef = useRef<AudioContext | null>(null)
+  const mouseTimeoutRef = useRef<NodeJS.Timeout | null>(null) // Add this ref
+
+  // Check if current route should hide navbar completely
+  if (AUTO_HIDE_ROUTES.includes(pathname)) {
+    return null // Return null to completely hide navbar on specified routes
+  }
 
   // Check if current route should auto-hide
   const shouldAutoHide = AUTO_HIDE_ROUTES.includes(pathname)
