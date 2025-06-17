@@ -4,11 +4,11 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Search, Shuffle, Download, Volume2, VolumeX, 
-  ChevronUp, ChevronDown, Loader2, Play, Pause 
+  ChevronUp, ChevronDown, Loader2, Play, Pause,
+  Maximize, Home
 } from 'lucide-react'
 
-// Add constants
-const PAUSED_HIDE_DELAY = 3000 // 3 seconds delay before hiding controls
+const PAUSED_HIDE_DELAY = 1000
 
 interface Video {
   id: string
@@ -24,7 +24,6 @@ interface Video {
 const API_BASE = '/api/nsfw'
 
 export default function NsfwHub() {
-  // State
   const [videos, setVideos] = useState<Video[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -32,26 +31,25 @@ export default function NsfwHub() {
   const [searchQuery, setSearchQuery] = useState('anime')
   const [suggestions, setSuggestions] = useState<string[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
-  const [showControls, setShowControls] = useState(false)
+  const [showControls, setShowControls] = useState(false) // Change initial state to false
   const [showPlayPause, setShowPlayPause] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
-  const [isMuted, setIsMuted] = useState(true)
+  const [isMuted, setIsMuted] = useState(false)
   const [progress, setProgress] = useState(0)
   const [duration, setDuration] = useState(0)
   const [buffered, setBuffered] = useState(0)
   const [searchExpanded, setSearchExpanded] = useState(false)
+  const [hasUserInteracted, setHasUserInteracted] = useState(false)
+  const [isFirstLoad, setIsFirstLoad] = useState(true)
 
-  // Refs
   const videoRef = useRef<HTMLVideoElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const searchTimerRef = useRef<NodeJS.Timeout>()
   const hideTimerRef = useRef<NodeJS.Timeout>()
   const playPauseTimerRef = useRef<NodeJS.Timeout>()
 
-  // Current video
   const currentVideo = videos[currentIndex]
 
-  // Utility functions
   const shuffleArray = <T,>(array: T[]): T[] => {
     const arr = [...array]
     for (let i = arr.length - 1; i > 0; i--) {
@@ -68,7 +66,6 @@ export default function NsfwHub() {
     return `${mins}:${secs.toString().padStart(2, '0')}`
   }
 
-  // Show play/pause icon briefly
   const showPlayPauseIcon = useCallback(() => {
     setShowPlayPause(true)
     
@@ -81,7 +78,6 @@ export default function NsfwHub() {
     }, 800)
   }, [])
 
-  // API functions
   const fetchVideos = useCallback(async (query: string) => {
     if (loading) return
     
@@ -153,7 +149,33 @@ export default function NsfwHub() {
     }
   }, [loading])
 
-  // Video control functions
+  const playVideo = useCallback(async () => {
+    if (!videoRef.current) return
+    
+    try {
+      setHasUserInteracted(true)
+      setIsFirstLoad(false)
+      
+      if (!hasUserInteracted) {
+        videoRef.current.muted = false
+        setIsMuted(false)
+      }
+      
+      await videoRef.current.play()
+      setIsPlaying(true)
+      showPlayPauseIcon()
+
+      // Start hide timer when video starts playing
+      if (hideTimerRef.current) {
+        clearTimeout(hideTimerRef.current)
+      }
+      hideTimerRef.current = setTimeout(() => {
+        setShowControls(false)
+      }, 3000)
+    } catch (error) {
+      console.error('Play error:', error)
+    }
+  }, [hasUserInteracted, showPlayPauseIcon])
   const loadVideo = useCallback((video: Video) => {
     if (!videoRef.current) return
     
@@ -165,40 +187,29 @@ export default function NsfwHub() {
     
     const proxyUrl = `${API_BASE}/proxy?url=${encodeURIComponent(url)}`
     
-    // Reset states
     setIsPlaying(false)
     setProgress(0)
     setDuration(0)
     setBuffered(0)
+    setShowControls(false) // Hide controls when new video loads
     
-    // Load new video
     videoRef.current.src = proxyUrl
+    videoRef.current.muted = isMuted
     videoRef.current.load()
-  }, [])
-
-  const playVideo = useCallback(async () => {
-    if (!videoRef.current) return
     
-    try {
-      // Ensure video is muted for autoplay to work
-      videoRef.current.muted = true
-      setIsMuted(true)
-      
-      await videoRef.current.play()
-      setIsPlaying(true)
-      showPlayPauseIcon()
-    } catch (error) {
-      console.error('Play error:', error)
-      // Don't set error state for autoplay failures
+    if (!isFirstLoad && hasUserInteracted) {
+      setTimeout(() => {
+        playVideo()
+      }, 100)
     }
-  }, [showPlayPauseIcon])
+  }, [isMuted, isFirstLoad, hasUserInteracted, playVideo])
 
   const pauseVideo = useCallback(() => {
     if (!videoRef.current) return
     videoRef.current.pause()
     setIsPlaying(false)
     showPlayPauseIcon()
-    setShowControls(true) // Show controls when paused
+    setShowControls(true)
   }, [showPlayPauseIcon])
 
   const togglePlayPause = useCallback(() => {
@@ -206,6 +217,8 @@ export default function NsfwHub() {
       pauseVideo()
     } else {
       playVideo()
+      // Don't immediately hide controls on play - let playVideo handle it
+      setShowControls(true)
     }
   }, [isPlaying, playVideo, pauseVideo])
 
@@ -214,6 +227,7 @@ export default function NsfwHub() {
     const muted = !videoRef.current.muted
     videoRef.current.muted = muted
     setIsMuted(muted)
+    setHasUserInteracted(true)
   }, [])
 
   const seek = useCallback((time: number) => {
@@ -233,6 +247,7 @@ export default function NsfwHub() {
     }
     
     setCurrentIndex(newIndex)
+    setShowControls(false) // Hide controls when navigating
   }, [currentIndex, videos.length])
 
   const downloadVideo = useCallback(() => {
@@ -257,7 +272,6 @@ export default function NsfwHub() {
     }, 300)
   }, [fetchSuggestions])
 
-  // Event handlers
   const handleProgressClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect()
     const x = e.clientX - rect.left
@@ -267,9 +281,21 @@ export default function NsfwHub() {
 
   const handleVideoClick = useCallback(() => {
     togglePlayPause()
-  }, [togglePlayPause])
+    
+    // Show controls temporarily when video is clicked
+    setShowControls(true)
+    if (hideTimerRef.current) {
+      clearTimeout(hideTimerRef.current)
+    }
+    
+    // Hide controls after 3 seconds if video is playing
+    hideTimerRef.current = setTimeout(() => {
+      if (isPlaying) {
+        setShowControls(false)
+      }
+    }, 3000)
+  }, [togglePlayPause, isPlaying])
 
-  // Effects
   useEffect(() => {
     fetchVideos(searchQuery)
   }, [])
@@ -280,7 +306,6 @@ export default function NsfwHub() {
     }
   }, [currentVideo, loadVideo])
 
-  // Cleanup timers
   useEffect(() => {
     return () => {
       if (hideTimerRef.current) clearTimeout(hideTimerRef.current)
@@ -293,7 +318,6 @@ export default function NsfwHub() {
     if (!video) return
 
     const handleCanPlay = () => {
-      playVideo()
     }
 
     const handleTimeUpdate = () => {
@@ -338,9 +362,8 @@ export default function NsfwHub() {
       video.removeEventListener('play', handlePlay)
       video.removeEventListener('pause', handlePause)
     }
-  }, [playVideo, navigate])
+  }, [navigate])
 
-  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement) return
@@ -379,12 +402,29 @@ export default function NsfwHub() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [togglePlayPause, navigate, seek, progress, duration, toggleMute])
 
+  const toggleFullscreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      containerRef.current?.requestFullscreen()
+    } else {
+      document.exitFullscreen()
+    }
+  }, [])
+
   return (
     <div 
       ref={containerRef}
       className="fixed inset-0 bg-black overflow-hidden"
     >
-      {/* Top-right persistent controls - Always visible */}
+      <div className="fixed top-4 left-4 z-50">
+        <button
+          onClick={() => window.location.href = '/'}
+          className="p-2 bg-black/90 backdrop-blur-xl rounded-lg border border-white/20 hover:bg-white/10 transition-all"
+          title="Home"
+        >
+          <Home size={20} className="text-white" />
+        </button>
+      </div>
+
       <div className="fixed top-4 right-4 flex items-center gap-2 z-50">
         <AnimatePresence>
           {searchExpanded && (
@@ -445,7 +485,6 @@ export default function NsfwHub() {
         </button>
       </div>
 
-      {/* Video Area */}
       <div className="absolute inset-0 flex items-center justify-center">
         {loading && videos.length === 0 ? (
           <div className="flex flex-col items-center gap-3">
@@ -472,7 +511,6 @@ export default function NsfwHub() {
               onClick={handleVideoClick}
             />
             
-            {/* Play/Pause indicator */}
             <AnimatePresence>
               {showPlayPause && (
                 <motion.div
@@ -491,17 +529,23 @@ export default function NsfwHub() {
               )}
             </AnimatePresence>
             
-            {/* Bottom controls - Only show on hover or when paused */}
             <div 
               className="absolute bottom-0 left-0 right-0 h-32"
-              onMouseEnter={() => setShowControls(true)}
-              onMouseLeave={() => {
-                if (isPlaying) {
-                  if (hideTimerRef.current) clearTimeout(hideTimerRef.current)
-                  hideTimerRef.current = setTimeout(() => {
-                    setShowControls(false)
-                  }, 1000)
+              onMouseEnter={() => {
+                setShowControls(true)
+                if (hideTimerRef.current) {
+                  clearTimeout(hideTimerRef.current)
                 }
+              }}
+              onMouseLeave={() => {
+                if (hideTimerRef.current) {
+                  clearTimeout(hideTimerRef.current)
+                }
+                hideTimerRef.current = setTimeout(() => {
+                  if (isPlaying) {
+                    setShowControls(false)
+                  }
+                }, 3000)
               }}
             >
               <AnimatePresence>
@@ -515,7 +559,6 @@ export default function NsfwHub() {
                   >
                     <div className="p-3 pb-4">
                       <div className="max-w-4xl mx-auto space-y-2">
-                        {/* Progress Bar */}
                         <div 
                           className="relative h-1 bg-white/20 rounded-full cursor-pointer overflow-hidden group hover:h-1.5 transition-all"
                           onClick={handleProgressClick}
@@ -534,7 +577,6 @@ export default function NsfwHub() {
                           />
                         </div>
                         
-                        {/* Control buttons */}
                         <div className="flex items-center gap-3">
                           <button
                             onClick={togglePlayPause}
@@ -552,6 +594,14 @@ export default function NsfwHub() {
                           
                           <div className="flex-1" />
                           
+                          <button
+                            onClick={toggleFullscreen}
+                            className="p-1.5 hover:bg-white/10 rounded-lg transition-all"
+                            title="Toggle Fullscreen"
+                          >
+                            <Maximize size={16} className="text-white/70 hover:text-white" />
+                          </button>
+
                           <button
                             onClick={downloadVideo}
                             className="p-1.5 hover:bg-white/10 rounded-lg transition-all"
@@ -581,7 +631,6 @@ export default function NsfwHub() {
         ) : null}
       </div>
 
-      {/* Navigation buttons - Always visible on desktop */}
       {!loading && videos.length > 0 && (
         <>
           <button
