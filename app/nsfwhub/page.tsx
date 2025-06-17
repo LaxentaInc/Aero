@@ -21,6 +21,21 @@ interface Video {
   }
 }
 
+interface ApiResponse {
+  success: boolean
+  videos?: {
+    id: string
+    title?: string
+    tags?: string[]
+    duration?: number
+    urls?: {
+      hd?: string
+      sd?: string
+    }
+  }[]
+  suggestions?: string[]
+}
+
 const API_BASE = '/api/nsfw'
 
 export default function NsfwHub() {
@@ -86,11 +101,11 @@ export default function NsfwHub() {
     
     try {
       const response = await fetch(`${API_BASE}/search/${encodeURIComponent(query)}?count=20`)
-      const data = await response.json()
+      const data = await response.json() as ApiResponse
       
       if (data.success && data.videos?.length) {
         const shuffled = shuffleArray(data.videos)
-        setVideos(shuffled)
+        setVideos(shuffled) // Now TypeScript knows this is Video[]
         setCurrentIndex(0)
       } else {
         setError('No videos found')
@@ -132,11 +147,11 @@ export default function NsfwHub() {
       const randomTag = tags[Math.floor(Math.random() * tags.length)]
       
       const response = await fetch(`${API_BASE}/search/${encodeURIComponent(randomTag)}?count=50`)
-      const data = await response.json()
+      const data = await response.json() as ApiResponse
       
       if (data.success && data.videos?.length) {
         const shuffled = shuffleArray(data.videos)
-        setVideos(shuffled)
+        setVideos(shuffled) // Now TypeScript knows this is Video[]
         setCurrentIndex(0)
       } else {
         setError('No videos found')
