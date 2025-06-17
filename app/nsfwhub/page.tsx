@@ -44,9 +44,9 @@ export default function NsfwHub() {
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const searchTimerRef = useRef<NodeJS.Timeout>()
-  const hideTimerRef = useRef<NodeJS.Timeout>()
-  const playPauseTimerRef = useRef<NodeJS.Timeout>()
+  const searchTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const hideTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const playPauseTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   const currentVideo = videos[currentIndex]
 
