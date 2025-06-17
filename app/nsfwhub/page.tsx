@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Search, Shuffle, Download, Volume2, VolumeX, 
   ChevronUp, ChevronDown, Loader2, Play, Pause,
-  Maximize, Home
+  Maximize, Home, SkipBack, SkipForward
 } from 'lucide-react'
 
 const PAUSED_HIDE_DELAY = 1000
@@ -62,6 +62,7 @@ export default function NsfwHub() {
   const searchTimerRef = useRef<number | undefined>(undefined)
   const hideTimerRef = useRef<NodeJS.Timeout | null>(null)
   const playPauseTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const wheelTimeout = useRef<NodeJS.Timeout | null>(null)
 
   const currentVideo = videos[currentIndex]
 
@@ -428,10 +429,59 @@ export default function NsfwHub() {
     }
   }, [])
 
+  useEffect(() => {
+    let startY = 0;
+    let startTime = 0;
+    const minVelocity = 0.5; // pixels per millisecond
+    const minDistance = 30; // minimum swipe distance in pixels
+
+    const handleTouchStart = (e: TouchEvent) => {
+      startY = e.touches[0].clientY;
+      startTime = Date.now();
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      const endY = e.changedTouches[0].clientY;
+      const endTime = Date.now();
+      
+      const distance = endY - startY;
+      const time = endTime - startTime;
+      const velocity = Math.abs(distance) / time;
+
+      if (Math.abs(distance) > minDistance && velocity > minVelocity) {
+        if (distance > 0) {
+          navigate('prev');
+        } else {
+          navigate('next');
+        }
+      }
+    };
+
+    const container = containerRef.current;
+    if (container) {
+      container.addEventListener('touchstart', handleTouchStart, { passive: false });
+      container.addEventListener('touchmove', handleTouchMove, { passive: false });
+      container.addEventListener('touchend', handleTouchEnd, { passive: false });
+    }
+
+    return () => {
+      if (container) {
+        container.removeEventListener('touchstart', handleTouchStart);
+        container.removeEventListener('touchmove', handleTouchMove);
+        container.removeEventListener('touchend', handleTouchEnd);
+      }
+    }
+  }, [navigate])
+
   return (
     <div 
       ref={containerRef}
-      className="fixed inset-0 bg-black overflow-hidden"
+      className="fixed inset-0 bg-black overflow-hidden touch-action-none select-none"
+      style={{ touchAction: 'none' }}
     >
       <div className="fixed top-4 left-4 z-50">
         <button
@@ -597,6 +647,13 @@ export default function NsfwHub() {
                         
                         <div className="flex items-center gap-3">
                           <button
+                            onClick={() => navigate('prev')}
+                            className="p-2 bg-white/10 hover:bg-white/20 backdrop-blur-xl rounded-full transition-all md:hidden"
+                          >
+                            <ChevronUp size={16} className="text-white" />
+                          </button>
+
+                          <button
                             onClick={togglePlayPause}
                             className="p-2 bg-white/10 hover:bg-white/20 backdrop-blur-xl rounded-full transition-all"
                           >
@@ -604,6 +661,13 @@ export default function NsfwHub() {
                               <Pause size={16} className="text-white" /> : 
                               <Play size={16} className="text-white ml-0.5" />
                             }
+                          </button>
+
+                          <button
+                            onClick={() => navigate('next')}
+                            className="p-2 bg-white/10 hover:bg-white/20 backdrop-blur-xl rounded-full transition-all md:hidden"
+                          >
+                            <ChevronDown size={16} className="text-white" />
                           </button>
                           
                           <span className="text-white/70 text-xs tabular-nums select-none">
@@ -653,14 +717,14 @@ export default function NsfwHub() {
         <>
           <button
             onClick={() => navigate('prev')}
-            className="fixed right-6 top-1/2 -translate-y-[80px] p-2.5 bg-black/50 backdrop-blur-sm rounded-full hover:bg-black/70 transition-all border border-white/20 hover:border-white/40 hover:scale-110"
+            className="fixed right-6 top-1/2 -translate-y-[80px] p-2.5 bg-black/50 backdrop-blur-sm rounded-full hover:bg-black/70 transition-all border border-white/20 hover:border-white/40 hover:scale-110 hidden md:block"
           >
             <ChevronUp size={20} className="text-white" />
           </button>
           
           <button
             onClick={() => navigate('next')}
-            className="fixed right-6 top-1/2 translate-y-[80px] p-2.5 bg-black/50 backdrop-blur-sm rounded-full hover:bg-black/70 transition-all border border-white/20 hover:border-white/40 hover:scale-110"
+            className="fixed right-6 top-1/2 translate-y-[80px] p-2.5 bg-black/50 backdrop-blur-sm rounded-full hover:bg-black/70 transition-all border border-white/20 hover:border-white/40 hover:scale-110 hidden md:block"
           >
             <ChevronDown size={20} className="text-white" />
           </button>

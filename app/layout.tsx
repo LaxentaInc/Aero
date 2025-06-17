@@ -20,8 +20,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Servyl",
-  description: "Servyl is a platform for getting petrodactyl modifcations done by us cool ass technical guys.",
+  title: "Laxenta | Development",
+  description: "Laxenta is a platform for well me lol, im a cool technical developer from hobby",
 };
 
 export default function RootLayout({

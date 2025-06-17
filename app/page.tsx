@@ -785,15 +785,12 @@ const MegaCard = ({
   const handleCTAClick = (e: React.MouseEvent) => {
     e.preventDefault()
     setIsNavigating(true)
-
-    // Add navigation logic based on the title
-    if (title === 'CUSTOM SOLUTIONS') {
-      window.location.href = '/products'
-    } else if (title === 'GAME HOSTING') {
-      window.location.href = 'https://cp.servyl.com'
-    } else if (title === 'AMAZON STORE') {
-      window.open('https://amazon.com/shops/servyl', '_blank')
+    // Simplified to just scroll to contact form
+    const contactForm = document.querySelector('.discord-message')
+    if (contactForm) {
+      contactForm.scrollIntoView({ behavior: 'smooth' })
     }
+    setTimeout(() => setIsNavigating(false), 1000)
   }
 
   const handleTooltipClick = (e: React.MouseEvent) => {
@@ -849,7 +846,7 @@ const MegaCard = ({
                 {/* CTA Buttons */}
                 <div className="flex flex-col sm:flex-row gap-4 items-center justify-center lg:justify-start">
                   <CTAButton
-                    text={isHosting ? "GET HOSTING" : "EXPLORE PRODUCTS"}
+                    text="CONTACT ME"
                     onClick={handleCTAClick}
                     theme={theme}
                     variant="primary"
@@ -936,6 +933,127 @@ const MegaCard = ({
     </>
   )
 }
+
+// Updating icons for developer skills
+const WebDevIcon = ({ theme }: { theme: 'dark' | 'light' }) => (
+  <motion.svg
+    viewBox="0 0 200 200"
+    className="w-full h-full"
+  >
+    {/* Code brackets */}
+    <motion.path
+      d="M60 80 L40 100 L60 120 M140 80 L160 100 L140 120"
+      stroke={theme === 'dark' ? 'white' : 'black'}
+      strokeWidth="2"
+      fill="none"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    
+    {/* React-like atoms */}
+    <motion.g
+      animate={{ rotate: 360 }}
+      transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+      style={{ transformOrigin: '100px 100px' }}
+    >
+      <ellipse
+        cx="100"
+        cy="100"
+        rx="20"
+        ry="40"
+        strokeWidth="2"
+        stroke={theme === 'dark' ? 'white' : 'black'}
+        fill="none"
+        transform="rotate(0 100 100)"
+      />
+      <ellipse
+        cx="100"
+        cy="100"
+        rx="20"
+        ry="40"
+        strokeWidth="2"
+        stroke={theme === 'dark' ? 'white' : 'black'}
+        fill="none"
+        transform="rotate(120 100 100)"
+      />
+      <ellipse
+        cx="100"
+        cy="100"
+        rx="20"
+        ry="40"
+        strokeWidth="2"
+        stroke={theme === 'dark' ? 'white' : 'black'}
+        fill="none"
+        transform="rotate(240 100 100)"
+      />
+    </motion.g>
+  </motion.svg>
+)
+
+const BackendIcon = ({ theme }: { theme: 'dark' | 'light' }) => (
+  <motion.svg
+    viewBox="0 0 200 200"
+    className="w-full h-full"
+  >
+    {/* Server stack */}
+    <motion.g
+      animate={{ y: [-2, 2, -2] }}
+      transition={{ duration: 2, repeat: Infinity }}
+    >
+      {[0, 1, 2].map((i) => (
+        <rect
+          key={i}
+          x="70"
+          y={80 + i * 20}
+          width="60"
+          height="15"
+          rx="2"
+          fill="none"
+          stroke={theme === 'dark' ? 'white' : 'black'}
+          strokeWidth="2"
+        />
+      ))}
+    </motion.g>
+    
+    {/* Data flow lines */}
+    <motion.path
+      d="M40 100 C 40 70, 160 130, 160 100"
+      stroke={theme === 'dark' ? 'white' : 'black'}
+      strokeWidth="2"
+      fill="none"
+      strokeDasharray="5,5"
+      animate={{ strokeDashoffset: [0, -20] }}
+      transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+    />
+  </motion.svg>
+)
+
+const ProjectsIcon = ({ theme }: { theme: 'dark' | 'light' }) => (
+  <motion.svg
+    viewBox="0 0 200 200"
+    className="w-full h-full"
+  >
+    {/* Project windows */}
+    <motion.g
+      animate={{ scale: [1, 1.05, 1] }}
+      transition={{ duration: 2, repeat: Infinity }}
+    >
+      {[0, 1, 2].map((i) => (
+        <rect
+          key={i}
+          x={70 - i * 10}
+          y={70 - i * 10}
+          width="80"
+          height="80"
+          rx="4"
+          fill="none"
+          stroke={theme === 'dark' ? 'white' : 'black'}
+          strokeWidth="2"
+        />
+      ))}
+    </motion.g>
+  </motion.svg>
+)
 
 // Enhanced protection hook
 const useProtection = () => {
@@ -1035,8 +1153,144 @@ const ScrollArrow = ({ theme }: { theme: 'dark' | 'light' }) => {
   )
 }
 
+// Updated ThinkingAnimation component 
+const ThinkingAnimation = ({ theme }: { theme: 'dark' | 'light' }) => {
+  const [currentText, setCurrentText] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [conversation, setConversation] = useState<{role: string, content: string}[]>([]);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-export default function ServylLanding() {
+  const sendMessage = async (message: string) => {
+    if (!message.trim()) return;
+    
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [...conversation, { role: 'user', content: message }]
+        })
+      });
+      
+      const data = await response.json();
+      
+      // Safely handle the response
+      const aiResponse = data?.choices?.[0]?.message?.content || "Sorry, I couldn't process that.";
+      
+      setConversation(prev => [
+        ...prev,
+        { role: 'user', content: message },
+        { role: 'assistant', content: aiResponse }
+      ]);
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      setConversation(prev => [
+        ...prev,
+        { role: 'user', content: message },
+        { role: 'assistant', content: 'Sorry, something went wrong. Please try again.' }
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <section className="min-h-screen py-20 px-4">
+      <div className="max-w-4xl mx-auto">
+        <div className={`${
+          theme === 'dark' ? 'bg-black/90' : 'bg-white/90'
+        } backdrop-blur-xl border ${
+          theme === 'dark' ? 'border-white/20' : 'border-black/20'
+        } rounded-2xl shadow-2xl`}>
+          <div className="p-6">
+            <div className="flex items-start gap-4">
+              <div className="flex-grow space-y-4" ref={containerRef}>
+                <h3 className={`text-xl font-bold mb-6 ${
+                  theme === 'dark' ? 'text-white' : 'text-black'
+                }`}>
+                  Chat with AI
+                </h3>
+
+                <div className={`min-h-[200px] max-h-[400px] overflow-y-auto space-y-4 ${
+                  theme === 'dark' ? 'text-white/90' : 'text-black/90'
+                }`}>
+                  {conversation.map((msg, i) => (
+                    <div key={i} className={`p-3 rounded-lg ${
+                      msg.role === 'user' 
+                        ? theme === 'dark' ? 'bg-white/10' : 'bg-black/10'
+                        : theme === 'dark' ? 'bg-white/5' : 'bg-black/5'
+                    }`}>
+                      <strong className="block mb-1">
+                        {msg.role === 'user' ? 'You' : 'AI'}:
+                      </strong>
+                      {msg.content}
+                    </div>
+                  ))}
+                  {isLoading && (
+                    <div className="flex items-center gap-2">
+                      <motion.div
+                        animate={{ opacity: [0.4, 1, 0.4] }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                        className={`${
+                          theme === 'dark' ? 'text-white/60' : 'text-black/60'
+                        }`}
+                      >
+                        AI is thinking...
+                      </motion.div>
+                    </div>
+                  )}
+                </div>
+
+                <div className={`mt-4 flex gap-4 ${
+                  theme === 'dark' ? 'border-t border-white/10' : 'border-t border-black/10'
+                } pt-4`}>
+                  <input
+                    type="text"
+                    value={currentText}
+                    onChange={(e) => setCurrentText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        sendMessage(currentText);
+                        setCurrentText('');
+                      }
+                    }}
+                    placeholder="Ask anything..."
+                    className={`flex-grow p-3 rounded-xl ${
+                      theme === 'dark' 
+                        ? 'bg-white/5 text-white placeholder-white/40' 
+                        : 'bg-black/5 text-black placeholder-black/40'
+                    } focus:outline-none focus:ring-2 ${
+                      theme === 'dark' ? 'focus:ring-white/20' : 'focus:ring-black/20'
+                    }`}
+                  />
+                  <button
+                    onClick={() => {
+                      sendMessage(currentText);
+                      setCurrentText('');
+                    }}
+                    disabled={isLoading}
+                    className={`px-6 py-3 rounded-xl font-medium transition-colors ${
+                      theme === 'dark'
+                        ? 'bg-white text-black hover:bg-white/90'
+                        : 'bg-black text-white hover:bg-black/90'
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  >
+                    Send
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// In the LaxentaLanding component, update the ThinkingAnimation placement
+export default function LaxentaLanding() {
   const { theme } = useTheme()
   const { scrollYProgress } = useScroll()
   const heroScale = useTransform(scrollYProgress, [0, 0.3], [1, 0.9])
@@ -1051,21 +1305,20 @@ export default function ServylLanding() {
         {showMainLoading && <LoadingScreen theme={theme} />}
       </AnimatePresence>
       
-      <motion.div 
-        className={`relative min-h-screen ${
-          theme === 'dark' ? 'bg-black text-white' : 'bg-white text-black'
-        } select-none`}
-      >
+      <motion.div className={`relative min-h-screen ${
+        theme === 'dark' ? 'bg-black text-white' : 'bg-white text-black'
+      } select-none`}>
         <SmoothCursor />
         <DiscordMessage theme={theme} />
         
+        {/* Hero Section */}
         <motion.section 
           style={{ scale: heroScale, opacity: heroOpacity }}
           className="min-h-screen flex items-center justify-center relative overflow-hidden px-4"
         >
           <div className="relative z-10 text-center space-y-6">
             <h1 className="text-5xl sm:text-7xl md:text-9xl lg:text-[12rem] font-black tracking-tighter select-none">
-              SERVYL
+              LAXENTA
             </h1>
             
             <motion.p
@@ -1075,48 +1328,45 @@ export default function ServylLanding() {
               initial={{ opacity: 0.6 }}
               animate={{ opacity: 0.6 }}
             >
-              {'</'} premium hosting & amazon solutions {'>'}
+              {'</'} fullstack developer & systems engineer {'>'}
             </motion.p>
           </div>
 
-          {/* Add the ScrollArrow here */}
           <ScrollArrow theme={theme} />
         </motion.section>
 
-        <motion.div
-          className="w-full"
-          initial={{ opacity: 1, y: 0 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
+        {/* Services Section */}
+        <motion.div className="w-full">
           <MegaCard
-            title="GAME HOSTING"
-            description="Premium game server hosting with advanced features and DDoS protection."
-            platform="PTERODACTYL"
-            icon={<GameServerIcon theme={theme} />}
+            title="WEB DEV"
+            description="Frontend specialist with React, Next.js, Vue and PHP. Building responsive and dynamic web applications with modern tech stacks."
+            platform="REACT • NEXT • VUE • PHP"
+            icon={<WebDevIcon theme={theme} />}
             index={0}
             theme={theme}
-            isHosting={true}
           />
           
           <MegaCard
-            title="AMAZON STORE"
-            description="Professional Amazon store management and optimization services."
-            platform="AMAZON"
-            icon={<AmazonStoreIcon theme={theme} />}
+            title="BACKEND"
+            description="Backend developer proficient in Node.js, JavaScript, and exploring Rust. Experienced in building scalable server architectures."
+            platform="NODE.JS • JS • RUST"
+            icon={<BackendIcon theme={theme} />}
             index={1}
             theme={theme}
           />
           
           <MegaCard
-            title="CUSTOM SOLUTIONS"
-            description="Tailored hosting solutions for your specific needs."
-            platform="ENTERPRISE"
-            icon={<CustomSolutionsIcon theme={theme} />}
+            title="PROJECTS"
+            description="From Discord bots to hosting platforms, creating full-stack solutions including Pterodactyl panels and custom business applications."
+            platform="DISCORD • HOSTING • CUSTOM"
+            icon={<ProjectsIcon theme={theme} />}
             index={2}
             theme={theme}
-            isHosting={true}
           />
         </motion.div>
+
+        {/* AI Chat Section */}
+        <ThinkingAnimation theme={theme} />
       </motion.div>
     </>
   )
