@@ -44,7 +44,6 @@ const LoadingAnimation = ({
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
     >
-      {/*Background video*/}
       <div className="absolute inset-0 overflow-hidden">
         <video
           ref={videoRef}
@@ -382,7 +381,7 @@ export default function Navbar() {
     toggleTheme()
   }
 
-  const navItems = ['products', 'hosting', 'docs', 'about']
+  const navItems = ['products', 'hosting', 'shapes', 'docs']
 
   return (
     <>

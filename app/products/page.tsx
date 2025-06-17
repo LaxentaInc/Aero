@@ -11,7 +11,7 @@ const products = [
 		description:
 			'An addon to add a button to log in to your Pterodactyl instance with WHMCS credentials',
 		price: '9.99',
-		purchases: 117,
+		purchases: 69,
 		rating: 5,
 		reviews: 3,
 		category: 'sso',
@@ -32,7 +32,7 @@ const products = [
 		description:
 			'An addon to add a button to log in to your Pterodactyl instance with Discord',
 		price: '2.99',
-		purchases: 61,
+		purchases: 69,
 		rating: 5,
 		reviews: 1,
 		category: 'sso',
@@ -137,9 +137,9 @@ const products = [
 		description:
 			"One-click installation of 'Minecraft: Java Edition' modpacks in Pterodactyl",
 		price: '19.99',
-		purchases: 320,
+		purchases: 6969,
 		rating: 5,
-		reviews: 10,
+		reviews: 69,
 		category: 'minecraft',
 	},
 	{
@@ -189,8 +189,8 @@ const SmoothCursor = () => {
 			}
 
 			if (cursorOutline) {
-				outlineX += (mouseX - outlineX) * 0.1
-				outlineY += (mouseY - outlineY) * 0.1
+				outlineX += (mouseX - outlineX) * 0.2
+				outlineY += (mouseY - outlineY) * 0.2
 				cursorOutline.style.transform = `translate3d(${outlineX - 20}px, ${outlineY - 20}px, 0)`
 			}
 
@@ -221,7 +221,7 @@ const SmoothCursor = () => {
 	)
 }
 
-// Animated background SVGs
+//SVGs
 const FloatingShapes = ({ theme }: { theme: 'dark' | 'light' }) => {
 	const color = theme === 'dark' ? 'white' : 'black'
 
@@ -234,7 +234,6 @@ const FloatingShapes = ({ theme }: { theme: 'dark' | 'light' }) => {
 				</linearGradient>
 			</defs>
 
-			{/* Floating hexagons */}
 			{[...Array(6)].map((_, i) => (
 				<motion.path
 					key={i}
@@ -257,7 +256,6 @@ const FloatingShapes = ({ theme }: { theme: 'dark' | 'light' }) => {
 				/>
 			))}
 
-			{/* Grid lines */}
 			<g className="opacity-5">
 				{[...Array(20)].map((_, i) => (
 					<motion.line
@@ -565,6 +563,16 @@ export default function ProductsPage() {
 			return 0
 		})
 
+	useEffect(() => {
+		const preventDefault = (e: Event) => e.preventDefault();
+		document.addEventListener('contextmenu', preventDefault);
+		document.addEventListener('selectstart', preventDefault);
+		
+		return () => {
+			document.removeEventListener('contextmenu', preventDefault);
+			document.removeEventListener('selectstart', preventDefault);
+		};
+	}, []);
 	return (
 		<motion.div
 			className={`min-h-screen cursor-none transition-colors duration-500 ${
@@ -573,6 +581,12 @@ export default function ProductsPage() {
 			initial={false}
 			animate={{ backgroundColor: theme === 'dark' ? '#000000' : '#ffffff' }}
 			transition={{ duration: 0.5 }}
+			style={{
+				userSelect: 'none',
+				WebkitUserSelect: 'none',
+				MozUserSelect: 'none',
+				msUserSelect: 'none',
+			}}
 		>
 			<SmoothCursor />
 
@@ -580,7 +594,6 @@ export default function ProductsPage() {
 				<FloatingShapes theme={theme} />
 			</div>
 
-			{/* Header */}
 			<header className="relative">
 				<div className="max-w-7xl mx-auto px-8 pt-20 pb-12">
 					<motion.button
@@ -619,7 +632,6 @@ export default function ProductsPage() {
 				</div>
 			</header>
 
-			{/* Search Bar */}
 			<section className="max-w-7xl mx-auto px-8">
 				<SearchBar
 					searchTerm={searchTerm}
@@ -627,8 +639,6 @@ export default function ProductsPage() {
 					theme={theme}
 				/>
 			</section>
-
-			{/* Filters and Sorting */}
 			<section
 				className={`sticky top-0 z-40 backdrop-blur-md border-b ${
 					theme === 'dark' ? 'border-white/10 bg-black/80' : 'border-black/10 bg-white/80'
@@ -740,7 +750,6 @@ export default function ProductsPage() {
 				)}
 			</section>
 
-			{/* Stats Section */}
 			<section
 				className={`border-t ${
 					theme === 'dark' ? 'border-white/10' : 'border-black/10'
