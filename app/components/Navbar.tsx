@@ -3,8 +3,12 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useTheme } from '../contexts/ThemeContext'
+import { Menu } from 'lucide-react'
+
+// Routes where navbar should auto-hide
+const AUTO_HIDE_ROUTES = ['/nsfwhub', '/video-player', '/fullscreen-content']
 
 const LoadingAnimation = ({ 
   theme, 
@@ -60,8 +64,6 @@ const LoadingAnimation = ({
             type="video/mp4"
           />
         </video>
-        {/* OUR VIDEO IS USED HERE <UWU></UWU> */}
-        {/* Overlay for better text visibility */}
         <div className={`absolute inset-0 ${
           theme === 'dark' 
             ? 'bg-black/50' 
@@ -265,12 +267,61 @@ const ThemeToggle = ({ theme, toggleTheme }: { theme: 'dark' | 'light', toggleTh
 }
 
 export default function Navbar() {
+  const pathname = usePathname()
+  
+  // Check if current route should hide navbar completely
+  if (AUTO_HIDE_ROUTES.includes(pathname)) {
+    return null // Return null to completely hide navbar on specified routes
+  }
+
   const { theme, toggleTheme } = useTheme()
   const router = useRouter()
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [isHovering, setIsHovering] = useState(false)
   const audioContextRef = useRef<AudioContext | null>(null)
+
+  // Check if current route should auto-hide
+  const shouldAutoHide = AUTO_HIDE_ROUTES.includes(pathname)
+
+  // Handle mouse movement for auto-hide routes
+  useEffect(() => {
+    if (!shouldAutoHide) {
+      setNavbarVisible(true)
+      return
+    }
+
+    const handleMouseMove = (e: MouseEvent) => {
+      // Show navbar when mouse is in top 100px
+      if (e.clientY < 100) {
+        setNavbarVisible(true)
+        if (mouseTimeoutRef.current) {
+          clearTimeout(mouseTimeoutRef.current)
+        }
+      } else if (!isHovering) {
+        // Hide navbar after 2 seconds if not hovering
+        if (mouseTimeoutRef.current) {
+          clearTimeout(mouseTimeoutRef.current)
+        }
+        mouseTimeoutRef.current = setTimeout(() => {
+          setNavbarVisible(false)
+        }, 2000)
+      }
+    }
+
+    // Initially hide navbar on auto-hide routes
+    setNavbarVisible(false)
+    
+    window.addEventListener('mousemove', handleMouseMove)
+    
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      if (mouseTimeoutRef.current) {
+        clearTimeout(mouseTimeoutRef.current)
+      }
+    }
+  }, [shouldAutoHide, isHovering, pathname])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -383,6 +434,22 @@ export default function Navbar() {
 
   const navItems = ['products', 'hosting', 'shapes', 'docs']
 
+  // Mobile hamburger for auto-hide routes
+  if (shouldAutoHide && !navbarVisible && window.innerWidth < 768) {
+    return (
+      <motion.button
+        className="fixed top-4 right-4 z-50 p-3 bg-black/50 backdrop-blur-xl rounded-full"
+        onClick={() => setNavbarVisible(true)}
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.9 }}
+      >
+        <Menu size={24} className="text-white" />
+      </motion.button>
+    )
+  }
+
   return (
     <>
       <AnimatePresence>
@@ -405,8 +472,10 @@ export default function Navbar() {
               : 'bg-white/60 backdrop-blur-sm border-b border-black/5'
         }`}
         initial={{ y: -100 }}
-        animate={{ y: 0 }}
+        animate={{ y: navbarVisible ? 0 : -100 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
       >
         <div className="absolute inset-0 overflow-hidden">
           <motion.div
