@@ -433,7 +433,7 @@ export default function Navbar() {
     toggleTheme()
   }
 
-  const navItems = ['products', 'hosting', 'shapes', 'docs']
+  const navItems = ['products', 'hosting', 'shapes', 'nsfwhub']
 
   // Mobile hamburger for auto-hide routes
   if (shouldAutoHide && !navbarVisible && window.innerWidth < 768) {
