@@ -525,7 +525,7 @@ export default function Navbar() {
                 </motion.span>
               </motion.div>
               <GlitchText className={`text-xl font-black font-mono ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-                SERVYL
+                Laxenta.inc
               </GlitchText>
             </button>
 
@@ -664,7 +664,7 @@ export default function Navbar() {
                     }`}
                     onMouseEnter={() => playSound('hover')}
                   >
-                    TRY IT
+                    GET A SERVICE DEMO
                   </button>
                 </motion.div>
               </div>
