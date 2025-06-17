@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { motion, useScroll, useTransform, AnimatePresence, useInView } from 'framer-motion'
+import { useAuth } from '../contexts/AuthContext'
 
 // Particle Snow Effect
 const SnowEffect = ({ theme }) => {
@@ -610,10 +611,102 @@ const useProtection = () => {
   }, [])
 }
 
+// Bot Management Panel
+const BotManagementPanel = ({ theme, onClose }) => {
+  const { user, fetchUserBots, startBot, stopBot, deleteBot } = useAuth()
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    fetchUserBots()
+  }, [fetchUserBots])
+
+  if (!user?.bots) return null
+
+  return (
+    <motion.div
+      className={`w-full max-w-4xl mx-auto p-8 ${
+        theme === 'dark' ? 'bg-black/50' : 'bg-white/50'
+      } backdrop-blur-xl border ${
+        theme === 'dark' ? 'border-white/10' : 'border-black/10'
+      } rounded-3xl`}
+    >
+      <div className="flex justify-between items-center mb-8">
+        <h2 className={`text-3xl font-black ${
+          theme === 'dark' ? 'text-white' : 'text-black'
+        }`}>YOUR BOTS</h2>
+        <button
+          onClick={onClose}
+          className={`p-2 rounded-full ${
+            theme === 'dark' ? 'bg-white/10' : 'bg-black/10'
+          } hover:opacity-75`}
+          data-cursor-pointer
+        >
+          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M6 18L18 6M6 6l12 12" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        </button>
+      </div>
+
+      <div className="grid gap-4">
+        {user.bots.map(bot => (
+          <motion.div
+            key={bot.id}
+            className={`p-4 rounded-xl border ${
+              theme === 'dark' ? 'border-white/10' : 'border-black/10'
+            }`}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="text-xl font-bold">{bot.name}</h3>
+                <p className={`text-sm ${
+                  theme === 'dark' ? 'text-white/60' : 'text-black/60'
+                }`}>
+                  {bot.model}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                {bot.status === 'offline' ? (
+                  <button
+                    onClick={() => startBot(bot.id)}
+                    className="p-2 rounded-lg bg-green-500/20 text-green-400"
+                    data-cursor-pointer
+                  >
+                    Start
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => stopBot(bot.id)}
+                    className="p-2 rounded-lg bg-yellow-500/20 text-yellow-400"
+                    data-cursor-pointer
+                  >
+                    Stop
+                  </button>
+                )}
+                <button
+                  onClick={() => deleteBot(bot.id)}
+                  className="p-2 rounded-lg bg-red-500/20 text-red-400"
+                  data-cursor-pointer
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
+  )
+}
+
 // Main AI Page Component
 export default function AIPage() {
+  const { user, login } = useAuth()
   const [theme] = useState('dark')
   const [showLoading, setShowLoading] = useState(true)
+  const [showCreator, setShowCreator] = useState(false)
+  // const [isLoggedIn] = useState(true) // TODO: Replace with actual auth state
   const { scrollYProgress } = useScroll()
   const heroOpacity = useTransform(scrollYProgress, [0, 0.3], [1, 0])
 
@@ -622,6 +715,14 @@ export default function AIPage() {
   useEffect(() => {
     setTimeout(() => setShowLoading(false), 2000)
   }, [])
+
+  const handleEnterCreator = () => {
+    if (!user) {
+      login()
+      return
+    }
+    setShowCreator(true)
+  }
 
   const aiFeatures = [
     {
@@ -755,6 +856,9 @@ export default function AIPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.4 }}
+              onClick={handleEnterCreator}
+              className="cursor-pointer transform hover:scale-110 transition-transform duration-300"
+              data-cursor-pointer
             >
               <motion.svg
                 className="w-32 h-32 mx-auto mt-8"
@@ -775,25 +879,57 @@ export default function AIPage() {
                   strokeWidth="2"
                 />
               </motion.svg>
+              <motion.p
+                className={`mt-4 text-sm font-mono ${theme === 'dark' ? 'text-white/60' : 'text-black/60'}`}
+                animate={{ opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                CLICK TO ENTER
+              </motion.p>
             </motion.div>
           </div>
-
-          {/* Scroll indicator */}
-          <motion.div
-            className="absolute bottom-8 left-1/2 -translate-x-1/2"
-            animate={{ y: [0, 10, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            <svg width="40" height="40" viewBox="0 0 40 40">
-              <path
-                d="M20 10 L20 30 M12 22 L20 30 L28 22"
-                stroke={theme === 'dark' ? 'white' : 'black'}
-                strokeWidth="2"
-                strokeLinecap="round"
-              />
-            </svg>
-          </motion.div>
         </motion.section>
+
+        {/* Creator Panel */}
+        <AnimatePresence>
+          {showCreator && user && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+            >
+              <motion.div
+                initial={{ scale: 0.9, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.9, y: 20 }}
+                className="w-full h-full md:w-auto md:h-auto md:max-w-4xl md:max-h-[90vh] overflow-auto p-4"
+              >
+                {user.bots?.length ? (
+                  <BotManagementPanel 
+                    theme={theme} 
+                    onClose={() => setShowCreator(false)} 
+                  />
+                ) : (
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowCreator(false)}
+                      className={`absolute right-4 top-4 z-10 p-2 rounded-full ${
+                        theme === 'dark' ? 'bg-white/10 hover:bg-white/20' : 'bg-black/10 hover:bg-black/20'
+                      }`}
+                      data-cursor-pointer
+                    >
+                      <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                    <BotCreationForm theme={theme} />
+                  </div>
+                )}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Features Grid */}
         <section className="px-4 py-20">
@@ -817,11 +953,6 @@ export default function AIPage() {
               ))}
             </div>
           </div>
-        </section>
-
-        {/* Bot Creation Form Section */}
-        <section className="px-4 py-20">
-          <BotCreationForm theme={theme} />
         </section>
 
         {/* Footer */}
