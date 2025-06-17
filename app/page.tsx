@@ -1000,7 +1000,7 @@ const useProtection = () => {
   }, [])
 }
 
-export const ScrollArrow = ({ theme }: { theme: 'dark' | 'light' }) => {
+const ScrollArrow = ({ theme }: { theme: 'dark' | 'light' }) => {
   const handleClick = () => {
     window.scrollTo({
       top: window.innerHeight,
