@@ -953,7 +953,6 @@ const useProtection = () => {
     }
 
     const preventContextMenu = (e: Event) => {
-      // Check if the click is on the custom menu
       const target = e.target as HTMLElement
       if (target.closest('.custom-context-menu')) {
         return
@@ -966,21 +965,21 @@ const useProtection = () => {
       return false
     }
 
-    // Disable right-click
     document.addEventListener('contextmenu', preventContextMenu)
     document.addEventListener('keydown', preventDefaultKeys)
     document.onselectstart = preventSelection
     document.onmousedown = preventSelection
     
-    // Disable image dragging ( that will be just gay )
+    // Updated image drag prevention
     const images = document.getElementsByTagName('img')
     Array.from(images).forEach(img => {
       img.addEventListener('dragstart', preventContextMenu)
-      img.style.webkitUserDrag = 'none'
-      img.style.userDrag = 'none'
+      // Use setAttribute instead of direct style assignment
+      img.setAttribute('draggable', 'false')
+      // Add CSS class for drag prevention
+      img.classList.add('prevent-drag')
     })
 
-    // Disable copy/paste
     document.addEventListener('copy', preventContextMenu)
     document.addEventListener('paste', preventContextMenu)
     document.addEventListener('cut', preventContextMenu)
