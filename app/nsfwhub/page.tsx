@@ -59,7 +59,7 @@ export default function NsfwHub() {
 
   const videoRef = useRef<HTMLVideoElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const searchTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const searchTimerRef = useRef<number | undefined>(undefined)
   const hideTimerRef = useRef<NodeJS.Timeout | null>(null)
   const playPauseTimerRef = useRef<NodeJS.Timeout | null>(null)
 
@@ -281,8 +281,11 @@ export default function NsfwHub() {
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query)
     
-    clearTimeout(searchTimerRef.current)
-    searchTimerRef.current = setTimeout(() => {
+    if (searchTimerRef.current) {
+      clearTimeout(searchTimerRef.current)
+    }
+    
+    searchTimerRef.current = window.setTimeout(() => {
       fetchSuggestions(query)
     }, 300)
   }, [fetchSuggestions])
