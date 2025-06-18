@@ -1,9 +1,38 @@
 'use client'
+import Prism from 'prismjs';
+import 'prismjs/plugins/line-numbers/prism-line-numbers.css';
+import 'prismjs/themes/prism-tomorrow.css';
+import 'prismjs/components/prism-javascript';
+import 'prismjs/components/prism-typescript';
+import 'prismjs/components/prism-jsx';
+import 'prismjs/components/prism-tsx';
+import 'prismjs/components/prism-python';
+import 'prismjs/components/prism-java';
+import 'prismjs/components/prism-c';
+import 'prismjs/components/prism-cpp';
+import 'prismjs/components/prism-csharp';
+import 'prismjs/components/prism-php';
+import 'prismjs/components/prism-ruby';
+import 'prismjs/components/prism-go';
+import 'prismjs/components/prism-rust';
+import 'prismjs/components/prism-swift';
+import 'prismjs/components/prism-kotlin';
+import 'prismjs/components/prism-scala';
+import 'prismjs/components/prism-sql';
+import 'prismjs/components/prism-bash';
+import 'prismjs/components/prism-json';
+import 'prismjs/components/prism-yaml';
+import 'prismjs/components/prism-markdown';
+import 'prismjs/components/prism-css';
+import 'prismjs/components/prism-scss';
+import 'prismjs/components/prism-less';
 import { useState, useEffect, useRef } from 'react'
 import { createRoot } from 'react-dom/client'
 import { motion, useScroll, useTransform, useSpring, AnimatePresence, useInView, animate, spring } from 'framer-motion'
 import { useTheme } from './contexts/ThemeContext'
 import { flushSync} from 'react-dom'
+
+
 const SmoothCursor = () => {
   const cursorRef = useRef<HTMLDivElement>(null)
   const cursorOutlineRef = useRef<HTMLDivElement>(null)
@@ -1134,187 +1163,8 @@ const ScrollArrow = ({ theme }: { theme: 'dark' | 'light' }) => {
   )
 }
 
-// Updated ThinkingAnimation component 
-// const ThinkingAnimation = ({ theme }: { theme: 'dark' | 'light' }) => {
-//   const [query, setQuery] = useState('');
-//   const [aiResponse, setAiResponse] = useState('');
-//   const [isProcessing, setIsProcessing] = useState(false);
-//   const [showResponse, setShowResponse] = useState(false);
-
-//   const animatedElements = [
-//     { id: 1, text: "Analyzing patterns...", delay: 0 },
-//     { id: 2, text: "Processing data...", delay: 0.5 },
-//     { id: 3, text: "Generating insights...", delay: 1 },
-//     { id: 4, text: "Optimizing response...", delay: 1.5 },
-//   ];
-
-//   const handleSubmit = async () => {
-//     if (!query.trim()) return;
-
-//     setIsProcessing(true);
-//     setShowResponse(false);
-
-//     try {
-//       const response = await fetch('/api/ai', {
-//         method: 'POST',
-//         headers: {
-//           'Content-Type': 'application/json',
-//         },
-//         body: JSON.stringify({
-//           messages: [{ role: 'user', content: query }],
-//         }),
-//       });
-
-//       if (!response.ok) throw new Error('API request failed');
-
-//       const data = await response.json();
-//       const aiMessage = data?.choices?.[0]?.message?.content || "I couldn't generate a response.";
-//       setAiResponse(aiMessage);
-//       setShowResponse(true);
-//       setQuery('');
-//     } catch (err) {
-//       console.error('Error calling AI API:', err);
-//       setAiResponse('Sorry, something went wrong. Please try again.');
-//       setShowResponse(true);
-//     } finally {
-//       setIsProcessing(false);
-//     }
-//   };
-
-//   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-//     if (e.key === 'Enter' && !e.shiftKey) {
-//       e.preventDefault();
-//       handleSubmit();
-//     }
-//   };
-
-//   return (
-//     <section className="min-h-screen py-20 px-4">
-//       <div className="max-w-4xl mx-auto">
-//         <div
-//           className={`${
-//             theme === 'dark' ? 'bg-black/90' : 'bg-white/90'
-//           } backdrop-blur-xl border ${
-//             theme === 'dark' ? 'border-white/20' : 'border-black/20'
-//           } rounded-2xl shadow-2xl`}
-//         >
-//           <div className="p-6">
-//             <div className="flex items-start gap-4">
-//               <div className="flex-grow space-y-4">
-//                 <h3
-//                   className={`text-xl font-bold mb-6 ${
-//                     theme === 'dark' ? 'text-white' : 'text-black'
-//                   }`}
-//                 >
-//                   Chat with AI
-//                 </h3>
-
-//                 <div
-//                   className={`min-h-[200px] max-h-[400px] overflow-y-auto space-y-4 ${
-//                     theme === 'dark' ? 'text-white/90' : 'text-black/90'
-//                   }`}
-//                 >
-//                   {isProcessing &&
-//                     animatedElements.map((el) => (
-//                       <motion.div
-//                         key={el.id}
-//                         initial={{ opacity: 0, x: -20 }}
-//                         animate={{ opacity: 1, x: 0 }}
-//                         transition={{ duration: 0.5, delay: el.delay }}
-//                         className="text-sm font-mono flex items-center gap-2"
-//                       >
-//                         <motion.div
-//                           animate={{ scale: [1, 1.2, 1] }}
-//                           transition={{
-//                             duration: 1.5,
-//                             repeat: Infinity,
-//                             delay: el.delay,
-//                           }}
-//                           className={`w-2 h-2 rounded-full ${
-//                             theme === 'dark' ? 'bg-white' : 'bg-black'
-//                           }`}
-//                         />
-//                         {el.text}
-//                       </motion.div>
-//                     ))}
-
-//                   {showResponse && (
-//                     <motion.div
-//                       initial={{ opacity: 0, y: 10 }}
-//                       animate={{ opacity: 1, y: 0 }}
-//                       transition={{ duration: 0.5 }}
-//                       className={`p-3 rounded-lg ${
-//                         theme === 'dark' ? 'bg-white/10' : 'bg-black/10'
-//                       }`}
-//                     >
-//                       <strong className="block mb-1">AI:</strong>
-//                       {aiResponse}
-//                     </motion.div>
-//                   )}
-//                 </div>
-
-//                 <div className="flex gap-4">
-//                   <input
-//                     type="text"
-//                     value={query}
-//                     onChange={(e) => setQuery(e.target.value)}
-//                     onKeyDown={handleKeyDown}
-//                     placeholder="Ask something..."
-//                     className={`allow-select flex-grow py-3 px-4 rounded-lg border-none focus:outline-none focus:ring-2 ${
-//                       theme === 'dark'
-//                         ? 'focus:ring-white/20 bg-neutral-900 text-white placeholder:text-white/50'
-//                         : 'focus:ring-black/20 bg-neutral-100 text-black placeholder:text-black/50'
-//                     } transition-all`}
-//                   />
-//                   <motion.button
-//                     onClick={handleSubmit}
-//                     disabled={isProcessing || !query.trim()}
-//                     className={`px-4 py-2 rounded-lg font-mono text-sm font-bold transition-all flex items-center gap-2 ${
-//                       theme === 'dark'
-//                         ? 'bg-white text-black hover:bg-white/90'
-//                         : 'bg-black text-white hover:bg-black/90'
-//                     } disabled:opacity-50 disabled:cursor-not-allowed`}
-//                     whileHover={{ scale: 1.05 }}
-//                     whileTap={{ scale: 0.95 }}
-//                   >
-//                     {isProcessing ? (
-//                       <>
-//                         <svg
-//                           className="animate-spin h-4 w-4"
-//                           viewBox="0 0 24 24"
-//                         >
-//                           <circle
-//                             className="opacity-25"
-//                             cx="12"
-//                             cy="12"
-//                             r="10"
-//                             stroke="currentColor"
-//                             strokeWidth="4"
-//                             fill="none"
-//                           />
-//                           <path
-//                             className="opacity-75"
-//                             fill="currentColor"
-//                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-//                           />
-//                         </svg>
-//                         Processing...
-//                       </>
-//                     ) : (
-//                       'Send'
-//                     )}
-//                   </motion.button>
-//                 </div>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//     </section>
-//   );
-// };
-//New AI Features Section with your mom in it
-
+//I seriously do not understand why the streaming is not working, its making it buggy too, so imma just keep it like this, its annyoing
+//If anyone ever sees this, please help me fix it, i have no idea 
 const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
   const [activeFeature, setActiveFeature] = useState<number | null>(null);
   const [query, setQuery] = useState('');
@@ -1322,12 +1172,6 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
   const [featureResponses, setFeatureResponses] = useState<{[key: number]: string}>({});
   const [isProcessing, setIsProcessing] = useState(false);
   const [isCustomProcessing, setIsCustomProcessing] = useState(false);
-  const [thinkingStage, setThinkingStage] = useState(0);
-  const [streamedText, setStreamedText] = useState('');
-
-  // Add refs to force immediate updates
-  const streamedTextRef = useRef('');
-  const featureResponsesRef = useRef<{[key: number]: string}>({});
 
   const features = [
     {
@@ -1368,104 +1212,36 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
     }
   ];
 
-  const thinkingStages = [
-    'Analyzing your request...',
-    'Understanding context...',
-    'Generating solution...',
-    'Encoding response...'
-  ];
-
-  // Fixed SSE Parser with immediate updates
-  const parseSSEStream = async (
-    reader: ReadableStreamDefaultReader<Uint8Array>, 
-    onChunk: (content: string) => void
-  ) => {
-    const decoder = new TextDecoder();
-    let buffer = '';
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || '';
-      
-      for (const line of lines) {
-        const trimmedLine = line.trim();
-        if (!trimmedLine || !trimmedLine.startsWith('data: ')) continue;
-        
-        const data = trimmedLine.slice(6);
-        if (data === '[DONE]') return;
-        
-        try {
-          const parsed = JSON.parse(data);
-          const content = parsed?.choices?.[0]?.delta?.content;
-          if (content) {
-            onChunk(content);
-          }
-        } catch (e) {
-          console.warn('Skipping unparseable chunk:', data);
-        }
-      }
-    }
-  };
-
-  // Handle feature card queries with REAL streaming
+  // Handle feature card queries - direct response
   const handleFeatureSubmit = async (featureId: number) => {
     const queryToSend = features[featureId - 1].example;
     
     setIsProcessing(true);
-    setThinkingStage(0);
     setActiveFeature(featureId);
     
-    // Clear previous response
-    featureResponsesRef.current[featureId] = '';
-    setFeatureResponses(prev => ({ ...prev, [featureId]: '' }));
-
-    const stageInterval = setInterval(() => {
-      setThinkingStage(prev => {
-        if (prev >= thinkingStages.length - 1) {
-          clearInterval(stageInterval);
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, 800);
-
     try {
       const response = await fetch('/api/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: [{ role: 'user', content: queryToSend }],
-          stream: true
+          stream: false
         })
       });
-
-      clearInterval(stageInterval);
 
       if (!response.ok) {
         throw new Error(`API error: ${response.status}`);
       }
 
-      if (response.body) {
-        const reader = response.body.getReader();
-
-        await parseSSEStream(reader, (chunk) => {
-          // Update ref immediately
-          featureResponsesRef.current[featureId] = (featureResponsesRef.current[featureId] || '') + chunk;
-          
-          // Force immediate state update using functional update
-          setFeatureResponses(prev => ({ 
-            ...prev, 
-            [featureId]: featureResponsesRef.current[featureId] 
-          }));
-        });
-      }
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content || data.content || "No response received";
+      
+      setFeatureResponses(prev => ({ 
+        ...prev, 
+        [featureId]: content 
+      }));
       
     } catch (error) {
-      clearInterval(stageInterval);
       console.error('Feature submit error:', error);
       setFeatureResponses(prev => ({ 
         ...prev, 
@@ -1476,27 +1252,12 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
     }
   };
 
-  // Handle custom queries with REAL streaming
+  // Handle custom queries - direct response
   const handleCustomSubmit = async () => {
     if (!query.trim()) return;
     
     setIsCustomProcessing(true);
-    setThinkingStage(0);
     setCustomResponse('');
-    
-    // Clear previous response
-    streamedTextRef.current = '';
-    setStreamedText('');
-
-    const stageInterval = setInterval(() => {
-      setThinkingStage(prev => {
-        if (prev >= thinkingStages.length - 1) {
-          clearInterval(stageInterval);
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, 800);
 
     try {
       const response = await fetch('/api/ai', {
@@ -1504,30 +1265,20 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: [{ role: 'user', content: query }],
-          stream: true
+          stream: false
         })
       });
-
-      clearInterval(stageInterval);
 
       if (!response.ok) {
         throw new Error(`API error: ${response.status}`);
       }
 
-      if (response.body) {
-        const reader = response.body.getReader();
-
-        await parseSSEStream(reader, (chunk) => {
-          // Update ref immediately
-          streamedTextRef.current += chunk;
-          
-          // Force immediate state update
-          setStreamedText(streamedTextRef.current);
-        });
-      }
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content || data.content || "No response received";
+      
+      setCustomResponse(content);
       
     } catch (error) {
-      clearInterval(stageInterval);
       console.error('Custom submit error:', error);
       setCustomResponse("Something went wrong. Please try again.");
     } finally {
@@ -1536,7 +1287,44 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
     }
   };
 
-  const displayText = streamedText || customResponse;
+  // Code highlighting effect
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      Prism.highlightAll();
+    }
+  }, [customResponse, featureResponses]);
+
+  // Format code blocks
+  const formatCodeBlocks = (text: string) => {
+    const parts = text.split('```');
+    
+    return parts.map((part, index) => {
+      if (index % 2 === 1) { // Code block
+        const lines = part.split('\n');
+        const language = lines[0]?.trim() || 'javascript';
+        const code = lines.slice(1).join('\n').trim();
+        
+        return (
+          <div key={index} className="my-4 w-full">
+            <div className="relative rounded-lg overflow-hidden">
+              <div className="absolute top-2 right-2 text-xs text-white/40 font-mono">
+                {language}
+              </div>
+              <pre className={`language-${language} line-numbers`}>
+                <code className={`language-${language}`}>
+                  {code}
+                </code>
+              </pre>
+            </div>
+          </div>
+        );
+      } else {
+        return part.split('\n').map((line, lineIndex) => (
+          line ? <p key={`${index}-${lineIndex}`} className="mb-2">{line}</p> : null
+        )).filter(Boolean);
+      }
+    }).flat();
+  };
 
   return (
     <section className="min-h-screen py-20 px-4">
@@ -1606,11 +1394,12 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
                 <div className="mt-auto space-y-4">
                   <button
                     onClick={() => handleFeatureSubmit(feature.id)}
+                    disabled={isProcessing}
                     className={`relative w-full text-left px-4 py-3 rounded-xl ${
                       theme === 'dark' 
                         ? 'bg-neutral-900 hover:bg-neutral-800' 
                         : 'bg-neutral-100 hover:bg-neutral-200'
-                    } transition-all duration-300 group/button overflow-hidden`}
+                    } transition-all duration-300 group/button overflow-hidden disabled:opacity-50`}
                   >
                     {/* Glow effect */}
                     <div className={`absolute inset-0 rounded-xl transition-opacity duration-300 ${
@@ -1652,46 +1441,37 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
                       >
                         <div className="p-4">
                           {isProcessing && activeFeature === feature.id ? (
-                            <div className="space-y-3">
-                              <div className="flex items-center gap-3">
-                                <motion.svg
-                                  className="w-5 h-5"
-                                  viewBox="0 0 24 24"
-                                  animate={{ rotate: 360 }}
-                                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                                >
-                                  <circle 
-                                    cx="12" 
-                                    cy="12" 
-                                    r="10" 
-                                    stroke={theme === 'dark' ? 'white' : 'black'}
-                                    strokeWidth="2"
-                                    fill="none"
-                                    strokeDasharray="15 5"
-                                  />
-                                </motion.svg>
-                                <motion.span
-                                  key={thinkingStage}
-                                  initial={{ opacity: 0, y: 5 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  className={`text-sm ${
-                                    theme === 'dark' ? 'text-white/60' : 'text-black/60'
-                                  }`}
-                                >
-                                  {thinkingStages[thinkingStage]}
-                                </motion.span>
-                              </div>
+                            <div className="flex items-center gap-3">
+                              <motion.svg
+                                className="w-5 h-5"
+                                viewBox="0 0 24 24"
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                              >
+                                <circle 
+                                  cx="12" 
+                                  cy="12" 
+                                  r="10" 
+                                  stroke={theme === 'dark' ? 'white' : 'black'}
+                                  strokeWidth="2"
+                                  fill="none"
+                                  strokeDasharray="15 5"
+                                />
+                              </motion.svg>
+                              <span className={`text-sm ${
+                                theme === 'dark' ? 'text-white/60' : 'text-black/60'
+                              }`}>
+                                Getting response...
+                              </span>
                             </div>
                           ) : featureResponses[feature.id] && (
                             <motion.div
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 1 }}
-                              className={`text-sm ${
-                                theme === 'dark' ? 'text-white/80' : 'text-black/80'
-                              }`}
+                              className="w-full"
                             >
-                              <div className="whitespace-pre-wrap font-mono text-xs">
-                                {featureResponses[feature.id]}
+                              <div className="space-y-2">
+                                {formatCodeBlocks(featureResponses[feature.id])}
                               </div>
                             </motion.div>
                           )}
@@ -1759,9 +1539,9 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
             </div>
           </div>
 
-          {/* ChatGPT-style Response Canvas with Glow Effect */}
+          {/* Response Canvas with Glow Effect */}
           <AnimatePresence>
-            {(isCustomProcessing || displayText) && (
+            {(isCustomProcessing || customResponse) && (
               <motion.div
                 initial={{ opacity: 0, y: 10, height: 0 }}
                 animate={{ opacity: 1, y: 0, height: 'auto' }}
@@ -1781,76 +1561,37 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
                 
                 <div className="relative p-6">
                   {isCustomProcessing ? (
-                    <div className="space-y-4">
-                      {/* Thinking animation */}
-                      <div className="flex items-center gap-3">
-                        <motion.svg
-                          className="w-6 h-6"
-                          viewBox="0 0 24 24"
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                        >
-                          <circle 
-                            cx="12" 
-                            cy="12" 
-                            r="10" 
-                            stroke={theme === 'dark' ? 'white' : 'black'}
-                            strokeWidth="2"
-                            fill="none"
-                            strokeDasharray="15 5"
-                          />
-                        </motion.svg>
-                        <motion.span
-                          key={thinkingStage}
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          className={`font-medium ${
-                            theme === 'dark' ? 'text-white/70' : 'text-black/70'
-                          }`}
-                        >
-                          {thinkingStages[thinkingStage]}
-                        </motion.span>
-                      </div>
-                      
-                      {/* Progress indicator */}
-                      <div className="flex gap-1">
-                        {thinkingStages.map((_, idx) => (
-                          <motion.div
-                            key={idx}
-                            className={`h-1 rounded-full transition-all ${
-                              idx <= thinkingStage
-                                ? `w-8 ${theme === 'dark' ? 'bg-white' : 'bg-black'}`
-                                : `w-2 ${theme === 'dark' ? 'bg-white/20' : 'bg-black/20'}`
-                            }`}
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ delay: idx * 0.1 }}
-                          />
-                        ))}
-                      </div>
+                    <div className="flex items-center gap-3">
+                      <motion.svg
+                        className="w-6 h-6"
+                        viewBox="0 0 24 24"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                      >
+                        <circle 
+                          cx="12" 
+                          cy="12" 
+                          r="10" 
+                          stroke={theme === 'dark' ? 'white' : 'black'}
+                          strokeWidth="2"
+                          fill="none"
+                          strokeDasharray="15 5"
+                        />
+                      </motion.svg>
+                      <span className={`font-medium ${
+                        theme === 'dark' ? 'text-white/70' : 'text-black/70'
+                      }`}>
+                        Getting response...
+                      </span>
                     </div>
-                  ) : displayText && (
+                  ) : customResponse && (
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className={`${
-                        theme === 'dark' ? 'text-white/90' : 'text-black/90'
-                      }`}
+                      className="w-full"
                     >
-                      {/* AI Avatar and response */}
-                      <div className="flex items-start gap-4">
-                        <div className={`w-8 h-8 rounded-lg ${
-                          theme === 'dark' ? 'bg-white/10' : 'bg-black/10'
-                        } flex items-center justify-center flex-shrink-0`}>
-                          <svg width="16" height="16" viewBox="0 0 16 16" fill={theme === 'dark' ? 'white' : 'black'}>
-                            <path d="M8 1L1 5L8 9L15 5L8 1Z M1 11L8 15L15 11 M1 8L8 12L15 8" stroke="currentColor" strokeWidth="1.5" fill="none"/>
-                          </svg>
-                        </div>
-                        <div className="flex-grow">
-                          <div className="whitespace-pre-wrap font-sans">
-                            {displayText}
-                          </div>
-                        </div>
+                      <div className="space-y-2">
+                        {formatCodeBlocks(customResponse)}
                       </div>
                     </motion.div>
                   )}
@@ -1863,6 +1604,8 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
     </section>
   );
 };
+
+
 
 export default function LaxentaLanding() {
   const { theme } = useTheme()
