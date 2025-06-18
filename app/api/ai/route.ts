@@ -1,11 +1,12 @@
+// /app/api/ai/route.ts
 import { NextRequest } from 'next/server';
 
 const API_KEY = process.env.ELECTRON_API_KEY;
 const API_URL = 'https://api.electronhub.ai/v1/chat/completions';
 
 // Rate limit store (in-memory)
-const RATE_LIMIT = 5; // max requests
-const WINDOW_MS = 60 * 1000; // time window in ms
+const RATE_LIMIT = 5;
+const WINDOW_MS = 60 * 1000;
 const ipMap = new Map<string, { count: number; timestamp: number }>();
 
 function checkRateLimit(ip: string): boolean {
@@ -45,7 +46,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { messages, stream = false } = await req.json();
+    const { messages, stream = true } = await req.json();
     console.log("[📩 Messages]", messages);
     console.log("[🌊 Stream]", stream);
 
@@ -76,6 +77,9 @@ export async function POST(req: NextRequest) {
       body,
     });
 
+    console.log("[📡 API Response Status]", response.status);
+    console.log("[📡 API Response Headers]", Object.fromEntries(response.headers.entries()));
+
     if (!stream) {
       const data = await response.json();
       console.log("[✅ RESPONSE]", data);
@@ -85,33 +89,127 @@ export async function POST(req: NextRequest) {
     }
 
     if (!response.ok) {
-      throw new Error(`API responded with status ${response.status}`);
+      const errorText = await response.text();
+      console.error("[❌ API Error]", errorText);
+      throw new Error(`API responded with status 
+𝑟
+𝑒
+𝑠
+𝑝
+𝑜
+𝑛
+𝑠
+𝑒
+.
+𝑠
+𝑡
+𝑎
+𝑡
+𝑢
+𝑠
+<
+/
+𝑠
+𝑝
+𝑎
+𝑛
+>
+:
+<
+𝑠
+𝑝
+𝑎
+𝑛
+𝑐
+𝑙
+𝑎
+𝑠
+𝑠
+=
+"
+ℎ
+𝑙
+𝑗
+𝑠
+−
+𝑠
+𝑢
+𝑏
+𝑠
+𝑡
+"
+>
+response.status</span>:<spanclass="hljs−subst">{errorText}`);
     }
 
     const encoder = new TextEncoder();
     const decoder = new TextDecoder();
 
+    // Buffer to handle partial lines
+    let buffer = '';
+    let chunkCount = 0;
+    let totalContent = '';
+
     const transformStream = new TransformStream({
       async transform(chunk, controller) {
+        chunkCount++;
         const text = decoder.decode(chunk, { stream: true });
-        const lines = text.split('\n');
-
+        console.log(`[🔄 Chunk ${chunkCount}] Raw:`, text.substring(0, 100) + (text.length > 100 ? '...' : ''));
+        
+        buffer += text;
+        
+        // Split by newlines but keep the last partial line in buffer
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || ''; // Keep the last incomplete line
+        
         for (const line of lines) {
+          if (line.trim() === '') continue;
+          
+          console.log("[📝 Processing line]", line.substring(0, 100) + (line.length > 100 ? '...' : ''));
+          
           if (line.startsWith('data: ')) {
             const data = line.slice(6);
+            
             if (data === '[DONE]') {
+              console.log("[✅ Stream Complete] Total content:", totalContent);
               controller.enqueue(encoder.encode('data: [DONE]\n\n'));
               return;
             }
+            
             try {
-              JSON.parse(data);
+              const parsed = JSON.parse(data);
+              const content = parsed.choices?.[0]?.delta?.content;
+              
+              if (content) {
+                totalContent += content;
+                console.log("[💬 Content chunk]", content);
+              }
+              
               controller.enqueue(encoder.encode(`data: ${data}\n\n`));
             } catch (e) {
-              console.error('[⚠️ Invalid JSON]', e);
+              if (data.trim() !== '') {
+                console.error('[⚠️ Invalid JSON]', e.message);
+                console.error('[⚠️ Failed data]', data);
+              }
             }
           }
         }
       },
+      
+      flush(controller) {
+        console.log("[🏁 Flush called] Buffer:", buffer);
+        if (buffer.trim() && buffer.startsWith('data: ')) {
+          const data = buffer.slice(6);
+          if (data !== '[DONE]') {
+            try {
+              JSON.parse(data);
+              controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+            } catch (e) {
+              console.error('[⚠️ Invalid JSON in flush]', e.message);
+            }
+          }
+        }
+      }
     });
 
     return new Response(response.body?.pipeThrough(transformStream), {

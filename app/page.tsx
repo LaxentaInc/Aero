@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react'
 import { createRoot } from 'react-dom/client'
 import { motion, useScroll, useTransform, useSpring, AnimatePresence, useInView, animate, spring } from 'framer-motion'
 import { useTheme } from './contexts/ThemeContext'
-
+import { flushSync} from 'react-dom'
 const SmoothCursor = () => {
   const cursorRef = useRef<HTMLDivElement>(null)
   const cursorOutlineRef = useRef<HTMLDivElement>(null)
@@ -1313,7 +1313,7 @@ const ScrollArrow = ({ theme }: { theme: 'dark' | 'light' }) => {
 //     </section>
 //   );
 // };
-// New AI Features Section with sleek animations
+//New AI Features Section with your mom in it
 
 const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
   const [activeFeature, setActiveFeature] = useState<number | null>(null);
@@ -1325,13 +1325,17 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
   const [thinkingStage, setThinkingStage] = useState(0);
   const [streamedText, setStreamedText] = useState('');
 
+  // Add refs to force immediate updates
+  const streamedTextRef = useRef('');
+  const featureResponsesRef = useRef<{[key: number]: string}>({});
+
   const features = [
     {
       id: 1,
       title: 'Productivity, unhinged',
-      subtitle: 'AI-powered coding assistant',
-      description: 'Get instant code solutions, debug assistance, and best practices recommendations.',
-      example: 'Write a custom React hook',
+      subtitle: 'Powered By 0s and 1s for productivity',
+      description: 'Get instant answers, opinions, debug assistance, and more :3',
+      example: 'Tell me something political from any country',
       icon: (
         <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
           <path d="M12 2L2 7L12 12L22 7L12 2Z M2 17L12 22L22 17 M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" fill="none"/>
@@ -1343,7 +1347,7 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
       title: 'Code Analysis',
       subtitle: 'Smart code review',
       description: 'Analyze code patterns, identify optimizations, and get performance insights.',
-      example: 'Review my component structure',
+      example: 'Review a random next.js component',
       icon: (
         <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none">
           <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -1368,16 +1372,56 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
     'Analyzing your request...',
     'Understanding context...',
     'Generating solution...',
-    'Optimizing response...'
+    'Encoding response...'
   ];
 
-  // Handle feature card queries
+  // Fixed SSE Parser with immediate updates
+  const parseSSEStream = async (
+    reader: ReadableStreamDefaultReader<Uint8Array>, 
+    onChunk: (content: string) => void
+  ) => {
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+      
+      for (const line of lines) {
+        const trimmedLine = line.trim();
+        if (!trimmedLine || !trimmedLine.startsWith('data: ')) continue;
+        
+        const data = trimmedLine.slice(6);
+        if (data === '[DONE]') return;
+        
+        try {
+          const parsed = JSON.parse(data);
+          const content = parsed?.choices?.[0]?.delta?.content;
+          if (content) {
+            onChunk(content);
+          }
+        } catch (e) {
+          console.warn('Skipping unparseable chunk:', data);
+        }
+      }
+    }
+  };
+
+  // Handle feature card queries with REAL streaming
   const handleFeatureSubmit = async (featureId: number) => {
     const queryToSend = features[featureId - 1].example;
     
     setIsProcessing(true);
     setThinkingStage(0);
     setActiveFeature(featureId);
+    
+    // Clear previous response
+    featureResponsesRef.current[featureId] = '';
+    setFeatureResponses(prev => ({ ...prev, [featureId]: '' }));
 
     const stageInterval = setInterval(() => {
       setThinkingStage(prev => {
@@ -1394,30 +1438,54 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: [{ role: 'user', content: queryToSend }]
+          messages: [{ role: 'user', content: queryToSend }],
+          stream: true
         })
       });
 
-      const data = await response.json();
-      const aiMessage = data?.choices?.[0]?.message?.content || "I couldn't generate a response.";
-      
       clearInterval(stageInterval);
-      setFeatureResponses(prev => ({ ...prev, [featureId]: aiMessage }));
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+
+      if (response.body) {
+        const reader = response.body.getReader();
+
+        await parseSSEStream(reader, (chunk) => {
+          // Update ref immediately
+          featureResponsesRef.current[featureId] = (featureResponsesRef.current[featureId] || '') + chunk;
+          
+          // Force immediate state update using functional update
+          setFeatureResponses(prev => ({ 
+            ...prev, 
+            [featureId]: featureResponsesRef.current[featureId] 
+          }));
+        });
+      }
+      
     } catch (error) {
       clearInterval(stageInterval);
-      setFeatureResponses(prev => ({ ...prev, [featureId]: "Something went wrong. Please try again." }));
+      console.error('Feature submit error:', error);
+      setFeatureResponses(prev => ({ 
+        ...prev, 
+        [featureId]: "Something went wrong. Please try again." 
+      }));
     } finally {
       setIsProcessing(false);
     }
   };
 
-  // Handle custom queries with streaming support
+  // Handle custom queries with REAL streaming
   const handleCustomSubmit = async () => {
     if (!query.trim()) return;
     
     setIsCustomProcessing(true);
     setThinkingStage(0);
     setCustomResponse('');
+    
+    // Clear previous response
+    streamedTextRef.current = '';
     setStreamedText('');
 
     const stageInterval = setInterval(() => {
@@ -1436,33 +1504,31 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: [{ role: 'user', content: query }],
-          stream: true // Enable streaming if your API supports it
+          stream: true
         })
       });
 
       clearInterval(stageInterval);
 
-      // Check if the response is streaming
-      if (response.body && response.headers.get('content-type')?.includes('stream')) {
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+      if (response.body) {
+        const reader = response.body.getReader();
+
+        await parseSSEStream(reader, (chunk) => {
+          // Update ref immediately
+          streamedTextRef.current += chunk;
           
-          const chunk = decoder.decode(value);
-          setStreamedText(prev => prev + chunk);
-        }
-      } else {
-        // Regular response
-        const data = await response.json();
-        const aiMessage = data?.choices?.[0]?.message?.content || "I couldn't generate a response.";
-        setCustomResponse(aiMessage);
+          // Force immediate state update
+          setStreamedText(streamedTextRef.current);
+        });
       }
       
     } catch (error) {
       clearInterval(stageInterval);
+      console.error('Custom submit error:', error);
       setCustomResponse("Something went wrong. Please try again.");
     } finally {
       setIsCustomProcessing(false);
@@ -1536,17 +1602,24 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
                   {feature.description}
                 </p>
 
-                {/* Example Query */}
+                {/* Example Query with Glow Effect */}
                 <div className="mt-auto space-y-4">
                   <button
                     onClick={() => handleFeatureSubmit(feature.id)}
-                    className={`w-full text-left px-4 py-3 rounded-xl ${
+                    className={`relative w-full text-left px-4 py-3 rounded-xl ${
                       theme === 'dark' 
                         ? 'bg-neutral-900 hover:bg-neutral-800' 
                         : 'bg-neutral-100 hover:bg-neutral-200'
-                    } transition-colors group/button`}
+                    } transition-all duration-300 group/button overflow-hidden`}
                   >
-                    <div className="flex items-center justify-between">
+                    {/* Glow effect */}
+                    <div className={`absolute inset-0 rounded-xl transition-opacity duration-300 ${
+                      theme === 'dark'
+                        ? 'bg-gradient-to-r from-white/5 via-transparent to-white/5 shadow-[0_0_20px_rgba(255,255,255,0.1)]'
+                        : 'bg-gradient-to-r from-black/5 via-transparent to-black/5 shadow-[0_0_20px_rgba(0,0,0,0.1)]'
+                    } opacity-0 group-hover/button:opacity-100`} />
+                    
+                    <div className="relative flex items-center justify-between">
                       <span className={`text-sm ${
                         theme === 'dark' ? 'text-white/80' : 'text-black/80'
                       }`}>
@@ -1617,9 +1690,9 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
                                 theme === 'dark' ? 'text-white/80' : 'text-black/80'
                               }`}
                             >
-                              <pre className="whitespace-pre-wrap font-mono text-xs">
+                              <div className="whitespace-pre-wrap font-mono text-xs">
                                 {featureResponses[feature.id]}
-                              </pre>
+                              </div>
                             </motion.div>
                           )}
                         </div>
@@ -1639,57 +1712,74 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
           transition={{ delay: 0.4 }}
           className="mt-12 max-w-3xl mx-auto space-y-4"
         >
-          {/* Input */}
-          <div className={`relative ${
+          {/* Input with Glow Effect */}
+          <div className={`relative group ${
             theme === 'dark' ? 'bg-neutral-900' : 'bg-neutral-100'
-          } rounded-2xl p-1`}>
-            <input
-              type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && query.trim()) {
-                  handleCustomSubmit();
-                }
-              }}
-              placeholder="Ask anything..."
-              className={`allow-select w-full py-4 px-6 pr-16 rounded-2xl ${
-                theme === 'dark' 
-                  ? 'bg-neutral-900 text-white placeholder:text-white/40' 
-                  : 'bg-neutral-100 text-black placeholder:text-black/40'
-              } focus:outline-none focus:ring-2 ${
-                theme === 'dark' ? 'focus:ring-white/20' : 'focus:ring-black/20'
-              }`}
-            />
-            <button
-              onClick={handleCustomSubmit}
-              disabled={!query.trim() || isCustomProcessing}
-              className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg ${
-                theme === 'dark' 
-                  ? 'bg-white text-black hover:bg-white/90' 
-                  : 'bg-black text-white hover:bg-black/90'
-              } disabled:opacity-50 transition-all`}
-            >
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M2 10L17 2L13 10L17 18L2 10Z" />
-              </svg>
-            </button>
+          } rounded-2xl p-1 transition-all duration-300 overflow-hidden`}>
+            
+            {/* Glow effect for input */}
+            <div className={`absolute inset-0 rounded-2xl transition-opacity duration-300 ${
+              theme === 'dark'
+                ? 'bg-gradient-to-r from-white/5 via-transparent to-white/5 shadow-[0_0_30px_rgba(255,255,255,0.1)]'
+                : 'bg-gradient-to-r from-black/5 via-transparent to-black/5 shadow-[0_0_30px_rgba(0,0,0,0.1)]'
+            } opacity-0 group-hover:opacity-100`} />
+            
+            <div className="relative">
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && query.trim()) {
+                    handleCustomSubmit();
+                  }
+                }}
+                placeholder="Ask anything..."
+                className={`w-full py-4 px-6 pr-16 rounded-2xl ${
+                  theme === 'dark' 
+                    ? 'bg-neutral-900 text-white placeholder:text-white/40' 
+                    : 'bg-neutral-100 text-black placeholder:text-black/40'
+                } focus:outline-none focus:ring-2 ${
+                  theme === 'dark' ? 'focus:ring-white/20' : 'focus:ring-black/20'
+                }`}
+              />
+              <button
+                onClick={handleCustomSubmit}
+                disabled={!query.trim() || isCustomProcessing}
+                className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg ${
+                  theme === 'dark' 
+                    ? 'bg-white text-black hover:bg-white/90' 
+                    : 'bg-black text-white hover:bg-black/90'
+                } disabled:opacity-50 transition-all`}
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M2 10L17 2L13 10L17 18L2 10Z" />
+                </svg>
+              </button>
+            </div>
           </div>
 
-          {/* ChatGPT-style Response Canvas */}
+          {/* ChatGPT-style Response Canvas with Glow Effect */}
           <AnimatePresence>
             {(isCustomProcessing || displayText) && (
               <motion.div
                 initial={{ opacity: 0, y: 10, height: 0 }}
                 animate={{ opacity: 1, y: 0, height: 'auto' }}
                 exit={{ opacity: 0, y: 10, height: 0 }}
-                className={`${
+                className={`relative group ${
                   theme === 'dark' 
                     ? 'bg-neutral-900/50 border-white/10' 
                     : 'bg-neutral-100/50 border-black/10'
-                } border rounded-2xl backdrop-blur-xl overflow-hidden`}
+                } border rounded-2xl backdrop-blur-xl overflow-hidden transition-all duration-300`}
               >
-                <div className="p-6">
+                {/* Glow effect for response box */}
+                <div className={`absolute inset-0 rounded-2xl transition-opacity duration-300 ${
+                  theme === 'dark'
+                    ? 'bg-gradient-to-r from-white/5 via-transparent to-white/5 shadow-[0_0_25px_rgba(255,255,255,0.08)]'
+                    : 'bg-gradient-to-r from-black/5 via-transparent to-black/5 shadow-[0_0_25px_rgba(0,0,0,0.08)]'
+                } opacity-0 group-hover:opacity-100`} />
+                
+                <div className="relative p-6">
                   {isCustomProcessing ? (
                     <div className="space-y-4">
                       {/* Thinking animation */}
@@ -1757,24 +1847,9 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
                           </svg>
                         </div>
                         <div className="flex-grow">
-                          <pre className="whitespace-pre-wrap font-sans">
-                            {streamedText ? (
-                              // If streaming, show character by character
-                              streamedText.split('').map((char, i) => (
-                                <motion.span
-                                  key={i}
-                                  initial={{ opacity: 0 }}
-                                  animate={{ opacity: 1 }}
-                                  transition={{ delay: i * 0.01 }}
-                                >
-                                  {char}
-                                </motion.span>
-                              ))
-                            ) : (
-                              // Regular response with fade in
-                              displayText
-                            )}
-                          </pre>
+                          <div className="whitespace-pre-wrap font-sans">
+                            {displayText}
+                          </div>
                         </div>
                       </div>
                     </motion.div>
@@ -1789,7 +1864,6 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
   );
 };
 
-// In the LaxentaLanding component, update the ThinkingAnimation placement
 export default function LaxentaLanding() {
   const { theme } = useTheme()
   const { scrollYProgress } = useScroll()
