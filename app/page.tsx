@@ -48,8 +48,8 @@ const SmoothCursor = () => {
         
         cursor.style.transform = `translate3d(${mouseX - 8}px, ${mouseY - 8}px, 0) scale(${scale})`
         
-        positionRef.current.outlineX += (mouseX - outlineX) * 0.2
-        positionRef.current.outlineY += (mouseY - outlineY) * 0.2
+        positionRef.current.outlineX += (mouseX - outlineX) * 0.5
+        positionRef.current.outlineY += (mouseY - outlineY) * 0.5
         cursorOutline.style.transform = `translate3d(${positionRef.current.outlineX - 20}px, ${positionRef.current.outlineY - 20}px, 0) scale(${scale})`
       }
 

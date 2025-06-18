@@ -189,8 +189,8 @@ const SmoothCursor = () => {
 			}
 
 			if (cursorOutline) {
-				outlineX += (mouseX - outlineX) * 0.2
-				outlineY += (mouseY - outlineY) * 0.2
+				outlineX += (mouseX - outlineX) * 0.6
+				outlineY += (mouseY - outlineY) * 0.6
 				cursorOutline.style.transform = `translate3d(${outlineX - 20}px, ${outlineY - 20}px, 0)`
 			}
 
