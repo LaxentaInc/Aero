@@ -120,7 +120,6 @@ const SmoothCursor = () => {
   )
 }
 
-// Replace the current LoadingScreen with this one
 const LoadingScreen = ({ theme }: { theme: 'dark' | 'light' }) => {
   const [videoLoaded, setVideoLoaded] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -616,7 +615,7 @@ const CustomSolutionsIcon = ({ theme }: { theme: 'dark' | 'light' }) => (
     viewBox="0 0 200 200"
     className="w-full h-full"
   >
-    {/* Central server */}
+    {/* : 3 central server */}
     <rect
       x="85"
       y="85"
@@ -1266,14 +1265,13 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
     }
   };
 
-  // Code highlighting effect
+  // Code highlighting 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       Prism.highlightAll();
     }
   }, [customResponse, featureResponses]);
 
-  // Format code blocks
   const formatCodeBlocks = (text: string) => {
     const parts = text.split('```');
     
@@ -1405,7 +1403,7 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
                     </div>
                   </button>
 
-                  {/* Feature-specific AI Response */}
+                  {/*feature-specific rs*/}
                   <AnimatePresence>
                     {activeFeature === feature.id && (isProcessing || featureResponses[feature.id]) && (
                       <motion.div
@@ -1464,19 +1462,17 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
           ))}
         </div>
 
-        {/* Custom Query Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
           className="mt-12 max-w-3xl mx-auto space-y-4"
         >
-          {/* Input with Glow Effect */}
           <div className={`relative group ${
             theme === 'dark' ? 'bg-neutral-900' : 'bg-neutral-100'
           } rounded-2xl p-1 transition-all duration-300 overflow-hidden`}>
             
-            {/* Glow effect for input */}
+            {/*glow*/}
             <div className={`absolute inset-0 rounded-2xl transition-opacity duration-300 ${
               theme === 'dark'
                 ? 'bg-gradient-to-r from-white/5 via-transparent to-white/5 shadow-[0_0_30px_rgba(255,255,255,0.1)]'
@@ -1607,7 +1603,7 @@ export default function LaxentaLanding() {
         <SmoothCursor />
         <DiscordMessage theme={theme} />
         
-        {/* Hero Section */}
+        {/*hero Section */}
         <motion.section 
           style={{ scale: heroScale, opacity: heroOpacity }}
           className="min-h-screen flex items-center justify-center relative overflow-hidden px-4"
