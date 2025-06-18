@@ -273,56 +273,21 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  const [isHovering, setIsHovering] = useState(false)
-  const [navbarVisible, setNavbarVisible] = useState(true) // Add this state
+  const [shouldRender, setShouldRender] = useState(true)
   const audioContextRef = useRef<AudioContext | null>(null)
-  const mouseTimeoutRef = useRef<NodeJS.Timeout | null>(null) // Add this ref
 
-  // Check if current route should hide navbar completely
-  if (AUTO_HIDE_ROUTES.includes(pathname)) {
-    return null // Return null to completely hide navbar on specified routes
-  }
-
-  // Check if current route should auto-hide
-  const shouldAutoHide = AUTO_HIDE_ROUTES.includes(pathname)
-
-  // Handle mouse movement for auto-hide routes
   useEffect(() => {
-    if (!shouldAutoHide) {
-      setNavbarVisible(true)
-      return
+    // Check if we should hide the navbar on this route
+    if (AUTO_HIDE_ROUTES.includes(pathname)) {
+      // Add a small delay before hiding to allow for smooth transitions
+      const timer = setTimeout(() => {
+        setShouldRender(false)
+      }, 300) // 300ms matches the exit animation duration
+      return () => clearTimeout(timer)
+    } else {
+      setShouldRender(true)
     }
-
-    const handleMouseMove = (e: MouseEvent) => {
-      // Show navbar when mouse is in top 100px
-      if (e.clientY < 100) {
-        setNavbarVisible(true)
-        if (mouseTimeoutRef.current) {
-          clearTimeout(mouseTimeoutRef.current)
-        }
-      } else if (!isHovering) {
-        // Hide navbar after 2 seconds if not hovering
-        if (mouseTimeoutRef.current) {
-          clearTimeout(mouseTimeoutRef.current)
-        }
-        mouseTimeoutRef.current = setTimeout(() => {
-          setNavbarVisible(false)
-        }, 2000)
-      }
-    }
-
-    // Initially hide navbar on auto-hide routes
-    setNavbarVisible(false)
-    
-    window.addEventListener('mousemove', handleMouseMove)
-    
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove)
-      if (mouseTimeoutRef.current) {
-        clearTimeout(mouseTimeoutRef.current)
-      }
-    }
-  }, [shouldAutoHide, isHovering, pathname])
+  }, [pathname])
 
   useEffect(() => {
     const handleScroll = () => {
@@ -436,11 +401,11 @@ export default function Navbar() {
   const navItems = ['products', 'hosting', 'shapes', 'nsfwhub']
 
   // Mobile hamburger for auto-hide routes
-  if (shouldAutoHide && !navbarVisible && window.innerWidth < 768) {
+  if (shouldRender && window.innerWidth < 768) {
     return (
       <motion.button
         className="fixed top-4 right-4 z-50 p-3 bg-black/50 backdrop-blur-xl rounded-full"
-        onClick={() => setNavbarVisible(true)}
+        onClick={() => setMobileMenuOpen(true)}
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         whileHover={{ scale: 1.1 }}
@@ -452,226 +417,236 @@ export default function Navbar() {
   }
 
   return (
-    <>
-      <AnimatePresence>
-        {isLoading && (
-          <LoadingAnimation 
-            theme={theme} 
-            onComplete={handleLoadingComplete}
-          />
-        )}
-      </AnimatePresence>
-
-      <motion.nav
-        className={`fixed top-0 w-full z-50 transition-all duration-500 ${
-          scrolled 
-            ? theme === 'dark' 
-              ? 'bg-black/90 backdrop-blur-xl border-b border-white/10' 
-              : 'bg-white/90 backdrop-blur-xl border-b border-black/10'
-            : theme === 'dark'
-              ? 'bg-black/60 backdrop-blur-sm border-b border-white/5'
-              : 'bg-white/60 backdrop-blur-sm border-b border-black/5'
-        }`}
-        initial={{ y: -100 }}
-        animate={{ y: navbarVisible ? 0 : -100 }}
-        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        onMouseEnter={() => setIsHovering(true)}
-        onMouseLeave={() => setIsHovering(false)}
-      >
-        <div className="absolute inset-0 overflow-hidden">
-          <motion.div
-            className={`absolute inset-0 opacity-5 ${theme === 'dark' ? 'bg-white' : 'bg-black'}`}
-            style={{
-              backgroundImage: `radial-gradient(circle at 50% 50%, currentColor 1px, transparent 1px)`,
-              backgroundSize: '20px 20px'
-            }}
-            animate={{
-              backgroundPosition: ['0px 0px', '20px 20px']
-            }}
-            transition={{
-              duration: 20,
-              repeat: Infinity,
-              ease: "linear"
-            }}
-          />
-        </div>
-
-        <div className="max-w-7xl mx-auto px-6 relative">
-          <div className="flex justify-between items-center h-16">
-            
-            <button
-              onClick={() => handleNavigation('/')}
-              className="flex items-center space-x-3 z-10 group"
-              onMouseEnter={() => playSound('hover')}
-            >
-              <motion.div
-                className={`w-8 h-8 relative font-mono font-black text-lg flex items-center justify-center ${
-                  theme === 'dark' ? 'text-white' : 'text-black'
-                }`}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <motion.span
-                  animate={{
-                    textShadow: [
-                      '0 0 0px transparent',
-                      '2px 2px 4px rgba(255,0,0,0.3), -2px -2px 4px rgba(0,255,255,0.3)',
-                      '0 0 0px transparent'
-                    ]
-                  }}
-                  transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
-                >
-                  S
-                </motion.span>
-              </motion.div>
-              <GlitchText className={`text-xl font-black font-mono ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-                Laxenta.inc
-              </GlitchText>
-            </button>
-
-            <div className="hidden md:flex items-center space-x-8">
-              {navItems.map((item, index) => (
-                <motion.div
-                  key={item}
-                  initial={{ opacity: 0, y: -20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <button
-                    onClick={() => handleNavigation(`/${item}`)}
-                    className={`font-mono text-sm uppercase tracking-wide transition-all duration-300 relative group ${
-                      theme === 'dark' ? 'text-white/70 hover:text-white' : 'text-black/70 hover:text-black'
-                    }`}
-                    onMouseEnter={() => playSound('hover')}
-                  >
-                    <span className="relative z-10">{item}</span>
-                    <motion.span
-                      className={`absolute inset-0 ${theme === 'dark' ? 'bg-white' : 'bg-black'} opacity-0 -z-10`}
-                      whileHover={{ opacity: 0.1, scale: 1.1 }}
-                      transition={{ duration: 0.2 }}
-                    />
-                    
-                    <motion.span
-                      className={`absolute -bottom-1 left-0 h-0.5 ${theme === 'dark' ? 'bg-white' : 'bg-black'} w-0 group-hover:w-full transition-all duration-300`}
-                    />
-                  </button>
-                </motion.div>
-              ))}
-              
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.4 }}
-              >
-                <button
-                  onClick={() => handleNavigation('/try')}
-                  className={`relative px-6 py-2 font-mono text-sm font-bold uppercase tracking-wide transition-all duration-300 overflow-hidden group ${
-                    theme === 'dark' 
-                      ? 'bg-white text-black hover:bg-transparent hover:text-white border border-white' 
-                      : 'bg-black text-white hover:bg-transparent hover:text-black border border-black'
-                  }`}
-                  onMouseEnter={() => playSound('hover')}
-                >
-                  <span className="relative z-10">TRY IT</span>
-                  <motion.span
-                    className={`absolute inset-0 ${theme === 'dark' ? 'bg-white' : 'bg-black'} origin-left`}
-                    initial={{ scaleX: 1 }}
-                    whileHover={{ scaleX: 0 }}
-                    transition={{ duration: 0.3 }}
-                  />
-                </button>
-              </motion.div>
-
-              {/* Theme Toggle */}
-              <div onClick={handleThemeToggle}>
-                <ThemeToggle theme={theme} toggleTheme={() => {}} />
-              </div>
-            </div>
-
-            {/* Mobile Menu Button */}
-            <div className="md:hidden flex items-center space-x-4">
-              <div onClick={handleThemeToggle}>
-                <ThemeToggle theme={theme} toggleTheme={() => {}} />
-              </div>
-              <motion.button
-                onClick={() => {
-                  playSound('click')
-                  setMobileMenuOpen(!mobileMenuOpen)
-                }}
-                className="p-2 flex items-center justify-center"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-              >
-                <AnimatedIcon isOpen={mobileMenuOpen} theme={theme} />
-              </motion.button>
-            </div>
-          </div>
-        </div>
-      </motion.nav>
-
-      <AnimatePresence>
-        {mobileMenuOpen && (
+    <AnimatePresence mode="wait">
+      {shouldRender && (
+        <motion.div
+          initial={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3 }}
+        >
           <>
-            <motion.div
-              className={`fixed inset-0 z-40 ${theme === 'dark' ? 'bg-black/80' : 'bg-white/80'} backdrop-blur-sm`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setMobileMenuOpen(false)}
-            />
-            
-            <motion.div
-              className={`fixed top-16 left-0 right-0 z-50 ${
-                theme === 'dark' ? 'bg-black/95' : 'bg-white/95'
-              } backdrop-blur-xl border-b ${theme === 'dark' ? 'border-white/10' : 'border-black/10'}`}
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
+            <AnimatePresence>
+              {isLoading && (
+                <LoadingAnimation 
+                  theme={theme} 
+                  onComplete={handleLoadingComplete}
+                />
+              )}
+            </AnimatePresence>
+
+            <motion.nav
+              className={`fixed top-0 w-full z-50 transition-all duration-500 ${
+                scrolled 
+                  ? theme === 'dark' 
+                    ? 'bg-black/90 backdrop-blur-xl border-b border-white/10' 
+                    : 'bg-white/90 backdrop-blur-xl border-b border-black/10'
+                  : theme === 'dark'
+                    ? 'bg-black/60 backdrop-blur-sm border-b border-white/5'
+                    : 'bg-white/60 backdrop-blur-sm border-b border-black/5'
+              }`}
+              initial={{ y: -100 }}
+              animate={{ y: 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              onMouseEnter={() => setMobileMenuOpen(true)}
+              onMouseLeave={() => setMobileMenuOpen(false)}
             >
-              <div className="px-6 py-8 space-y-6">
-                {navItems.map((item, index) => (
-                  <motion.div
-                    key={item}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                  >
-                    <button
-                      onClick={() => handleNavigation(`/${item}`)}
-                      className={`block font-mono text-lg uppercase tracking-wide ${
-                        theme === 'dark' ? 'text-white' : 'text-black'
-                      } hover:text-opacity-70 transition-all duration-300`}
-                      onMouseEnter={() => playSound('hover')}
-                    >
-                      <GlitchText>{item}</GlitchText>
-                    </button>
-                  </motion.div>
-                ))}
-                
+              <div className="absolute inset-0 overflow-hidden">
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                  className="pt-4 border-t border-opacity-20"
-                >
+                  className={`absolute inset-0 opacity-5 ${theme === 'dark' ? 'bg-white' : 'bg-black'}`}
+                  style={{
+                    backgroundImage: `radial-gradient(circle at 50% 50%, currentColor 1px, transparent 1px)`,
+                    backgroundSize: '20px 20px'
+                  }}
+                  animate={{
+                    backgroundPosition: ['0px 0px', '20px 20px']
+                  }}
+                  transition={{
+                    duration: 20,
+                    repeat: Infinity,
+                    ease: "linear"
+                  }}
+                />
+              </div>
+
+              <div className="max-w-7xl mx-auto px-6 relative">
+                <div className="flex justify-between items-center h-16">
+                  
                   <button
-                    onClick={() => handleNavigation('/try')}
-                    className={`block w-full text-center py-3 font-mono text-sm font-bold uppercase tracking-wide transition-all duration-300 ${
-                      theme === 'dark' 
-                        ? 'bg-white text-black hover:bg-transparent hover:text-white border border-white' 
-                        : 'bg-black text-white hover:bg-transparent hover:text-black border border-black'
-                    }`}
+                    onClick={() => handleNavigation('/')}
+                    className="flex items-center space-x-3 z-10 group"
                     onMouseEnter={() => playSound('hover')}
                   >
-                    GET A SERVICE DEMO
+                    <motion.div
+                      className={`w-8 h-8 relative font-mono font-black text-lg flex items-center justify-center ${
+                        theme === 'dark' ? 'text-white' : 'text-black'
+                      }`}
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <motion.span
+                        animate={{
+                          textShadow: [
+                            '0 0 0px transparent',
+                            '2px 2px 4px rgba(255,0,0,0.3), -2px -2px 4px rgba(0,255,255,0.3)',
+                            '0 0 0px transparent'
+                          ]
+                        }}
+                        transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
+                      >
+                        S
+                      </motion.span>
+                    </motion.div>
+                    <GlitchText className={`text-xl font-black font-mono ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+                      Laxenta.inc
+                    </GlitchText>
                   </button>
-                </motion.div>
+
+                  <div className="hidden md:flex items-center space-x-8">
+                    {navItems.map((item, index) => (
+                      <motion.div
+                        key={item}
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                      >
+                        <button
+                          onClick={() => handleNavigation(`/${item}`)}
+                          className={`font-mono text-sm uppercase tracking-wide transition-all duration-300 relative group ${
+                            theme === 'dark' ? 'text-white/70 hover:text-white' : 'text-black/70 hover:text-black'
+                          }`}
+                          onMouseEnter={() => playSound('hover')}
+                        >
+                          <span className="relative z-10">{item}</span>
+                          <motion.span
+                            className={`absolute inset-0 ${theme === 'dark' ? 'bg-white' : 'bg-black'} opacity-0 -z-10`}
+                            whileHover={{ opacity: 0.1, scale: 1.1 }}
+                            transition={{ duration: 0.2 }}
+                          />
+                          
+                          <motion.span
+                            className={`absolute -bottom-1 left-0 h-0.5 ${theme === 'dark' ? 'bg-white' : 'bg-black'} w-0 group-hover:w-full transition-all duration-300`}
+                          />
+                        </button>
+                      </motion.div>
+                    ))}
+                    
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.4 }}
+                    >
+                      <button
+                        onClick={() => handleNavigation('/try')}
+                        className={`relative px-6 py-2 font-mono text-sm font-bold uppercase tracking-wide transition-all duration-300 overflow-hidden group ${
+                          theme === 'dark' 
+                            ? 'bg-white text-black hover:bg-transparent hover:text-white border border-white' 
+                            : 'bg-black text-white hover:bg-transparent hover:text-black border border-black'
+                        }`}
+                        onMouseEnter={() => playSound('hover')}
+                      >
+                        <span className="relative z-10">TRY IT</span>
+                        <motion.span
+                          className={`absolute inset-0 ${theme === 'dark' ? 'bg-white' : 'bg-black'} origin-left`}
+                          initial={{ scaleX: 1 }}
+                          whileHover={{ scaleX: 0 }}
+                          transition={{ duration: 0.3 }}
+                        />
+                      </button>
+                    </motion.div>
+
+                    {/* Theme Toggle */}
+                    <div onClick={handleThemeToggle}>
+                      <ThemeToggle theme={theme} toggleTheme={() => {}} />
+                    </div>
+                  </div>
+
+                  {/* Mobile Menu Button */}
+                  <div className="md:hidden flex items-center space-x-4">
+                    <div onClick={handleThemeToggle}>
+                      <ThemeToggle theme={theme} toggleTheme={() => {}} />
+                    </div>
+                    <motion.button
+                      onClick={() => {
+                        playSound('click')
+                        setMobileMenuOpen(!mobileMenuOpen)
+                      }}
+                      className="p-2 flex items-center justify-center"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <AnimatedIcon isOpen={mobileMenuOpen} theme={theme} />
+                    </motion.button>
+                  </div>
+                </div>
               </div>
-            </motion.div>
+            </motion.nav>
+
+            <AnimatePresence>
+              {mobileMenuOpen && (
+                <>
+                  <motion.div
+                    className={`fixed inset-0 z-40 ${theme === 'dark' ? 'bg-black/80' : 'bg-white/80'} backdrop-blur-sm`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={() => setMobileMenuOpen(false)}
+                  />
+                  
+                  <motion.div
+                    className={`fixed top-16 left-0 right-0 z-50 ${
+                      theme === 'dark' ? 'bg-black/95' : 'bg-white/95'
+                    } backdrop-blur-xl border-b ${theme === 'dark' ? 'border-white/10' : 'border-black/10'}`}
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  >
+                    <div className="px-6 py-8 space-y-6">
+                      {navItems.map((item, index) => (
+                        <motion.div
+                          key={item}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                        >
+                          <button
+                            onClick={() => handleNavigation(`/${item}`)}
+                            className={`block font-mono text-lg uppercase tracking-wide ${
+                              theme === 'dark' ? 'text-white' : 'text-black'
+                            } hover:text-opacity-70 transition-all duration-300`}
+                            onMouseEnter={() => playSound('hover')}
+                          >
+                            <GlitchText>{item}</GlitchText>
+                          </button>
+                        </motion.div>
+                      ))}
+                      
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4 }}
+                        className="pt-4 border-t border-opacity-20"
+                      >
+                        <button
+                          onClick={() => handleNavigation('/try')}
+                          className={`block w-full text-center py-3 font-mono text-sm font-bold uppercase tracking-wide transition-all duration-300 ${
+                            theme === 'dark' 
+                              ? 'bg-white text-black hover:bg-transparent hover:text-white border border-white' 
+                              : 'bg-black text-white hover:bg-transparent hover:text-black border border-black'
+                          }`}
+                          onMouseEnter={() => playSound('hover')}
+                        >
+                          GET A SERVICE DEMO
+                        </button>
+                      </motion.div>
+                    </div>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
           </>
-        )}
-      </AnimatePresence>
-    </>
+        </motion.div>
+      )}
+    </AnimatePresence>
   )
 }
