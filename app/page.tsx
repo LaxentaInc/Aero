@@ -120,136 +120,116 @@ const SmoothCursor = () => {
   )
 }
 
-// loading Screen with Cool SVG
+// Replace the current LoadingScreen with this one
 const LoadingScreen = ({ theme }: { theme: 'dark' | 'light' }) => {
+  const [videoLoaded, setVideoLoaded] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
   return (
     <motion.div
-      className={`fixed inset-0 z-[300] ${theme === 'dark' ? 'bg-black' : 'bg-white'} flex items-center justify-center`}
+      className={`fixed inset-0 z-[9999] flex items-center justify-center ${
+        theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100'
+      }`}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <div className="relative">
-        {/* cool animated loading svgs */}
-        <svg viewBox="0 0 300 300" className="w-48 h-48 sm:w-64 sm:h-64">
-          <defs>
-            <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor={theme === 'dark' ? '#fff' : '#000'} stopOpacity="0">
-                <animate attributeName="stop-opacity" values="0;1;0" dur="2s" repeatCount="indefinite" />
-              </stop>
-              <stop offset="100%" stopColor={theme === 'dark' ? '#fff' : '#000'} stopOpacity="1">
-                <animate attributeName="stop-opacity" values="1;0;1" dur="2s" repeatCount="indefinite" />
-              </stop>
-            </linearGradient>
-            <filter id="glow">
-              <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-              <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-          </defs>
-
-          {/* hex grid Pattern */}
-          {[0, 1, 2, 3, 4, 5].map((i) => (
-            <motion.g key={i}>
-              <motion.path
-                d={`M${150 + Math.cos(i * Math.PI / 3) * 60} ${150 + Math.sin(i * Math.PI / 3) * 60} 
-                    L${150 + Math.cos((i + 1) * Math.PI / 3) * 60} ${150 + Math.sin((i + 1) * Math.PI / 3) * 60}`}
-                stroke="url(#gradient1)"
-                strokeWidth="2"
-                fill="none"
-                filter="url(#glow)"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ duration: 1, delay: i * 0.1, repeat: Infinity, repeatType: "reverse" }}
-              />
-            </motion.g>
-          ))}
-
-          {/* central rotating element */}
-          <motion.g
-            animate={{ rotate: 360 }}
-            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-            style={{ transformOrigin: '150px 150px' }}
-          >
-            <motion.polygon
-              points="150,100 175,125 175,175 150,200 125,175 125,125"
-              fill="none"
-              stroke={theme === 'dark' ? '#fff' : '#000'}
-              strokeWidth="2"
-              filter="url(#glow)"
-              animate={{
-                scale: [1, 1.1, 1],
-                opacity: [0.5, 1, 0.5]
-              }}
-              transition={{ duration: 2, repeat: Infinity }}
-            />
-          </motion.g>
-
-          {/* Orbiting Particles */}
-          {[0, 120, 240].map((angle) => (
-            <motion.circle
-              key={angle}
-              r="3"
-              fill={theme === 'dark' ? '#fff' : '#000'}
-              filter="url(#glow)"
-              animate={{
-                x: [
-                  150 + Math.cos((angle * Math.PI) / 180) * 80,
-                  150 + Math.cos(((angle + 360) * Math.PI) / 180) * 80
-                ],
-                y: [
-                  150 + Math.sin((angle * Math.PI) / 180) * 80,
-                  150 + Math.sin(((angle + 360) * Math.PI) / 180) * 80
-                ]
-              }}
-              transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-            />
-          ))}
-
-          {/* Pulsing Core */}
-          <motion.circle
-            cx="150"
-            cy="150"
-            r="10"
-            fill={theme === 'dark' ? '#fff' : '#000'}
-            filter="url(#glow)"
-            animate={{
-              scale: [1, 1.5, 1],
-              opacity: [1, 0.3, 1]
-            }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-          />
-        </svg>
-
-        {/* Loading text with glitch effect i thought i removed this eh? idk lmao ngl fk it*/}
-        <motion.div
-          className={`absolute -bottom-16 left-1/2 transform -translate-x-1/2 font-mono text-sm ${
-            theme === 'dark' ? 'text-white/80' : 'text-black/80'
-          }`}
+      <div className="absolute inset-0 overflow-hidden">
+        <video
+          ref={videoRef}
+          className="w-full h-full object-cover"
+          autoPlay
+          loop
+          muted
+          playsInline
+          onLoadedData={() => setVideoLoaded(true)}
+          preload="auto"
         >
-          <motion.span
+          <source 
+            src="/videos/Eyeloading-bg.mp4" 
+            type="video/mp4"
+          />
+        </video>
+        <div className={`absolute inset-0 ${
+          theme === 'dark' 
+            ? 'bg-black/50' 
+            : 'bg-white/50'
+        }`} />
+      </div>
+
+      <div className="relative z-10 flex flex-col items-center space-y-8">
+        <motion.div
+          className="relative w-24 h-24"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+        >
+          <svg
+            className="w-full h-full text-white drop-shadow-lg"
+            viewBox="0 0 100 100"
+          >
+            <circle
+              cx="50"
+              cy="50"
+              r="45"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeDasharray="70 200"
+              strokeLinecap="round"
+              className="opacity-20"
+            />
+            <motion.circle
+              cx="50"
+              cy="50"
+              r="45"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeDasharray="70 200"
+              strokeLinecap="round"
+              animate={{
+                strokeDashoffset: [0, -280],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: "linear"
+              }}
+            />
+          </svg>
+        </motion.div>
+
+        <motion.h1
+          className="font-mono font-black text-2xl tracking-wider text-white drop-shadow-lg"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+                  talk to me uwu :3... become ma friend ;c my discord = @me_straight  :3
+        </motion.h1>
+
+        <motion.div
+          className="w-48 h-1 rounded-full overflow-hidden bg-white/10"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.4 }}
+        >
+          <motion.div
+            className="h-full bg-white"
             animate={{
-              opacity: [1, 0.8, 1],
-              x: [-1, 1, -1, 0]
+              x: ["-100%", "100%"],
             }}
-            transition={{ duration: 0.2, repeat: Infinity }}
-            style={{ display: 'inline-block' }}
-          >
-            LOADING
-          </motion.span>
-          <motion.span
-            animate={{ opacity: [0, 1] }}
-            transition={{ duration: 0.5, repeat: Infinity }}
-          >
-            ....
-          </motion.span>
+            transition={{
+              duration: 1.5,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
         </motion.div>
       </div>
     </motion.div>
-  )
+  );
 }
 
 // Discord Message Component with Email Validation ( we change it later a lil as needed )
@@ -814,12 +794,11 @@ const MegaCard = ({
   const handleCTAClick = (e: React.MouseEvent) => {
     e.preventDefault()
     setIsNavigating(true)
-    // Simplified to just scroll to contact form
-    const contactForm = document.querySelector('.discord-message')
-    if (contactForm) {
-      contactForm.scrollIntoView({ behavior: 'smooth' })
-    }
-    setTimeout(() => setIsNavigating(false), 1000)
+    // Replace scroll behavior with actual navigation
+    setTimeout(() => {
+      window.location.href = '/contact'
+      setIsNavigating(false)
+    }, 1000)
   }
 
   const handleTooltipClick = (e: React.MouseEvent) => {
@@ -1635,7 +1614,11 @@ export default function LaxentaLanding() {
         >
           <div className="relative z-10 text-center space-y-6">
             <h1 className="text-5xl sm:text-7xl md:text-9xl lg:text-[12rem] font-black tracking-tighter select-none">
-              LAXENTA
+              Laxenta
+              {/* me no want inc  ;c inc no cute <span className={`text-4xl sm:text-6xl md:text-8xl lg:text-[10rem] font-mono ${
+                theme === 'dark' ? 'text-white/60' : 'text-black/60'
+              }`}>.</span>
+            Inc */}
             </h1>
             
             <motion.p
@@ -1645,7 +1628,7 @@ export default function LaxentaLanding() {
               initial={{ opacity: 0.6 }}
               animate={{ opacity: 0.6 }}
             >
-              {'</'} fullstack developer & systems engineer {'>'}
+              {'</'} @me_straight - fullstack developer & system engineer {'>'}
             </motion.p>
           </div>
 
@@ -1656,7 +1639,7 @@ export default function LaxentaLanding() {
         <motion.div className="w-full">
           <MegaCard
             title="WEB DEV"
-            description="Frontend specialist with React, Next.js, Vue and PHP. Building responsive and dynamic web applications with modern tech stacks."
+            description="Frontend dev with React, Next.js, Vue and PHP :3 Building responsive and dynamic web applications with modern tech stacks."
             platform="REACT • NEXT • VUE • PHP"
             icon={<WebDevIcon theme={theme} />}
             index={0}
@@ -1665,7 +1648,7 @@ export default function LaxentaLanding() {
           
           <MegaCard
             title="BACKEND"
-            description="Backend developer proficient in Node.js, JavaScript, and exploring Rust. Experienced in building scalable server architectures."
+            description="Backend developer proficient in Node.js, JavaScript, and learning Rust for fun. Experienced in building scalable server architectures."
             platform="NODE.JS • JS • RUST"
             icon={<BackendIcon theme={theme} />}
             index={1}

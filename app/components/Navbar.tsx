@@ -8,7 +8,7 @@ import { useTheme } from '../contexts/ThemeContext'
 import { Menu } from 'lucide-react'
 
 // Routes where navbar should auto-hide
-const AUTO_HIDE_ROUTES = ['/nsfwhub', '/video-player', '/fullscreen-content']
+const AUTO_HIDE_ROUTES = ['/nsfwhub', '/fullscreen-content']
 
 const LoadingAnimation = ({ 
   theme, 
@@ -119,7 +119,7 @@ const LoadingAnimation = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          SERVYL
+        I like making random stuff weird and weird random stuff - Talk to me = @me_straight on discord :3
         </motion.h1>
 
         <motion.div
@@ -274,6 +274,7 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [shouldRender, setShouldRender] = useState(true)
+  const [isMobile, setIsMobile] = useState(false)
   const audioContextRef = useRef<AudioContext | null>(null)
 
   useEffect(() => {
@@ -311,6 +312,16 @@ export default function Navbar() {
       window.removeEventListener('click', initAudioContext)
       window.removeEventListener('touchstart', initAudioContext)
     }
+  }, [])
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
   const playSound = (type: 'click' | 'hover' | 'theme') => {
@@ -400,22 +411,6 @@ export default function Navbar() {
 
   const navItems = ['products', 'hosting', 'shapes', 'nsfwhub']
 
-  // Mobile hamburger for auto-hide routes
-  if (shouldRender && window.innerWidth < 768) {
-    return (
-      <motion.button
-        className="fixed top-4 right-4 z-50 p-3 bg-black/50 backdrop-blur-xl rounded-full"
-        onClick={() => setMobileMenuOpen(true)}
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-      >
-        <Menu size={24} className="text-white" />
-      </motion.button>
-    )
-  }
-
   return (
     <AnimatePresence mode="wait">
       {shouldRender && (
@@ -434,6 +429,20 @@ export default function Navbar() {
               )}
             </AnimatePresence>
 
+            {/* Unfucked the Shit Mobile Menu Button - Now Always visible on mobile */}
+            {isMobile && (
+              <motion.button
+                className="fixed top-4 right-4 z-[60] p-3 bg-black/50 backdrop-blur-xl rounded-full"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <AnimatedIcon isOpen={mobileMenuOpen} theme={theme} />
+              </motion.button>
+            )}
+
             <motion.nav
               className={`fixed top-0 w-full z-50 transition-all duration-500 ${
                 scrolled 
@@ -447,8 +456,6 @@ export default function Navbar() {
               initial={{ y: -100 }}
               animate={{ y: 0 }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              onMouseEnter={() => setMobileMenuOpen(true)}
-              onMouseLeave={() => setMobileMenuOpen(false)}
             >
               <div className="absolute inset-0 overflow-hidden">
                 <motion.div
@@ -581,11 +588,12 @@ export default function Navbar() {
               </div>
             </motion.nav>
 
+            {/* Mobile Menu - Full Screen Overlay */}
             <AnimatePresence>
               {mobileMenuOpen && (
                 <>
                   <motion.div
-                    className={`fixed inset-0 z-40 ${theme === 'dark' ? 'bg-black/80' : 'bg-white/80'} backdrop-blur-sm`}
+                    className={`fixed inset-0 z-[55] ${theme === 'dark' ? 'bg-black/80' : 'bg-white/80'} backdrop-blur-sm`}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
@@ -593,15 +601,15 @@ export default function Navbar() {
                   />
                   
                   <motion.div
-                    className={`fixed top-16 left-0 right-0 z-50 ${
+                    className={`fixed top-0 left-0 right-0 z-[55] h-screen ${
                       theme === 'dark' ? 'bg-black/95' : 'bg-white/95'
-                    } backdrop-blur-xl border-b ${theme === 'dark' ? 'border-white/10' : 'border-black/10'}`}
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
+                    } backdrop-blur-xl`}
+                    initial={{ x: '100%' }}
+                    animate={{ x: 0 }}
+                    exit={{ x: '100%' }}
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   >
-                    <div className="px-6 py-8 space-y-6">
+                    <div className="px-6 py-20 space-y-6">
                       {navItems.map((item, index) => (
                         <motion.div
                           key={item}
