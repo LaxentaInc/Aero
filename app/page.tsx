@@ -76,12 +76,12 @@ const SmoothCursor = () => {
     <>
       <div
         ref={cursorRef}
-        className="fixed w-4 h-4 rounded-full pointer-events-none z-[100] mix-blend-difference bg-white will-change-transform"
+        className="fixed w-4 h-4 rounded-full pointer-events-none z-[9999] mix-blend-difference bg-white will-change-transform"
         style={{ transform: 'translate3d(-100px, -100px, 0)' }}
       />
       <div
         ref={cursorOutlineRef}
-        className="fixed w-10 h-10 rounded-full pointer-events-none z-[99] mix-blend-difference will-change-transform"
+        className="fixed w-10 h-10 rounded-full pointer-events-none z-[9998] mix-blend-difference will-change-transform"
         style={{ 
           border: '1px solid white',
           transform: 'translate3d(-100px, -100px, 0)'
@@ -315,7 +315,7 @@ const DiscordMessage = ({ theme }: { theme: 'dark' | 'light' }) => {
           height: isMinimized ? 60 : 'auto'
         }}
         exit={{ opacity: 0, scale: 0.8, y: 20 }}
-        className={`fixed bottom-8 right-8 z-50 ${
+        className={`fixed bottom-8 right-8 z-[100] ${
           theme === 'dark' ? 'bg-black/90' : 'bg-white/90'
         } backdrop-blur-xl border ${
           theme === 'dark' ? 'border-white/20' : 'border-black/20'
@@ -381,7 +381,7 @@ const DiscordMessage = ({ theme }: { theme: 'dark' | 'light' }) => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="your@gmail.com"
-                    className={`w-full p-3 text-sm rounded-lg ${
+                    className={`allow-select w-full p-3 text-sm rounded-lg ${
                       theme === 'dark' 
                         ? 'bg-white/10 text-white placeholder-white/40 border-white/20' 
                         : 'bg-black/10 text-black placeholder-black/40 border-black/20'
@@ -393,7 +393,7 @@ const DiscordMessage = ({ theme }: { theme: 'dark' | 'light' }) => {
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder="Type your message..."
-                    className={`w-full p-3 text-sm rounded-lg ${
+                    className={`allow-select w-full p-3 text-sm rounded-lg ${
                       theme === 'dark' 
                         ? 'bg-white/10 text-white placeholder-white/40 border-white/20' 
                         : 'bg-black/10 text-black placeholder-black/40 border-black/20'
@@ -1065,55 +1065,36 @@ const useProtection = () => {
         (e.ctrlKey && e.shiftKey && e.key === 'i') ||
         (e.ctrlKey && e.shiftKey && e.key === 'I')
       ) {
-        e.preventDefault()
-        return false
+        e.preventDefault();
+        return false;
       }
-    }
+    };
 
     const preventContextMenu = (e: Event) => {
-      const target = e.target as HTMLElement
-      if (target.closest('.custom-context-menu')) {
-        return
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.closest('.allow-select')) {
+        return;
       }
-      e.preventDefault()
-      return false
-    }
+      e.preventDefault();
+      return false;
+    };
 
-    const preventSelection = () => {
-      return false
-    }
+    document.addEventListener('contextmenu', preventContextMenu);
+    document.addEventListener('keydown', preventDefaultKeys);
 
-    document.addEventListener('contextmenu', preventContextMenu)
-    document.addEventListener('keydown', preventDefaultKeys)
-    document.onselectstart = preventSelection
-    document.onmousedown = preventSelection
-    
-    // Updated image drag prevention
-    const images = document.getElementsByTagName('img')
+    const images = document.getElementsByTagName('img');
     Array.from(images).forEach(img => {
-      img.addEventListener('dragstart', preventContextMenu)
-      // Use setAttribute instead of direct style assignment
-      img.setAttribute('draggable', 'false')
-      // Add CSS class for drag prevention
-      img.classList.add('prevent-drag')
-    })
-
-    document.addEventListener('copy', preventContextMenu)
-    document.addEventListener('paste', preventContextMenu)
-    document.addEventListener('cut', preventContextMenu)
+      img.addEventListener('dragstart', (e) => e.preventDefault());
+      img.setAttribute('draggable', 'false');
+    });
 
     return () => {
-      document.removeEventListener('contextmenu', preventContextMenu)
-      document.removeEventListener('keydown', preventDefaultKeys)
-      document.onselectstart = null
-      document.onmousedown = null
+      document.removeEventListener('contextmenu', preventContextMenu);
+      document.removeEventListener('keydown', preventDefaultKeys);
       Array.from(images).forEach(img => {
-        img.removeEventListener('dragstart', preventContextMenu)
-      })
-      document.removeEventListener('copy', preventContextMenu)
-      document.removeEventListener('paste', preventContextMenu)
-      document.removeEventListener('cut', preventContextMenu)
-    }
+        img.removeEventListener('dragstart', (e) => e.preventDefault());
+      });
+    };
   }, [])
 }
 
@@ -1154,140 +1135,505 @@ const ScrollArrow = ({ theme }: { theme: 'dark' | 'light' }) => {
 }
 
 // Updated ThinkingAnimation component 
-const ThinkingAnimation = ({ theme }: { theme: 'dark' | 'light' }) => {
-  const [currentText, setCurrentText] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [conversation, setConversation] = useState<{role: string, content: string}[]>([]);
-  const containerRef = useRef<HTMLDivElement>(null);
+// const ThinkingAnimation = ({ theme }: { theme: 'dark' | 'light' }) => {
+//   const [query, setQuery] = useState('');
+//   const [aiResponse, setAiResponse] = useState('');
+//   const [isProcessing, setIsProcessing] = useState(false);
+//   const [showResponse, setShowResponse] = useState(false);
 
-  const sendMessage = async (message: string) => {
-    if (!message.trim()) return;
+//   const animatedElements = [
+//     { id: 1, text: "Analyzing patterns...", delay: 0 },
+//     { id: 2, text: "Processing data...", delay: 0.5 },
+//     { id: 3, text: "Generating insights...", delay: 1 },
+//     { id: 4, text: "Optimizing response...", delay: 1.5 },
+//   ];
+
+//   const handleSubmit = async () => {
+//     if (!query.trim()) return;
+
+//     setIsProcessing(true);
+//     setShowResponse(false);
+
+//     try {
+//       const response = await fetch('/api/ai', {
+//         method: 'POST',
+//         headers: {
+//           'Content-Type': 'application/json',
+//         },
+//         body: JSON.stringify({
+//           messages: [{ role: 'user', content: query }],
+//         }),
+//       });
+
+//       if (!response.ok) throw new Error('API request failed');
+
+//       const data = await response.json();
+//       const aiMessage = data?.choices?.[0]?.message?.content || "I couldn't generate a response.";
+//       setAiResponse(aiMessage);
+//       setShowResponse(true);
+//       setQuery('');
+//     } catch (err) {
+//       console.error('Error calling AI API:', err);
+//       setAiResponse('Sorry, something went wrong. Please try again.');
+//       setShowResponse(true);
+//     } finally {
+//       setIsProcessing(false);
+//     }
+//   };
+
+//   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+//     if (e.key === 'Enter' && !e.shiftKey) {
+//       e.preventDefault();
+//       handleSubmit();
+//     }
+//   };
+
+//   return (
+//     <section className="min-h-screen py-20 px-4">
+//       <div className="max-w-4xl mx-auto">
+//         <div
+//           className={`${
+//             theme === 'dark' ? 'bg-black/90' : 'bg-white/90'
+//           } backdrop-blur-xl border ${
+//             theme === 'dark' ? 'border-white/20' : 'border-black/20'
+//           } rounded-2xl shadow-2xl`}
+//         >
+//           <div className="p-6">
+//             <div className="flex items-start gap-4">
+//               <div className="flex-grow space-y-4">
+//                 <h3
+//                   className={`text-xl font-bold mb-6 ${
+//                     theme === 'dark' ? 'text-white' : 'text-black'
+//                   }`}
+//                 >
+//                   Chat with AI
+//                 </h3>
+
+//                 <div
+//                   className={`min-h-[200px] max-h-[400px] overflow-y-auto space-y-4 ${
+//                     theme === 'dark' ? 'text-white/90' : 'text-black/90'
+//                   }`}
+//                 >
+//                   {isProcessing &&
+//                     animatedElements.map((el) => (
+//                       <motion.div
+//                         key={el.id}
+//                         initial={{ opacity: 0, x: -20 }}
+//                         animate={{ opacity: 1, x: 0 }}
+//                         transition={{ duration: 0.5, delay: el.delay }}
+//                         className="text-sm font-mono flex items-center gap-2"
+//                       >
+//                         <motion.div
+//                           animate={{ scale: [1, 1.2, 1] }}
+//                           transition={{
+//                             duration: 1.5,
+//                             repeat: Infinity,
+//                             delay: el.delay,
+//                           }}
+//                           className={`w-2 h-2 rounded-full ${
+//                             theme === 'dark' ? 'bg-white' : 'bg-black'
+//                           }`}
+//                         />
+//                         {el.text}
+//                       </motion.div>
+//                     ))}
+
+//                   {showResponse && (
+//                     <motion.div
+//                       initial={{ opacity: 0, y: 10 }}
+//                       animate={{ opacity: 1, y: 0 }}
+//                       transition={{ duration: 0.5 }}
+//                       className={`p-3 rounded-lg ${
+//                         theme === 'dark' ? 'bg-white/10' : 'bg-black/10'
+//                       }`}
+//                     >
+//                       <strong className="block mb-1">AI:</strong>
+//                       {aiResponse}
+//                     </motion.div>
+//                   )}
+//                 </div>
+
+//                 <div className="flex gap-4">
+//                   <input
+//                     type="text"
+//                     value={query}
+//                     onChange={(e) => setQuery(e.target.value)}
+//                     onKeyDown={handleKeyDown}
+//                     placeholder="Ask something..."
+//                     className={`allow-select flex-grow py-3 px-4 rounded-lg border-none focus:outline-none focus:ring-2 ${
+//                       theme === 'dark'
+//                         ? 'focus:ring-white/20 bg-neutral-900 text-white placeholder:text-white/50'
+//                         : 'focus:ring-black/20 bg-neutral-100 text-black placeholder:text-black/50'
+//                     } transition-all`}
+//                   />
+//                   <motion.button
+//                     onClick={handleSubmit}
+//                     disabled={isProcessing || !query.trim()}
+//                     className={`px-4 py-2 rounded-lg font-mono text-sm font-bold transition-all flex items-center gap-2 ${
+//                       theme === 'dark'
+//                         ? 'bg-white text-black hover:bg-white/90'
+//                         : 'bg-black text-white hover:bg-black/90'
+//                     } disabled:opacity-50 disabled:cursor-not-allowed`}
+//                     whileHover={{ scale: 1.05 }}
+//                     whileTap={{ scale: 0.95 }}
+//                   >
+//                     {isProcessing ? (
+//                       <>
+//                         <svg
+//                           className="animate-spin h-4 w-4"
+//                           viewBox="0 0 24 24"
+//                         >
+//                           <circle
+//                             className="opacity-25"
+//                             cx="12"
+//                             cy="12"
+//                             r="10"
+//                             stroke="currentColor"
+//                             strokeWidth="4"
+//                             fill="none"
+//                           />
+//                           <path
+//                             className="opacity-75"
+//                             fill="currentColor"
+//                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+//                           />
+//                         </svg>
+//                         Processing...
+//                       </>
+//                     ) : (
+//                       'Send'
+//                     )}
+//                   </motion.button>
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+//       </div>
+//     </section>
+//   );
+// };
+// New AI Features Section with sleek animations
+const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
+  const [activeFeature, setActiveFeature] = useState<number | null>(null);
+  const [query, setQuery] = useState('');
+  const [aiResponse, setAiResponse] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [thinkingStage, setThinkingStage] = useState(0);
+
+  const features = [
+    {
+      id: 1,
+      title: 'Productivity, unhinged',
+      subtitle: 'AI-powered coding assistant',
+      description: 'Get instant code solutions, debug assistance, and best practices recommendations.',
+      example: 'Write a custom React hook',
+      icon: (
+        <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
+          <path d="M12 2L2 7L12 12L22 7L12 2Z M2 17L12 22L22 17 M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" fill="none"/>
+        </svg>
+      )
+    },
+    {
+      id: 2,
+      title: 'Code Analysis',
+      subtitle: 'Smart code review',
+      description: 'Analyze code patterns, identify optimizations, and get performance insights.',
+      example: 'Review my component structure',
+      icon: (
+        <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none">
+          <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      )
+    },
+    {
+      id: 3,
+      title: 'Your coding sidekick',
+      subtitle: 'Real-time assistance',
+      description: 'Receive code guidance, solutions, and best practices without leaving your flow.',
+      example: 'Create a debounce hook',
+      icon: (
+        <svg viewBox="0 0 24 24" className="w-6 h-6" fill="none">
+          <path d="M17 8L21 12M21 12L17 16M21 12H3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      )
+    }
+  ];
+
+  const thinkingStages = [
+    'Analyzing your request...',
+    'Understanding context...',
+    'Generating solution...',
+    'Optimizing response...'
+  ];
+
+  const handleSubmit = async (featureId: number, customQuery?: string) => {
+    const queryToSend = customQuery || query || features[featureId - 1].example;
     
-    setIsLoading(true);
+    setIsProcessing(true);
+    setThinkingStage(0);
+    setAiResponse('');
+    setActiveFeature(featureId);
+
+    // Animate through thinking stages
+    const stageInterval = setInterval(() => {
+      setThinkingStage(prev => {
+        if (prev >= thinkingStages.length - 1) {
+          clearInterval(stageInterval);
+          return prev;
+        }
+        return prev + 1;
+      });
+    }, 800);
+
     try {
       const response = await fetch('/api/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: [...conversation, { role: 'user', content: message }]
+          messages: [{ role: 'user', content: queryToSend }]
         })
       });
-      
+
       const data = await response.json();
+      const aiMessage = data?.choices?.[0]?.message?.content || "I couldn't generate a response.";
       
-      // Safely handle the response
-      const aiResponse = data?.choices?.[0]?.message?.content || "Sorry, I couldn't process that.";
-      
-      setConversation(prev => [
-        ...prev,
-        { role: 'user', content: message },
-        { role: 'assistant', content: aiResponse }
-      ]);
+      clearInterval(stageInterval);
+      setAiResponse(aiMessage);
     } catch (error) {
-      console.error('Failed to send message:', error);
-      setConversation(prev => [
-        ...prev,
-        { role: 'user', content: message },
-        { role: 'assistant', content: 'Sorry, something went wrong. Please try again.' }
-      ]);
+      clearInterval(stageInterval);
+      setAiResponse("Something went wrong. Please try again.");
     } finally {
-      setIsLoading(false);
+      setIsProcessing(false);
+      setQuery('');
     }
   };
 
   return (
     <section className="min-h-screen py-20 px-4">
-      <div className="max-w-4xl mx-auto">
-        <div className={`${
-          theme === 'dark' ? 'bg-black/90' : 'bg-white/90'
-        } backdrop-blur-xl border ${
-          theme === 'dark' ? 'border-white/20' : 'border-black/20'
-        } rounded-2xl shadow-2xl`}>
-          <div className="p-6">
-            <div className="flex items-start gap-4">
-              <div className="flex-grow space-y-4" ref={containerRef}>
-                <h3 className={`text-xl font-bold mb-6 ${
-                  theme === 'dark' ? 'text-white' : 'text-black'
-                }`}>
-                  Chat with AI
-                </h3>
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center mb-16"
+        >
+          <h2 className={`text-4xl sm:text-6xl font-black mb-4 ${
+            theme === 'dark' ? 'text-white' : 'text-black'
+          }`}>
+            AI-POWERED FEATURES
+          </h2>
+          <p className={`text-lg ${
+            theme === 'dark' ? 'text-white/60' : 'text-black/60'
+          }`}>
+            Experience the future of coding assistance
+          </p>
+        </motion.div>
 
-                <div className={`min-h-[200px] max-h-[400px] overflow-y-auto space-y-4 ${
-                  theme === 'dark' ? 'text-white/90' : 'text-black/90'
-                }`}>
-                  {conversation.map((msg, i) => (
-                    <div key={i} className={`p-3 rounded-lg ${
-                      msg.role === 'user' 
-                        ? theme === 'dark' ? 'bg-white/10' : 'bg-black/10'
-                        : theme === 'dark' ? 'bg-white/5' : 'bg-black/5'
+        {/* Features Grid */}
+        <div className="grid lg:grid-cols-3 gap-6">
+          {features.map((feature, index) => (
+            <motion.div
+              key={feature.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              className={`group relative h-full flex flex-col ${
+                theme === 'dark' 
+                  ? 'bg-black/50 border-white/10' 
+                  : 'bg-white/50 border-black/10'
+              } border rounded-2xl backdrop-blur-xl overflow-hidden hover:border-opacity-30 transition-all`}
+            >
+              <div className="p-8 flex flex-col h-full">
+                {/* Icon and Title */}
+                <div className="flex items-start gap-4 mb-6">
+                  <div className={`p-3 rounded-xl ${
+                    theme === 'dark' ? 'bg-white/10' : 'bg-black/10'
+                  }`}>
+                    {feature.icon}
+                  </div>
+                  <div className="flex-grow">
+                    <h3 className={`text-xl font-bold ${
+                      theme === 'dark' ? 'text-white' : 'text-black'
                     }`}>
-                      <strong className="block mb-1">
-                        {msg.role === 'user' ? 'You' : 'AI'}:
-                      </strong>
-                      {msg.content}
+                      {feature.title}
+                    </h3>
+                    <p className={`text-sm mt-1 ${
+                      theme === 'dark' ? 'text-white/60' : 'text-black/60'
+                    }`}>
+                      {feature.subtitle}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Description */}
+                <p className={`mb-6 ${
+                  theme === 'dark' ? 'text-white/70' : 'text-black/70'
+                }`}>
+                  {feature.description}
+                </p>
+
+                {/* Example Query */}
+                <div className="mt-auto space-y-4">
+                  <button
+                    onClick={() => handleSubmit(feature.id)}
+                    className={`w-full text-left px-4 py-3 rounded-xl ${
+                      theme === 'dark' 
+                        ? 'bg-neutral-900 hover:bg-neutral-800' 
+                        : 'bg-neutral-100 hover:bg-neutral-200'
+                    } transition-colors group/button`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className={`text-sm ${
+                        theme === 'dark' ? 'text-white/80' : 'text-black/80'
+                      }`}>
+                        {feature.example}
+                      </span>
+                      <svg 
+                        className={`w-4 h-4 transition-transform group-hover/button:translate-x-1 ${
+                          theme === 'dark' ? 'text-white/40' : 'text-black/40'
+                        }`} 
+                        viewBox="0 0 16 16" 
+                        fill="currentColor"
+                      >
+                        <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
                     </div>
-                  ))}
-                  {isLoading && (
-                    <div className="flex items-center gap-2">
+                  </button>
+
+                  {/* AI Response Area */}
+                  <AnimatePresence>
+                    {activeFeature === feature.id && (isProcessing || aiResponse) && (
                       <motion.div
-                        animate={{ opacity: [0.4, 1, 0.4] }}
-                        transition={{ duration: 1.5, repeat: Infinity }}
-                        className={`${
-                          theme === 'dark' ? 'text-white/60' : 'text-black/60'
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className={`rounded-xl overflow-hidden ${
+                          theme === 'dark' 
+                            ? 'bg-white/5 border border-white/10' 
+                            : 'bg-black/5 border border-black/10'
                         }`}
                       >
-                        AI is thinking...
+                        <div className="p-4">
+                          {isProcessing ? (
+                            <div className="space-y-3">
+                              {/* ChatGPT-style thinking animation */}
+                              <div className="flex items-center gap-3">
+                                <motion.svg
+                                  className="w-5 h-5"
+                                  viewBox="0 0 24 24"
+                                  animate={{ rotate: 360 }}
+                                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                                >
+                                  <circle 
+                                    cx="12" 
+                                    cy="12" 
+                                    r="10" 
+                                    stroke={theme === 'dark' ? 'white' : 'black'}
+                                    strokeWidth="2"
+                                    fill="none"
+                                    strokeDasharray="15 5"
+                                  />
+                                </motion.svg>
+                                <motion.span
+                                  key={thinkingStage}
+                                  initial={{ opacity: 0, y: 5 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  className={`text-sm ${
+                                    theme === 'dark' ? 'text-white/60' : 'text-black/60'
+                                  }`}
+                                >
+                                  {thinkingStages[thinkingStage]}
+                                </motion.span>
+                              </div>
+                              
+                              {/* Progress dots */}
+                              <div className="flex gap-1">
+                                {thinkingStages.map((_, idx) => (
+                                  <motion.div
+                                    key={idx}
+                                    className={`w-1.5 h-1.5 rounded-full ${
+                                      idx <= thinkingStage
+                                        ? theme === 'dark' ? 'bg-white' : 'bg-black'
+                                        : theme === 'dark' ? 'bg-white/20' : 'bg-black/20'
+                                    }`}
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: idx <= thinkingStage ? 1 : 0.5 }}
+                                    transition={{ delay: idx * 0.1 }}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                          ) : (
+                            <motion.div
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              className={`text-sm ${
+                                theme === 'dark' ? 'text-white/80' : 'text-black/80'
+                              }`}
+                            >
+                              <pre className="whitespace-pre-wrap font-mono text-xs">
+                                {aiResponse}
+                              </pre>
+                            </motion.div>
+                          )}
+                        </div>
                       </motion.div>
-                    </div>
-                  )}
-                </div>
-
-                <div className={`mt-4 flex gap-4 ${
-                  theme === 'dark' ? 'border-t border-white/10' : 'border-t border-black/10'
-                } pt-4`}>
-                  <input
-                    type="text"
-                    value={currentText}
-                    onChange={(e) => setCurrentText(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        sendMessage(currentText);
-                        setCurrentText('');
-                      }
-                    }}
-                    placeholder="Ask anything..."
-                    className={`flex-grow p-3 rounded-xl ${
-                      theme === 'dark' 
-                        ? 'bg-white/5 text-white placeholder-white/40' 
-                        : 'bg-black/5 text-black placeholder-black/40'
-                    } focus:outline-none focus:ring-2 ${
-                      theme === 'dark' ? 'focus:ring-white/20' : 'focus:ring-black/20'
-                    }`}
-                  />
-                  <button
-                    onClick={() => {
-                      sendMessage(currentText);
-                      setCurrentText('');
-                    }}
-                    disabled={isLoading}
-                    className={`px-6 py-3 rounded-xl font-medium transition-colors ${
-                      theme === 'dark'
-                        ? 'bg-white text-black hover:bg-white/90'
-                        : 'bg-black text-white hover:bg-black/90'
-                    } disabled:opacity-50 disabled:cursor-not-allowed`}
-                  >
-                    Send
-                  </button>
+                    )}
+                  </AnimatePresence>
                 </div>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          ))}
         </div>
+
+        {/* Custom Query Input */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="mt-12 max-w-2xl mx-auto"
+        >
+          <div className={`relative ${
+            theme === 'dark' ? 'bg-neutral-900' : 'bg-neutral-100'
+          } rounded-2xl p-1`}>
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && query.trim()) {
+                  handleSubmit(1, query);
+                }
+              }}
+              placeholder="Or ask your own question..."
+              className={`allow-select w-full py-4 px-6 pr-16 rounded-2xl ${
+                theme === 'dark' 
+                  ? 'bg-neutral-900 text-white placeholder:text-white/40' 
+                  : 'bg-neutral-100 text-black placeholder:text-black/40'
+              } focus:outline-none focus:ring-2 ${
+                theme === 'dark' ? 'focus:ring-white/20' : 'focus:ring-black/20'
+              }`}
+            />
+            <button
+              onClick={() => query.trim() && handleSubmit(1, query)}
+              disabled={!query.trim()}
+              className={`absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-lg ${
+                theme === 'dark' 
+                  ? 'bg-white text-black hover:bg-white/90' 
+                  : 'bg-black text-white hover:bg-black/90'
+              } disabled:opacity-50 transition-all`}
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M2 10L17 2L13 10L17 18L2 10Z" />
+              </svg>
+            </button>
+          </div>
+        </motion.div>
       </div>
     </section>
   );
-}
+};
 
 // In the LaxentaLanding component, update the ThinkingAnimation placement
 export default function LaxentaLanding() {
@@ -1365,8 +1711,8 @@ export default function LaxentaLanding() {
           />
         </motion.div>
 
-        {/* AI Chat Section */}
-        <ThinkingAnimation theme={theme} />
+        {/* AI Chat Section ;3 */}
+      <AIFeaturesSection theme={theme} />
       </motion.div>
     </>
   )

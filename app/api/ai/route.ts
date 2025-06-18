@@ -22,7 +22,7 @@ export async function POST(req: Request) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'anubis-pro-105b-v1',
+        model: 'o3-mini-online',
         messages,
         temperature: 0.9,
         presence_penalty: 0.6,
