@@ -130,7 +130,11 @@ export async function POST(req: NextRequest) {
 
               controller.enqueue(encoder.encode(`data: ${data}\n\n`));
             } catch (e) {
-              console.error('[⚠️ Invalid JSON]', e.message);
+              if (typeof e === 'object' && e && 'message' in e) {
+                console.error('[⚠️ Invalid JSON]', (e as any).message);
+              } else {
+                console.error('[⚠️ Invalid JSON]', e);
+              }
               console.error('[⚠️ Failed data]', data);
             }
           }
@@ -146,7 +150,11 @@ export async function POST(req: NextRequest) {
               JSON.parse(data);
               controller.enqueue(encoder.encode(`data: ${data}\n\n`));
             } catch (e) {
-              console.error('[⚠️ Invalid JSON in flush]', e.message);
+              if (typeof e === 'object' && e && 'message' in e) {
+                console.error('[⚠️ Invalid JSON in flush]', (e as any).message);
+              } else {
+                console.error('[⚠️ Invalid JSON in flush]', e);
+              }
             }
           }
         }
