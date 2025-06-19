@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { useTheme } from '../contexts/ThemeContext'
 import { Menu } from 'lucide-react'
+import { useDiscord } from '../contexts/DiscordContext'
 
 // Routes where navbar should auto-hide
 const AUTO_HIDE_ROUTES = ['/nsfwhub', '/fullscreen-content']
@@ -270,6 +271,7 @@ export default function Navbar() {
   const pathname = usePathname()
   const { theme, toggleTheme } = useTheme()
   const router = useRouter()
+  const { user, signIn, signOut, isLoading: authLoading } = useDiscord()
   const [scrolled, setScrolled] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -610,6 +612,57 @@ export default function Navbar() {
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   >
                     <div className="px-6 py-20 space-y-6">
+                      {/* Add Discord Auth for Mobile */}
+                      <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="pb-6 border-b border-white/10"
+                      >
+                        {user ? (
+                          <div className="space-y-4">
+                            <div className="flex items-center gap-3">
+                              <img 
+                                src={user.avatar} 
+                                alt={user.username}
+                                className="w-12 h-12 rounded-full"
+                              />
+                              <div>
+                                <p className={`font-mono text-sm font-bold ${
+                                  theme === 'dark' ? 'text-white' : 'text-black'
+                                }`}>
+                                  {user.username}
+                                </p>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => {
+                                playSound('click')
+                                signOut()
+                                setMobileMenuOpen(false)
+                              }}
+                              className={`w-full py-2 rounded-lg font-mono text-sm ${
+                                theme === 'dark' 
+                                  ? 'bg-red-500/20 text-red-400' 
+                                  : 'bg-red-500/20 text-red-600'
+                              }`}
+                            >
+                              LOGOUT
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              playSound('click')
+                              signIn()
+                              setMobileMenuOpen(false)
+                            }}
+                            className="w-full py-3 bg-[#5865F2] text-white rounded-lg font-mono text-sm font-bold"
+                          >
+                            LOGIN WITH DISCORD
+                          </button>
+                        )}
+                      </motion.div>
+                      
                       {navItems.map((item, index) => (
                         <motion.div
                           key={item}

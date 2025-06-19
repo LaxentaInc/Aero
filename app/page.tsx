@@ -808,7 +808,6 @@ const MegaCard = ({
   const handleCTAClick = (e: React.MouseEvent) => {
     e.preventDefault()
     setIsNavigating(true)
-    // Replace scroll behavior with actual navigation
     setTimeout(() => {
       window.location.href = '/contact'
       setIsNavigating(false)
