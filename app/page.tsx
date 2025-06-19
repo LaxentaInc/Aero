@@ -120,9 +120,23 @@ const SmoothCursor = () => {
   )
 }
 
-const LoadingScreen = ({ theme }: { theme: 'dark' | 'light' }) => {
+const LoadingScreen = ({ theme, onClose }: { theme: 'dark' | 'light', onClose?: () => void }) => {
   const [videoLoaded, setVideoLoaded] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Add cleanup on unmount and navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      if (onClose) onClose();
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      if (onClose) onClose();
+    };
+  }, [onClose]);
 
   return (
     <motion.div
@@ -717,15 +731,16 @@ const CTAButton = ({
 }) => {
   const [isLoading, setIsLoading] = useState(false)
   
-  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    setIsLoading(true)
-    onClick(e)
+  const handleClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    setIsLoading(true);
+    await onClick(e);
+    setIsLoading(false);
   }
   
   return (
     <>
       <AnimatePresence>
-        {isLoading && <LoadingScreen theme={theme} />}
+        {isLoading && <LoadingScreen theme={theme} onClose={() => setIsLoading(false)} />}
       </AnimatePresence>
       
       <motion.button
@@ -1589,12 +1604,31 @@ export default function LaxentaLanding() {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.3], [1, 0])
   const [showMainLoading, setShowMainLoading] = useState(false)
 
+  // Add cleanup for main loading state
+  useEffect(() => {
+    const handlePopState = () => {
+      setShowMainLoading(false);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      setShowMainLoading(false);
+    };
+  }, []);
+
   useProtection()
 
   return (
     <>
       <AnimatePresence>
-        {showMainLoading && <LoadingScreen theme={theme} />}
+        {showMainLoading && (
+          <LoadingScreen 
+            theme={theme} 
+            onClose={() => setShowMainLoading(false)} 
+          />
+        )}
       </AnimatePresence>
       
       <motion.div className={`relative min-h-screen ${
