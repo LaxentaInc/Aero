@@ -462,4 +462,3 @@ export default function CompactAIChat() {
         </div>
       </div>
     </div>
-  )
