@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { messages, stream = false } = await req.json();
+    const { messages, stream = true } = await req.json();
     console.log('[📩 Messages]', messages);
     console.log('[🌊 Stream]', stream);
 
