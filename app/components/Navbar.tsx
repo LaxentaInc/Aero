@@ -280,12 +280,10 @@ export default function Navbar() {
   const audioContextRef = useRef<AudioContext | null>(null)
 
   useEffect(() => {
-    // Check if we should hide the navbar on this route
     if (AUTO_HIDE_ROUTES.includes(pathname)) {
-      // Add a small delay before hiding to allow for smooth transitions
       const timer = setTimeout(() => {
         setShouldRender(false)
-      }, 300) // 300ms matches the exit animation duration
+      }, 300) //300ms matches the exit animation duration
       return () => clearTimeout(timer)
     } else {
       setShouldRender(true)
@@ -411,7 +409,7 @@ export default function Navbar() {
     toggleTheme()
   }
 
-  const navItems = ['products', 'hosting', 'shapes', 'nsfwhub']
+  const navItems = ['products', 'contact', 'ai', 'nsfwhub']
 
   return (
     <AnimatePresence mode="wait">
