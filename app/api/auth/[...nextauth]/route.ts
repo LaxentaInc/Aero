@@ -1,5 +1,33 @@
 import NextAuth from 'next-auth'
 import DiscordProvider from 'next-auth/providers/discord'
+declare module 'next-auth' {
+  interface Session {
+    user: {
+      id: string
+      name?: string | null
+      email?: string | null
+      image?: string | null
+    }
+  }
+}
+
+declare module 'next-auth/jwt' {
+  interface JWT {
+    id: string
+    username: string
+    discriminator: string
+    avatar: string
+  }
+}
+
+//we define Discord profile interface :3
+interface DiscordProfile {
+  id: string
+  username: string
+  discriminator: string
+  avatar: string
+  email?: string
+}
 
 const handler = NextAuth({
   providers: [
@@ -16,10 +44,11 @@ const handler = NextAuth({
   callbacks: {
     async jwt({ token, account, profile }) {
       if (account && profile) {
-        token.id = profile.id
-        token.username = profile.username
-        token.discriminator = profile.discriminator
-        token.avatar = profile.avatar
+        const discordProfile = profile as DiscordProfile
+        token.id = discordProfile.id
+        token.username = discordProfile.username
+        token.discriminator = discordProfile.discriminator
+        token.avatar = discordProfile.avatar
       }
       return token
     },

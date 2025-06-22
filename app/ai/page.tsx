@@ -732,7 +732,6 @@ export default function PolishedAIChat() {
 
     let convId = currentConversationId
     
-    // Create new conversation if needed
     if (!convId || messages.length === 0) {
       const title = userMsg.content.slice(0, 50) + (userMsg.content.length > 50 ? '...' : '')
       const newConv: Conversation = {
