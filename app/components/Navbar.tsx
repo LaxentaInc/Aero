@@ -551,7 +551,7 @@ export default function Navbar() {
                         }`}
                         onMouseEnter={() => playSound('hover')}
                       >
-                        <span className="relative z-10">TRY IT</span>
+                        <span className="relative z-10">GET A DEMO</span>
                         <motion.span
                           className={`absolute inset-0 ${theme === 'dark' ? 'bg-white' : 'bg-black'} origin-left`}
                           initial={{ scaleX: 1 }}
