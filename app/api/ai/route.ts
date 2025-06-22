@@ -9,6 +9,23 @@ const RATE_LIMIT = 5;
 const WINDOW_MS = 60 * 1000;
 const ipMap = new Map<string, { count: number; timestamp: number }>();
 
+// Stream buffer management
+const streamBuffers = new Map<string, { 
+  chunks: string[], 
+  lastActivity: number,
+  retryCount: number 
+}>();
+
+// Clean up old buffers every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [id, buffer] of streamBuffers.entries()) {
+    if (now - buffer.lastActivity > 5 * 60 * 1000) {
+      streamBuffers.delete(id);
+    }
+  }
+}, 5 * 60 * 1000);
+
 function checkRateLimit(ip: string): boolean {
   const now = Date.now();
   const record = ipMap.get(ip);
@@ -29,9 +46,41 @@ function checkRateLimit(ip: string): boolean {
   return true;
 }
 
+// Retry with exponential backoff
+async function fetchWithRetry(
+  url: string, 
+  options: RequestInit, 
+  maxRetries: number = 3
+): Promise<Response> {
+  let lastError;
+
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: AbortSignal.timeout(30000),
+      });
+
+      if (response.ok || i === maxRetries - 1) {
+        return response;
+      }
+
+      await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+    } catch (error) {
+      lastError = error;
+      if (i < maxRetries - 1) {
+        await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+      }
+    }
+  }
+
+  throw lastError || new Error('Max retries reached');
+}
+
 export async function POST(req: NextRequest) {
   const ip = req.headers.get('x-forwarded-for') ?? 'unknown';
-  console.log(`[⚡️ HIT] /api/ai POST from IP: ${ip}`);
+  const streamId = `${ip}-${Date.now()}`;
+  console.log(`[⚡️ HIT] /api/ai POST from IP: ${ip}, Stream ID: ${streamId}`);
 
   if (!checkRateLimit(ip)) {
     console.warn(`[🚫 RATE LIMITED] IP ${ip}`);
@@ -42,9 +91,10 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { messages, stream = true } = await req.json();
+    const { messages, stream = false, model = 'gpt-4o' } = await req.json();
     console.log('[📩 Messages]', messages);
     console.log('[🌊 Stream]', stream);
+    console.log('[🤖 Model]', model);
 
     if (!API_KEY) {
       console.error('[❌ ERROR] Missing API KEY');
@@ -55,7 +105,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = JSON.stringify({
-      model: 'o3-mini-online',
+      model,
       messages,
       temperature: 0.9,
       presence_penalty: 0.6,
@@ -64,7 +114,7 @@ export async function POST(req: NextRequest) {
       stream,
     });
 
-    const response = await fetch(API_URL, {
+    const response = await fetchWithRetry(API_URL, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${API_KEY}`,
@@ -74,7 +124,6 @@ export async function POST(req: NextRequest) {
     });
 
     console.log('[📡 API Response Status]', response.status);
-    console.log('[📡 API Response Headers]', Object.fromEntries(response.headers.entries()));
 
     if (!stream) {
       const data = await response.json();
@@ -90,53 +139,84 @@ export async function POST(req: NextRequest) {
       throw new Error(`API responded with status ${response.status}: ${errorText}`);
     }
 
+    streamBuffers.set(streamId, { 
+      chunks: [], 
+      lastActivity: Date.now(),
+      retryCount: 0 
+    });
+
     const encoder = new TextEncoder();
     const decoder = new TextDecoder();
     let buffer = '';
     let chunkCount = 0;
     let totalContent = '';
+    let lastHeartbeat = Date.now();
 
     const transformStream = new TransformStream({
       async transform(chunk, controller) {
+        const streamBuffer = streamBuffers.get(streamId);
+        if (!streamBuffer) return;
+
+        streamBuffer.lastActivity = Date.now();
         chunkCount++;
-        const text = decoder.decode(chunk, { stream: true });
-        console.log(`[🔄 Chunk ${chunkCount}] Raw:`, text.slice(0, 100) + (text.length > 100 ? '...' : ''));
 
-        buffer += text;
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
+        try {
+          const text = decoder.decode(chunk, { stream: true });
+          console.log(`[🔄 Chunk ${chunkCount}] Size: ${text.length}`);
 
-        for (const line of lines) {
-          if (line.trim() === '') continue;
-          console.log('[📝 Processing line]', line.slice(0, 100) + (line.length > 100 ? '...' : ''));
+          buffer += text;
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
 
-          if (line.startsWith('data: ')) {
-            const data = line.slice(6);
+          for (const line of lines) {
+            if (line.trim() === '') continue;
 
-            if (data === '[DONE]') {
-              console.log('[✅ Stream Complete] Total content:', totalContent);
-              controller.enqueue(encoder.encode('data: [DONE]\n\n'));
-              return;
+            const now = Date.now();
+            if (now - lastHeartbeat > 10000) {
+              controller.enqueue(encoder.encode(': heartbeat\n\n'));
+              lastHeartbeat = now;
             }
 
-            try {
-              const parsed = JSON.parse(data);
-              const content = parsed.choices?.[0]?.delta?.content;
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6);
 
-              if (content) {
-                totalContent += content;
-                console.log('[💬 Content chunk]', content);
+              if (data === '[DONE]') {
+                console.log('[✅ Stream Complete] Total content length:', totalContent.length);
+                controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+                streamBuffers.delete(streamId);
+                return;
               }
 
-              controller.enqueue(encoder.encode(`data: ${data}\n\n`));
-            } catch (e) {
-              if (typeof e === 'object' && e && 'message' in e) {
-                console.error('[⚠️ Invalid JSON]', (e as any).message);
-              } else {
+              try {
+                const parsed = JSON.parse(data);
+                const content = parsed.choices?.[0]?.delta?.content;
+
+                if (content) {
+                  totalContent += content;
+                  streamBuffer.chunks.push(data);
+                }
+
+                const enrichedData = {
+                  ...parsed,
+                  _seq: chunkCount,
+                  _streamId: streamId
+                };
+
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify(enrichedData)}\n\n`));
+              } catch (e) {
                 console.error('[⚠️ Invalid JSON]', e);
+                streamBuffer.chunks.push(`ERROR: ${data}`);
               }
-              console.error('[⚠️ Failed data]', data);
             }
+          }
+        } catch (error) {
+          console.error('[❌ Transform error]', error);
+          streamBuffer.retryCount++;
+
+          if (streamBuffer.retryCount > 5) {
+            controller.enqueue(encoder.encode('data: {"error": "Stream failed after multiple retries"}\n\n'));
+            controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+            streamBuffers.delete(streamId);
           }
         }
       },
@@ -148,39 +228,60 @@ export async function POST(req: NextRequest) {
           if (data !== '[DONE]') {
             try {
               JSON.parse(data);
-              controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+              controller.enqueue(encoder.encode(`${buffer}\n\n`));
             } catch (e) {
-              if (typeof e === 'object' && e && 'message' in e) {
-                console.error('[⚠️ Invalid JSON in flush]', (e as any).message);
-              } else {
-                console.error('[⚠️ Invalid JSON in flush]', e);
-              }
+              console.error('[⚠️ Invalid JSON in flush]', e);
             }
           }
         }
+        streamBuffers.delete(streamId);
       },
     });
 
-    return new Response(response.body?.pipeThrough(transformStream), {
+    const readableStream = response.body?.pipeThrough(transformStream);
+
+    return new Response(readableStream, {
       headers: {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive',
+        'X-Stream-ID': streamId,
+        'X-Accel-Buffering': 'no',
       },
     });
 
   } catch (error) {
     console.error('[❌ CATCH ERROR]', error);
-    return new Response(JSON.stringify({ error: 'Failed to process request' }), {
+    return new Response(JSON.stringify({ 
+      error: 'Failed to process request',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
   }
 }
 
-export async function GET() {
-  console.log('[⚡️ HIT] /api/ai GET');
-  return new Response(JSON.stringify({ alive: true, timestamp: Date.now() }), {
+export async function GET(req: NextRequest) {
+  const streamId = req.nextUrl.searchParams.get('streamId');
+  const fromChunk = parseInt(req.nextUrl.searchParams.get('fromChunk') || '0');
+
+  if (!streamId) {
+    return new Response(JSON.stringify({ alive: true, timestamp: Date.now() }), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  const streamBuffer = streamBuffers.get(streamId);
+  if (!streamBuffer) {
+    return new Response(JSON.stringify({ error: 'Stream not found' }), {
+      status: 404,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
+  const chunks = streamBuffer.chunks.slice(fromChunk);
+  return new Response(JSON.stringify({ chunks, totalChunks: streamBuffer.chunks.length }), {
     headers: { 'Content-Type': 'application/json' },
   });
 }

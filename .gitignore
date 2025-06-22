@@ -9,7 +9,9 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
-
+/all_models.json
+/audio_models.json
+/filtered_model_names.txt
 # testing
 /coverage
 
