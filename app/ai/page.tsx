@@ -51,7 +51,6 @@ const Logo = ({ size = 24 }: { size?: number }) => (
   </svg>
 )
 
-// Typing indicator for mobile
 const TypingIndicator = () => (
   <div className="flex items-center gap-1 px-3 py-2">
     {[0, 1, 2].map(i => (
@@ -64,7 +63,6 @@ const TypingIndicator = () => (
   </div>
 )
 
-// HTML Preview Component
 const PreviewComponent = ({ content }: { content: string }) => {
   const [showPreview, setShowPreview] = useState(false)
   

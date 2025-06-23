@@ -9,7 +9,7 @@ import { Menu } from 'lucide-react'
 import { useDiscord } from '../contexts/DiscordContext'
 
 // Routes where navbar should auto-hide
-const AUTO_HIDE_ROUTES = ['/nsfwhub', '/ai']
+const AUTO_HIDE_ROUTES = ['/nsfwhub', '/ai', '/image-generation']
 
 const LoadingAnimation = ({ 
   theme, 
@@ -120,7 +120,7 @@ const LoadingAnimation = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-        I like making random stuff weird and weird random stuff - Talk to me = @me_straight on discord :3
+             ...Loading.| @me_straight on discord
         </motion.h1>
 
         <motion.div
@@ -409,7 +409,7 @@ export default function Navbar() {
     toggleTheme()
   }
 
-  const navItems = ['products', 'contact', 'ai', 'nsfwhub']
+  const navItems = ['products','ai', 'image-generation', 'nsfwhub', 'contact']
 
   return (
     <AnimatePresence mode="wait">
@@ -432,7 +432,7 @@ export default function Navbar() {
             {/* Unfucked the Shit Mobile Menu Button - Now Always visible on mobile */}
             {isMobile && (
               <motion.button
-                className="fixed top-4 right-4 z-[60] p-3 bg-black/50 backdrop-blur-xl rounded-full"
+                className="fixed top-4 right-4 z-[60] h-8 flex items-center p-3 bg-black/50 backdrop-blur-xl rounded-full"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -500,7 +500,7 @@ export default function Navbar() {
                         }}
                         transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
                       >
-                        S
+                        L
                       </motion.span>
                     </motion.div>
                     <GlitchText className={`text-xl font-black font-mono ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
