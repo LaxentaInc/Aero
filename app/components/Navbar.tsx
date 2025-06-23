@@ -536,7 +536,28 @@ export default function Navbar() {
                         </button>
                       </motion.div>
                     ))}
-                    
+                    {/* Discord Auth Desktop */}
+                    <div className="flex items-center gap-3 ml-4">
+                      {user ? (
+                        <>
+                          <img src={user.avatar} alt={user.username} className="w-8 h-8 rounded-full border border-white/20" />
+                          <span className={`font-mono text-sm font-bold ${theme === 'dark' ? 'text-white' : 'text-black'}`}>{user.username}</span>
+                          <button
+                            onClick={() => { playSound('click'); signOut(); }}
+                            className={`px-3 py-1 rounded-lg font-mono text-xs ml-2 ${theme === 'dark' ? 'bg-red-500/20 text-red-400' : 'bg-red-500/20 text-red-600'}`}
+                          >
+                            LOGOUT
+                          </button>
+                        </>
+                      ) : (
+                        <a
+                          href="/login"
+                          className="px-4 py-2 bg-[#5865F2] text-white rounded-lg font-mono text-sm font-bold ml-2"
+                        >
+                          LOGIN WITH DISCORD
+                        </a>
+                      )}
+                    </div>
                     <motion.div
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
@@ -560,7 +581,6 @@ export default function Navbar() {
                         />
                       </button>
                     </motion.div>
-
                     {/* Theme Toggle */}
                     <div onClick={handleThemeToggle}>
                       <ThemeToggle theme={theme} toggleTheme={() => {}} />
@@ -648,16 +668,12 @@ export default function Navbar() {
                             </button>
                           </div>
                         ) : (
-                          <button
-                            onClick={() => {
-                              playSound('click')
-                              signIn()
-                              setMobileMenuOpen(false)
-                            }}
-                            className="w-full py-3 bg-[#5865F2] text-white rounded-lg font-mono text-sm font-bold"
+                          <a
+                            href="/login"
+                            className="w-full block py-3 bg-[#5865F2] text-white rounded-lg font-mono text-sm font-bold text-center"
                           >
                             LOGIN WITH DISCORD
-                          </button>
+                          </a>
                         )}
                       </motion.div>
                       

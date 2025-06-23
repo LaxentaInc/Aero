@@ -14,7 +14,7 @@
 /filtered_model_names.txt
 # testing
 /coverage
-
+/txt.txt
 # next.js
 /.next/
 /out/
