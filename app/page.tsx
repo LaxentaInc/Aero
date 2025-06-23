@@ -1,31 +1,6 @@
 'use client'
-import Prism from 'prismjs';
-import 'prismjs/plugins/line-numbers/prism-line-numbers.css';
-import 'prismjs/themes/prism-tomorrow.css';
-import 'prismjs/components/prism-javascript';
-import 'prismjs/components/prism-typescript';
-import 'prismjs/components/prism-jsx';
-import 'prismjs/components/prism-tsx';
-import 'prismjs/components/prism-python';
-import 'prismjs/components/prism-java';
-import 'prismjs/components/prism-c';
-import 'prismjs/components/prism-cpp';
-import 'prismjs/components/prism-csharp';
-import 'prismjs/components/prism-php';
-import 'prismjs/components/prism-ruby';
-import 'prismjs/components/prism-go';
-import 'prismjs/components/prism-rust';
-import 'prismjs/components/prism-swift';
-import 'prismjs/components/prism-kotlin';
-import 'prismjs/components/prism-scala';
-import 'prismjs/components/prism-sql';
-import 'prismjs/components/prism-bash';
-import 'prismjs/components/prism-json';
-import 'prismjs/components/prism-yaml';
-import 'prismjs/components/prism-markdown';
-import 'prismjs/components/prism-css';
-import 'prismjs/components/prism-scss';
-import 'prismjs/components/prism-less';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
+import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { useState, useEffect, useRef } from 'react'
 import { createRoot } from 'react-dom/client'
 import { motion, useScroll, useTransform, useSpring, AnimatePresence, useInView, animate, spring } from 'framer-motion'
@@ -1157,6 +1132,68 @@ const ScrollArrow = ({ theme }: { theme: 'dark' | 'light' }) => {
 
 //I seriously do not understand why the streaming is not working, its making it buggy too, so imma just keep it like this, its annyoing
 //If anyone ever sees this, please help me fix it, i have no idea 
+
+// CodeBlock component for syntax highlighting
+function CodeBlock({ code, language = 'javascript' }: { code: string, language?: string }) {
+  return (
+    <SyntaxHighlighter 
+      language={language}
+      style={tomorrow}
+      showLineNumbers={true}
+      wrapLines={true}
+      customStyle={{
+        margin: 0,
+        borderRadius: '8px',
+        fontSize: '0.95em',
+      }}
+    >
+      {code}
+    </SyntaxHighlighter>
+  )
+}
+
+// Utility to render markdown/code blocks using react-syntax-highlighter
+function formatCodeBlocks(text: string) {
+  // Supported languages list to prevent undefined language errors
+  const supportedLanguages = [
+    'javascript', 'typescript', 'jsx', 'tsx', 'css', 'html', 'json', 
+    'python', 'java', 'c', 'cpp', 'csharp', 'php', 'ruby', 'go', 
+    'rust', 'kotlin', 'swift', 'bash', 'shell', 'sql', 'xml', 'yaml'
+  ];
+  const languageMap: { [key: string]: string } = {
+    'js': 'javascript',
+    'ts': 'typescript',
+    'py': 'python',
+    'sh': 'bash',
+    'yml': 'yaml',
+    'c++': 'cpp',
+    'c#': 'csharp'
+  };
+  function getSafeLanguage(lang: string) {
+    const normalizedLang = lang.toLowerCase().trim();
+    const mappedLang = languageMap[normalizedLang] || normalizedLang;
+    return supportedLanguages.includes(mappedLang) ? mappedLang : 'javascript';
+  }
+  const parts = text.split('```');
+  return parts.map((part, index) => {
+    if (index % 2 === 1) { // Code block
+      const lines = part.split('\n');
+      const rawLanguage = lines[0]?.trim() || 'javascript';
+      const safeLanguage = getSafeLanguage(rawLanguage);
+      const code = lines.slice(1).join('\n').trim();
+      return (
+        <div key={index} className="my-4 w-full">
+          <CodeBlock code={code} language={safeLanguage} />
+        </div>
+      );
+    } else {
+      return part.split('\n').map((line, lineIndex) => (
+        line ? <p key={`${index}-${lineIndex}`} className="mb-2">{line}</p> : null
+      )).filter(Boolean);
+    }
+  }).flat();
+}
+
 const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
   const [activeFeature, setActiveFeature] = useState<number | null>(null);
   const [query, setQuery] = useState('');
@@ -1279,43 +1316,7 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
     }
   };
 
-  // Code highlighting 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      Prism.highlightAll();
-    }
-  }, [customResponse, featureResponses]);
-
-  const formatCodeBlocks = (text: string) => {
-    const parts = text.split('```');
-    
-    return parts.map((part, index) => {
-      if (index % 2 === 1) { // Code block
-        const lines = part.split('\n');
-        const language = lines[0]?.trim() || 'javascript';
-        const code = lines.slice(1).join('\n').trim();
-        
-        return (
-          <div key={index} className="my-4 w-full">
-            <div className="relative rounded-lg overflow-hidden">
-              <div className="absolute top-2 right-2 text-xs text-white/40 font-mono">
-                {language}
-              </div>
-              <pre className={`language-${language} line-numbers`}>
-                <code className={`language-${language}`}>
-                  {code}
-                </code>
-              </pre>
-            </div>
-          </div>
-        );
-      } else {
-        return part.split('\n').map((line, lineIndex) => (
-          line ? <p key={`${index}-${lineIndex}`} className="mb-2">{line}</p> : null
-        )).filter(Boolean);
-      }
-    }).flat();
-  };
+  const [showCode, setShowCode] = useState(false);
 
   return (
     <section className="min-h-screen py-20 px-4">
@@ -1417,7 +1418,7 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
                     </div>
                   </button>
 
-                  {/*feature-specific rs*/}
+                  {/*feature-specific responses*/}
                   <AnimatePresence>
                     {activeFeature === feature.id && (isProcessing || featureResponses[feature.id]) && (
                       <motion.div
@@ -1528,7 +1529,10 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
             </div>
           </div>
 
-          {/* Response Canvas with Glow Effect */}
+          {/*wave*/}
+          <WaveSeparator theme={theme} />
+
+          {/*response Canvas*/}
           <AnimatePresence>
             {(isCustomProcessing || customResponse) && (
               <motion.div
@@ -1541,7 +1545,6 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
                     : 'bg-neutral-100/50 border-black/10'
                 } border rounded-2xl backdrop-blur-xl overflow-hidden transition-all duration-300`}
               >
-                {/* Glow effect for response box */}
                 <div className={`absolute inset-0 rounded-2xl transition-opacity duration-300 ${
                   theme === 'dark'
                     ? 'bg-gradient-to-r from-white/5 via-transparent to-white/5 shadow-[0_0_25px_rgba(255,255,255,0.08)]'
@@ -1588,13 +1591,103 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/*CTA Button to /ai */}
+          <div className="flex justify-center mt-8">
+            <a href="/ai" tabIndex={-1} className="group">
+              <motion.button
+                className={`relative flex items-center gap-3 px-8 py-4 rounded-2xl font-mono font-bold text-lg shadow-xl transition-all duration-300 overflow-hidden
+                  ${theme === 'dark' ? 'bg-gradient-to-r from-blue-500 via-purple-600 to-pink-500 text-white' : 'bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 text-white'}
+                  group-hover:scale-105 group-active:scale-95
+                `}
+                whileHover={{ scale: 1.05, boxShadow: '0 0 32px 8px rgba(99,102,241,0.3)' }}
+                whileTap={{ scale: 0.97 }}
+              >
+                {/* Animated SVG icon */}
+                <motion.svg
+                  width="28" height="28" viewBox="0 0 28 28" fill="none"
+                  className="drop-shadow-lg"
+                  initial={{ rotate: 0 }}
+                  animate={{ rotate: [0, 10, -10, 0] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <circle cx="14" cy="14" r="13" stroke="white" strokeWidth="2" fill="none" />
+                  <motion.path
+                    d="M9 14h6m0 0l-2-2m2 2l-2 2"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ duration: 1.2, repeat: Infinity, repeatType: 'reverse' }}
+                  />
+                </motion.svg>
+                <span className="relative z-10">Try FREE AI Chat</span>
+                {/* Glow effect */}
+                <motion.div
+                  className="absolute inset-0 rounded-2xl bg-white/20 blur-xl opacity-0 group-hover:opacity-100 pointer-events-none"
+                  initial={false}
+                  whileHover={{ opacity: 0.2 }}
+                  transition={{ duration: 0.3 }}
+                />
+              </motion.button>
+            </a>
+          </div>
         </motion.div>
       </div>
     </section>
   );
 };
 
+// WaveSeparator renders a dynamic waveform-like SVG separator
+const WaveSeparator = ({ theme = 'light', width = 320, height = 32 }) => {
+  const [points, setPoints] = useState<string[]>([]);
 
+  useEffect(() => {
+    const generatePoints = () => {
+      const segments = 40;
+      const newPoints = [];
+      for (let i = 0; i <= segments; i++) {
+        const x = (width / segments) * i;
+        const amplitude = (Math.random() * 0.8 + 0.2) * (height / 2);
+        const y = height / 2 + (Math.random() > 0.5 ? amplitude : -amplitude);
+        newPoints.push(`${x},${y}`);
+      }
+      setPoints(newPoints);
+    };
+    generatePoints();
+    const interval = setInterval(generatePoints, 400);
+    return () => clearInterval(interval);
+  }, [width, height]);
+
+  const pathD = points.length
+    ? `M${points[0]} ` + points.slice(1).map(p => `L${p}`).join(' ')
+    : '';
+
+  return (
+    <div className="w-full flex justify-center my-8">
+      <motion.svg
+        width={width}
+        height={height}
+        viewBox={`0 0 ${width} ${height}`}
+        fill="none"
+        className="w-full max-w-lg"
+      >
+        <motion.path
+          d={pathD}
+          stroke={theme === 'dark' ? '#fff' : '#000'}
+          strokeWidth="2"
+          strokeLinecap="round"
+          fill="none"
+          initial={{ pathLength: 0 }}
+          animate={{ pathLength: 1 }}
+          transition={{ duration: 0.4, ease: 'linear' }}
+        />
+      </motion.svg>
+    </div>
+  );
+};
 
 export default function LaxentaLanding() {
   const { theme } = useTheme()

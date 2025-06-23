@@ -56,10 +56,7 @@ async function fetchWithRetry(
 
   for (let i = 0; i < maxRetries; i++) {
     try {
-      const response = await fetch(url, {
-        ...options,
-        signal: AbortSignal.timeout(30000),
-      });
+      const response = await fetch(url, options);
 
       if (response.ok || i === maxRetries - 1) {
         return response;

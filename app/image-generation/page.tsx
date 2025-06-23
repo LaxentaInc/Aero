@@ -600,20 +600,26 @@ export default function ImageGenerator() {
                         <img 
                           src={image.url} 
                           alt={image.prompt} 
-                          className="w-full aspect-square object-cover max-h-64 sm:max-h-72 md:max-h-80 lg:max-h-96 mx-auto"
+                          className="w-full aspect-square object-cover max-h-64 sm:max-h-72 md:max-h-80 lg:max-h-96 mx-auto cursor-pointer"
+                          onClick={() => setCurrentImage(image)}
                         />
                       )}
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                        <button
-                          onClick={() => toggleLike(image.id)}
-                          className={`p-2 backdrop-blur-sm rounded-lg transition-colors ${
-                            likedImages.has(image.id) 
-                              ? 'bg-red-500/20 text-red-400' 
-                              : 'bg-white/10 hover:bg-white/20'
-                          }`}
-                        >
-                          <Heart className={`w-5 h-5 ${likedImages.has(image.id) ? 'fill-current' : ''}`} />
-                        </button>
+                      <div className="absolute inset-0 flex items-center justify-center transition-all duration-300 rounded-xl opacity-100 group-hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 bg-black/0 md:bg-black/20">
+                        <div className="flex gap-3">
+                          <button onClick={() => { setCurrentImage(image); downloadImage(); }} className="p-3 bg-white/10 backdrop-blur-sm rounded-lg hover:bg-white/20 transition-colors">
+                            <Download className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={() => toggleLike(image.id)}
+                            className={`p-3 backdrop-blur-sm rounded-lg transition-colors ${
+                              likedImages.has(image.id) 
+                                ? 'bg-red-500/20 text-red-400' 
+                                : 'bg-white/10 hover:bg-white/20'
+                            }`}
+                          >
+                            <Heart className={`w-5 h-5 ${likedImages.has(image.id) ? 'fill-current' : ''}`} />
+                          </button>
+                        </div>
                       </div>
                     </div>
                     <div className="p-3 md:p-4 flex-1 flex flex-col justify-between">

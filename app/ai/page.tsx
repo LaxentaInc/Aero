@@ -1,30 +1,14 @@
 'use client'
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
+import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { 
-  Copy, Send, Square, Menu, X, Check, Plus, Search, Trash2, Bot, Terminal, Sparkles, ArrowRight, ChevronDown, MessageSquare, Clock, Eye, EyeOff
+  Copy, Send, Square, Menu, X, Check, Plus, Search, Trash2, Bot, Terminal, Sparkles, ArrowRight, ChevronDown, MessageSquare, Clock, Eye, EyeOff, Home
 } from 'lucide-react'
 import { useSession } from 'next-auth/react'
-import hljs from 'highlight.js/lib/core'
-import javascript from 'highlight.js/lib/languages/javascript'
-import typescript from 'highlight.js/lib/languages/typescript'
-import python from 'highlight.js/lib/languages/python'
-import css from 'highlight.js/lib/languages/css'
-import json from 'highlight.js/lib/languages/json'
-import bash from 'highlight.js/lib/languages/bash'
-import xml from 'highlight.js/lib/languages/xml'
-import 'highlight.js/styles/github-dark.css'
+import { useRouter } from 'next/navigation'
 
-// Register languages
-hljs.registerLanguage('javascript', javascript)
-hljs.registerLanguage('typescript', typescript)
-hljs.registerLanguage('python', python)
-hljs.registerLanguage('css', css)
-hljs.registerLanguage('json', json)
-hljs.registerLanguage('bash', bash)
-hljs.registerLanguage('xml', xml)
-hljs.registerLanguage('html', xml)
-
-const MODELS = ['gpt-4o', 'claude-opus-4-20250514', 'gemini-1.5-pro']
+const MODELS = ['gpt-4o', 'o1', 'gemini-1.5-pro']
 
 interface Message {
   id: string
@@ -44,7 +28,7 @@ interface Conversation {
   model?: string
 }
 
-// Modern Logo
+// Logo
 const Logo = ({ size = 24 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="text-white">
     <path d="M2.30047 8.77631L12.0474 23H16.3799L6.63183 8.77631H2.30047ZM6.6285 16.6762L2.29492 23H6.63072L8.79584 19.8387L6.6285 16.6762ZM17.3709 1L9.88007 11.9308L12.0474 15.0944L21.7067 1H17.3709ZM18.1555 7.76374V23H21.7067V2.5818L18.1555 7.76374Z" fill="currentColor"/>
@@ -96,22 +80,9 @@ const PreviewComponent = ({ content }: { content: string }) => {
   return null
 }
 
-// Enhanced Code Block with highlight.js
+//from prism to- react-syntax-highlighter
 const CodeBlock = ({ code, language = 'javascript' }: { code: string; language?: string }) => {
   const [copied, setCopied] = useState(false)
-  const codeRef = useRef<HTMLElement>(null)
-
-  useEffect(() => {
-    if (codeRef.current && code) {
-      try {
-        // Delete previous highlighting
-        delete codeRef.current.dataset.highlighted
-        hljs.highlightElement(codeRef.current)
-      } catch (e) {
-        console.error('Highlighting error:', e)
-      }
-    }
-  }, [code, language])
 
   const handleCopy = async () => {
     try {
@@ -153,22 +124,29 @@ const CodeBlock = ({ code, language = 'javascript' }: { code: string; language?:
           <span className="hidden sm:inline">{copied ? 'Copied!' : 'Copy'}</span>
         </button>
       </div>
-      <div className="overflow-x-auto">
-        <pre className="!bg-transparent !p-0 !m-0">
-          <code 
-            ref={codeRef}
-            className={`language-${normalizedLanguage} block p-4 text-sm`}
-            style={{ background: 'transparent' }}
-          >
-            {code}
-          </code>
-        </pre>
+      <div style={{ overflowX: 'auto' }}>
+        <SyntaxHighlighter
+          language={normalizedLanguage}
+          style={tomorrow}
+          showLineNumbers={true}
+          wrapLines={true}
+          customStyle={{
+            margin: 0,
+            borderRadius: '0 0 12px 12px',
+            background: 'transparent',
+            fontSize: '0.95em',
+            minWidth: 0,
+          }}
+          codeTagProps={{ style: { background: 'transparent' } }}
+        >
+          {code}
+        </SyntaxHighlighter>
       </div>
     </div>
   )
 }
 
-// Compact Message Component
+
 const MessageComponent = ({ msg, isUser, userAvatar }: { msg: Message; isUser: boolean; userAvatar?: string }) => {
   const [copied, setCopied] = useState(false)
 
@@ -278,7 +256,7 @@ const MessageComponent = ({ msg, isUser, userAvatar }: { msg: Message; isUser: b
             isUser 
               ? 'bg-white text-black' 
               : 'bg-white/5 text-white/90 border border-white/10'
-          }`}>
+          }`} style={!isUser ? { maxHeight: '280vh', overflowY: 'auto' } : {}}>
             {msg.isStreaming && !msg.content ? (
               <TypingIndicator />
             ) : (
@@ -303,7 +281,7 @@ const MessageComponent = ({ msg, isUser, userAvatar }: { msg: Message; isUser: b
   )
 }
 
-// Sidebar Component
+//Sidebar
 const Sidebar = ({ 
   conversations, 
   currentConversationId, 
@@ -322,13 +300,14 @@ const Sidebar = ({
   onClose?: () => void
 }) => {
   const [searchQuery, setSearchQuery] = useState('')
+  const router = useRouter()
 
   const filteredConversations = conversations.filter(conv => 
     conv.title.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   return (
-    <div className={`${isMobile ? 'w-full' : 'w-80'} h-full bg-black/95 backdrop-blur-xl border-r border-white/10 flex flex-col`}>
+    <div className={`${isMobile ? 'w-full' : 'w-full'} h-full bg-black/95 backdrop-blur-xl border-r border-white/10 flex flex-col`}>
       <div className="p-4 border-b border-white/10">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
@@ -348,6 +327,20 @@ const Sidebar = ({
         >
           <Plus size={16} />
           New Chat
+        </button>
+        <button
+          onClick={() => router.push('/')}
+          className="w-full mt-2 bg-white/10 hover:bg-white/20 py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm text-white font-medium"
+        >
+          <Home className="w-5 h-5" />
+          Home
+        </button>
+        <button
+          onClick={() => router.push('/image-generation')}
+          className="w-full mt-2 bg-white/10 hover:bg-white/20 py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm text-white font-medium"
+        >
+          <Sparkles className="w-5 h-5" />
+          Image Generation
         </button>
       </div>
       
@@ -407,8 +400,56 @@ const Sidebar = ({
   )
 }
 
-// Main Chat Component
-export default function PolishedAIChat() {
+//sidebar Wrapper
+const ResizableSidebar = ({
+  children,
+  isMobile = false
+}: {
+  children: React.ReactNode
+  isMobile?: boolean
+}) => {
+  const [width, setWidth] = useState(320)
+  const isResizing = useRef(false)
+
+  useEffect(() => {
+    if (isMobile) return
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizing.current) return
+      let newWidth = e.clientX
+      newWidth = Math.max(200, Math.min(newWidth, 500))
+      setWidth(newWidth)
+    }
+    const handleMouseUp = () => {
+      isResizing.current = false
+    }
+    window.addEventListener('mousemove', handleMouseMove)
+    window.addEventListener('mouseup', handleMouseUp)
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove)
+      window.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isMobile])
+
+  return (
+    <div
+      style={{ width: isMobile ? '100%' : width, minWidth: isMobile ? undefined : 200, maxWidth: isMobile ? undefined : 500 }}
+      className="relative h-full"
+    >
+      {children}
+      {!isMobile && (
+        <div
+          className="absolute top-0 right-0 -mr-1 h-full w-3 cursor-col-resize z-50 group"
+          style={{ touchAction: 'none' }}
+          onMouseDown={() => { isResizing.current = true }}
+        >
+          <div className="w-2 h-full bg-white/10 group-hover:bg-white/20 transition-colors rounded-r" />
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default function AIChat() {
   const { data: session } = useSession()
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
@@ -424,7 +465,7 @@ export default function PolishedAIChat() {
   const abortControllerRef = useRef<AbortController | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  // Check if desktop
+  //if desktop
   useEffect(() => {
     const checkDesktop = () => {
       setIsDesktop(window.innerWidth >= 1024)
@@ -435,7 +476,7 @@ export default function PolishedAIChat() {
     return () => window.removeEventListener('resize', checkDesktop)
   }, [])
 
-  // Auto-resize textarea
+  //Auto-resize textarea
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto'
@@ -444,7 +485,7 @@ export default function PolishedAIChat() {
     }
   }, [input])
 
-  // Load conversations from localStorage
+  //conversation from localStorage ;c
   useEffect(() => {
     const loadConversations = () => {
       const saved = localStorage.getItem('ai_conversations')
@@ -462,7 +503,7 @@ export default function PolishedAIChat() {
           }))
           setConversations(conversationsWithDates)
           
-          // Load the most recent conversation
+          //load the most recent conversation
           if (conversationsWithDates.length > 0 && !currentConversationId) {
             const mostRecent = conversationsWithDates[0]
             setCurrentConversationId(mostRecent.id)
@@ -476,13 +517,11 @@ export default function PolishedAIChat() {
     loadConversations()
   }, [])
 
-  // Save conversations to localStorage
   const saveConversations = useCallback((convs: Conversation[]) => {
     localStorage.setItem('ai_conversations', JSON.stringify(convs))
     setConversations(convs)
   }, [])
 
-  // Save current conversation
   const saveCurrentConversation = useCallback(() => {
     if (currentConversationId && messages.length > 0) {
       setConversations(prev => {
@@ -497,7 +536,7 @@ export default function PolishedAIChat() {
     }
   }, [currentConversationId, messages, saveConversations])
 
-  // Auto-save conversation
+  //auto-save conversation
   useEffect(() => {
     if (messages.length > 0 && !isStreaming) {
       saveCurrentConversation()
@@ -512,7 +551,7 @@ export default function PolishedAIChat() {
     scrollToBottom()
   }, [messages, scrollToBottom])
 
-  // Enhanced streaming with retry logic and better error handling
+  //streaming with retry logic and better error handling
   const streamResponse = async (userMessage: string, currentMessages: Message[]) => {
     const assistantMessage: Message = {
       id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -525,9 +564,7 @@ export default function PolishedAIChat() {
 
     setMessages(prev => [...prev, assistantMessage])
     setIsStreaming(true)
-
-    // Add retry logic
-    const maxRetries = 3
+    const maxRetries = 2 //only 2
     let retryCount = 0
     
     const attemptStream = async () => {
@@ -571,9 +608,8 @@ export default function PolishedAIChat() {
         let buffer = ''
         let lastActivity = Date.now()
 
-        // Add connection monitoring
         const activityCheckInterval = setInterval(() => {
-          if (Date.now() - lastActivity > 10000) { // 10 seconds no activity
+          if (Date.now() - lastActivity > 10000) { //10 seconds no activity
             console.warn('Connection seems stalled, attempting reconnection')
             reader.cancel()
             clearInterval(activityCheckInterval)
@@ -652,7 +688,7 @@ export default function PolishedAIChat() {
         } else {
           console.error('Streaming error:', error)
           
-          // Better error message
+          //error
           const errorMessage = error.message.includes('network')
             ? 'Network connection lost. Please check your internet and try again.'
             : 'Sorry, there was an error processing your request. Please try again.'
@@ -731,7 +767,8 @@ export default function PolishedAIChat() {
     let convId = currentConversationId
     
     if (!convId || messages.length === 0) {
-      const title = userMsg.content.slice(0, 50) + (userMsg.content.length > 50 ? '...' : '')
+      let title = userMsg.content.slice(0, 15)
+      if (userMsg.content.length > 15) title += '...'
       const newConv: Conversation = {
         id: `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         title,
@@ -769,19 +806,20 @@ export default function PolishedAIChat() {
   }
 
   return (
-    <div className="flex h-screen bg-black">
-      {/* Desktop Sidebar - Always visible on desktop */}
+    <div className="flex h-screen bg-black sm:static sm:w-auto sm:max-w-none sm:overflow-auto">
+      {/*Desktop Sidebar - Always visible on desktop */}
       {isDesktop && (
-        <Sidebar
-          conversations={conversations}
-          currentConversationId={currentConversationId}
-          onSelectConversation={handleConversationClick}
-          onNewChat={createNewConversation}
-          onDeleteConversation={deleteConversation}
-        />
+        <ResizableSidebar>
+          <Sidebar
+            conversations={conversations}
+            currentConversationId={currentConversationId}
+            onSelectConversation={handleConversationClick}
+            onNewChat={createNewConversation}
+            onDeleteConversation={deleteConversation}
+          />
+        </ResizableSidebar>
       )}
 
-      {/* Mobile Sidebar - Overlay */}
       {!isDesktop && sidebarOpen && (
         <div className="fixed inset-0 z-50 flex lg:hidden">
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
@@ -799,8 +837,7 @@ export default function PolishedAIChat() {
         </div>
       )}
 
-      {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
         <header className="bg-black/50 backdrop-blur-sm border-b border-white/10 px-4 py-3">
           <div className="flex items-center justify-between max-w-5xl mx-auto">
@@ -814,7 +851,7 @@ export default function PolishedAIChat() {
                 </button>
               )}
               <Logo size={28} />
-              <span className="hidden sm:inline text-white/80 font-medium">Assistant</span>
+              <span className="hidden sm:inline text-white/80 font-medium">Powered by Laxenta.Inc</span>
             </div>
             
             <div className="relative">
@@ -847,8 +884,7 @@ export default function PolishedAIChat() {
           </div>
         </header>
 
-        {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 min-h-0 overflow-y-auto">
           <div className="max-w-3xl mx-auto px-4 py-6">
             {messages.length === 0 ? (
               <div className="text-center py-20">
@@ -875,7 +911,7 @@ export default function PolishedAIChat() {
         </div>
 
         {/* Input Area */}
-        <div className="border-t border-white/10 bg-black/50 backdrop-blur-sm p-4">
+        <div className="border-t border-white/10 bg-black/50 backdrop-blur-sm p-4 sticky bottom-0 pb-[env(safe-area-inset-bottom)] pb-2 z-10">
           <div className="max-w-3xl mx-auto">
             <div className="relative bg-white/5 border border-white/10 rounded-xl overflow-hidden">
               <textarea
@@ -883,7 +919,7 @@ export default function PolishedAIChat() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Message..."
+                placeholder="Message our absolutely free oonga boonga ai models..."
                 className="w-full px-4 py-3 pr-20 bg-transparent text-white placeholder-white/40 resize-none focus:outline-none text-sm"
                 rows={1}
               />
