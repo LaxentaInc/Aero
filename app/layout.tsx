@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Laxenta | Development",
+  title: "Laxenta.inc",
   description: "Laxenta is a platform for well me lol, im a cool technical developer from hobby",
 };
 

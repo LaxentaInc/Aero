@@ -408,8 +408,8 @@ export default function Navbar() {
     playSound('theme')
     toggleTheme()
   }
-
-  const navItems = ['products','ai', 'image-generation', 'nsfwhub', 'contact']
+// /AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+  const navItems = ['products','ai', 'image-generation', 'contact']
 
   return (
     <AnimatePresence mode="wait">
