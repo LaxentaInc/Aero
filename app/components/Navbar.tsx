@@ -27,14 +27,14 @@ const LoadingAnimation = ({
       if (videoLoaded) {
         setShouldExit(true);
       }
-    }, 3000);
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, [videoLoaded]);
 
   useEffect(() => {
     if (shouldExit && onComplete) {
-      const exitTimer = setTimeout(onComplete, 300);
+      const exitTimer = setTimeout(onComplete, 100);
       return () => clearTimeout(exitTimer);
     }
   }, [shouldExit, onComplete]);
