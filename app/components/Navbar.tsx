@@ -9,7 +9,7 @@ import { Menu } from 'lucide-react'
 import { useDiscord } from '../contexts/DiscordContext'
 
 // Routes where navbar should auto-hide
-const AUTO_HIDE_ROUTES = ['/nsfwhub', '/ai', '/image-generation']
+const AUTO_HIDE_ROUTES = ['/ai', '/image-generation']
 
 const LoadingAnimation = ({ 
   theme, 
