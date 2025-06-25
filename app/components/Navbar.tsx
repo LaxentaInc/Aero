@@ -9,7 +9,7 @@ import { Menu } from 'lucide-react'
 import { useDiscord } from '../contexts/DiscordContext'
 
 // Routes where navbar should auto-hide
-const AUTO_HIDE_ROUTES = ['/ai', '/image-generation']
+const AUTO_HIDE_ROUTES = ['/ai', '/image-generation', '/login']
 
 const LoadingAnimation = ({ 
   theme, 
@@ -120,7 +120,7 @@ const LoadingAnimation = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-             ...Loading.| @me_straight on discord
+             a moment pls....
         </motion.h1>
 
         <motion.div

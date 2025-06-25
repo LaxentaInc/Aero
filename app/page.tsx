@@ -936,7 +936,7 @@ const WebDevIcon = ({ theme }: { theme: 'dark' | 'light' }) => (
     viewBox="0 0 200 200"
     className="w-full h-full"
   >
-    {/* Code brackets */}
+    {/*code brackets */}
     <motion.path
       d="M60 80 L40 100 L60 120 M140 80 L160 100 L140 120"
       stroke={theme === 'dark' ? 'white' : 'black'}
@@ -946,7 +946,7 @@ const WebDevIcon = ({ theme }: { theme: 'dark' | 'light' }) => (
       strokeLinejoin="round"
     />
     
-    {/* React-like atoms */}
+    {/*react */}
     <motion.g
       animate={{ rotate: 360 }}
       transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
@@ -1152,9 +1152,9 @@ function CodeBlock({ code, language = 'javascript' }: { code: string, language?:
   )
 }
 
-// Utility to render markdown/code blocks using react-syntax-highlighter
+//utility to render markdown/code blocks using react-syntax-highlighter
 function formatCodeBlocks(text: string) {
-  // Supported languages list to prevent undefined language errors
+  //supported languages list to prevent undefined language errors
   const supportedLanguages = [
     'javascript', 'typescript', 'jsx', 'tsx', 'css', 'html', 'json', 
     'python', 'java', 'c', 'cpp', 'csharp', 'php', 'ruby', 'go', 
@@ -1281,7 +1281,7 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
     }
   };
 
-  // Handle custom queries - direct response
+  //handle custom queries - direct response
   const handleCustomSubmit = async () => {
     if (!query.trim()) return;
     
@@ -1375,7 +1375,7 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
                   </div>
                 </div>
 
-                {/* Description */}
+                {/*description */}
                 <p className={`mb-6 ${
                   theme === 'dark' ? 'text-white/70' : 'text-black/70'
                 }`}>
@@ -1592,99 +1592,568 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
             )}
           </AnimatePresence>
 
-          {/*CTA Button to /ai */}
-          <div className="flex justify-center mt-8">
-            <a href="/ai" tabIndex={-1} className="group">
-              <motion.button
-                className={`relative flex items-center gap-3 px-8 py-4 rounded-2xl font-mono font-bold text-lg shadow-xl transition-all duration-300 overflow-hidden
-                  ${theme === 'dark' ? 'bg-gradient-to-r from-blue-500 via-purple-600 to-pink-500 text-white' : 'bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 text-white'}
-                  group-hover:scale-105 group-active:scale-95
-                `}
-                whileHover={{ scale: 1.05, boxShadow: '0 0 32px 8px rgba(99,102,241,0.3)' }}
-                whileTap={{ scale: 0.97 }}
-              >
-                {/* Animated SVG icon */}
-                <motion.svg
-                  width="28" height="28" viewBox="0 0 28 28" fill="none"
-                  className="drop-shadow-lg"
-                  initial={{ rotate: 0 }}
-                  animate={{ rotate: [0, 10, -10, 0] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  <circle cx="14" cy="14" r="13" stroke="white" strokeWidth="2" fill="none" />
-                  <motion.path
-                    d="M9 14h6m0 0l-2-2m2 2l-2 2"
-                    stroke="white"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{ duration: 1.2, repeat: Infinity, repeatType: 'reverse' }}
-                  />
-                </motion.svg>
-                <span className="relative z-10">Try FREE AI Chat</span>
-                {/* Glow effect */}
-                <motion.div
-                  className="absolute inset-0 rounded-2xl bg-white/20 blur-xl opacity-0 group-hover:opacity-100 pointer-events-none"
-                  initial={false}
-                  whileHover={{ opacity: 0.2 }}
-                  transition={{ duration: 0.3 }}
-                />
-              </motion.button>
-            </a>
-          </div>
+      {/*CTA Button/ai */}
+<div className="flex justify-center mt-8">
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ delay: 0.2 }}
+    className="relative"
+  >
+    <a href="/ai" className="block">
+      <button
+        className={`relative px-8 py-3 font-mono text-sm font-bold uppercase tracking-wide transition-all duration-300 overflow-hidden group ${
+          theme === 'dark' 
+            ? 'bg-white text-black hover:bg-black hover:!bg-black border border-white hover:border-white' 
+            : 'bg-black text-white hover:bg-white hover:!bg-white border border-black hover:border-black'
+        }`}
+        //rmvd invalid style property'--tw-bg-opacity'
+      >
+        <span className={`relative z-10 transition-all duration-300 ${
+          theme === 'dark' 
+            ? 'group-hover:text-white group-hover:drop-shadow-[0_0_12px_rgba(255,255,255,0.9)]' 
+            : 'group-hover:text-black group-hover:!text-black'
+        }`}>
+          TRY AI CHAT
+        </span>
+        
+        {/* Force pitch black/white overlay */}
+        <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${
+          theme === 'dark' ? 'bg-black' : 'bg-white'
+        }`} style={{
+          backgroundColor: theme === 'dark' ? '#000000' : '#ffffff'
+        }} />
+      </button>
+    </a>
+  </motion.div>
+</div>
+
+
+
         </motion.div>
       </div>
     </section>
   );
 };
 
-// WaveSeparator renders a dynamic waveform-like SVG separator
-const WaveSeparator = ({ theme = 'light', width = 320, height = 32 }) => {
-  const [points, setPoints] = useState<string[]>([]);
+interface InitializingProps {
+  theme: 'dark' | 'light';
+}
+
+interface ImageGenCardProps {
+  theme?: 'dark' | 'light';
+}
+
+const Initializing: React.FC<InitializingProps> = ({ theme }) => (
+  <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    className={`fixed inset-0 flex items-center justify-center z-50 ${
+      theme === 'dark' ? 'bg-black' : 'bg-white'
+    }`}
+  >
+    <div className="text-center">
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+        className={`w-12 h-12 border-4 border-t-transparent rounded-full mb-4 mx-auto ${
+          theme === 'dark' ? 'border-white/40' : 'border-black/40'
+        }`}
+      />
+      <p className={`font-mono text-lg ${
+        theme === 'dark' ? 'text-white/80' : 'text-black/80'
+      }`}>
+        INITIALIZING...
+      </p>
+    </div>
+  </motion.div>
+);
+
+const ImageGenCard: React.FC<ImageGenCardProps> = ({ theme = 'dark' }) => {
+  const [prompt, setPrompt] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [selectedStyle, setSelectedStyle] = useState('flux-dev');
+  const [error, setError] = useState('');
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [generationsToday, setGenerationsToday] = useState(0);
+  const [loadingProgress, setLoadingProgress] = useState(0);
+
+  const MAX_GENERATIONS_PER_DAY = 10;
+
+  const styles = [
+    { id: 'flux-dev', name: 'FLUX DEV', desc: 'High quality, detailed' },
+    { id: 'sana', name: 'SANA', desc: 'Realistic & efficient' },
+    { id: 'omni-gen', name: 'OMNI GEN', desc: 'Versatile generation' },
+    { id: 'sdxl', name: 'SDXL', desc: 'Stable diffusion XL' }
+  ];
 
   useEffect(() => {
-    const generatePoints = () => {
-      const segments = 40;
-      const newPoints = [];
-      for (let i = 0; i <= segments; i++) {
-        const x = (width / segments) * i;
-        const amplitude = (Math.random() * 0.8 + 0.2) * (height / 2);
-        const y = height / 2 + (Math.random() > 0.5 ? amplitude : -amplitude);
-        newPoints.push(`${x},${y}`);
-      }
-      setPoints(newPoints);
-    };
-    generatePoints();
-    const interval = setInterval(generatePoints, 400);
-    return () => clearInterval(interval);
-  }, [width, height]);
+    //check daily generation count
+    const today = new Date().toDateString();
+    const storedData = JSON.parse(localStorage.getItem('imageGenData') || '{}');
+    
+    if (storedData.date === today) {
+      setGenerationsToday(storedData.count || 0);
+    } else {
+      localStorage.setItem('imageGenData', JSON.stringify({ date: today, count: 0 }));
+      setGenerationsToday(0);
+    }
 
-  const pathD = points.length
-    ? `M${points[0]} ` + points.slice(1).map(p => `L${p}`).join(' ')
-    : '';
+    const timer = setTimeout(() => {
+      setIsInitializing(false);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        setIsInitializing(true);
+        setTimeout(() => setIsInitializing(false), 1500);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
+  const presetPrompts = [
+    "Beautiful anime landscape, mountain scenery, warm sunset, studio ghibli style",
+    "Cyberpunk - girl in a city at night, neon lights, rain, futuristic architecture",
+    "hot young princess in her castle, fantasy art, detailed",
+    "Serene forest path, morning mist, sunlight filtering through trees",
+    "beautiful and realistic, space art"
+  ];
+
+  const generateImage = async () => {
+    if (!prompt.trim()) return;
+    
+    // Check generation limit
+    if (generationsToday >= MAX_GENERATIONS_PER_DAY) {
+      setError(`Daily limit reached! You can generate ${MAX_GENERATIONS_PER_DAY} images per day.`);
+      return;
+    }
+    
+    setIsGenerating(true);
+    setError('');
+    setGeneratedImage(null);
+    setLoadingProgress(0);
+
+    const progressInterval = setInterval(() => {
+      setLoadingProgress(prev => {
+        if (prev >= 90) return prev; //stop at 90% until we get response
+        return prev + Math.random() * 5;
+      });
+    }, 100);
+
+    try {
+      const response = await fetch('/api/img', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: prompt,
+          model: selectedStyle,
+          n: 1,
+          response_format: 'url',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('Full API Response:', data);
+      
+      // Just grab the URL - keep it simple
+      const imageUrl = data?.imageUrl;
+      
+      if (imageUrl) {
+        setLoadingProgress(100);
+        
+        const today = new Date().toDateString();
+        const newCount = generationsToday + 1;
+        localStorage.setItem('imageGenData', JSON.stringify({ date: today, count: newCount }));
+        setGenerationsToday(newCount);
+        
+        setTimeout(() => {
+          setGeneratedImage(imageUrl);
+        }, 300); //small delay for UX
+      } else {
+        console.error('No URL found in response:', data);
+        throw new Error('No image URL in response');
+      }
+    } catch (err) {
+      setError('Failed to generate image. Please try again.');
+      console.error('Image generation error:', err);
+    } finally {
+      clearInterval(progressInterval);
+      setTimeout(() => {
+        setIsGenerating(false);
+        setLoadingProgress(0);
+      }, 500);
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 100 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-20%" }}
+      transition={{ duration: 0.8, ease: "easeOut" }}
+      className={`relative w-full min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8`}
+      style={{ 
+        backgroundColor: '#000000'
+      }}
+    >
+      {/*initializing Screen */}
+      <AnimatePresence>
+        {isInitializing && <Initializing theme={theme} />}
+      </AnimatePresence>
+      
+      {/*background Grid */}
+      <div className={`absolute inset-0 opacity-5 ${
+        theme === 'dark' ? 'bg-white' : 'bg-black'
+      }`} 
+      style={{
+        backgroundImage: `radial-gradient(circle, ${theme === 'dark' ? 'white' : 'black'} 1px, transparent 1px)`,
+        backgroundSize: '50px 50px'
+      }} />
+
+      <div className="relative z-10 w-full max-w-6xl">
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="text-center mb-8 sm:mb-12"
+        >
+          <h2 className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter mb-4 ${
+            theme === 'dark' ? 'text-white' : 'text-black'
+          }`}>
+            IMAGE GENERATION :3
+          </h2>
+          <p className={`text-lg sm:text-xl md:text-2xl font-mono px-4 ${
+            theme === 'dark' ? 'text-white/60' : 'text-black/60'
+          }`}>
+            {'</'} Creativity Unleashed - Generate stunning visuals with AI :3 {'>'}
+          </p>
+        </motion.div>
+
+        <motion.div
+        // main
+          initial={{ opacity: 0, scale: 0.9 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.4 }}
+          className={`relative border-2 p-4 sm:p-6 md:p-8 lg:p-12`}
+          style={{
+            backgroundColor: theme === 'dark' ? '#000000' : '#ffffff',
+            borderColor: theme === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
+            boxShadow: theme === 'dark' 
+              ? '0 25px 50px -12px rgba(255,255,255,0.05)' 
+              : '0 25px 50px -12px rgba(0,0,0,0.05)'
+          }}
+        >
+          {/* style selection */}
+          <div className="mb-6 sm:mb-8">
+            <h3 className={`text-lg sm:text-xl md:text-2xl font-mono font-bold mb-4 ${
+              theme === 'dark' ? 'text-white' : 'text-black'
+            }`}>
+              SELECT MODEL
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              {styles.map((style) => (
+                <motion.button
+                  key={style.id}
+                  onClick={() => setSelectedStyle(style.id)}
+                  className={`p-3 sm:p-4 border-2 font-mono text-xs sm:text-sm font-bold uppercase tracking-wide transition-all duration-300 ${
+                    selectedStyle === style.id
+                      ? (theme === 'dark' 
+                          ? 'bg-white text-black border-white' 
+                          : 'bg-black text-white border-black')
+                      : (theme === 'dark' 
+                          ? 'bg-transparent text-white border-white/40 hover:border-white/60' 
+                          : 'bg-transparent text-black border-black/40 hover:border-black/60')
+                  }`}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <div className="truncate">{style.name}</div>
+                  <div className={`text-xs mt-1 ${
+                    selectedStyle === style.id
+                      ? (theme === 'dark' ? 'text-black/60' : 'text-white/60')
+                      : (theme === 'dark' ? 'text-white/40' : 'text-black/40')
+                  }`}>
+                    {style.desc}
+                  </div>
+                </motion.button>
+              ))}
+            </div>
+          </div>
+
+          {/* Prompt Input */}
+          <div className="mb-6 sm:mb-8">
+            <h3 className={`text-lg sm:text-xl md:text-2xl font-mono font-bold mb-4 ${
+              theme === 'dark' ? 'text-white' : 'text-black'
+            }`}>
+              DESCRIBE YOUR IMAGE
+            </h3>
+            <textarea
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="Enter your image description..."
+              className={`w-full h-24 sm:h-32 p-3 sm:p-4 border-2 font-mono text-sm sm:text-base lg:text-lg resize-none transition-all duration-300 ${
+                theme === 'dark' 
+                  ? 'bg-black border-white/40 text-white placeholder-white/40 focus:border-white/60' 
+                  : 'bg-white border-black/40 text-black placeholder-black/40 focus:border-black/60'
+              } focus:outline-none`}
+            />
+          </div>
+
+          {/* Preset Prompts */}
+          <div className="mb-6 sm:mb-8">
+            <h4 className={`text-base sm:text-lg font-mono font-bold mb-3 ${
+              theme === 'dark' ? 'text-white/80' : 'text-black/80'
+            }`}>
+              QUICK PRESETS
+            </h4>
+            <div className="flex flex-wrap gap-2">
+              {presetPrompts.map((preset, index) => (
+                <motion.button
+                  key={index}
+                  onClick={() => setPrompt(preset)}
+                  className={`px-2 sm:px-3 py-2 text-xs font-mono border transition-all duration-300 ${
+                    theme === 'dark' 
+                      ? 'bg-transparent text-white/60 border-white/20 hover:border-white/40 hover:text-white/80' 
+                      : 'bg-transparent text-black/60 border-black/20 hover:border-black/40 hover:text-black/80'
+                  }`}
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <span className="block sm:hidden">{preset.substring(0, 25)}...</span>
+                  <span className="hidden sm:block">{preset.substring(0, 40)}...</span>
+                </motion.button>
+              ))}
+            </div>
+          </div>
+
+          {/* Generation Count Display */}
+          <div className="mb-4 text-center">
+            <p className={`font-mono text-sm ${
+              theme === 'dark' ? 'text-white/60' : 'text-black/60'
+            }`}>
+              {generationsToday}/{MAX_GENERATIONS_PER_DAY} generations used today
+            </p>
+          </div>
+
+          {/* Generate Button */}
+          <div className="mb-6 sm:mb-8">
+            <motion.button
+              onClick={generateImage}
+              disabled={!prompt.trim() || isGenerating || generationsToday >= MAX_GENERATIONS_PER_DAY}
+              className={`w-full sm:w-auto relative px-8 sm:px-12 py-3 sm:py-4 font-mono text-sm sm:text-base lg:text-lg font-bold uppercase tracking-wide transition-all duration-300 overflow-hidden group ${
+                (generationsToday >= MAX_GENERATIONS_PER_DAY)
+                  ? 'bg-red-600 text-white cursor-not-allowed opacity-50'
+                  : theme === 'dark' 
+                    ? 'bg-white text-black hover:bg-black hover:text-white border-2 border-white disabled:opacity-50' 
+                    : 'bg-black text-white hover:bg-white hover:text-black border-2 border-black disabled:opacity-50'
+              } disabled:cursor-not-allowed`}
+              whileHover={!isGenerating && generationsToday < MAX_GENERATIONS_PER_DAY ? { scale: 1.05 } : {}}
+              whileTap={!isGenerating && generationsToday < MAX_GENERATIONS_PER_DAY ? { scale: 0.95 } : {}}
+            >
+              <span className="relative z-10">
+                {generationsToday >= MAX_GENERATIONS_PER_DAY 
+                  ? 'DAILY LIMIT REACHED' 
+                  : isGenerating ? 'GENERATING...' : 'GENERATE IMAGE'}
+              </span>
+              
+              {/* Loading animation */}
+              <AnimatePresence>
+                {isGenerating && (
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${loadingProgress}%` }}
+                    className={`absolute bottom-0 left-0 h-1 ${
+                      theme === 'dark' ? 'bg-black' : 'bg-white'
+                    }`}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                  />
+                )}
+              </AnimatePresence>
+            </motion.button>
+          </div>
+
+          {/* Error Display */}
+          <AnimatePresence>
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className={`mb-6 sm:mb-8 p-3 sm:p-4 border-2 font-mono text-sm ${
+                  theme === 'dark' 
+                    ? 'bg-red-900/20 border-red-500/40 text-red-400' 
+                    : 'bg-red-100/80 border-red-500/40 text-red-600'
+                }`}
+              >
+                ERROR: {error}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Generated Image Display */}
+          <AnimatePresence>
+            {generatedImage && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                className="relative"
+              >
+                <h3 className={`text-lg sm:text-xl md:text-2xl font-mono font-bold mb-4 ${
+                  theme === 'dark' ? 'text-white' : 'text-black'
+                }`}>
+                  GENERATED IMAGE
+                </h3>
+                <div className={`relative border-2 overflow-hidden ${
+                  theme === 'dark' ? 'border-white/40' : 'border-black/40'
+                }`}>
+                  <img
+                    src={generatedImage}
+                    alt="Generated AI Image"
+                    className="w-full h-auto max-h-80 sm:max-h-96 object-contain"
+                  />
+                  
+                  {/* Download Button */}
+                  <motion.a
+                    href={generatedImage}
+                    download="ai-generated-image.png"
+                    className={`absolute top-2 sm:top-4 right-2 sm:right-4 px-2 sm:px-4 py-1 sm:py-2 font-mono text-xs sm:text-sm font-bold uppercase tracking-wide transition-all duration-300 ${
+                      theme === 'dark' 
+                        ? 'bg-black/80 text-white border border-white/60 hover:bg-white hover:text-black' 
+                        : 'bg-white/80 text-black border border-black/60 hover:bg-black hover:text-white'
+                    }`}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    DOWNLOAD
+                  </motion.a>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Loading State */}
+          <AnimatePresence>
+            {isGenerating && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex items-center justify-center py-12 sm:py-16"
+              >
+                <div className="text-center">
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                    className={`w-12 sm:w-16 h-12 sm:h-16 border-4 border-t-transparent rounded-full mb-4 mx-auto ${
+                      theme === 'dark' ? 'border-white/40' : 'border-black/40'
+                    }`}
+                  />
+                  <p className={`font-mono text-sm sm:text-base lg:text-lg ${
+                    theme === 'dark' ? 'text-white/80' : 'text-black/80'
+                  }`}>
+                    GENERATING YOUR IMAGE...
+                  </p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* CTA Button */}
+          <div className="flex justify-center mt-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="relative"
+            >
+              <a href="/image-generation" className="block">
+                <button
+                  className={`relative px-8 py-3 font-mono text-sm font-bold uppercase tracking-wide transition-all duration-300 overflow-hidden group ${
+                    theme === 'dark' 
+                      ? 'bg-white text-black hover:bg-black border border-white hover:border-white' 
+                      : 'bg-black text-white hover:bg-white border border-black hover:border-black'
+                  }`}
+                >
+                  <span className={`relative z-10 transition-all duration-300 ${
+                    theme === 'dark' 
+                      ? 'group-hover:text-white group-hover:drop-shadow-[0_0_12px_rgba(255,255,255,0.9)]' 
+                      : 'group-hover:text-black'
+                  }`}>
+                    TRY MORE AI TOOLS
+                  </span>
+                  
+                  {/* Force pitch black/white overlay */}
+                  <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${
+                    theme === 'dark' ? 'bg-black' : 'bg-white'
+                  }`} style={{
+                    backgroundColor: theme === 'dark' ? '#000000' : '#ffffff'
+                  }} />
+                </button>
+              </a>
+            </motion.div>
+          </div>
+        </motion.div>
+      </div>
+    </motion.div>
+  );
+};
+
+
+
+//waveSeparator renders a dynamic waveform-like SVG separator
+const WaveSeparator = ({ theme = 'light', width = 320, height = 32 }) => {
+  const [bars, setBars] = useState<number[]>([]);
+  const barCount = 40;
+
+  useEffect(() => {
+    const updateBars = () => {
+      const newBars = [];
+      for (let i = 0; i < barCount; i++) {
+        const barHeight = Math.random() * height * 0.8 + height * 0.1;
+        newBars.push(barHeight);
+      }
+      setBars(newBars);
+    };
+
+    updateBars();
+    const interval = setInterval(updateBars, 150);
+    return () => clearInterval(interval);
+  }, [height]);
+
+  const barWidth = width / barCount;
 
   return (
     <div className="w-full flex justify-center my-8">
-      <motion.svg
-        width={width}
-        height={height}
-        viewBox={`0 0 ${width} ${height}`}
-        fill="none"
-        className="w-full max-w-lg"
+      <div 
+        className="flex items-end justify-center gap-1"
+        style={{ width: width, height: height }}
       >
-        <motion.path
-          d={pathD}
-          stroke={theme === 'dark' ? '#fff' : '#000'}
-          strokeWidth="2"
-          strokeLinecap="round"
-          fill="none"
-          initial={{ pathLength: 0 }}
-          animate={{ pathLength: 1 }}
-          transition={{ duration: 0.4, ease: 'linear' }}
-        />
-      </motion.svg>
+        {bars.map((barHeight, index) => (
+          <div
+            key={index}
+            className={`transition-all duration-150 ease-out ${
+              theme === 'dark' ? 'bg-white' : 'bg-black'
+            }`}
+            style={{
+              width: Math.max(barWidth - 2, 1),
+              height: barHeight,
+            }}
+          />
+        ))}
+      </div>
     </div>
   );
 };
@@ -1787,8 +2256,10 @@ export default function LaxentaLanding() {
           />
         </motion.div>
 
-        {/* AI Chat Section ;3 */}
-      <AIFeaturesSection theme={theme} />
+        {/*AI chat;3 */}
+        <AIFeaturesSection theme={theme} />
+        {/*AI image demo ;3*/}
+        <ImageGenCard theme={theme} />
       </motion.div>
     </>
   )
