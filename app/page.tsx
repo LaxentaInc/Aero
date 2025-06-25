@@ -1319,7 +1319,7 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
   const [showCode, setShowCode] = useState(false);
 
   return (
-    <section className="min-h-screen py-20 px-4">
+    <section className="min-h-screen py-20 px-4" style={{ backgroundColor: theme === 'dark' ? '#000' : undefined }}>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
@@ -1349,7 +1349,7 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
               transition={{ delay: index * 0.1 }}
               className={`group relative h-full flex flex-col ${
                 theme === 'dark' 
-                  ? 'bg-black/50 border-white/10' 
+                  ? 'bg-black border-white/10' 
                   : 'bg-white/50 border-black/10'
               } border rounded-2xl backdrop-blur-xl overflow-hidden hover:border-opacity-30 transition-all`}
             >
@@ -1382,7 +1382,7 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
                   {feature.description}
                 </p>
 
-                {/* Example Query with Glow Effect */}
+                {/*example Query with Glow Effect */}
                 <div className="mt-auto space-y-4">
                   <button
                     onClick={() => handleFeatureSubmit(feature.id)}
@@ -1393,7 +1393,7 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
                         : 'bg-neutral-100 hover:bg-neutral-200'
                     } transition-all duration-300 group/button overflow-hidden disabled:opacity-50`}
                   >
-                    {/* Glow effect */}
+                    {/*glow effect */}
                     <div className={`absolute inset-0 rounded-xl transition-opacity duration-300 ${
                       theme === 'dark'
                         ? 'bg-gradient-to-r from-white/5 via-transparent to-white/5 shadow-[0_0_20px_rgba(255,255,255,0.1)]'
@@ -1484,7 +1484,7 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
           className="mt-12 max-w-3xl mx-auto space-y-4"
         >
           <div className={`relative group ${
-            theme === 'dark' ? 'bg-neutral-900' : 'bg-neutral-100'
+            theme === 'dark' ? 'bg-black' : 'bg-neutral-100'
           } rounded-2xl p-1 transition-all duration-300 overflow-hidden`}>
             
             {/*glow*/}
@@ -1541,7 +1541,7 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
                 exit={{ opacity: 0, y: 10, height: 0 }}
                 className={`relative group ${
                   theme === 'dark' 
-                    ? 'bg-neutral-900/50 border-white/10' 
+                    ? 'bg-black/50 border-white/10' 
                     : 'bg-neutral-100/50 border-black/10'
                 } border rounded-2xl backdrop-blur-xl overflow-hidden transition-all duration-300`}
               >
@@ -1804,9 +1804,9 @@ const ImageGenCard: React.FC<ImageGenCardProps> = ({ theme = 'dark' }) => {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-20%" }}
       transition={{ duration: 0.8, ease: "easeOut" }}
-      className={`relative w-full min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8`}
+      className={`relative w-full min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8 ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}
       style={{ 
-        backgroundColor: '#000000'
+        backgroundColor: theme === 'dark' ? '#000000' : '#ffffff'
       }}
     >
       {/*initializing Screen */}
@@ -1815,19 +1815,19 @@ const ImageGenCard: React.FC<ImageGenCardProps> = ({ theme = 'dark' }) => {
       </AnimatePresence>
       
       {/*background Grid */}
-      <div className={`absolute inset-0 opacity-5 ${
-        theme === 'dark' ? 'bg-white' : 'bg-black'
-      }`} 
+      <div className={`absolute inset-0 ${theme === 'dark' ? 'bg-black' : 'bg-white'} opacity-100`} 
       style={{
-        backgroundImage: `radial-gradient(circle, ${theme === 'dark' ? 'white' : 'black'} 1px, transparent 1px)`,
-        backgroundSize: '50px 50px'
+        backgroundImage: `radial-gradient(circle, ${theme === 'dark' ? '#222' : '#eee'} 1px, transparent 1px)`,
+        backgroundSize: '50px 50px',
+        backgroundColor: theme === 'dark' ? '#000000' : '#ffffff',
+        opacity: 1
       }} />
 
       <div className="relative z-10 w-full max-w-6xl">
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
+                   transition={{ delay: 0.2 }}
           className="text-center mb-8 sm:mb-12"
         >
           <h2 className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter mb-4 ${
@@ -1847,7 +1847,7 @@ const ImageGenCard: React.FC<ImageGenCardProps> = ({ theme = 'dark' }) => {
           initial={{ opacity: 0, scale: 0.9 }}
           whileInView={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.4 }}
-          className={`relative border-2 p-4 sm:p-6 md:p-8 lg:p-12`}
+          className={`relative border-2 p-4 sm:p-6 md:p-8 lg:p-12 ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}
           style={{
             backgroundColor: theme === 'dark' ? '#000000' : '#ffffff',
             borderColor: theme === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.2)',
@@ -1926,7 +1926,7 @@ const ImageGenCard: React.FC<ImageGenCardProps> = ({ theme = 'dark' }) => {
                   onClick={() => setPrompt(preset)}
                   className={`px-2 sm:px-3 py-2 text-xs font-mono border transition-all duration-300 ${
                     theme === 'dark' 
-                      ? 'bg-transparent text-white/60 border-white/20 hover:border-white/40 hover:text-white/80' 
+                      ? 'bg-black text-white/60 border-white/20 hover:border-white/40 hover:text-white/80' 
                       : 'bg-transparent text-black/60 border-black/20 hover:border-black/40 hover:text-black/80'
                   }`}
                   whileHover={{ scale: 1.02 }}
@@ -1993,7 +1993,7 @@ const ImageGenCard: React.FC<ImageGenCardProps> = ({ theme = 'dark' }) => {
                 exit={{ opacity: 0, y: -20 }}
                 className={`mb-6 sm:mb-8 p-3 sm:p-4 border-2 font-mono text-sm ${
                   theme === 'dark' 
-                    ? 'bg-red-900/20 border-red-500/40 text-red-400' 
+                    ? 'bg-black border-red-500/40 text-red-400' 
                     : 'bg-red-100/80 border-red-500/40 text-red-600'
                 }`}
               >
@@ -2017,7 +2017,7 @@ const ImageGenCard: React.FC<ImageGenCardProps> = ({ theme = 'dark' }) => {
                   GENERATED IMAGE
                 </h3>
                 <div className={`relative border-2 overflow-hidden ${
-                  theme === 'dark' ? 'border-white/40' : 'border-black/40'
+                  theme === 'dark' ? 'border-white/40 bg-black' : 'border-black/40 bg-white'
                 }`}>
                   <img
                     src={generatedImage}
@@ -2031,7 +2031,7 @@ const ImageGenCard: React.FC<ImageGenCardProps> = ({ theme = 'dark' }) => {
                     download="ai-generated-image.png"
                     className={`absolute top-2 sm:top-4 right-2 sm:right-4 px-2 sm:px-4 py-1 sm:py-2 font-mono text-xs sm:text-sm font-bold uppercase tracking-wide transition-all duration-300 ${
                       theme === 'dark' 
-                        ? 'bg-black/80 text-white border border-white/60 hover:bg-white hover:text-black' 
+                        ? 'bg-black text-white border border-white/60 hover:bg-white hover:text-black' 
                         : 'bg-white/80 text-black border border-black/60 hover:bg-black hover:text-white'
                     }`}
                     whileHover={{ scale: 1.05 }}
@@ -2110,7 +2110,6 @@ const ImageGenCard: React.FC<ImageGenCardProps> = ({ theme = 'dark' }) => {
     </motion.div>
   );
 };
-
 
 
 //waveSeparator renders a dynamic waveform-like SVG separator
