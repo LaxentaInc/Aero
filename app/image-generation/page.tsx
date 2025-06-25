@@ -505,7 +505,6 @@ export default function AnimeImageGenerator() {
     };
   }, [startMusic]);
 
-  // Inject snow CSS (for optional CSS-only snowflakes)
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const style = document.createElement('style');
