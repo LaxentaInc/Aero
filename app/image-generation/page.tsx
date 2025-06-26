@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
-// Debounce utility
+//-debounce utility
 function debounce<T extends (...args: any[]) => void>(func: T, wait: number) {
   let timeout: ReturnType<typeof setTimeout>;
   return function(this: any, ...args: Parameters<T>) {
