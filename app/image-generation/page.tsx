@@ -175,7 +175,7 @@ const FloatingParticle = React.memo(({ delay }: { delay: number }) => (
       ease: "easeOut"
     }}
     style={{
-      left: `${Math.max(5, Math.min(95, Math.random() * 90 + 5))}%`, // Keep within 5-95% of screen
+      left: `${Math.max(5, Math.min(95, Math.random() * 90 + 5))}%`, //keep within 5-95% of screen
       bottom: `${Math.random() * 20}%`,
       willChange: 'transform, opacity'
     }}
@@ -183,11 +183,11 @@ const FloatingParticle = React.memo(({ delay }: { delay: number }) => (
 ));
 
 const EnhancedSnowFlake = React.memo(({ delay, index }: { delay: number; index: number }) => {
-  const startX = useMemo(() => Math.random() * 95 + 2.5, []); // 2.5% to 97.5% to stay in bounds
+  const startX = useMemo(() => Math.random() * 95 + 2.5, []); //  2.5% to 97.5% to stay in bounds
   const size = useMemo(() => Math.random() * 3 + 1.5, []); // 1.5-4.5px
-  const duration = useMemo(() => Math.random() * 4 + 7, []); // 7-11s
-  const opacity = useMemo(() => Math.random() * 0.7 + 0.3, []); // 0.3-1.0
-  const blur = useMemo(() => Math.random() * 0.5, []); // 0-0.5px blur
+  const duration = useMemo(() => Math.random() * 4 + 7, []); // \7-11s
+  const opacity = useMemo(() => Math.random() * 0.7 + 0.3, []); //0.3-1.0
+  const blur = useMemo(() => Math.random() * 0.5, []); //0-0.5px blur
   return (
     <motion.div
       className="fixed pointer-events-none z-[1]"
@@ -251,7 +251,7 @@ const EnhancedSnowFlake = React.memo(({ delay, index }: { delay: number; index: 
   );
 });
 
-// Generate unique CSS animations for each snowflake (for optional CSS-only snowflakes)
+//generate unique CSS animations for each snowflake (for optional CSS-only snowflakes)
 const generateSnowCSS = (count: number) => {
   let css = '';
   for (let i = 0; i < count; i++) {
@@ -261,7 +261,7 @@ const generateSnowCSS = (count: number) => {
   return css;
 };
 
-// Types
+//types
 interface GeneratedImage {
   id: number;
   url: string;
@@ -276,10 +276,22 @@ interface GeneratedImage {
   };
 }
 
-// Models array
+//models array
+// const MODELS = [
+//   'flux-pro', 'dall-e-3', 'flux-dev', 'flux-schnell', 'midjourney-v6.1',
+//   'midjourney-v6', 'grok-2-aurora', 'imagen-3', 'recraft-v3', 'ideogram-v2'
+// ];
 const MODELS = [
-  'dall-e-3', 'flux-pro', 'flux-dev', 'flux-schnell', 'midjourney-v6.1',
-  'midjourney-v6', 'grok-2-aurora', 'imagen-3', 'recraft-v3', 'ideogram-v2'
+  'sdxl', 'animaginexl-3.1', 'stable-diffusion-3', 'stable-diffusion-3-2b', 'flux-dev', 'flux-pro', 'flux-1.1-pro', 'flux-1.1-pro-ultra', 'flux-1.1-pro-ultra-raw',
+  'stable-diffusion-3.5-large', 'stable-diffusion-3.5-turbo', 'dall-e-3', 'midjourney-v6.1',
+  'midjourney-v6', 'midjourney-v5.2', 'midjourney-v5.1', 'midjourney-v5', 'midjourney-v4',
+  'playground-v3', 'playground-v2.5', 'realvisxl-4.0', 'imagen',
+  'imagen-3-fast', 'imagen-3', 'luma-photon', 'luma-photon-flash', 'recraft-20b',
+  'recraft-20b-svg', 'recraft-v3', 'recraft-v3-svg', 'grok-2-aurora', 'flux-schnell',
+  'flux-realism', 'flux-half-illustration', 'flux-cinestill', 'flux-black-light',
+  'ideogram-v2-turbo', 'ideogram-v2', 'amazon-titan', 'amazon-titan-v2', 'nova-canvas',
+  'omni-gen', 'aura-flow', 'sana', 'kandinsky-3', 'niji-v6', 'niji-v5', 'niji-v4', 't2v-turbo',
+  'flux-1-kontext-pro', 'flux-1-kontext-max', 'sdxl-turbo', 'sdxl-lightning'
 ];
 
 export default function AnimeImageGenerator() {
@@ -485,8 +497,6 @@ export default function AnimeImageGenerator() {
     link.click();
     toast.success('Downloading your masterpiece! 💖');
   }, [currentImage]);
-
-  // Music autoplay handler
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
@@ -552,21 +562,17 @@ export default function AnimeImageGenerator() {
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80 w-full h-full" />
       </div>
 
-      {/* Reduced particle count */}
-      {/* SakuraPetal removed, snow replaces it */}
+      {/*reduced particle count */}
+      {/*sakuraPetal removed*/}
       {[...Array(particleCount)].map((_, i) => (
         <FloatingParticle key={`particle-${i}`} delay={i * 0.4} />
       ))}
 
-      {/* Snow animation replaces SakuraPetal */}
       {[...Array(snowCount)].map((_, i) => (
         <EnhancedSnowFlake key={`snow-${i}`} delay={i * 0.3} index={i} />
       ))}
-
-      {/* Audio element */}
-      <audio ref={audioRef} loop src="/christmas.mp3" />
-
-      {/* Mobile Drawer Menu - Fixed with proper dimensions */}
+      <audio ref={audioRef} loop src="/christmas.mp3" /> 
+      {/* makes chrome play it even in background frfr on androids  : 3 cz obv it makes a cute native player*/}
       <AnimatePresence>
         {menuOpen && (
           <>
@@ -594,7 +600,7 @@ export default function AnimeImageGenerator() {
               >
                 <X className="w-6 h-6" />
               </button>
-              {/* Menu content */}
+              {/*Menu content */}
               <div className="h-full overflow-y-auto p-6 pt-16">
                 {session?.user && (
                   <div className="flex items-center gap-3 p-4 rounded-lg bg-gray-800/50 border border-pink-400/30 mb-6">
@@ -705,14 +711,14 @@ export default function AnimeImageGenerator() {
           </div>
         </header>
 
-        {/* Navigation - Desktop only */}
+        {/* Navigation - desktop only */}
         {!isMobileScreen && (
           <nav className="relative z-20">
             <div className="container mx-auto px-4 py-1 flex gap-2 mt-2">
               <button
                 onClick={() => setCurrentView('generate')}
                 data-cursor-pointer
-                className={`px-6 py-2 rounded-lg font-medium transition-all ${
+                className={`px-6p y-2 rounded-lg font-medium transition-all ${
                   currentView === 'generate'
                     ? 'bg-gradient-to-r from-pink-500 to-purple-500 text-white'
                     : 'text-gray-400 hover:text-pink-300'
@@ -734,12 +740,10 @@ export default function AnimeImageGenerator() {
             </div>
           </nav>
         )}
-
-        {/* Main content area */}
+        {/* //main content */}
         <main className="container mx-auto px-4 py-8">
           {currentView === 'generate' ? (
             <div className="grid lg:grid-cols-2 gap-8">
-              {/* Generation panel */}
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -754,7 +758,7 @@ export default function AnimeImageGenerator() {
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-pink-300 mb-2">
-                        Describe your imagination
+                        Describe your imagination :3
                       </label>
                       <textarea
                         value={prompt}
@@ -768,7 +772,7 @@ export default function AnimeImageGenerator() {
 
                     <div>
                       <label className="block text-sm font-medium text-pink-300 mb-2">
-                        AI Model
+                        Image Model
                       </label>
                       <select
                         value={selectedModel}
@@ -910,7 +914,6 @@ export default function AnimeImageGenerator() {
         </main>
       </div>
 
-      {/* Fixed buttons */}
       {!isMobileScreen && (
         <motion.button
           onClick={() => router.push('/')}

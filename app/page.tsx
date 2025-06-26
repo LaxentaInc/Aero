@@ -99,7 +99,7 @@ const LoadingScreen = ({ theme, onClose }: { theme: 'dark' | 'light', onClose?: 
   const [videoLoaded, setVideoLoaded] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Add cleanup on unmount and navigation
+  //add cleanup on unmount and navigation
   useEffect(() => {
     const handlePopState = () => {
       if (onClose) onClose();
@@ -135,7 +135,7 @@ const LoadingScreen = ({ theme, onClose }: { theme: 'dark' | 'light', onClose?: 
           preload="auto"
         >
           <source 
-            src="/videos/Eyeloading-bg.mp4" 
+            src="/videos/loading.mp4" 
             type="video/mp4"
           />
         </video>
@@ -220,7 +220,7 @@ const LoadingScreen = ({ theme, onClose }: { theme: 'dark' | 'light', onClose?: 
   );
 }
 
-// Discord Message Component with Email Validation ( we change it later a lil as needed )
+//msg component with Email Validation ( we change it later a lil as needed )
 const DiscordMessage = ({ theme }: { theme: 'dark' | 'light' }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [email, setEmail] = useState('')
@@ -472,8 +472,9 @@ const DiscordMessage = ({ theme }: { theme: 'dark' | 'light' }) => {
     </AnimatePresence>
   )
 }
-
-// Proper service-themed SVG icons
+// custom solutions and game icon is unused and amazon one tooo lolz i changed them cz later cz 
+// at first i was making this site for someone's buisiness ;3
+// proper service-themed SVG icons
 const GameServerIcon = ({ theme }: { theme: 'dark' | 'light' }) => (
   <motion.svg
     viewBox="0 0 200 200"
@@ -481,7 +482,7 @@ const GameServerIcon = ({ theme }: { theme: 'dark' | 'light' }) => (
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
   >
-    {/* game Controller */}
+    {/* game controller */}
     <motion.g
       animate={{ y: [-2, 2, -2] }}
       transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
@@ -494,7 +495,6 @@ const GameServerIcon = ({ theme }: { theme: 'dark' | 'light' }) => (
         strokeWidth="2"
       />
       
-      {/* D-pad */}
       <path
         d="M80 95 L80 105 M75 100 L85 100"
         stroke={theme === 'dark' ? 'white' : 'black'}
@@ -502,18 +502,15 @@ const GameServerIcon = ({ theme }: { theme: 'dark' | 'light' }) => (
         strokeLinecap="round"
       />
       
-      {/* buttons */}
       <circle cx="115" cy="95" r="3" fill={theme === 'dark' ? 'white' : 'black'} />
       <circle cx="125" cy="100" r="3" fill={theme === 'dark' ? 'white' : 'black'} />
       <circle cx="115" cy="105" r="3" fill={theme === 'dark' ? 'white' : 'black'} />
       <circle cx="105" cy="100" r="3" fill={theme === 'dark' ? 'white' : 'black'} />
       
-      {/* analog stinks */}
       <circle cx="90" cy="115" r="5" fill="none" stroke={theme === 'dark' ? 'white' : 'black'} strokeWidth="1.5" />
       <circle cx="110" cy="115" r="5" fill="none" stroke={theme === 'dark' ? 'white' : 'black'} strokeWidth="1.5" />
     </motion.g>
     
-    {/* indicators */}
     <motion.g
       animate={{ opacity: [0.3, 1, 0.3] }}
       transition={{ duration: 2, repeat: Infinity }}
@@ -573,7 +570,6 @@ const AmazonStoreIcon = ({ theme }: { theme: 'dark' | 'light' }) => (
       transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
     />
     
-    {/* Package boxes */}
     <motion.g
       animate={{ rotate: [0, 10, -10, 0] }}
       transition={{ duration: 3, repeat: Infinity }}
@@ -584,7 +580,6 @@ const AmazonStoreIcon = ({ theme }: { theme: 'dark' | 'light' }) => (
       <path d="M85 82 L100 82 M105 86 L117 86" stroke={theme === 'dark' ? 'white' : 'black'} strokeWidth="1" />
     </motion.g>
     
-    {/* Stars for ratings */}
     {[0, 1, 2, 3, 4].map((i) => (
       <motion.path
         key={i}
@@ -675,7 +670,7 @@ const CustomSolutionsIcon = ({ theme }: { theme: 'dark' | 'light' }) => (
       </g>
     ))}
     
-    {/* Customization gears */}
+    {/* customization gears */}
     <motion.g
       animate={{ rotate: 360 }}
       transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
@@ -692,7 +687,7 @@ const CustomSolutionsIcon = ({ theme }: { theme: 'dark' | 'light' }) => (
   </motion.svg>
 )
 
-// Sleek CTA Button Component with loading state
+// CTA Button
 const CTAButton = ({ 
   text, 
   onClick, 
@@ -749,7 +744,6 @@ const CTAButton = ({
   )
 }
 
-// Enhanced Mega Card with hover tooltips
 const MegaCard = ({ 
   title, 
   description, 
@@ -856,7 +850,7 @@ const MegaCard = ({
                 </div>
               </motion.div>
               
-              {/* Visual content with hover tooltip */}
+              {/*visual content with hover tooltip */}
               <motion.div
                 className={`relative ${index % 2 === 0 ? 'lg:order-2' : 'lg:order-1'} group cursor-pointer`}
                 initial={{ opacity: 0, scale: 0.8 }}
@@ -930,7 +924,7 @@ const MegaCard = ({
   )
 }
 
-// Updating icons for developer skills
+//updating icons for developer skills
 const WebDevIcon = ({ theme }: { theme: 'dark' | 'light' }) => (
   <motion.svg
     viewBox="0 0 200 200"
@@ -1241,7 +1235,7 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
     }
   ];
 
-  // Handle feature card queries - direct response
+  //handle feature card queries - direct response
   const handleFeatureSubmit = async (featureId: number) => {
     const queryToSend = features[featureId - 1].example;
     
@@ -1339,7 +1333,7 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
           </p>
         </motion.div>
 
-        {/* Features Grid */}
+        {/*features Grid */}
         <div className="grid lg:grid-cols-3 gap-6">
           {features.map((feature, index) => (
             <motion.div
@@ -1617,7 +1611,7 @@ const AIFeaturesSection = ({ theme }: { theme: 'dark' | 'light' }) => {
           TRY AI CHAT
         </span>
         
-        {/* Force pitch black/white overlay */}
+        {/*Force pitch black/white overlay */}
         <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${
           theme === 'dark' ? 'bg-black' : 'bg-white'
         }`} style={{
@@ -1968,7 +1962,7 @@ const ImageGenCard: React.FC<ImageGenCardProps> = ({ theme = 'dark' }) => {
                   : isGenerating ? 'GENERATING...' : 'GENERATE IMAGE'}
               </span>
               
-              {/* Loading animation */}
+              {/*loading */}
               <AnimatePresence>
                 {isGenerating && (
                   <motion.div
@@ -1984,7 +1978,7 @@ const ImageGenCard: React.FC<ImageGenCardProps> = ({ theme = 'dark' }) => {
             </motion.button>
           </div>
 
-          {/* Error Display */}
+          {/* Error */}
           <AnimatePresence>
             {error && (
               <motion.div
@@ -2071,7 +2065,7 @@ const ImageGenCard: React.FC<ImageGenCardProps> = ({ theme = 'dark' }) => {
             )}
           </AnimatePresence>
 
-          {/* CTA Button */}
+          {/* CTA button */}
           <div className="flex justify-center mt-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -2164,7 +2158,7 @@ export default function LaxentaLanding() {
   const heroOpacity = useTransform(scrollYProgress, [0, 0.3], [1, 0])
   const [showMainLoading, setShowMainLoading] = useState(false)
 
-  // Add cleanup for main loading state
+  //cleanup for main loading state
   useEffect(() => {
     const handlePopState = () => {
       setShowMainLoading(false);
@@ -2205,7 +2199,7 @@ export default function LaxentaLanding() {
           <div className="relative z-10 text-center space-y-6">
             <h1 className="text-5xl sm:text-7xl md:text-9xl lg:text-[12rem] font-black tracking-tighter select-none">
               Laxenta
-              {/* me no want inc  ;c inc no cute <span className={`text-4xl sm:text-6xl md:text-8xl lg:text-[10rem] font-mono ${
+              {/* me no want inc  ;c inc - no cute <span className={`text-4xl sm:text-6xl md:text-8xl lg:text-[10rem] font-mono ${
                 theme === 'dark' ? 'text-white/60' : 'text-black/60'
               }`}>.</span>
             Inc */}
@@ -2225,7 +2219,7 @@ export default function LaxentaLanding() {
           <ScrollArrow theme={theme} />
         </motion.section>
 
-        {/* Services Section */}
+        {/*servicessection */}
         <motion.div className="w-full">
           <MegaCard
             title="WEB DEV"

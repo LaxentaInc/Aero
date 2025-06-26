@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import Link from 'next/link'
+import Link from 'next/link' //unused
 import { useRouter, usePathname } from 'next/navigation'
 import { useTheme } from '../contexts/ThemeContext'
-import { Menu } from 'lucide-react'
+import { Menu } from 'lucide-react' //unused
 import { useDiscord } from '../contexts/DiscordContext'
 
-// Routes where navbar should auto-hide
+//auto-hide
 const AUTO_HIDE_ROUTES = ['/ai', '/image-generation', '/login']
 
 const LoadingAnimation = ({ 
@@ -61,7 +61,7 @@ const LoadingAnimation = ({
           preload="auto"
         >
           <source 
-            src="/videos/Eyeloading-bg.mp4" 
+            src="/videos/loading.mp4" 
             type="video/mp4"
           />
         </video>
@@ -536,7 +536,7 @@ export default function Navbar() {
                         </button>
                       </motion.div>
                     ))}
-                    {/* Discord Auth Desktop */}
+      {/*discord Auth desktop */}
                     <div className="flex items-center gap-3 ml-4">
                       {user ? (
                         <>
@@ -581,13 +581,12 @@ export default function Navbar() {
                         />
                       </button>
                     </motion.div>
-                    {/* Theme Toggle */}
                     <div onClick={handleThemeToggle}>
                       <ThemeToggle theme={theme} toggleTheme={() => {}} />
                     </div>
                   </div>
-
-                  {/* Mobile Menu Button */}
+{/* theme */}
+ {/*mobile Menu button */}
                   <div className="md:hidden flex items-center space-x-4">
                     <div onClick={handleThemeToggle}>
                       <ThemeToggle theme={theme} toggleTheme={() => {}} />
@@ -608,7 +607,7 @@ export default function Navbar() {
               </div>
             </motion.nav>
 
-            {/* Mobile Menu - Full Screen Overlay */}
+            {/*m menu - Full Screen Overlay */}
             <AnimatePresence>
               {mobileMenuOpen && (
                 <>
