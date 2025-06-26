@@ -367,7 +367,7 @@ export default function AnimeImageGenerator() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt: 'Beautiful anime landscape, mountain scenery, warm sunset, studio ghibli style',
+          prompt: 'Beautiful anime landscape, a gorgous 19yo anime girl in drapy sweaters and skirt looking out of the window of the metro\'s window, the sunlight giving a gentle warm hue',
           model: 'flux-dev',
           n: 1,
           response_format: 'url',
