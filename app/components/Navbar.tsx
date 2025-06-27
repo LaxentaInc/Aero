@@ -283,7 +283,7 @@ export default function Navbar() {
     if (AUTO_HIDE_ROUTES.includes(pathname)) {
       const timer = setTimeout(() => {
         setShouldRender(false)
-      }, 300) //300ms matches the exit animation duration
+      }, 300)
       return () => clearTimeout(timer)
     } else {
       setShouldRender(true)
