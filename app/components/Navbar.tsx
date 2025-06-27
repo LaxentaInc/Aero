@@ -18,19 +18,17 @@ const LoadingAnimation = ({
   theme: 'dark' | 'light', 
   onComplete?: () => void 
 }) => {
-  const [videoLoaded, setVideoLoaded] = useState(false);
   const [shouldExit, setShouldExit] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
+    // Always exit after exactly 3 seconds, regardless of video load state
     const timer = setTimeout(() => {
-      if (videoLoaded) {
-        setShouldExit(true);
-      }
+      setShouldExit(true);
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, [videoLoaded]);
+  }, []); // Remove videoLoaded dependency
 
   useEffect(() => {
     if (shouldExit && onComplete) {
@@ -57,7 +55,6 @@ const LoadingAnimation = ({
           loop
           muted
           playsInline
-          onLoadedData={() => setVideoLoaded(true)}
           preload="auto"
         >
           <source 
@@ -145,7 +142,6 @@ const LoadingAnimation = ({
     </motion.div>
   )
 }
-
 const GlitchText = ({ children, className = "" }: { children: string, className?: string }) => {
   return (
     <motion.span
