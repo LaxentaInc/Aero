@@ -413,7 +413,7 @@ const CurrentlyLearningCard = ({ tech }: { tech: any }) => (
 			<div className="text-lg text-gray-300 font-mono text-center max-w-md">{tech.description}</div>
 		</motion.div>
 	</motion.div>
-}
+)
 
 // Horizontal scrollable tech stack section with scroll-based animation
 const ScrollingTechStackOld = ({ theme }: { theme: 'dark' | 'light' }) => {
@@ -865,6 +865,3 @@ export default function PortfolioPage() {
 			</div>
 		</footer>
 	</motion.div>
-	)
-};
-}
