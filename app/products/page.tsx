@@ -397,7 +397,7 @@ const ServiceCard = ({ service, index, theme }: { service: any; index: number; t
 				</p>
 				
 				<div className="space-y-2">
-					{service.features.map((feature, i) => (
+					{service.features.map((feature: string, i: number) => (
 						<motion.div
 							key={i}
 							initial={{ opacity: 0, x: -20 }}
