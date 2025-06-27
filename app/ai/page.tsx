@@ -8,7 +8,7 @@ import {
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 
-const MODELS = ['gpt-4o', 'o1', 'gemini-1.5-pro']
+const MODELS = ['gpt-4o', 'claude-opus-4-20250514', 'gemini-1.5-pro']
 
 interface Message {
   id: string
