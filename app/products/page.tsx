@@ -462,7 +462,7 @@ const ScrollingTechStackOld = ({ theme }: { theme: 'dark' | 'light' }) => {
 					style={{ x }}
 				>
 					{techStacks.map((tech, index) => (
-						<TechStackCard key={tech.name} tech={tech} index={index} />
+						<TechStackCard key={tech.name} tech={tech} index={index} cardWidth={320} />
 					))}
 				</motion.div>
 			</div>
