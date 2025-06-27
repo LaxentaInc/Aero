@@ -57,6 +57,26 @@ const techStacks = [
 	},
 ]
 
+// Add the "Learning More" card as the last card in the techStacks array
+const learningMoreCard = {
+	name: 'Learning More',
+	icon: (
+		<div className="flex flex-col items-center justify-center w-full h-full">
+			<svg width="120" height="120" viewBox="0 0 120 120">
+				<circle cx="60" cy="60" r="55" fill="#23272f" />
+				<text x="60" y="70" textAnchor="middle" fontSize="40" fill="#fff" fontFamily="monospace" fontWeight="bold">?</text>
+			</svg>
+			<div className="flex gap-6 mt-6">
+				<FaRust size={48} color="#CE422B" />
+				<FaPython size={48} color="#3776AB" />
+			</div>
+		</div>
+	),
+	color: '#23272f',
+	description: 'Currently learning Rust and Python for even more powerful backend and systems work.',
+	isLearningMore: true,
+}
+
 const currentlyLearning = [
 	{
 		name: 'Rust',
@@ -256,19 +276,123 @@ const SmoothCursor = () => {
 }
 
 // TechStackCard: bigger, with SVG and description
-const TechStackCard = ({ tech, index }: { tech: any; index: number }) => (
+const TechStackCard = ({ tech, index, cardWidth }: { tech: any; index: number; cardWidth: number }) => (
 	<motion.div
-		className="w-72 h-56 rounded-3xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm border border-white/20 flex flex-col items-center justify-center mx-4 shadow-xl"
+		className="rounded-3xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm border border-white/20 flex flex-col items-center justify-center mx-8 shadow-2xl"
+		style={{
+			width: cardWidth,
+			height: 420,
+			minWidth: cardWidth,
+			maxWidth: cardWidth,
+			minHeight: 420,
+			maxHeight: 420,
+		}}
 		initial={{ opacity: 0, scale: 0.8 }}
 		animate={{ opacity: 1, scale: 1 }}
 		transition={{ delay: index * 0.08 }}
 		whileHover={{ scale: 1.07, boxShadow: `0 8px 32px ${tech.color}55` }}
 	>
-		<div className="mb-3">{tech.icon}</div>
-		<div className="font-bold text-lg mb-1">{tech.name}</div>
-		<div className="text-xs text-gray-400 font-mono text-center px-2">{tech.description}</div>
+		<div className="mb-6">{tech.icon}</div>
+		<div className="font-black text-2xl mb-2">{tech.name}</div>
+		<div className="text-base text-gray-400 font-mono text-center px-4">{tech.description}</div>
 	</motion.div>
 )
+
+// Fullscreen "Learning More" card
+const LearningMoreFullscreen = ({ card }: { card: any }) => (
+	<motion.div
+		className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95"
+		initial={{ opacity: 0 }}
+		animate={{ opacity: 1 }}
+		exit={{ opacity: 0 }}
+	>
+		<motion.div
+			className="flex flex-col items-center justify-center p-16 rounded-3xl bg-white/5 border border-white/10 shadow-2xl"
+			initial={{ scale: 0.8 }}
+			animate={{ scale: 1 }}
+			exit={{ scale: 0.8 }}
+		>
+			<div className="mb-8">{card.icon}</div>
+			<div className="font-black text-4xl text-white mb-4">{card.name}</div>
+			<div className="text-xl text-gray-300 font-mono text-center max-w-xl">{card.description}</div>
+		</motion.div>
+	</motion.div>
+)
+
+// Improved horizontal scrollable tech stack section
+const ScrollingTechStack = ({ theme }: { theme: 'dark' | 'light' }) => {
+	const containerRef = useRef<HTMLDivElement>(null)
+	const [showLearning, setShowLearning] = useState(false)
+	const [learningExited, setLearningExited] = useState(false)
+	const [viewportWidth, setViewportWidth] = useState(0)
+
+	// Card sizing: 3 cards per screen
+	const CARD_GAP = 32
+	const CARD_WIDTH = 360
+	const CARDS_ON_SCREEN = 3
+	const cards = [...techStacks, learningMoreCard]
+	const totalCards = cards.length
+
+	useEffect(() => {
+		const handleResize = () => setViewportWidth(window.innerWidth)
+		handleResize()
+		window.addEventListener('resize', handleResize)
+		return () => window.removeEventListener('resize', handleResize)
+	}, [])
+
+	// Pin the section while scrolling horizontally
+	const { scrollYProgress } = useScroll({
+		target: containerRef,
+		offset: ["start center", "end center"]
+	})
+
+	// Calculate horizontal scroll distance
+	const totalScrollableWidth = (CARD_WIDTH + CARD_GAP * 2) * totalCards - (CARD_WIDTH + CARD_GAP * 2) * CARDS_ON_SCREEN
+	const x = useTransform(scrollYProgress, [0, 1], [0, -totalScrollableWidth])
+
+	// Show fullscreen learning card when last card is centered
+	useEffect(() => {
+		const unsub = scrollYProgress.onChange((v) => {
+			if (v > 0.98 && !showLearning) setShowLearning(true)
+			if (v < 0.98 && showLearning) setShowLearning(false)
+			if (v < 0.95 && learningExited) setLearningExited(false)
+		})
+		return unsub
+	}, [scrollYProgress, showLearning, learningExited])
+
+	useEffect(() => {
+		if (!showLearning && !learningExited) setLearningExited(true)
+	}, [showLearning, learningExited])
+
+	return (
+		<section ref={containerRef} className="relative min-h-[100vh] flex flex-col justify-center items-center py-32 overflow-x-hidden">
+			<motion.h2
+				initial={{ opacity: 0 }}
+				whileInView={{ opacity: 1 }}
+				className={`text-5xl md:text-7xl font-black text-center mb-24 ${
+					theme === 'dark' ? 'text-white' : 'text-black'
+				}`}
+			>
+				Tech Stack I Work With
+			</motion.h2>
+			<div className="relative w-full flex justify-center items-center overflow-x-hidden">
+				<motion.div
+					className="flex flex-row items-center"
+					style={{ x, width: (CARD_WIDTH + CARD_GAP * 2) * totalCards }}
+				>
+					{cards.map((tech, index) => (
+						<TechStackCard key={tech.name} tech={tech} index={index} cardWidth={CARD_WIDTH} />
+					))}
+				</motion.div>
+			</div>
+			<AnimatePresence>
+				{showLearning && !learningExited && (
+					<LearningMoreFullscreen card={learningMoreCard} />
+				)}
+			</AnimatePresence>
+		</section>
+	)
+}
 
 // CurrentlyLearningCard: fullscreen overlay card
 const CurrentlyLearningCard = ({ tech }: { tech: any }) => (
@@ -289,10 +413,10 @@ const CurrentlyLearningCard = ({ tech }: { tech: any }) => (
 			<div className="text-lg text-gray-300 font-mono text-center max-w-md">{tech.description}</div>
 		</motion.div>
 	</motion.div>
-)
+}
 
 // Horizontal scrollable tech stack section with scroll-based animation
-const ScrollingTechStack = ({ theme }: { theme: 'dark' | 'light' }) => {
+const ScrollingTechStackOld = ({ theme }: { theme: 'dark' | 'light' }) => {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [showLearning, setShowLearning] = useState(false)
 	const [learningExited, setLearningExited] = useState(false)
