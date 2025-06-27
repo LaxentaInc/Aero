@@ -10,7 +10,7 @@ import { useDiscord } from '../contexts/DiscordContext'
 
 //auto-hide
 const AUTO_HIDE_ROUTES = ['/ai', '/image-generation', '/login']
-
+//eeeeeeee
 const LoadingAnimation = ({ 
   theme, 
   onComplete 
