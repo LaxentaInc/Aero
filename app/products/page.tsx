@@ -741,4 +741,5 @@ export default function PortfolioPage() {
 			</div>
 		</footer>
 	</motion.div>
+	)
 }
