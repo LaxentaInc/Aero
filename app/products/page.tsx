@@ -3,16 +3,92 @@ import { useState, useEffect, useRef } from 'react'
 import { motion, useScroll, useTransform, AnimatePresence, useInView } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { useTheme } from '../contexts/ThemeContext'
+import { FaReact, FaNodeJs, FaPython, FaRust } from 'react-icons/fa'
+import { SiNextdotjs, SiTypescript, SiVuedotjs, SiDiscord } from 'react-icons/si'
 
 const techStacks = [
-	{ name: 'React', icon: '⚛️', color: '#61DAFB' },
-	{ name: 'Next.js', icon: '▲', color: '#000000' },
-	{ name: 'TypeScript', icon: '🔷', color: '#3178C6' },
-	{ name: 'Vue.js', icon: '💚', color: '#4FC08D' },
-	{ name: 'Discord.js', icon: '🤖', color: '#5865F2' },
-	{ name: 'Rust', icon: '🦀', color: '#CE422B' },
-	{ name: 'Node.js', icon: '🟢', color: '#339933' },
-	{ name: 'Python', icon: '🐍', color: '#3776AB' },
+	{
+		name: 'React',
+		icon: <FaReact size={48} color="#61DAFB" />,
+		color: '#61DAFB',
+		description: 'Component-based UI library for building interactive interfaces.',
+	},
+	{
+		name: 'Next.js',
+		icon: <SiNextdotjs size={48} color="#000" />,
+		color: '#000000',
+		description: 'React framework for production, SSR, and static sites.',
+	},
+	{
+		name: 'TypeScript',
+		icon: <SiTypescript size={48} color="#3178C6" />,
+		color: '#3178C6',
+		description: 'Typed superset of JavaScript for safer code.',
+	},
+	{
+		name: 'Vue.js',
+		icon: <SiVuedotjs size={48} color="#4FC08D" />,
+		color: '#4FC08D',
+		description: 'Progressive framework for building user interfaces.',
+	},
+	{
+		name: 'Discord.js',
+		icon: <SiDiscord size={48} color="#5865F2" />,
+		color: '#5865F2',
+		description: 'Powerful library for interacting with the Discord API.',
+	},
+	{
+		name: 'Rust',
+		icon: <FaRust size={48} color="#CE422B" />,
+		color: '#CE422B',
+		description: 'Blazingly fast systems programming language.',
+	},
+	{
+		name: 'Node.js',
+		icon: <FaNodeJs size={48} color="#339933" />,
+		color: '#339933',
+		description: 'JavaScript runtime for server-side applications.',
+	},
+	{
+		name: 'Python',
+		icon: <FaPython size={48} color="#3776AB" />,
+		color: '#3776AB',
+		description: 'Versatile language for scripting, automation, and AI.',
+	},
+]
+
+const currentlyLearning = [
+	{
+		name: 'Rust',
+		icon: <FaRust size={64} color="#CE422B" />,
+		color: '#CE422B',
+		description: 'Learning Rust for high-performance and safe systems programming.',
+	},
+	{
+		name: 'Three.js',
+		icon: (
+			<svg width="64" height="64" viewBox="0 0 256 256">
+				<rect width="256" height="256" fill="none"/>
+				<polygon points="128,16 240,208 16,208" fill="#ff9900"/>
+				<text x="128" y="170" textAnchor="middle" fontSize="60" fill="#fff" fontFamily="monospace">3</text>
+			</svg>
+		),
+		color: '#ff9900',
+		description: 'Exploring 3D graphics and WebGL with Three.js.',
+	},
+	{
+		name: 'Game Dev',
+		icon: (
+			<svg width="64" height="64" viewBox="0 0 64 64">
+				<rect width="64" height="64" rx="12" fill="#222"/>
+				<circle cx="32" cy="32" r="18" fill="#fff"/>
+				<rect x="28" y="20" width="8" height="24" rx="2" fill="#222"/>
+				<rect x="20" y="28" width="24" height="8" rx="2" fill="#222"/>
+			</svg>
+		),
+		color: '#222',
+		description: 'Building games and interactive experiences.',
+	},
 ]
 
 const services = [
@@ -109,187 +185,109 @@ const SmoothCursor = () => {
 	)
 }
 
-const TechStackCard = ({ tech, index }: { tech: any; index: number }) => {
-	const [isHovered, setIsHovered] = useState(false)
-	
-	return (
+// TechStackCard: bigger, with SVG and description
+const TechStackCard = ({ tech, index }: { tech: any; index: number }) => (
+	<motion.div
+		className="w-72 h-56 rounded-3xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm border border-white/20 flex flex-col items-center justify-center mx-4 shadow-xl"
+		initial={{ opacity: 0, scale: 0.8 }}
+		animate={{ opacity: 1, scale: 1 }}
+		transition={{ delay: index * 0.08 }}
+		whileHover={{ scale: 1.07, boxShadow: `0 8px 32px ${tech.color}55` }}
+	>
+		<div className="mb-3">{tech.icon}</div>
+		<div className="font-bold text-lg mb-1">{tech.name}</div>
+		<div className="text-xs text-gray-400 font-mono text-center px-2">{tech.description}</div>
+	</motion.div>
+)
+
+// CurrentlyLearningCard: fullscreen overlay card
+const CurrentlyLearningCard = ({ tech }: { tech: any }) => (
+	<motion.div
+		className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95"
+		initial={{ opacity: 0 }}
+		animate={{ opacity: 1 }}
+		exit={{ opacity: 0 }}
+	>
 		<motion.div
-			initial={{ opacity: 0, scale: 0.8 }}
-			animate={{ opacity: 1, scale: 1 }}
-			transition={{ delay: index * 0.1 }}
-			whileHover={{ scale: 1.1, rotate: 5 }}
-			onHoverStart={() => setIsHovered(true)}
-			onHoverEnd={() => setIsHovered(false)}
-			className="relative"
+			className="flex flex-col items-center justify-center p-12 rounded-3xl bg-white/5 border border-white/10 shadow-2xl"
+			initial={{ scale: 0.8 }}
+			animate={{ scale: 1 }}
+			exit={{ scale: 0.8 }}
 		>
-			<motion.div
-				className="w-32 h-32 rounded-2xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm border border-white/20 flex flex-col items-center justify-center cursor-pointer"
-				animate={{
-					boxShadow: isHovered
-						? `0 0 30px ${tech.color}40, 0 0 60px ${tech.color}20`
-						: '0 0 0px rgba(0,0,0,0)',
-				}}
-			>
-				<span className="text-4xl mb-2">{tech.icon}</span>
-				<span className="text-sm font-mono text-white/80">{tech.name}</span>
-			</motion.div>
+			<div className="mb-6">{tech.icon}</div>
+			<div className="font-black text-4xl text-white mb-2">{tech.name}</div>
+			<div className="text-lg text-gray-300 font-mono text-center max-w-md">{tech.description}</div>
 		</motion.div>
-	)
-}
+	</motion.div>
+)
 
-const ServiceCard = ({ service, index, theme }: { service: any; index: number; theme: 'dark' | 'light' }) => {
-	const [isHovered, setIsHovered] = useState(false)
-	const cardRef = useRef(null)
-	const isInView = useInView(cardRef, { once: true })
-
-	return (
-		<motion.div
-			ref={cardRef}
-			initial={{ opacity: 0, y: 100 }}
-			animate={isInView ? { opacity: 1, y: 0 } : {}}
-			transition={{ duration: 0.8, delay: index * 0.2 }}
-			onMouseEnter={() => setIsHovered(true)}
-			onMouseLeave={() => setIsHovered(false)}
-			className="relative group"
-		>
-			<motion.div
-				className={`relative p-8 rounded-3xl overflow-hidden ${
-					theme === 'dark' ? 'bg-white/5' : 'bg-black/5'
-				} backdrop-blur-sm border ${
-					theme === 'dark' ? 'border-white/10' : 'border-black/10'
-				}`}
-				whileHover={{ y: -10 }}
-			>
-				{/* Gradient background on hover */}
-				<motion.div
-					className={`absolute inset-0 bg-gradient-to-br ${service.gradient} opacity-0`}
-					animate={{ opacity: isHovered ? 0.1 : 0 }}
-				/>
-
-				<div className="relative z-10">
-					<motion.div
-						className="text-6xl mb-6"
-						animate={{ rotate: isHovered ? 360 : 0 }}
-						transition={{ duration: 0.5 }}
-					>
-						{service.icon}
-					</motion.div>
-
-					<h3 className={`text-2xl font-bold mb-4 ${
-						theme === 'dark' ? 'text-white' : 'text-black'
-					}`}>
-						{service.title}
-					</h3>
-
-					<p className={`mb-6 ${
-						theme === 'dark' ? 'text-white/60' : 'text-black/60'
-					}`}>
-						{service.description}
-					</p>
-
-					<ul className="space-y-2 mb-6">
-						{service.features.map((feature: string, i: number) => (
-							<motion.li
-								key={i}
-								initial={{ opacity: 0, x: -20 }}
-								animate={isInView ? { opacity: 1, x: 0 } : {}}
-								transition={{ delay: 0.5 + i * 0.1 }}
-								className={`flex items-center gap-2 text-sm ${
-									theme === 'dark' ? 'text-white/80' : 'text-black/80'
-								}`}
-							>
-								<span className="text-green-500">✓</span>
-								{feature}
-							</motion.li>
-						))}
-					</ul>
-
-					<motion.div
-						className={`inline-block px-6 py-3 rounded-full font-mono text-sm ${
-							theme === 'dark' ? 'bg-white text-black' : 'bg-black text-white'
-						}`}
-						whileHover={{ scale: 1.05 }}
-						whileTap={{ scale: 0.95 }}
-					>
-						{service.price}
-					</motion.div>
-				</div>
-			</motion.div>
-		</motion.div>
-	)
-}
-
+// Horizontal scrollable tech stack section with scroll-based animation
 const ScrollingTechStack = ({ theme }: { theme: 'dark' | 'light' }) => {
 	const containerRef = useRef<HTMLDivElement>(null)
+	const [showLearning, setShowLearning] = useState(false)
+	const [learningExited, setLearningExited] = useState(false)
+
+	// Scroll progress for the section
 	const { scrollYProgress } = useScroll({
 		target: containerRef,
 		offset: ["start end", "end start"]
 	})
 
-	const [shouldExpand, setShouldExpand] = useState(false)
+	// Horizontal translation for the cards
+	const x = useTransform(scrollYProgress, [0, 1], [0, techStacks.length * 320 * -1 + window.innerWidth - 64])
 
+	// Show fullscreen currently learning card when scrolled to end
 	useEffect(() => {
-		const unsubscribe = scrollYProgress.onChange((latest) => {
-			if (latest > 0.9) {
-				setShouldExpand(true)
-			} else {
-				setShouldExpand(false)
-			}
+		const unsub = scrollYProgress.onChange((v) => {
+			if (v > 0.98 && !showLearning) setShowLearning(true)
+			if (v < 0.98 && showLearning) setShowLearning(false)
+			if (v < 0.95 && learningExited) setLearningExited(false)
 		})
-		return unsubscribe
-	}, [scrollYProgress])
+		return unsub
+	}, [scrollYProgress, showLearning, learningExited])
+
+	// When overlay is exited, allow page to scroll down
+	useEffect(() => {
+		if (!showLearning && !learningExited) setLearningExited(true)
+	}, [showLearning, learningExited])
 
 	return (
-		<section ref={containerRef} className="relative min-h-screen py-20">
-			<motion.div
-				className="max-w-7xl mx-auto px-8"
-				animate={shouldExpand ? { scale: 1.5 } : { scale: 1 }}
-				transition={{ duration: 0.5 }}
+		<section ref={containerRef} className="relative min-h-[60vh] py-20 overflow-x-hidden">
+			<motion.h2
+				initial={{ opacity: 0 }}
+				whileInView={{ opacity: 1 }}
+				className={`text-4xl md:text-6xl font-black text-center mb-16 ${
+					theme === 'dark' ? 'text-white' : 'text-black'
+				}`}
 			>
-				<motion.h2
-					initial={{ opacity: 0 }}
-					whileInView={{ opacity: 1 }}
-					className={`text-4xl md:text-6xl font-black text-center mb-16 ${
-						theme === 'dark' ? 'text-white' : 'text-black'
-					}`}
+				Tech Stack I Work With
+			</motion.h2>
+			<div className="relative w-full overflow-x-hidden">
+				<motion.div
+					className="flex flex-row items-center"
+					style={{ x }}
 				>
-					Tech Stack I Work With
-				</motion.h2>
-
-				<div className="grid grid-cols-2 md:grid-cols-4 gap-8 place-items-center">
 					{techStacks.map((tech, index) => (
 						<TechStackCard key={tech.name} tech={tech} index={index} />
 					))}
-				</div>
-			</motion.div>
-
+				</motion.div>
+			</div>
 			<AnimatePresence>
-				{shouldExpand && (
-					<motion.div
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						exit={{ opacity: 0 }}
-						className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center"
-					>
-						<motion.div
-							initial={{ scale: 0 }}
-							animate={{ scale: 1 }}
-							exit={{ scale: 0 }}
-							className="text-center"
-						>
-							<h3 className="text-6xl font-black text-white mb-8">
-								Currently Learning
-							</h3>
-							<motion.p
-								initial={{ y: 20, opacity: 0 }}
-								animate={{ y: 0, opacity: 1 }}
-								transition={{ delay: 0.2 }}
-								className="text-2xl text-white/80 font-mono"
-							>
-								🦀 Rust • 🔥 Three.js • 🎮 Game Dev
-							</motion.p>
-						</motion.div>
-					</motion.div>
+				{showLearning && !learningExited && (
+					<CurrentlyLearningCard tech={{
+						name: 'Currently Learning',
+						icon: (
+							<div className="flex flex-row gap-8">
+								{currentlyLearning.map((t, i) => (
+									<div key={t.name} className="flex flex-col items-center">
+										{t.icon}
+										<div className="font-bold text-lg text-white mt-2">{t.name}</div>
+									</div>
+								))}
+							</div>
+						),
+						description: currentlyLearning.map(t => t.description).join(' • ')
+					}} />
 				)}
 			</AnimatePresence>
 		</section>
