@@ -27,7 +27,7 @@ const LoadingAnimation = ({
       if (videoLoaded) {
         setShouldExit(true);
       }
-    }, 1000);
+    }, 3000);
 
     return () => clearTimeout(timer);
   }, [videoLoaded]);
