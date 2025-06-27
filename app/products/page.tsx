@@ -91,6 +91,7 @@ const currentlyLearning = [
 	},
 ]
 
+// Replace the services array with SVG icons
 const services = [
 	{
 		id: 1,
@@ -98,7 +99,22 @@ const services = [
 		description: 'Fully customized Discord bots with advanced features, moderation tools, and unique commands tailored to your server needs',
 		features: ['Custom Commands', 'Auto Moderation', 'Music Player', 'Dashboard Panel'],
 		price: 'Starting at $50',
-		icon: '🤖',
+		icon: (
+			<svg width="64" height="64" viewBox="0 0 64 64" className="animate-pulse">
+				<defs>
+					<linearGradient id="botGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+						<stop offset="0%" stopColor="#5865F2" />
+						<stop offset="100%" stopColor="#7289DA" />
+					</linearGradient>
+				</defs>
+				<rect width="48" height="36" x="8" y="14" rx="8" fill="url(#botGradient)" />
+				<circle cx="20" cy="26" r="4" fill="white" className="animate-bounce" />
+				<circle cx="44" cy="26" r="4" fill="white" className="animate-bounce" style={{animationDelay: '0.2s'}} />
+				<rect x="16" y="36" width="32" height="4" rx="2" fill="white" fillOpacity="0.8" />
+				<path d="M8 30 L4 26 L8 22" stroke="white" strokeWidth="2" fill="none" className="animate-pulse" />
+				<path d="M56 30 L60 26 L56 22" stroke="white" strokeWidth="2" fill="none" className="animate-pulse" />
+			</svg>
+		),
 		gradient: 'from-purple-500 to-blue-500',
 	},
 	{
@@ -107,7 +123,25 @@ const services = [
 		description: 'Modern, responsive websites built with latest technologies. From landing pages to complex web applications',
 		features: ['Responsive Design', 'SEO Optimized', 'Fast Performance', 'Modern UI/UX'],
 		price: 'Starting at $200',
-		icon: '🌐',
+		icon: (
+			<svg width="64" height="64" viewBox="0 0 64 64">
+				<defs>
+					<linearGradient id="webGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+						<stop offset="0%" stopColor="#00D4FF" />
+						<stop offset="100%" stopColor="#0099CC" />
+					</linearGradient>
+				</defs>
+				<rect width="56" height="40" x="4" y="12" rx="4" fill="url(#webGradient)" />
+				<rect width="56" height="8" x="4" y="12" rx="4" fill="#fff" fillOpacity="0.2" />
+				<circle cx="12" cy="16" r="1.5" fill="white" />
+				<circle cx="16" cy="16" r="1.5" fill="white" />
+				<circle cx="20" cy="16" r="1.5" fill="white" />
+				<rect x="12" y="28" width="20" height="2" fill="white" fillOpacity="0.6" className="animate-pulse" />
+				<rect x="12" y="32" width="16" height="2" fill="white" fillOpacity="0.4" />
+				<rect x="12" y="36" width="24" height="2" fill="white" fillOpacity="0.6" className="animate-pulse" style={{animationDelay: '0.5s'}} />
+				<rect x="36" y="24" width="16" height="12" rx="2" fill="white" fillOpacity="0.2" />
+			</svg>
+		),
 		gradient: 'from-blue-500 to-cyan-500',
 	},
 	{
@@ -116,7 +150,24 @@ const services = [
 		description: 'RESTful APIs and backend services with proper documentation and scalable architecture',
 		features: ['REST/GraphQL', 'Authentication', 'Database Design', 'Documentation'],
 		price: 'Starting at $150',
-		icon: '🔧',
+		icon: (
+			<svg width="64" height="64" viewBox="0 0 64 64">
+				<defs>
+					<linearGradient id="apiGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+						<stop offset="0%" stopColor="#10B981" />
+						<stop offset="100%" stopColor="#059669" />
+					</linearGradient>
+				</defs>
+				<rect width="12" height="32" x="8" y="16" rx="6" fill="url(#apiGradient)" />
+				<rect width="12" height="24" x="26" y="20" rx="6" fill="url(#apiGradient)" className="animate-pulse" />
+				<rect width="12" height="28" x="44" y="18" rx="6" fill="url(#apiGradient)" style={{animationDelay: '0.3s'}} />
+				<path d="M20 32 Q23 28 26 32" stroke="white" strokeWidth="2" fill="none" className="animate-pulse" />
+				<path d="M38 32 Q41 28 44 32" stroke="white" strokeWidth="2" fill="none" className="animate-pulse" style={{animationDelay: '0.6s'}} />
+				<circle cx="14" cy="12" r="2" fill="white" className="animate-bounce" />
+				<circle cx="32" cy="12" r="2" fill="white" className="animate-bounce" style={{animationDelay: '0.2s'}} />
+				<circle cx="50" cy="12" r="2" fill="white" className="animate-bounce" style={{animationDelay: '0.4s'}} />
+			</svg>
+		),
 		gradient: 'from-green-500 to-emerald-500',
 	},
 	{
@@ -125,7 +176,26 @@ const services = [
 		description: 'Professional code review and optimization suggestions to improve your existing projects',
 		features: ['Code Quality', 'Performance Tips', 'Best Practices', 'Security Audit'],
 		price: 'Starting at $30/hr',
-		icon: '📝',
+		icon: (
+			<svg width="64" height="64" viewBox="0 0 64 64">
+				<defs>
+					<linearGradient id="codeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+						<stop offset="0%" stopColor="#F59E0B" />
+						<stop offset="100%" stopColor="#DC2626" />
+					</linearGradient>
+				</defs>
+				<rect width="48" height="36" x="8" y="14" rx="4" fill="url(#codeGradient)" />
+				<rect x="12" y="22" width="8" height="2" fill="white" fillOpacity="0.8" />
+				<rect x="22" y="22" width="12" height="2" fill="white" fillOpacity="0.6" />
+				<rect x="12" y="26" width="16" height="2" fill="white" fillOpacity="0.8" />
+				<rect x="30" y="26" width="6" height="2" fill="white" fillOpacity="0.6" />
+				<rect x="12" y="30" width="10" height="2" fill="white" fillOpacity="0.8" />
+				<rect x="24" y="30" width="14" height="2" fill="white" fillOpacity="0.6" />
+				<rect x="12" y="34" width="20" height="2" fill="white" fillOpacity="0.8" />
+				<circle cx="48" cy="20" r="8" fill="#10B981" className="animate-pulse" />
+				<path d="M44 20 L46 22 L52 16" stroke="white" strokeWidth="2" fill="none" />
+			</svg>
+		),
 		gradient: 'from-orange-500 to-red-500',
 	},
 ]
@@ -294,6 +364,74 @@ const ScrollingTechStack = ({ theme }: { theme: 'dark' | 'light' }) => {
 	)
 }
 
+// Replace ServiceCard with bigger, improved version
+const ServiceCard = ({ service, index, theme }: { service: any; index: number; theme: 'dark' | 'light' }) => {
+	return (
+		<motion.div
+			className={`p-8 rounded-3xl border shadow-2xl transition-all duration-500 flex flex-col gap-6 min-h-[400px] ${
+				theme === 'dark' ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-black/5 border-black/10 hover:bg-black/10'
+			} backdrop-blur-md hover:scale-105`}
+			initial={{ opacity: 0, y: 50, rotateX: 15 }}
+			whileInView={{ opacity: 1, y: 0, rotateX: 0 }}
+			transition={{ delay: index * 0.15, duration: 0.8 }}
+			whileHover={{ 
+				y: -10,
+				boxShadow: theme === 'dark' ? '0 20px 40px rgba(255,255,255,0.1)' : '0 20px 40px rgba(0,0,0,0.1)'
+			}}
+		>
+			<div className="flex items-center justify-center w-16 h-16 mb-4">
+				{service.icon}
+			</div>
+			
+			<div className="space-y-4">
+				<h3 className={`text-2xl font-extrabold tracking-tight ${
+					theme === 'dark' ? 'text-white' : 'text-black'
+				}`}>
+					{service.title}
+				</h3>
+				
+				<p className={`text-lg leading-relaxed ${
+					theme === 'dark' ? 'text-white/80' : 'text-black/80'
+				}`}>
+					{service.description}
+				</p>
+				
+				<div className="space-y-2">
+					{service.features.map((feature, i) => (
+						<motion.div
+							key={i}
+							initial={{ opacity: 0, x: -20 }}
+							whileInView={{ opacity: 1, x: 0 }}
+							transition={{ delay: (index * 0.15) + (i * 0.1) }}
+							className="flex items-center gap-3"
+						>
+							<div className={`w-2 h-2 rounded-full ${
+								theme === 'dark' ? 'bg-white/60' : 'bg-black/60'
+							}`} />
+							<span className={`text-sm font-mono tracking-wide ${
+								theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+							}`}>
+								{feature}
+							</span>
+						</motion.div>
+					))}
+				</div>
+			</div>
+			
+			<div className="mt-auto pt-6 border-t border-white/10">
+				<motion.span 
+					className={`text-2xl font-black tracking-tight ${
+						theme === 'dark' ? 'text-white' : 'text-black'
+					}`}
+					whileHover={{ scale: 1.05 }}
+				>
+					{service.price}
+				</motion.span>
+			</div>
+		</motion.div>
+	)
+}
+
 export default function PortfolioPage() {
 	const { theme, toggleTheme } = useTheme()
 	const router = useRouter()
@@ -380,19 +518,20 @@ export default function PortfolioPage() {
 		</header>
 
 		{/* Services Section */}
-		<section className="py-20">
+		<section className="py-32">
 			<div className="max-w-7xl mx-auto px-8">
 				<motion.h2
-					initial={{ opacity: 0 }}
-					whileInView={{ opacity: 1 }}
-					className={`text-4xl md:text-6xl font-black text-center mb-16 ${
+					initial={{ opacity: 0, y: 30 }}
+					whileInView={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.8 }}
+					className={`text-4xl md:text-6xl font-black text-center mb-20 ${
 						theme === 'dark' ? 'text-white' : 'text-black'
 					}`}
 				>
 					What I Can Do For You
 				</motion.h2>
 
-				<div className="grid md:grid-cols-2 gap-8">
+				<div className="grid lg:grid-cols-2 gap-12">
 					{services.map((service, index) => (
 						<ServiceCard key={service.id} service={service} index={index} theme={theme} />
 					))}
@@ -442,60 +581,110 @@ export default function PortfolioPage() {
 		</section>
 
 		{/* Why Work With Me Section */}
-		<section className={`py-20 border-t ${
+		<section className={`py-32 border-t ${
 			theme === 'dark' ? 'border-white/10' : 'border-black/10'
 		}`}>
 			<div className="max-w-7xl mx-auto px-8">
 				<motion.h2
 					initial={{ opacity: 0 }}
 					whileInView={{ opacity: 1 }}
-					className={`text-4xl md:text-6xl font-black text-center mb-16 ${
+					className={`text-4xl md:text-6xl font-black text-center mb-20 ${
 						theme === 'dark' ? 'text-white' : 'text-black'
 					}`}
 				>
 					Why Work With Me?
 				</motion.h2>
 
-				<div className="grid md:grid-cols-3 gap-8">
+				<div className="grid md:grid-cols-3 gap-12">
 					{[
 						{
 							title: 'Self-Taught & Passionate',
 							description: 'Started coding as a hobby and fell in love with it. I build things because I enjoy it, not just for the money.',
-							icon: '❤️'
+							icon: (
+								<svg width="80" height="80" viewBox="0 0 80 80" className="animate-pulse">
+									<defs>
+										<linearGradient id="heartGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+											<stop offset="0%" stopColor="#FF6B6B" />
+											<stop offset="100%" stopColor="#EE5A52" />
+										</linearGradient>
+									</defs>
+									<path 
+										d="M40 70 C40 70 10 50 10 30 C10 20 18 15 25 15 C30 15 35 18 40 25 C45 18 50 15 55 15 C62 15 70 20 70 30 C70 50 40 70 40 70 Z" 
+										fill="url(#heartGradient)"
+										className="animate-pulse"
+									/>
+									<circle cx="25" cy="25" r="3" fill="white" fillOpacity="0.6" className="animate-ping" />
+									<circle cx="55" cy="25" r="3" fill="white" fillOpacity="0.6" className="animate-ping" style={{animationDelay: '0.5s'}} />
+								</svg>
+							)
 						},
 						{
 							title: 'Straight to the Point',
 							description: 'No corporate jargon or unnecessary complexity. I deliver what you need, when you need it.',
-							icon: '🎯'
+							icon: (
+								<svg width="80" height="80" viewBox="0 0 80 80">
+									<defs>
+										<linearGradient id="targetGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+											<stop offset="0%" stopColor="#3B82F6" />
+											<stop offset="100%" stopColor="#1D4ED8" />
+										</linearGradient>
+									</defs>
+									<circle cx="40" cy="40" r="30" fill="none" stroke="url(#targetGradient)" strokeWidth="3" className="animate-pulse" />
+									<circle cx="40" cy="40" r="20" fill="none" stroke="url(#targetGradient)" strokeWidth="2" className="animate-pulse" style={{animationDelay: '0.2s'}} />
+									<circle cx="40" cy="40" r="10" fill="none" stroke="url(#targetGradient)" strokeWidth="2" className="animate-pulse" style={{animationDelay: '0.4s'}} />
+									<circle cx="40" cy="40" r="4" fill="url(#targetGradient)" className="animate-bounce" />
+									<path d="M25 25 L40 40 L55 25" stroke="url(#targetGradient)" strokeWidth="3" fill="none" className="animate-pulse" />
+								</svg>
+							)
 						},
 						{
 							title: 'Fair Pricing',
 							description: 'Since I do this because I love it, my prices are reasonable. Quality work doesn\'t have to break the bank.',
-							icon: '💸'
+							icon: (
+								<svg width="80" height="80" viewBox="0 0 80 80">
+									<defs>
+										<linearGradient id="moneyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+											<stop offset="0%" stopColor="#10B981" />
+											<stop offset="100%" stopColor="#059669" />
+										</linearGradient>
+									</defs>
+									<rect x="15" y="25" width="50" height="30" rx="5" fill="url(#moneyGradient)" />
+									<circle cx="40" cy="40" r="8" fill="white" fillOpacity="0.8" />
+									<text x="40" y="45" textAnchor="middle" fontSize="12" fill="url(#moneyGradient)" fontWeight="bold">$</text>
+									<rect x="10" y="20" width="50" height="30" rx="5" fill="url(#moneyGradient)" opacity="0.7" className="animate-pulse" />
+									<rect x="20" y="30" width="50" height="30" rx="5" fill="url(#moneyGradient)" opacity="0.5" className="animate-pulse" style={{animationDelay: '0.3s'}} />
+									<path d="M25 15 Q40 5 55 15" stroke="url(#moneyGradient)" strokeWidth="2" fill="none" className="animate-bounce" />
+								</svg>
+							)
 						}
 					].map((item, index) => (
 						<motion.div
 							key={index}
-							initial={{ opacity: 0, y: 50 }}
-							whileInView={{ opacity: 1, y: 0 }}
-							transition={{ delay: index * 0.2 }}
-							className={`text-center p-8 rounded-2xl ${
-								theme === 'dark' ? 'bg-white/5' : 'bg-black/5'
-							} backdrop-blur-sm`}
+							initial={{ opacity: 0, y: 50, rotateY: 15 }}
+							whileInView={{ opacity: 1, y: 0, rotateY: 0 }}
+							transition={{ delay: index * 0.2, duration: 0.8 }}
+							whileHover={{ scale: 1.05, y: -10 }}
+							className={`text-center p-12 rounded-3xl ${
+								theme === 'dark' ? 'bg-white/5 hover:bg-white/10' : 'bg-black/5 hover:bg-black/10'
+							} backdrop-blur-sm border ${
+								theme === 'dark' ? 'border-white/10' : 'border-black/10'
+							} transition-all duration-500`}
 						>
 							<motion.div
-								className="text-5xl mb-4"
-								animate={{ rotate: [0, 10, -10, 0] }}
-								transition={{ duration: 2, repeat: Infinity, delay: index * 0.3 }}
+								className="flex justify-center mb-6"
+								whileHover={{ scale: 1.1, rotate: 5 }}
+								transition={{ type: "spring", stiffness: 300 }}
 							>
 								{item.icon}
 							</motion.div>
-							<h3 className={`text-xl font-bold mb-4 ${
+							<h3 className={`text-2xl font-bold mb-6 ${
 								theme === 'dark' ? 'text-white' : 'text-black'
 							}`}>
 								{item.title}
 							</h3>
-							<p className={theme === 'dark' ? 'text-white/60' : 'text-black/60'}>
+							<p className={`text-lg leading-relaxed ${
+								theme === 'dark' ? 'text-white/70' : 'text-black/70'
+							}`}>
 								{item.description}
 							</p>
 						</motion.div>
@@ -547,10 +736,9 @@ export default function PortfolioPage() {
 				<p className={`font-mono text-sm ${
 					theme === 'dark' ? 'text-white/40' : 'text-black/40'
 				}`}>
-					© 2025 • BUILT WITH ❤️ AND LOTS OF COFFEE
+					© 2025 • BUILT WITH ❤️ AND NO COFFEE ;C ME BROKE :3
 				</p>
 			</div>
 		</footer>
 	</motion.div>
-	)
 }
