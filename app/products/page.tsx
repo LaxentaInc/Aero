@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import { motion, useScroll, useTransform, AnimatePresence, useInView } from 'framer-motion'
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { useTheme } from '../contexts/ThemeContext'
 import { FaReact, FaNodeJs, FaPython, FaRust } from 'react-icons/fa'
@@ -57,7 +57,6 @@ const techStacks = [
 	},
 ]
 
-// Add the "Learning More" card as the last card in the techStacks array
 const learningMoreCard = {
 	name: 'Learning More',
 	icon: (
@@ -77,41 +76,6 @@ const learningMoreCard = {
 	isLearningMore: true,
 }
 
-const currentlyLearning = [
-	{
-		name: 'Rust',
-		icon: <FaRust size={64} color="#CE422B" />,
-		color: '#CE422B',
-		description: 'Learning Rust for high-performance and safe systems programming.',
-	},
-	{
-		name: 'Three.js',
-		icon: (
-			<svg width="64" height="64" viewBox="0 0 256 256">
-				<rect width="256" height="256" fill="none"/>
-				<polygon points="128,16 240,208 16,208" fill="#ff9900"/>
-				<text x="128" y="170" textAnchor="middle" fontSize="60" fill="#fff" fontFamily="monospace">3</text>
-			</svg>
-		),
-		color: '#ff9900',
-		description: 'Exploring 3D graphics and WebGL with Three.js.',
-	},
-	{
-		name: 'Game Dev',
-		icon: (
-			<svg width="64" height="64" viewBox="0 0 64 64">
-				<rect width="64" height="64" rx="12" fill="#222"/>
-				<circle cx="32" cy="32" r="18" fill="#fff"/>
-				<rect x="28" y="20" width="8" height="24" rx="2" fill="#222"/>
-				<rect x="20" y="28" width="24" height="8" rx="2" fill="#222"/>
-			</svg>
-		),
-		color: '#222',
-		description: 'Building games and interactive experiences.',
-	},
-]
-
-// Replace the services array with SVG icons
 const services = [
 	{
 		id: 1,
@@ -275,61 +239,15 @@ const SmoothCursor = () => {
 	)
 }
 
-// TechStackCard: bigger, with SVG and description
-const TechStackCard = ({ tech, index, cardWidth }: { tech: any; index: number; cardWidth: number }) => (
-	<motion.div
-		className="rounded-3xl bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm border border-white/20 flex flex-col items-center justify-center mx-8 shadow-2xl"
-		style={{
-			width: cardWidth,
-			height: 420,
-			minWidth: cardWidth,
-			maxWidth: cardWidth,
-			minHeight: 420,
-			maxHeight: 420,
-		}}
-		initial={{ opacity: 0, scale: 0.8 }}
-		animate={{ opacity: 1, scale: 1 }}
-		transition={{ delay: index * 0.08 }}
-		whileHover={{ scale: 1.07, boxShadow: `0 8px 32px ${tech.color}55` }}
-	>
-		<div className="mb-6">{tech.icon}</div>
-		<div className="font-black text-2xl mb-2">{tech.name}</div>
-		<div className="text-base text-gray-400 font-mono text-center px-4">{tech.description}</div>
-	</motion.div>
-)
-
-// Fullscreen "Learning More" card
-const LearningMoreFullscreen = ({ card }: { card: any }) => (
-	<motion.div
-		className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95"
-		initial={{ opacity: 0 }}
-		animate={{ opacity: 1 }}
-		exit={{ opacity: 0 }}
-	>
-		<motion.div
-			className="flex flex-col items-center justify-center p-16 rounded-3xl bg-white/5 border border-white/10 shadow-2xl"
-			initial={{ scale: 0.8 }}
-			animate={{ scale: 1 }}
-			exit={{ scale: 0.8 }}
-		>
-			<div className="mb-8">{card.icon}</div>
-			<div className="font-black text-4xl text-white mb-4">{card.name}</div>
-			<div className="text-xl text-gray-300 font-mono text-center max-w-xl">{card.description}</div>
-		</motion.div>
-	</motion.div>
-)
-
-// Improved horizontal scrollable tech stack section
+// Horizontal scrollable tech stack section with pinned viewport
 const ScrollingTechStack = ({ theme }: { theme: 'dark' | 'light' }) => {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [showLearning, setShowLearning] = useState(false)
-	const [learningExited, setLearningExited] = useState(false)
 	const [viewportWidth, setViewportWidth] = useState(0)
 
-	// Card sizing: 3 cards per screen
+	// Card sizing
+	const CARD_WIDTH = 320
 	const CARD_GAP = 32
-	const CARD_WIDTH = 360
-	const CARDS_ON_SCREEN = 3
 	const cards = [...techStacks, learningMoreCard]
 	const totalCards = cards.length
 
@@ -340,155 +258,136 @@ const ScrollingTechStack = ({ theme }: { theme: 'dark' | 'light' }) => {
 		return () => window.removeEventListener('resize', handleResize)
 	}, [])
 
-	// Pin the section while scrolling horizontally
+	// Scroll progress - section stays pinned while scrolling
 	const { scrollYProgress } = useScroll({
 		target: containerRef,
-		offset: ["start center", "end center"]
+		offset: ["start start", "end start"]
 	})
 
-	// Calculate horizontal scroll distance
-	const totalScrollableWidth = (CARD_WIDTH + CARD_GAP * 2) * totalCards - (CARD_WIDTH + CARD_GAP * 2) * CARDS_ON_SCREEN
-	const x = useTransform(scrollYProgress, [0, 1], [0, -totalScrollableWidth])
+	// Calculate horizontal translation
+	const totalScrollableWidth = (CARD_WIDTH + CARD_GAP) * totalCards - viewportWidth + 200
+	const x = useTransform(scrollYProgress, [0, 0.9], [100, -totalScrollableWidth])
+	
+	// Last card animations
+	const lastCardScale = useTransform(scrollYProgress, [0.85, 0.95], [1, 15])
+	const lastCardOpacity = useTransform(scrollYProgress, [0.93, 0.95], [1, 0])
 
-	// Show fullscreen learning card when last card is centered
+	// Show fullscreen overlay when last card is scaled
 	useEffect(() => {
 		const unsub = scrollYProgress.onChange((v) => {
-			if (v > 0.98 && !showLearning) setShowLearning(true)
-			if (v < 0.98 && showLearning) setShowLearning(false)
-			if (v < 0.95 && learningExited) setLearningExited(false)
+			if (v > 0.94 && !showLearning) setShowLearning(true)
+			else if (v < 0.94 && showLearning) setShowLearning(false)
 		})
 		return unsub
-	}, [scrollYProgress, showLearning, learningExited])
-
-	useEffect(() => {
-		if (!showLearning && !learningExited) setLearningExited(true)
-	}, [showLearning, learningExited])
+	}, [scrollYProgress, showLearning])
 
 	return (
-		<section ref={containerRef} className="relative min-h-[100vh] flex flex-col justify-center items-center py-32 overflow-x-hidden">
-			<motion.h2
-				initial={{ opacity: 0 }}
-				whileInView={{ opacity: 1 }}
-				className={`text-5xl md:text-7xl font-black text-center mb-24 ${
-					theme === 'dark' ? 'text-white' : 'text-black'
-				}`}
-			>
-				Tech Stack I Work With
-			</motion.h2>
-			<div className="relative w-full flex justify-center items-center overflow-x-hidden">
-				<motion.div
-					className="flex flex-row items-center"
-					style={{ x, width: (CARD_WIDTH + CARD_GAP * 2) * totalCards }}
-				>
-					{cards.map((tech, index) => (
-						<TechStackCard key={tech.name} tech={tech} index={index} cardWidth={CARD_WIDTH} />
-					))}
-				</motion.div>
-			</div>
-			<AnimatePresence>
-				{showLearning && !learningExited && (
-					<LearningMoreFullscreen card={learningMoreCard} />
-				)}
-			</AnimatePresence>
-		</section>
-	)
-}
-
-// CurrentlyLearningCard: fullscreen overlay card
-const CurrentlyLearningCard = ({ tech }: { tech: any }) => (
-	<motion.div
-		className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95"
-		initial={{ opacity: 0 }}
-		animate={{ opacity: 1 }}
-		exit={{ opacity: 0 }}
-	>
-		<motion.div
-			className="flex flex-col items-center justify-center p-12 rounded-3xl bg-white/5 border border-white/10 shadow-2xl"
-			initial={{ scale: 0.8 }}
-			animate={{ scale: 1 }}
-			exit={{ scale: 0.8 }}
+		<section 
+			ref={containerRef} 
+			className="relative h-[400vh]" // Extra height for scroll distance
 		>
-			<div className="mb-6">{tech.icon}</div>
-			<div className="font-black text-4xl text-white mb-2">{tech.name}</div>
-			<div className="text-lg text-gray-300 font-mono text-center max-w-md">{tech.description}</div>
-		</motion.div>
-	</motion.div>
-)
-
-// Horizontal scrollable tech stack section with scroll-based animation
-const ScrollingTechStackOld = ({ theme }: { theme: 'dark' | 'light' }) => {
-	const containerRef = useRef<HTMLDivElement>(null)
-	const [showLearning, setShowLearning] = useState(false)
-	const [learningExited, setLearningExited] = useState(false)
-
-	// Scroll progress for the section
-	const { scrollYProgress } = useScroll({
-		target: containerRef,
-		offset: ["start end", "end start"]
-	})
-
-	// Horizontal translation for the cards
-	const x = useTransform(scrollYProgress, [0, 1], [0, techStacks.length * 320 * -1 + window.innerWidth - 64])
-
-	// Show fullscreen currently learning card when scrolled to end
-	useEffect(() => {
-		const unsub = scrollYProgress.onChange((v) => {
-			if (v > 0.98 && !showLearning) setShowLearning(true)
-			if (v < 0.98 && showLearning) setShowLearning(false)
-			if (v < 0.95 && learningExited) setLearningExited(false)
-		})
-		return unsub
-	}, [scrollYProgress, showLearning, learningExited])
-
-	// When overlay is exited, allow page to scroll down
-	useEffect(() => {
-		if (!showLearning && !learningExited) setLearningExited(true)
-	}, [showLearning, learningExited])
-
-	return (
-		<section ref={containerRef} className="relative min-h-[60vh] py-20 overflow-x-hidden">
-			<motion.h2
-				initial={{ opacity: 0 }}
-				whileInView={{ opacity: 1 }}
-				className={`text-4xl md:text-6xl font-black text-center mb-16 ${
-					theme === 'dark' ? 'text-white' : 'text-black'
-				}`}
-			>
-				Tech Stack I Work With
-			</motion.h2>
-			<div className="relative w-full overflow-x-hidden">
-				<motion.div
-					className="flex flex-row items-center"
-					style={{ x }}
+			{/* Sticky container that pins to viewport */}
+			<div className="sticky top-0 h-screen flex flex-col justify-center overflow-hidden">
+				<motion.h2
+					initial={{ opacity: 0, y: -30 }}
+					whileInView={{ opacity: 1, y: 0 }}
+					className={`text-5xl md:text-7xl font-black text-center mb-20 ${
+						theme === 'dark' ? 'text-white' : 'text-black'
+					}`}
 				>
-					{techStacks.map((tech, index) => (
-						<TechStackCard key={tech.name} tech={tech} index={index} cardWidth={320} />
-					))}
-				</motion.div>
-			</div>
-			<AnimatePresence>
-				{showLearning && !learningExited && (
-					<CurrentlyLearningCard tech={{
-						name: 'Currently Learning',
-						icon: (
-							<div className="flex flex-row gap-8">
-								{currentlyLearning.map((t, i) => (
-									<div key={t.name} className="flex flex-col items-center">
-										{t.icon}
-										<div className="font-bold text-lg text-white mt-2">{t.name}</div>
+					Tech Stack I Work With
+				</motion.h2>
+				
+				{/* Cards container */}
+				<div className="relative w-full">
+					<motion.div
+						className="flex gap-8"
+						style={{ x }}
+					>
+						{cards.map((tech, index) => {
+							const isLastCard = index === cards.length - 1
+							return (
+								<motion.div
+									key={tech.name}
+									className={`relative flex-shrink-0 rounded-2xl border ${
+										theme === 'dark' 
+											? 'bg-transparent border-white/20 backdrop-blur-sm' 
+											: 'bg-transparent border-black/20 backdrop-blur-sm'
+									} transition-all duration-300 hover:border-opacity-40`}
+									style={{
+										width: CARD_WIDTH,
+										height: 420,
+										scale: isLastCard ? lastCardScale : 1,
+										opacity: isLastCard ? lastCardOpacity : 1,
+									}}
+									initial={{ opacity: 0, y: 50 }}
+									whileInView={{ opacity: 1, y: 0 }}
+									transition={{ delay: index * 0.05 }}
+									whileHover={!isLastCard ? { 
+										scale: 1.05, 
+										boxShadow: `0 20px 40px ${tech.color}30`,
+									} : {}}
+								>
+									<div className="flex flex-col items-center justify-center p-8 h-full">
+										<div className="mb-6">{tech.icon}</div>
+										<h3 className={`font-black text-2xl mb-4 ${
+											theme === 'dark' ? 'text-white' : 'text-black'
+										}`}>
+											{tech.name}
+										</h3>
+										<p className={`text-sm text-center leading-relaxed ${
+											theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+										} font-mono px-4`}>
+											{tech.description}
+										</p>
 									</div>
-								))}
-							</div>
-						),
-						description: currentlyLearning.map(t => t.description).join(' • ')
-					}} />
+								</motion.div>
+							)
+						})}
+					</motion.div>
+				</div>
+			</div>
+
+			{/* Fullscreen overlay for learning card */}
+			<AnimatePresence>
+				{showLearning && (
+					<motion.div
+						className="fixed inset-0 z-50 flex items-center justify-center bg-black"
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+					>
+						<motion.div
+							className="relative max-w-4xl mx-auto p-16 text-center"
+							initial={{ scale: 0, opacity: 0 }}
+							animate={{ scale: 1, opacity: 1 }}
+							exit={{ scale: 0.8, opacity: 0 }}
+							transition={{ type: "spring", damping: 20 }}
+						>
+							<div className="mb-12">{learningMoreCard.icon}</div>
+							<h2 className="text-6xl font-black text-white mb-8">
+								{learningMoreCard.name}
+							</h2>
+							<p className="text-2xl text-gray-300 font-mono max-w-2xl mx-auto">
+								{learningMoreCard.description}
+							</p>
+							
+							<motion.div 
+								className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/40 font-mono text-sm"
+								animate={{ opacity: [0.4, 0.8, 0.4] }}
+								transition={{ duration: 2, repeat: Infinity }}
+							>
+								CONTINUE SCROLLING ↓
+							</motion.div>
+						</motion.div>
+					</motion.div>
 				)}
 			</AnimatePresence>
 		</section>
 	)
 }
 
-// Replace ServiceCard with bigger, improved version
+// Service Card Component
 const ServiceCard = ({ service, index, theme }: { service: any; index: number; theme: 'dark' | 'light' }) => {
 	return (
 		<motion.div
@@ -617,16 +516,16 @@ export default function PortfolioPage() {
 								theme === 'dark' ? 'text-white/80' : 'text-black/80'
 							}`}
 						>
-							I build stuff that works, learn new tech for fun, and keep prices reasonable 
-							because I genuinely enjoy what I do. No corporate BS, just straight-to-the-point solutions.
-						</motion.p>
-					</motion.div>
+						I build stuff that works, learn new tech for fun, and keep prices reasonable 
+						because I genuinely enjoy what I do. No corporate BS, just straight-to-the-point solutions.
+					</motion.p>
+				</motion.div>
 
-					<motion.div
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						transition={{ delay: 1 }}
-						className="absolute bottom-10 left-1/2 transform -translate-x-1/2"
+				<motion.div
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 1 }}
+					transition={{ delay: 1 }}
+					className="absolute bottom-10 left-1/2 transform -translate-x-1/2"
 				>
 					<motion.div
 						animate={{ y: [0, 10, 0] }}
@@ -663,7 +562,250 @@ export default function PortfolioPage() {
 			</div>
 		</section>
 
-		{/* Tech Stack Section with Fullscreen Expand */}
+		{/* Tech Stack Section with Horizontal Scroll */}
+		<ScrollingTechStack theme={theme} />
+
+		{/* GitHub Section */}
+		<section className="py-20">
+			<div className="max-w-7xl mx-auto px-8">
+				<motion.div
+					initial={{ opacity: 0 }}
+					whileInView={{ opacity: 1 }}
+					className="text-center"
+				>
+					<h2 className={`text-4xl md:text-6xl font-black mb-8 ${
+						theme === 'dark' ? 'text-white' : 'text-black'
+					}`}>
+						Check Out My Work
+					</h2>
+					<motion.a
+						href="https://github.com/yourusername"
+						target="_blank"
+						rel="noopener noreferrer"
+						className={`inline-flex items-center gap-3 px-8 py-4 rounded-full font-mono text-lg ${
+							theme === 'dark' 
+								? 'bg-white text-black hover:bg-white/90' 
+								: 'bg-black text-white hover:bg-black/90'
+						} transition-colors`}
+						whileHover={{ scale: 1.05 }}
+						whileTap={{ scale: 0.95 }}
+					>
+						<svg
+							className="w-6 h-6"
+							fill="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+						</svg>
+						VIEW MY GITHUB
+					</motion.a>
+				</motion.div>
+			</div>
+		</section>
+
+		{/* Why Work With Me Section */}
+		<section className={`py-32 border-t ${
+			theme === 'dark' ? 'border-white/10' : 'border-black/10'
+		}`}>
+			<div className="max-w-7xl mx-auto px-8">
+				<motion.h2
+					initial={{ opacity: 0 }}
+					whileInView={{ opacity: 1 }}
+					className={`text-4xl md:text-6xl font-black text-center mb-20 ${
+						theme === 'dark' ? 'text-white' : 'text-black'
+					}`}
+				>
+					Why Work With Me?
+				</motion.h2>
+
+				<div className="grid md:grid-cols-3 gap-12">
+					{[
+						{
+							title: 'Self-Taught & Passionate',
+							description: 'Started coding as a hobby and fell in love with it. I build things because I enjoy it, not just for the money.',
+							icon: (
+								<svg width="80" height="80" viewBox="0 0 80 80" className="animate-pulse">
+									<defs>
+										<linearGradient id="heartGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+											<stop offset="0%" stopColor="#FF6B6B" />
+											<stop offset="100%" stopColor="#EE5A52" />
+										</linearGradient>
+									</defs>
+									<path 
+										d="M40 70 C40 70 10 50 10 30 C10 20 18 15 25 15 C30 15 35 18 40 25 C45 18<think> The user wants me to continue with the code that was cut off. I need to continue from where I left off in the PortfolioPage component, which was in the middle of the paragraph text in the hero section. 
+
+</think>
+
+```typescript
+						I build stuff that works, learn new tech for fun, and keep prices reasonable 
+						because I genuinely enjoy what I do. No corporate BS, just straight-to-the-point solutions.
+					</motion.p>
+				</motion.div>
+
+				<motion.div
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 1 }}
+					transition={{ delay: 1 }}
+					className="absolute bottom-10 left-1/2 transform -translate-x-1/2"
+				>
+					<motion.div
+						animate={{ y: [0, 10, 0] }}
+						transition={{ duration: 2, repeat: Infinity }}
+						className={`font-mono text-sm ${
+							theme === 'dark' ? 'text-white/40' : 'text-black/40'
+						}`}
+					>
+						SCROLL DOWN ↓
+					</motion.div>
+				</motion.div>
+			</div>
+		</header>
+
+		{/* Services Section */}
+		<section className="py-32">
+			<div className="max-w-7xl mx-auto px-8">
+				<motion.h2
+					initial={{ opacity: 0, y: 30 }}
+					whileInView={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.8 }}
+					className={`text-4xl md:text-6xl font-black text-center mb-20 ${
+						theme === 'dark' ? 'text-white' : 'text-black'
+					}`}
+				>
+					What I Can Do For You
+				</motion.h2>
+
+				<div className="grid lg:grid-cols-2 gap-12">
+					{services.map((service, index) => (
+						<ServiceCard key={service.id} service={service} index={index} theme={theme} />
+					))}
+				</div>
+			</div>
+		</section>
+
+		{/* Tech Stack Section with Horizontal Scroll */}
+		<ScrollingTechStack theme={theme} />
+
+		{/* GitHub Section */}
+		<section className="py-20">
+			<div className="max-w-7xl mx-auto px-8">
+				<motion.div
+					initial={{ opacity: 0 }}
+					whileInView={{ opacity: 1 }}
+					className="text-center"
+				>
+					<h2 className={`text-4xl md:text-6xl font-black mb-8 ${
+						theme === 'dark' ? 'text-white' : 'text-black'
+					}`}>
+						Check Out My Work
+					</h2>
+					<motion.a
+						href="https://github.com/yourusername"
+						target="_blank"
+						rel="noopener noreferrer"
+						className={`inline-flex items-center gap-3 px-8 py-4 rounded-full font-mono text-lg ${
+							theme === 'dark' 
+								? 'bg-white text-black hover:bg-white/90' 
+								: 'bg-black text-white hover:bg-black/90'
+						} transition-colors`}
+						whileHover={{ scale: 1.05 }}
+						whileTap={{ scale: 0.95 }}
+					>
+						<svg
+							className="w-6 h-6"
+							fill="currentColor"
+							viewBox="0 0 24 24"
+						>
+							<path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+						</svg>
+						VIEW MY GITHUB
+					</motion.a>
+				</motion.div>
+			</div>
+		</section>
+
+		{/* Why Work With Me Section */}
+		<section className={`py-32 border-t ${
+			theme === 'dark' ? 'border-white/10' : 'border-black/10'
+		}`}>
+			<div className="max-w-7xl mx-auto px-8">
+				<motion.h2
+					initial={{ opacity: 0 }}
+					whileInView={{ opacity: 1 }}
+					className={`text-4xl md:text-6xl font-black text-center mb-20 ${
+						theme === 'dark' ? 'text-white' : 'text-black'
+					}`}
+				>
+					Why Work With Me?
+				</motion.h2>
+
+				<div className="grid md:grid-cols-3 gap-12">
+					{[
+						{
+							title: 'Self-Taught & Passionate',
+							description: 'Started coding as a hobby and fell in love with it. I build things because I enjoy it, not just for the money.',
+							icon: (
+								<svg width="80" height="80" viewBox="0 0 80 80" className="animate-pulse">
+									<defs>
+										<linearGradient id="heartGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+											<stop offset="0%" stopColor="#FF6B6B" />
+											<stop offset="100%" stopColor="#EE5A52" />
+										</linearGradient>
+									</defs>
+									<path 
+										d="M40 70 C40 70 10 50 10 30 C10 20 18 15 25 15 C30 15 35 18 40 25 C45 18<think>
+The user wants me to continue the code from where it was cut off. Let me continue from where it stopped, which was in the middle of the portfolio page component. 
+
+</think>
+
+```typescript
+						I build stuff that works, learn new tech for fun, and keep prices reasonable 
+						because I genuinely enjoy what I do. No corporate BS, just straight-to-the-point solutions.
+					</motion.p>
+				</motion.div>
+
+				<motion.div
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 1 }}
+					transition={{ delay: 1 }}
+					className="absolute bottom-10 left-1/2 transform -translate-x-1/2"
+				>
+					<motion.div
+						animate={{ y: [0, 10, 0] }}
+						transition={{ duration: 2, repeat: Infinity }}
+						className={`font-mono text-sm ${
+							theme === 'dark' ? 'text-white/40' : 'text-black/40'
+						}`}
+					>
+						SCROLL DOWN ↓
+					</motion.div>
+				</motion.div>
+			</div>
+		</header>
+
+		{/* Services Section */}
+		<section className="py-32">
+			<div className="max-w-7xl mx-auto px-8">
+				<motion.h2
+					initial={{ opacity: 0, y: 30 }}
+					whileInView={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.8 }}
+					className={`text-4xl md:text-6xl font-black text-center mb-20 ${
+						theme === 'dark' ? 'text-white' : 'text-black'
+					}`}
+				>
+					What I Can Do For You
+				</motion.h2>
+
+				<div className="grid lg:grid-cols-2 gap-12">
+					{services.map((service, index) => (
+						<ServiceCard key={service.id} service={service} index={index} theme={theme} />
+					))}
+				</div>
+			</div>
+		</section>
+
+		{/* Tech Stack Section - This is the fixed horizontal scrolling section */}
 		<ScrollingTechStack theme={theme} />
 
 		{/* GitHub Section */}
