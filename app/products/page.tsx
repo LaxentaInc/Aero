@@ -243,6 +243,7 @@ const SmoothCursor = () => {
 // Fixed Horizontal scrollable tech stack section with proper overlay exit
 // Enhanced Horizontal scrollable tech stack with deck animation
 // Fixed Horizontal scrollable tech stack section with deck animation
+// Fixed Horizontal scrollable tech stack section with deck animation
 const ScrollingTechStack = ({ theme }: { theme: 'dark' | 'light' }) => {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [showLearning, setShowLearning] = useState(false)
@@ -265,19 +266,18 @@ const ScrollingTechStack = ({ theme }: { theme: 'dark' | 'light' }) => {
 		offset: ["start start", "end start"]
 	})
 
-	// Phase 1: Horizontal scroll (0 - 0.5)
+	// Calculate horizontal translation
 	const totalScrollableWidth = (CARD_WIDTH + CARD_GAP) * totalCards - viewportWidth + 200
-	const horizontalX = useTransform(scrollYProgress, [0, 0.5], [100, -totalScrollableWidth])
+	const x = useTransform(scrollYProgress, [0, 0.55], [100, -totalScrollableWidth])
 	
-	// Phase 2: Cards come together as deck (0.5 - 0.65)
+	// Cards stack together at center (0.55 - 0.65)
 	const deckCenterX = viewportWidth / 2 - CARD_WIDTH / 2
 	
-	// Phase 3: Learning card moves to top and scales (0.65 - 0.75)
-	const learningCardY = useTransform(scrollYProgress, [0.65, 0.75], [0, -150])
-	const learningCardScale = useTransform(scrollYProgress, [0.70, 0.75], [1, 15])
-	const learningCardOpacity = useTransform(scrollYProgress, [0.72, 0.75], [1, 0])
+	// Last card animations - starts scaling after deck formation
+	const lastCardScale = useTransform(scrollYProgress, [0.65, 0.75], [1, 15])
+	const lastCardOpacity = useTransform(scrollYProgress, [0.72, 0.75], [1, 0])
 
-	// Phase 4: Overlay animations (0.74 - 0.85)
+	// Overlay animations - show and hide with more scroll space
 	const overlayOpacity = useTransform(scrollYProgress, [0.74, 0.76, 0.85, 0.87], [0, 1, 1, 0])
 	const overlayScale = useTransform(scrollYProgress, [0.74, 0.76, 0.85, 0.87], [0.8, 1, 1, 1.1])
 
@@ -316,32 +316,19 @@ const ScrollingTechStack = ({ theme }: { theme: 'dark' | 'light' }) => {
 						className="flex gap-8"
 						style={{ 
 							x: useTransform(scrollYProgress, 
-								[0, 0.5, 0.65], 
+								[0, 0.55, 0.65], 
 								[100, -totalScrollableWidth, deckCenterX]
 							)
 						}}
 					>
 						{cards.map((tech, index) => {
 							const isLastCard = index === cards.length - 1
-							const isRegularCard = !isLastCard
 							
-							// For regular cards: stack them in deck formation during phase 2
-							const cardStackOffset = useTransform(
+							// For regular cards: stack them during deck formation
+							const cardStackY = useTransform(
 								scrollYProgress, 
-								[0.5, 0.65], 
-								[0, -index * 8] // Stack cards with slight offset
-							)
-							
-							const cardStackRotation = useTransform(
-								scrollYProgress, 
-								[0.5, 0.65], 
-								[0, (index - cards.length/2) * 2] // Slight rotation for deck effect
-							)
-
-							const cardStackScale = useTransform(
-								scrollYProgress, 
-								[0.5, 0.65], 
-								[1, 0.9 - index * 0.02] // Slightly scale down stacked cards
+								[0.55, 0.65], 
+								[0, -index * 12] // Stack cards with offset
 							)
 
 							return (
@@ -355,11 +342,9 @@ const ScrollingTechStack = ({ theme }: { theme: 'dark' | 'light' }) => {
 									style={{
 										width: CARD_WIDTH,
 										height: 420,
-										// Apply different animations based on card type
-										y: isLastCard ? learningCardY : cardStackOffset,
-										scale: isLastCard ? learningCardScale : cardStackScale,
-										opacity: isLastCard ? learningCardOpacity : 1,
-										rotate: isRegularCard ? cardStackRotation : 0,
+										y: isLastCard ? 0 : cardStackY,
+										scale: isLastCard ? lastCardScale : 1,
+										opacity: isLastCard ? lastCardOpacity : 1,
 										zIndex: isLastCard ? 50 : totalCards - index,
 									}}
 									initial={{ opacity: 0, y: 50 }}
@@ -427,7 +412,6 @@ const ScrollingTechStack = ({ theme }: { theme: 'dark' | 'light' }) => {
 		</section>
 	)
 }
-
 // Service Card Component
 const ServiceCard = ({ service, index, theme }: { service: any; index: number; theme: 'dark' | 'light' }) => {
 	return (
