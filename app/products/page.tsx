@@ -241,10 +241,13 @@ const SmoothCursor = () => {
 
 // Horizontal scrollable tech stack section with pinned viewport
 // Fixed Horizontal scrollable tech stack section with proper overlay exit
+// Enhanced Horizontal scrollable tech stack with deck animation
 const ScrollingTechStack = ({ theme }: { theme: 'dark' | 'light' }) => {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [showLearning, setShowLearning] = useState(false)
 	const [viewportWidth, setViewportWidth] = useState(0)
+
+	// Card sizing
 	const CARD_WIDTH = 320
 	const CARD_GAP = 32
 	const cards = [...techStacks, learningMoreCard]
@@ -267,15 +270,14 @@ const ScrollingTechStack = ({ theme }: { theme: 'dark' | 'light' }) => {
 	const totalScrollableWidth = (CARD_WIDTH + CARD_GAP) * totalCards - viewportWidth + 200
 	const x = useTransform(scrollYProgress, [0, 0.6], [100, -totalScrollableWidth])
 	
-	// Last card animations - starts scaling earlier
-	const lastCardScale = useTransform(scrollYProgress, [0.6, 0.75], [1, 15])
-	const lastCardOpacity = useTransform(scrollYProgress, [0.72, 0.75], [1, 0])
-
+	// Deck stacking animation progress
+	const deckProgress = useTransform(scrollYProgress, [0.6, 0.75], [0, 1])
+	
 	// Overlay animations - show and hide with more scroll space
 	const overlayOpacity = useTransform(scrollYProgress, [0.74, 0.76, 0.85, 0.87], [0, 1, 1, 0])
 	const overlayScale = useTransform(scrollYProgress, [0.74, 0.76, 0.85, 0.87], [0.8, 1, 1, 1.1])
 
-	// Show fullscreen overlay when last card is scaled
+	// Show fullscreen overlay when deck is formed
 	useEffect(() => {
 		const unsub = scrollYProgress.onChange((v) => {
 			if (v > 0.75 && v < 0.86 && !showLearning) {
@@ -305,13 +307,22 @@ const ScrollingTechStack = ({ theme }: { theme: 'dark' | 'light' }) => {
 				</motion.h2>
 				
 				{/* Cards container */}
-				<div className="relative w-full">
+				<div className="relative w-full h-[420px] flex items-center justify-center">
 					<motion.div
 						className="flex gap-8"
 						style={{ x }}
 					>
 						{cards.map((tech, index) => {
 							const isLastCard = index === cards.length - 1
+							
+							// Calculate deck position for each card
+							const centerX = typeof window !== 'undefined' ? window.innerWidth / 2 - CARD_WIDTH / 2 : 0
+							const centerY = 0
+							
+							// Staggered deck positions
+							const stackOffset = index * 8 // Each card slightly offset in the stack
+							const rotationOffset = (index - totalCards / 2) * 2 // Slight rotation for stack effect
+							
 							return (
 								<motion.div
 									key={tech.name}
@@ -323,13 +334,25 @@ const ScrollingTechStack = ({ theme }: { theme: 'dark' | 'light' }) => {
 									style={{
 										width: CARD_WIDTH,
 										height: 420,
-										scale: isLastCard ? lastCardScale : 1,
-										opacity: isLastCard ? lastCardOpacity : 1,
+									}}
+									animate={{
+										// Deck stacking animation
+										x: deckProgress.get() > 0.1 ? centerX - (scrollYProgress.get() > 0.6 ? (totalScrollableWidth + 100) : 0) + stackOffset : 0,
+										y: deckProgress.get() > 0.1 ? centerY + stackOffset : 0,
+										rotate: deckProgress.get() > 0.1 ? rotationOffset * deckProgress.get() : 0,
+										scale: isLastCard && deckProgress.get() > 0.8 ? 1.2 : deckProgress.get() > 0.1 ? 0.9 - (index * 0.02) : 1,
+										zIndex: isLastCard ? 50 : totalCards - index,
+										opacity: isLastCard && deckProgress.get() > 0.9 ? 0 : 1,
+									}}
+									transition={{ 
+										type: "spring", 
+										stiffness: 100, 
+										damping: 20,
+										duration: 0.8,
 									}}
 									initial={{ opacity: 0, y: 50 }}
 									whileInView={{ opacity: 1, y: 0 }}
-									transition={{ delay: index * 0.05 }}
-									whileHover={!isLastCard ? { 
+									whileHover={deckProgress.get() < 0.1 ? { 
 										scale: 1.05, 
 										boxShadow: `0 20px 40px ${tech.color}30`,
 									} : {}}
@@ -358,32 +381,95 @@ const ScrollingTechStack = ({ theme }: { theme: 'dark' | 'light' }) => {
 			<AnimatePresence>
 				{showLearning && (
 					<motion.div
-						className="fixed inset-0 z-50 flex items-center justify-center bg-black"
+						className="fixed inset-0 z-[100] flex items-center justify-center bg-black"
 						style={{ 
 							opacity: overlayOpacity,
 						}}
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
 					>
 						<motion.div
 							className="relative max-w-4xl mx-auto p-16 text-center"
 							style={{ 
 								scale: overlayScale,
 							}}
+							initial={{ scale: 0, rotateY: 180 }}
+							animate={{ scale: 1, rotateY: 0 }}
+							exit={{ scale: 0.8, rotateY: 180 }}
+							transition={{ 
+								type: "spring", 
+								stiffness: 100, 
+								damping: 20,
+								duration: 0.8 
+							}}
 						>
-							<div className="mb-12">{learningMoreCard.icon}</div>
-							<h2 className="text-6xl font-black text-white mb-8">
-								{learningMoreCard.name}
-							</h2>
-							<p className="text-2xl text-gray-300 font-mono max-w-2xl mx-auto">
-								{learningMoreCard.description}
-							</p>
+							{/* Card-like background */}
+							<motion.div
+								className="absolute inset-0 rounded-2xl border border-white/20 backdrop-blur-sm bg-gradient-to-br from-purple-900/50 to-blue-900/50"
+								initial={{ opacity: 0, scale: 0.8 }}
+								animate={{ opacity: 1, scale: 1 }}
+								transition={{ delay: 0.2 }}
+							/>
 							
-							<motion.div 
-								className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/40 font-mono text-sm"
-								animate={{ opacity: [0.4, 0.8, 0.4] }}
-								transition={{ duration: 2, repeat: Infinity }}
-							>
-								CONTINUE SCROLLING ↓
-							</motion.div>
+							<div className="relative z-10">
+								<motion.div 
+									className="mb-12"
+									initial={{ y: 30, opacity: 0 }}
+									animate={{ y: 0, opacity: 1 }}
+									transition={{ delay: 0.3 }}
+								>
+									{learningMoreCard.icon}
+								</motion.div>
+								<motion.h2 
+									className="text-6xl font-black text-white mb-8"
+									initial={{ y: 30, opacity: 0 }}
+									animate={{ y: 0, opacity: 1 }}
+									transition={{ delay: 0.4 }}
+								>
+									{learningMoreCard.name}
+								</motion.h2>
+								<motion.p 
+									className="text-2xl text-gray-300 font-mono max-w-2xl mx-auto"
+									initial={{ y: 30, opacity: 0 }}
+									animate={{ y: 0, opacity: 1 }}
+									transition={{ delay: 0.5 }}
+								>
+									{learningMoreCard.description}
+								</motion.p>
+								
+								<motion.div 
+									className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/40 font-mono text-sm"
+									animate={{ opacity: [0.4, 0.8, 0.4] }}
+									transition={{ duration: 2, repeat: Infinity }}
+									initial={{ opacity: 0 }}
+									style={{ animationDelay: '1s' }}
+								>
+									CONTINUE SCROLLING ↓
+								</motion.div>
+							</div>
+							
+							{/* Floating particles effect */}
+							{[...Array(6)].map((_, i) => (
+								<motion.div
+									key={i}
+									className="absolute w-2 h-2 bg-white rounded-full"
+									style={{
+										left: `${20 + i * 12}%`,
+										top: `${30 + (i % 2) * 40}%`,
+									}}
+									animate={{
+										y: [-10, 10, -10],
+										opacity: [0.3, 0.8, 0.3],
+										scale: [0.8, 1.2, 0.8],
+									}}
+									transition={{
+										duration: 3,
+										repeat: Infinity,
+										delay: i * 0.2,
+									}}
+								/>
+							))}
 						</motion.div>
 					</motion.div>
 				)}
