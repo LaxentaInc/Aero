@@ -240,12 +240,11 @@ const SmoothCursor = () => {
 }
 
 // Horizontal scrollable tech stack section with pinned viewport
+// Fixed Horizontal scrollable tech stack section with proper overlay exit
 const ScrollingTechStack = ({ theme }: { theme: 'dark' | 'light' }) => {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [showLearning, setShowLearning] = useState(false)
 	const [viewportWidth, setViewportWidth] = useState(0)
-
-	// Card sizing
 	const CARD_WIDTH = 320
 	const CARD_GAP = 32
 	const cards = [...techStacks, learningMoreCard]
@@ -266,17 +265,24 @@ const ScrollingTechStack = ({ theme }: { theme: 'dark' | 'light' }) => {
 
 	// Calculate horizontal translation
 	const totalScrollableWidth = (CARD_WIDTH + CARD_GAP) * totalCards - viewportWidth + 200
-	const x = useTransform(scrollYProgress, [0, 0.9], [100, -totalScrollableWidth])
+	const x = useTransform(scrollYProgress, [0, 0.6], [100, -totalScrollableWidth])
 	
-	// Last card animations
-	const lastCardScale = useTransform(scrollYProgress, [0.85, 0.95], [1, 15])
-	const lastCardOpacity = useTransform(scrollYProgress, [0.93, 0.95], [1, 0])
+	// Last card animations - starts scaling earlier
+	const lastCardScale = useTransform(scrollYProgress, [0.6, 0.75], [1, 15])
+	const lastCardOpacity = useTransform(scrollYProgress, [0.72, 0.75], [1, 0])
+
+	// Overlay animations - show and hide with more scroll space
+	const overlayOpacity = useTransform(scrollYProgress, [0.74, 0.76, 0.85, 0.87], [0, 1, 1, 0])
+	const overlayScale = useTransform(scrollYProgress, [0.74, 0.76, 0.85, 0.87], [0.8, 1, 1, 1.1])
 
 	// Show fullscreen overlay when last card is scaled
 	useEffect(() => {
 		const unsub = scrollYProgress.onChange((v) => {
-			if (v > 0.94 && !showLearning) setShowLearning(true)
-			else if (v < 0.94 && showLearning) setShowLearning(false)
+			if (v > 0.75 && v < 0.86 && !showLearning) {
+				setShowLearning(true)
+			} else if ((v < 0.75 || v > 0.86) && showLearning) {
+				setShowLearning(false)
+			}
 		})
 		return unsub
 	}, [scrollYProgress, showLearning])
@@ -284,7 +290,7 @@ const ScrollingTechStack = ({ theme }: { theme: 'dark' | 'light' }) => {
 	return (
 		<section 
 			ref={containerRef} 
-			className="relative h-[400vh]" // Extra height for scroll distance
+			className="relative h-[600vh]" // Increased height for more scroll distance
 		>
 			{/* Sticky container that pins to viewport */}
 			<div className="sticky top-0 h-screen flex flex-col justify-center overflow-hidden">
@@ -353,16 +359,15 @@ const ScrollingTechStack = ({ theme }: { theme: 'dark' | 'light' }) => {
 				{showLearning && (
 					<motion.div
 						className="fixed inset-0 z-50 flex items-center justify-center bg-black"
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						exit={{ opacity: 0 }}
+						style={{ 
+							opacity: overlayOpacity,
+						}}
 					>
 						<motion.div
 							className="relative max-w-4xl mx-auto p-16 text-center"
-							initial={{ scale: 0, opacity: 0 }}
-							animate={{ scale: 1, opacity: 1 }}
-							exit={{ scale: 0.8, opacity: 0 }}
-							transition={{ type: "spring", damping: 20 }}
+							style={{ 
+								scale: overlayScale,
+							}}
 						>
 							<div className="mb-12">{learningMoreCard.icon}</div>
 							<h2 className="text-6xl font-black text-white mb-8">
