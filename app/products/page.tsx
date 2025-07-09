@@ -1,7 +1,8 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import { motion, useScroll, useTransform, AnimatePresence, useSpring, useInView } from 'framer-motion'
+import { motion, useScroll, useTransform, AnimatePresence, useMotionValue, useSpring, useInView } from 'framer-motion'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useTheme } from '../contexts/ThemeContext'
 import { FaReact, FaNodeJs, FaPython, FaRust } from 'react-icons/fa'
 import { SiNextdotjs, SiTypescript, SiVuedotjs, SiDiscord } from 'react-icons/si'
@@ -89,39 +90,39 @@ const services = [
 					</linearGradient>
 				</defs>
 				<motion.rect 
-					width="48" 
-					height="36" 
-					x="16" 
-					y="22" 
-					rx="8" 
+					width={48} 
+					height={36} 
+					x={16} 
+					y={22} 
+					rx={8} 
 					fill="url(#botGradient)"
 					animate={{ scale: [1, 1.05, 1] }}
 					transition={{ duration: 2, repeat: Infinity }}
 				/>
 				<motion.circle 
-					cx="28" 
-					cy="34" 
-					r="4" 
+					cx={28} 
+					cy={34} 
+					r={4} 
 					fill="white"
 					animate={{ y: [-2, 2, -2] }}
 					transition={{ duration: 1.5, repeat: Infinity }}
 				/>
 				<motion.circle 
-					cx="52" 
-					cy="34" 
-					r="4" 
+					cx={52} 
+					cy={34} 
+					r={4} 
 					fill="white"
 					animate={{ y: [-2, 2, -2] }}
 					transition={{ duration: 1.5, repeat: Infinity, delay: 0.3 }}
 				/>
 				<motion.rect 
-					x="24" 
-					y="44" 
-					width="32" 
-					height="4" 
-					rx="2" 
+					x={24} 
+					y={44} 
+					width={32} 
+					height={4} 
+					rx={2} 
 					fill="white" 
-					fillOpacity="0.8"
+					fillOpacity={0.8}
 					animate={{ scaleX: [0.8, 1, 0.8] }}
 					transition={{ duration: 2, repeat: Infinity }}
 				/>
@@ -168,67 +169,67 @@ const services = [
 					</linearGradient>
 				</defs>
 				<motion.rect 
-					width="60" 
-					height="44" 
-					x="10" 
-					y="18" 
-					rx="4" 
+					width={60} 
+					height={44} 
+					x={10} 
+					y={18} 
+					rx={4} 
 					fill="url(#webGradient)"
 					animate={{ rotateY: [0, 5, 0] }}
 					transition={{ duration: 3, repeat: Infinity }}
 				/>
-				<rect width="60" height="8" x="10" y="18" rx="4" fill="#fff" fillOpacity="0.2" />
+				<rect width={60} height={8} x={10} y={18} rx={4} fill="#fff" fillOpacity={0.2} />
 				<motion.circle 
-					cx="18" 
-					cy="22" 
-					r="1.5" 
+					cx={18} 
+					cy={22} 
+					r={1.5} 
 					fill="white"
 					animate={{ opacity: [1, 0.5, 1] }}
 					transition={{ duration: 1, repeat: Infinity }}
 				/>
 				<motion.circle 
-					cx="24" 
-					cy="22" 
-					r="1.5" 
+					cx={24} 
+					cy={22} 
+					r={1.5} 
 					fill="white"
 					animate={{ opacity: [1, 0.5, 1] }}
 					transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
 				/>
 				<motion.circle 
-					cx="30" 
-					cy="22" 
-					r="1.5" 
+					cx={30} 
+					cy={22} 
+					r={1.5} 
 					fill="white"
 					animate={{ opacity: [1, 0.5, 1] }}
 					transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
 				/>
 				<motion.rect 
-					x="18" 
-					y="32" 
-					width="24" 
-					height="2" 
+					x={18} 
+					y={32} 
+					width={24} 
+					height={2} 
 					fill="white" 
-					fillOpacity="0.6"
+					fillOpacity={0.6}
 					animate={{ scaleX: [0, 1] }}
 					transition={{ duration: 1.5, repeat: Infinity }}
 				/>
 				<motion.rect 
-					x="18" 
-					y="36" 
-					width="18" 
-					height="2" 
+					x={18} 
+					y={36} 
+					width={18} 
+					height={2} 
 					fill="white" 
-					fillOpacity="0.4"
+					fillOpacity={0.4}
 					animate={{ scaleX: [0, 1] }}
 					transition={{ duration: 1.5, repeat: Infinity, delay: 0.2 }}
 				/>
 				<motion.rect 
-					x="18" 
-					y="40" 
-					width="28" 
-					height="2" 
+					x={18} 
+					y={40} 
+					width={28} 
+					height={2} 
 					fill="white" 
-					fillOpacity="0.6"
+					fillOpacity={0.6}
 					animate={{ scaleX: [0, 1] }}
 					transition={{ duration: 1.5, repeat: Infinity, delay: 0.4 }}
 				/>
@@ -259,49 +260,64 @@ const services = [
 					</linearGradient>
 				</defs>
 				<motion.rect 
-					width="12" 
-					height="32" 
-					x="14" 
-					y="24" 
-					rx="6" 
+					width={12} 
+					height={32}
+					x={14} 
+					y={24} 
+					rx={6} 
 					fill="url(#apiGradient)"
-					animate={{ height: [32, 36, 32] }}
+					initial={{ height: 32, y: 24 }}
+					animate={{ height: [32, 36, 32], y: [24, 22, 24] }}
 					transition={{ duration: 2, repeat: Infinity }}
 				/>
 				<motion.rect 
-					width="12" 
-					height="28" 
-					x="34" 
-					y="26" 
-					rx="6" 
+					width={12} 
+					height={28}
+					x={34} 
+					y={26} 
+					rx={6} 
 					fill="url(#apiGradient)"
-					animate={{ height: [28, 32, 28] }}
+					initial={{ height: 28, y: 26 }}
+					animate={{ height: [28, 32, 28], y: [26, 24, 26] }}
 					transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
 				/>
 				<motion.rect 
-					width="12" 
-					height="24" 
-					x="54" 
-					y="28" 
-					rx="6" 
+					width={12} 
+					height={24}
+					x={54} 
+					y={28} 
+					rx={6} 
 					fill="url(#apiGradient)"
-					animate={{ height: [24, 28, 24] }}
+					initial={{ height: 24, y: 28 }}
+					animate={{ height: [24, 28, 24], y: [28, 26, 28] }}
 					transition={{ duration: 2, repeat: Infinity, delay: 1 }}
 				/>
-				<motion.path 
+				<path 
 					d="M26 40 Q30 36 34 40" 
 					stroke="white" 
 					strokeWidth="2" 
 					fill="none"
-					animate={{ d: ["M26 40 Q30 36 34 40", "M26 40 Q30 44 34 40", "M26 40 Q30 36 34 40"] }}
+				/>
+				<motion.circle
+					cx={30}
+					cy={38}
+					r={2}
+					fill="white"
+					animate={{ cy: [38, 42, 38] }}
 					transition={{ duration: 2, repeat: Infinity }}
 				/>
-				<motion.path 
+				<path 
 					d="M46 40 Q50 36 54 40" 
 					stroke="white" 
 					strokeWidth="2" 
 					fill="none"
-					animate={{ d: ["M46 40 Q50 36 54 40", "M46 40 Q50 44 54 40", "M46 40 Q50 36 54 40"] }}
+				/>
+				<motion.circle
+					cx={50}
+					cy={38}
+					r={2}
+					fill="white"
+					animate={{ cy: [38, 42, 38] }}
 					transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
 				/>
 			</motion.svg>
@@ -331,59 +347,59 @@ const services = [
 					</linearGradient>
 				</defs>
 				<motion.rect 
-					width="52" 
-					height="40" 
-					x="14" 
-					y="20" 
-					rx="4" 
+					width={52} 
+					height={40} 
+					x={14} 
+					y={20} 
+					rx={4} 
 					fill="url(#codeGradient)"
 					animate={{ scale: [1, 1.02, 1] }}
 					transition={{ duration: 3, repeat: Infinity }}
 				/>
 				<motion.rect 
-					x="20" 
-					y="28" 
-					width="12" 
-					height="2" 
+					x={20} 
+					y={28} 
+					width={12} 
+					height={2} 
 					fill="white" 
-					fillOpacity="0.8"
+					fillOpacity={0.8}
 					animate={{ opacity: [0.3, 0.8, 0.3] }}
 					transition={{ duration: 2, repeat: Infinity }}
 				/>
 				<motion.rect 
-					x="34" 
-					y="28" 
-					width="16" 
-					height="2" 
+					x={34} 
+					y={28} 
+					width={16} 
+					height={2} 
 					fill="white" 
-					fillOpacity="0.6"
+					fillOpacity={0.6}
 					animate={{ opacity: [0.3, 0.6, 0.3] }}
 					transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
 				/>
 				<motion.rect 
-					x="20" 
-					y="32" 
-					width="20" 
-					height="2" 
+					x={20} 
+					y={32} 
+					width={20} 
+					height={2} 
 					fill="white" 
-					fillOpacity="0.8"
+					fillOpacity={0.8}
 					animate={{ opacity: [0.3, 0.8, 0.3] }}
 					transition={{ duration: 2, repeat: Infinity, delay: 1 }}
 				/>
 				<motion.rect 
-					x="42" 
-					y="32" 
-					width="8" 
-					height="2" 
+					x={42} 
+					y={32} 
+					width={8} 
+					height={2} 
 					fill="white" 
-					fillOpacity="0.6"
+					fillOpacity={0.6}
 					animate={{ opacity: [0.3, 0.6, 0.3] }}
 					transition={{ duration: 2, repeat: Infinity, delay: 1.5 }}
 				/>
 				<motion.circle 
-					cx="56" 
-					cy="26" 
-					r="10" 
+					cx={56} 
+					cy={26} 
+					r={10} 
 					fill="#10B981"
 					animate={{ scale: [0.9, 1.1, 0.9] }}
 					transition={{ duration: 1.5, repeat: Infinity }}
@@ -473,101 +489,182 @@ const SmoothCursor = ({ theme }: { theme: 'dark' | 'light' }) => {
 	)
 }
 
-// Improved Horizontal Scrolling Tech Stack
 const ScrollingTechStack = ({ theme }: { theme: 'dark' | 'light' }) => {
 	const containerRef = useRef<HTMLDivElement>(null)
-	const [showOverlay, setShowOverlay] = useState(false)
-	const isInView = useInView(containerRef, { margin: '-20% 0px -20% 0px', amount: 0.2 })
-
-	const { scrollYProgress } = useScroll({
-		target: containerRef,
-		offset: ["start end", "end start"]
+	const [currentIndex, setCurrentIndex] = useState(0)
+	const [isAutoScrolling, setIsAutoScrolling] = useState(false)
+	
+	// Check if component is in view
+	const isInView = useInView(containerRef, { 
+		amount: 0.3,
+		margin: "-10% 0px -10% 0px"
 	})
-
-	const xOffset = useTransform(
-		scrollYProgress, 
-		[0, 0.5, 1], 
-		isInView ? ['50vw', '0vw', '-50vw'] : ['0vw', '0vw', '0vw']
-	)
-	const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.8, 1, 0.8])
-	const opacity = useTransform(scrollYProgress, [0, 0.1, 0.9, 1], [0, 1, 1, 0])
-
+	
+	// Auto-scroll through tech stack when in view
 	useEffect(() => {
-		const unsubscribe = scrollYProgress.on("change", (latest) => {
-			setShowOverlay(latest > 0.9 && isInView)
-		})
-		return () => unsubscribe()
-	}, [scrollYProgress, isInView])
+		if (!isInView) return
+		
+		setIsAutoScrolling(true)
+		const interval = setInterval(() => {
+			setCurrentIndex(prev => {
+				if (prev >= techStacks.length - 1) {
+					setIsAutoScrolling(false)
+					return prev
+				}
+				return prev + 1
+			})
+		}, 2000) // 2 seconds per tech
+		
+		return () => clearInterval(interval)
+	}, [isInView])
+	
+	// Reset when component comes back into view
+	useEffect(() => {
+		if (isInView && !isAutoScrolling) {
+			setCurrentIndex(0)
+		}
+	}, [isInView, isAutoScrolling])
 
 	return (
-		<section ref={containerRef} className="relative py-32 min-h-[800px] overflow-hidden bg-transparent">
-			<motion.h2
-				initial={{ opacity: 0, y: -30 }}
-				whileInView={{ opacity: 1, y: 0 }}
-				className={`text-5xl md:text-7xl font-black text-center mb-20 ${
-					theme === 'dark' ? 'text-white' : 'text-black'
-				}`}
-			>
-				tech stack me works with :3
-			</motion.h2>
-			
-			<div className="relative h-[500px] flex items-center justify-center">
-				<motion.div 
-					className="flex gap-8"
-					style={{ x: xOffset, scale, opacity }}
+		<section 
+			ref={containerRef} 
+			className={`relative py-20 min-h-screen overflow-hidden ${
+				theme === 'dark' ? 'bg-black' : 'bg-white'
+			}`}
+		>
+			<div className="h-full flex flex-col justify-center">
+				<motion.h2
+					initial={{ opacity: 0, y: -30 }}
+					whileInView={{ opacity: 1, y: 0 }}
+					className={`text-5xl md:text-7xl font-black text-center mb-20 ${
+						theme === 'dark' ? 'text-white' : 'text-black'
+					}`}
 				>
-					{techStacks.map((tech, index) => (
-						<motion.div
-							key={tech.name}
-							className={`relative flex-shrink-0 w-[320px] h-[420px] rounded-2xl border overflow-hidden ${
-								theme === 'dark' 
-									? 'bg-gradient-to-br from-gray-900/90 to-black/90 border-white/20' 
-									: 'bg-gradient-to-br from-white/90 to-gray-100/90 border-black/20'
-							} backdrop-blur-xl shadow-2xl`}
-							initial={{ opacity: 0, scale: 0.8 }}
-							whileInView={{ opacity: 1, scale: 1 }}
-							transition={{ delay: index * 0.1 }}
-							style={{ backgroundImage: tech.bgImage }}
-						>
-							<div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-transparent via-transparent to-white/5" />
-							
-							<div className="relative flex flex-col items-center justify-center p-8 h-full">
-								<motion.div 
-									className="mb-6"
-									whileHover={{ scale: 1.2, rotate: 5 }}
-									transition={{ type: "spring", stiffness: 300 }}
-								>
-									{typeof tech.icon === 'function' ? tech.icon(theme) : tech.icon}
-								</motion.div>
-								
-								<h3 className={`font-black text-2xl mb-4 ${
-									theme === 'dark' ? 'text-white' : 'text-black'
-								}`}>
-									{tech.name}
-								</h3>
-								
-								<p className={`text-sm text-center leading-relaxed ${
-									theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-								} font-mono`}>
-									{tech.description}
-								</p>
-							</div>
-						</motion.div>
-					))}
-				</motion.div>
+					tech stack I work with :3
+				</motion.h2>
 				
-				{/* Learning More Overlay */}
-				<AnimatePresence>
-					{showOverlay && (
+				<div className="relative h-[500px] flex items-center justify-center overflow-hidden px-8">
+					<div className="relative w-full max-w-6xl">
+						{/* Desktop: Show multiple cards */}
+						<div className="hidden md:flex gap-8 justify-center">
+							{techStacks.map((tech, index) => (
+								<motion.div
+									key={tech.name}
+									className={`flex-shrink-0 w-[280px] h-[380px] rounded-2xl border overflow-hidden ${
+										theme === 'dark' 
+											? 'bg-gradient-to-br from-gray-900/90 to-black/90 border-white/20' 
+											: 'bg-gradient-to-br from-white/90 to-gray-100/90 border-black/20'
+									} backdrop-blur-xl shadow-2xl`}
+									initial={{ opacity: 0, y: 100 }}
+									whileInView={{ 
+										opacity: 1, 
+										y: 0,
+										transition: { delay: index * 0.1, duration: 0.5 }
+									}}
+									whileHover={{ 
+										scale: 1.05,
+										transition: { duration: 0.2 }
+									}}
+									viewport={{ once: true }}
+									style={{ backgroundImage: tech.bgImage }}
+								>
+									<div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-transparent via-transparent to-white/5" />
+									
+									<div className="relative flex flex-col items-center justify-center p-6 h-full">
+										<motion.div 
+											className="mb-6"
+											whileHover={{ scale: 1.2, rotate: 5 }}
+											transition={{ type: "spring", stiffness: 300 }}
+										>
+											{typeof tech.icon === 'function' ? tech.icon(theme) : tech.icon}
+										</motion.div>
+										
+										<h3 className={`font-black text-xl mb-4 ${
+											theme === 'dark' ? 'text-white' : 'text-black'
+										}`}>
+											{tech.name}
+										</h3>
+										
+										<p className={`text-sm text-center leading-relaxed ${
+											theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+										} font-mono`}>
+											{tech.description}
+										</p>
+									</div>
+								</motion.div>
+							))}
+						</div>
+						
+						{/* Mobile: Show one card at a time */}
+						<div className="md:hidden flex justify-center">
+							<AnimatePresence mode="wait">
+								<motion.div
+									key={currentIndex}
+									className={`w-[320px] h-[420px] rounded-2xl border overflow-hidden ${
+										theme === 'dark' 
+											? 'bg-gradient-to-br from-gray-900/90 to-black/90 border-white/20' 
+											: 'bg-gradient-to-br from-white/90 to-gray-100/90 border-black/20'
+									} backdrop-blur-xl shadow-2xl`}
+									initial={{ opacity: 0, x: 100 }}
+									animate={{ opacity: 1, x: 0 }}
+									exit={{ opacity: 0, x: -100 }}
+									transition={{ duration: 0.5 }}
+									style={{ backgroundImage: techStacks[currentIndex]?.bgImage }}
+								>
+									<div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-transparent via-transparent to-white/5" />
+									
+									<div className="relative flex flex-col items-center justify-center p-8 h-full">
+										<motion.div 
+											className="mb-6"
+											animate={{ scale: [1, 1.1, 1] }}
+											transition={{ duration: 2, repeat: Infinity }}
+										>
+											{typeof techStacks[currentIndex]?.icon === 'function' 
+												? techStacks[currentIndex].icon(theme) 
+												: techStacks[currentIndex]?.icon}
+										</motion.div>
+										
+										<h3 className={`font-black text-2xl mb-4 ${
+											theme === 'dark' ? 'text-white' : 'text-black'
+										}`}>
+											{techStacks[currentIndex]?.name}
+										</h3>
+										
+										<p className={`text-sm text-center leading-relaxed ${
+											theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+										} font-mono`}>
+											{techStacks[currentIndex]?.description}
+										</p>
+									</div>
+								</motion.div>
+							</AnimatePresence>
+						</div>
+					</div>
+					
+					{/* Progress indicator */}
+					<div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
+						{techStacks.map((_, index) => (
+							<div
+								key={index}
+								className={`w-2 h-2 rounded-full transition-all duration-300 ${
+									index <= currentIndex
+										? 'bg-gradient-to-r from-purple-500 to-blue-500'
+										: theme === 'dark' ? 'bg-white/20' : 'bg-black/20'
+								}`}
+							/>
+						))}
+					</div>
+					
+					{/* Currently Learning Section */}
+					{currentIndex >= techStacks.length - 1 && (
 						<motion.div
 							initial={{ scale: 0, opacity: 0 }}
 							animate={{ scale: 1, opacity: 1 }}
-							exit={{ scale: 0, opacity: 0 }}
-							transition={{ type: "spring", stiffness: 200, damping: 20 }}
+							transition={{ delay: 1, type: "spring", stiffness: 200, damping: 20 }}
 							className="absolute inset-0 flex items-center justify-center z-10"
 						>
 							<motion.div
-								className={`relative w-[600px] h-[400px] rounded-3xl border overflow-hidden ${
+								className={`relative w-[90%] max-w-[600px] h-[400px] rounded-3xl border overflow-hidden ${
 									theme === 'dark' 
 										? 'bg-gradient-to-br from-gray-900 to-black border-white/30' 
 										: 'bg-gradient-to-br from-white to-gray-100 border-black/30'
@@ -583,9 +680,9 @@ const ScrollingTechStack = ({ theme }: { theme: 'dark' | 'light' }) => {
 							>
 								<div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-transparent to-orange-500/10" />
 								
-								<div className="relative flex flex-col items-center justify-center p-12 h-full">
+								<div className="relative flex flex-col items-center justify-center p-8 h-full">
 									<motion.h3 
-										className={`text-4xl font-black mb-8 ${
+										className={`text-3xl md:text-4xl font-black mb-8 ${
 											theme === 'dark' ? 'text-white' : 'text-black'
 										}`}
 										animate={{ scale: [1, 1.05, 1] }}
@@ -594,7 +691,7 @@ const ScrollingTechStack = ({ theme }: { theme: 'dark' | 'light' }) => {
 										Currently Learning
 									</motion.h3>
 									
-									<div className="flex gap-12 mb-8">
+									<div className="flex gap-8 md:gap-12 mb-8">
 										<motion.div
 											animate={{ 
 												y: [-10, 10, -10],
@@ -602,7 +699,7 @@ const ScrollingTechStack = ({ theme }: { theme: 'dark' | 'light' }) => {
 											}}
 											transition={{ duration: 3, repeat: Infinity }}
 										>
-											<FaRust size={80} color="#CE422B" />
+											<FaRust size={60} color="#CE422B" />
 										</motion.div>
 										<motion.div
 											animate={{ 
@@ -611,103 +708,138 @@ const ScrollingTechStack = ({ theme }: { theme: 'dark' | 'light' }) => {
 											}}
 											transition={{ duration: 3, repeat: Infinity }}
 										>
-											<FaPython size={80} color="#3776AB" />
+											<FaPython size={60} color="#3776AB" />
 										</motion.div>
 									</div>
 									
-									<p className={`text-lg text-center leading-relaxed ${
+									<p className={`text-base md:text-lg text-center leading-relaxed ${
 										theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
 									} font-mono max-w-md`}>
 										Expanding my skills with Rust for systems programming and Python for AI/ML. 
 										Always learning, always growing!
 									</p>
-									
-									<motion.div
-										className="absolute bottom-4 left-1/2 -translate-x-1/2"
-										animate={{ opacity: [0.3, 0.7, 0.3] }}
-										transition={{ duration: 2, repeat: Infinity }}
-									>
-										<span className={`text-xs font-mono ${
-											theme === 'dark' ? 'text-white/40' : 'text-black/40'
-										}`}>
-											SCROLL BACK UP TO EXPLORE MORE
-										</span>
-									</motion.div>
 								</div>
 							</motion.div>
 						</motion.div>
 					)}
-				</AnimatePresence>
+				</div>
 			</div>
 		</section>
 	)
 }
 
-// Service Card Component
+
+// Typing Animation Component
+const TypingAnimation = ({ text, delay = 0, theme }: { text: string, delay?: number, theme: 'dark' | 'light' }) => {
+	const [displayText, setDisplayText] = useState('')
+	const [showCursor, setShowCursor] = useState(true)
+	const elementRef = useRef<HTMLDivElement>(null)
+	const isInView = useInView(elementRef, { once: true })
+	
+	useEffect(() => {
+		if (!isInView) return
+		
+		const timeout = setTimeout(() => {
+			let currentIndex = 0
+			const typingInterval = setInterval(() => {
+				if (currentIndex <= text.length) {
+					setDisplayText(text.slice(0, currentIndex))
+					currentIndex++
+				} else {
+					clearInterval(typingInterval)
+				}
+			}, 60) // ~100 words per minute
+
+			return () => clearInterval(typingInterval)
+		}, delay)
+
+		return () => clearTimeout(timeout)
+	}, [text, delay, isInView])
+
+	useEffect(() => {
+		const cursorInterval = setInterval(() => {
+			setShowCursor(prev => !prev)
+		}, 500)
+		return () => clearInterval(cursorInterval)
+	}, [])
+
+	return (
+		<div ref={elementRef}>
+			<span className={`font-mono ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+				{displayText}
+				<span className={showCursor ? 'opacity-100' : 'opacity-0'}>_</span>
+			</span>
+		</div>
+	)
+}
+
+// Service Card Component with Link
 const ServiceCard = ({ service, index, theme }: { service: typeof services[0], index: number, theme: 'dark' | 'light' }) => {
 	return (
-		<motion.div
-			initial={{ opacity: 0, y: 50 }}
-			whileInView={{ opacity: 1, y: 0 }}
-			transition={{ delay: index * 0.1 }}
-			whileHover={{ y: -10 }}
-			className={`relative p-8 rounded-3xl overflow-hidden ${
-				theme === 'dark' 
-					? 'bg-gradient-to-br from-gray-900/90 to-black/90 border border-white/20' 
-					: 'bg-gradient-to-br from-white/90 to-gray-100/90 border border-black/20'
-			} backdrop-blur-xl shadow-2xl group`}
-			style={{ backgroundImage: service.bgImage }}
-		>
-			<div className={`absolute inset-0 bg-gradient-to-r ${service.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
-			
-			<div className="relative z-10">
-				<motion.div 
-					className="mb-6"
-					whileHover={{ scale: 1.1, rotate: 5 }}
-					transition={{ type: "spring", stiffness: 300 }}
-				>
-					{service.icon}
-				</motion.div>
+		<Link href="/contact">
+			<motion.div
+				initial={{ opacity: 0, y: 50 }}
+				whileInView={{ opacity: 1, y: 0 }}
+				transition={{ delay: index * 0.1 }}
+				whileHover={{ y: -10 }}
+				className={`relative p-8 rounded-3xl overflow-hidden cursor-pointer ${
+					theme === 'dark' 
+						? 'bg-gradient-to-br from-gray-900/90 to-black/90 border border-white/20' 
+						: 'bg-gradient-to-br from-white/90 to-gray-100/90 border border-black/20'
+				} backdrop-blur-xl shadow-2xl group`}
+				style={{ backgroundImage: service.bgImage }}
+			>
+				<div className={`absolute inset-0 bg-gradient-to-r ${service.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
 				
-				<h3 className={`text-2xl font-bold mb-4 ${
-					theme === 'dark' ? 'text-white' : 'text-black'
-				}`}>
-					{service.title}
-				</h3>
-				
-				<p className={`mb-6 ${
-					theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-				}`}>
-					{service.description}
-				</p>
-				
-				<div className="flex flex-wrap gap-2 mb-6">
-					{service.features.map((feature, idx) => (
-						<motion.span
-							key={idx}
-							initial={{ opacity: 0, scale: 0.8 }}
-							whileInView={{ opacity: 1, scale: 1 }}
-							transition={{ delay: idx * 0.05 }}
-							className={`px-3 py-1 rounded-full text-xs font-mono ${
-								theme === 'dark' 
-									? 'bg-white/10 text-white/70' 
-									: 'bg-black/10 text-black/70'
-							}`}
-						>
-							{feature}
-						</motion.span>
-					))}
+				<div className="relative z-10">
+					<motion.div 
+						className="mb-6"
+						whileHover={{ scale: 1.1, rotate: 5 }}
+						transition={{ type: "spring", stiffness: 300 }}
+					>
+						{service.icon}
+					</motion.div>
+					
+					<h3 className={`text-2xl font-bold mb-4 ${
+						theme === 'dark' ? 'text-white' : 'text-black'
+					}`}>
+						{service.title}
+					</h3>
+					
+					<p className={`mb-6 ${
+						theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+					}`}>
+						{service.description}
+					</p>
+					
+					<div className="flex flex-wrap gap-2 mb-6">
+						{service.features.map((feature, idx) => (
+							<motion.span
+								key={idx}
+								initial={{ opacity: 0, scale: 0.8 }}
+								whileInView={{ opacity: 1, scale: 1 }}
+								transition={{ delay: idx * 0.05 }}
+								className={`px-3 py-1 rounded-full text-xs font-mono ${
+									theme === 'dark' 
+										? 'bg-white/10 text-white/70' 
+										: 'bg-black/10 text-black/70'
+								}`}
+							>
+								{feature}
+							</motion.span>
+						))}
+					</div>
+					
+					<motion.div
+						className={`text-2xl font-bold bg-gradient-to-r ${service.gradient} bg-clip-text text-transparent`}
+						animate={{ opacity: [0.7, 1, 0.7] }}
+						transition={{ duration: 2, repeat: Infinity }}
+					>
+						{service.price}
+					</motion.div>
 				</div>
-				
-				<motion.div
-					className={`text-2xl font-bold bg-gradient-to-r ${service.gradient} bg-clip-text text-transparent`}
-					animate={{ opacity: [0.7, 1, 0.7] }}
-					transition={{ duration: 2, repeat: Infinity }}
-				>
-					{service.price}
-				</motion.div>
-			</div>
-		</motion.div>
+			</motion.div>
+		</Link>
 	)
 }
 
@@ -719,6 +851,7 @@ const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
 				muted
 				loop
 				playsInline
+				crossOrigin="anonymous"
 				className={`absolute top-0 left-0 w-full h-full object-cover ${
 					theme === 'dark' ? 'opacity-40' : 'opacity-20'
 				}`}
@@ -740,6 +873,23 @@ const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
 export default function HomePage() {
 	const { theme } = useTheme()
 	const router = useRouter()
+
+	const skillsText = `// My Skills
+• JavaScript - Experienced in building interactive web apps
+• React/Next.js - Proficient in SSR & static applications
+• Node.js - Skilled in scalable backend services
+• Python - Automation, scripting & data analysis
+• Rust - Systems programming & optimization
+• TypeScript - Type-safe development
+• Vue.js - Component-based UI development
+• Discord.js - Building powerful Discord bots`
+
+	const journeyText = `// My Journey
+$ Started programming at age 12, built my first website using HTML & CSS
+$ Learned JavaScript and fell in love with interactive web development
+$ Built Discord bots for communities, learned Node.js and API design
+$ Developed full-stack applications for small businesses and startups
+$ Currently exploring Rust & Python for system programming and AI/ML`
 
 	return (
 		<motion.div 
@@ -809,7 +959,7 @@ export default function HomePage() {
 				</div>
 			</section>
 
-			{/* About Section */}
+			{/* About Section - IMPROVED */}
 			<section className="py-20">
 				<div className="max-w-7xl mx-auto px-8">
 					<motion.div
@@ -823,7 +973,9 @@ export default function HomePage() {
 						<h2 className="text-4xl md:text-5xl font-extrabold mb-4">
 							About Me
 						</h2>
-						<p className="text-lg md:text-xl leading-relaxed max-w-3xl mx-auto">
+						<p className={`text-lg md:text-xl leading-relaxed max-w-3xl mx-auto font-mono ${
+							theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+						}`}>
 							I'm a passionate developer with experience in building dynamic and responsive web applications. 
 							My journey in tech started with a curiosity to understand how things work under the hood. 
 							Today, I enjoy turning complex problems into simple, beautiful, and intuitive designs.
@@ -835,70 +987,42 @@ export default function HomePage() {
 							initial={{ opacity: 0, y: 50 }}
 							whileInView={{ opacity: 1, y: 0 }}
 							transition={{ duration: 0.7 }}
-							className={`p-8 rounded-3xl overflow-hidden ${
+							className={`relative p-8 rounded-3xl overflow-hidden ${
 								theme === 'dark' 
-									? 'bg-gradient-to-br from-gray-900/90 to-black/90 border border-white/20' 
-									: 'bg-gradient-to-br from-white/90 to-gray-100/90 border border-black/20'
-							} backdrop-blur-xl shadow-2xl`}
+									? 'bg-white/5' 
+									: 'bg-black/5'
+							} backdrop-blur-2xl shadow-2xl border ${
+								theme === 'dark' ? 'border-white/10' : 'border-black/10'
+							}`}
 						>
-							<h3 className={`text-2xl font-bold mb-4 ${
-								theme === 'dark' ? 'text-white' : 'text-black'
-							}`}>
-								My Skills
-							</h3>
-							
-							<ul className="list-disc list-inside space-y-2">
-								<li className={`text-sm ${
-									theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-								}`}>
-									<span className="font-medium">JavaScript:</span> Experienced in building interactive web applications.
-								</li>
-								<li className={`text-sm ${
-									theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-								}`}>
-									<span className="font-medium">React & Next.js:</span> Proficient in building server-side rendered and static web applications.
-								</li>
-								<li className={`text-sm ${
-									theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-								}`}>
-									<span className="font-medium">Node.js:</span> Skilled in building scalable backend services.
-								</li>
-								<li className={`text-sm ${
-									theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-								}`}>
-									<span className="font-medium">Python:</span> Knowledgeable in scripting, automation, and data analysis.
-								</li>
-								<li className={`text-sm ${
-									theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-								}`}>
-									<span className="font-medium">Rust:</span> Familiar with systems programming and performance optimization.
-								</li>
-							</ul>
+							<div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-transparent to-blue-500/10" />
+							<div className="relative z-10">
+								<div className={`${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+									<TypingAnimation text={skillsText} theme={theme} />
+								</div>
+							</div>
 						</motion.div>
 						
 						<motion.div
 							initial={{ opacity: 0, y: 50 }}
 							whileInView={{ opacity: 1, y: 0 }}
 							transition={{ duration: 0.7 }}
-							className={`p-8 rounded-3xl overflow-hidden ${
+							className={`relative p-8 rounded-3xl overflow-hidden ${
 								theme === 'dark' 
-									? 'bg-gradient-to-br from-gray-900/90 to-black/90 border border-white/20' 
-									: 'bg-gradient-to-br from-white/90 to-gray-100/90 border border-black/20'
-							} backdrop-blur-xl shadow-2xl`}
+									? 'bg-white/5' 
+									: 'bg-black/5'
+							} backdrop-blur-2xl shadow-2xl border ${
+								theme === 'dark' ? 'border-white/10' : 'border-black/10'
+							}`}
 						>
-							<h3 className={`text-2xl font-bold mb-4 ${
-								theme === 'dark' ? 'text-white' : 'text-black'
-							}`}>
-								My Journey
-							</h3>
-							
-							<p className={`text-sm leading-relaxed ${
-								theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-							} font-mono`}>
-								From building my first website at age 12 to developing complex web applications for businesses, 
-								my journey in tech has been driven by curiosity and a passion for problem-solving. 
-								I'm constantly exploring new technologies and frameworks to stay at the forefront of the industry.
-							</p>
+							<div className="absolute inset-0 bg-gradient-to-br from-green-500/10 via-transparent to-purple-500/10" />
+							<div className="relative z-10">
+								<div className={`font-mono text-sm leading-relaxed ${
+									theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+								}`}>
+									<TypingAnimation text={journeyText} delay={skillsText.length * 60} theme={theme} />
+								</div>
+							</div>
 						</motion.div>
 					</div>
 				</div>
