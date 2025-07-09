@@ -7,6 +7,7 @@ import { useTheme } from '../contexts/ThemeContext'
 import { FaReact, FaNodeJs, FaPython, FaRust } from 'react-icons/fa'
 import { SiNextdotjs, SiTypescript, SiVuedotjs, SiDiscord } from 'react-icons/si'
 import { SpotifyNowPlaying } from '../components/SpotifyNowPlaying'
+// import { useInView } from 'react-intersection-observer';
 
 const techStacks = [
 	{
@@ -72,8 +73,8 @@ const services = [
 		id: 1,
 		title: 'Custom Discord Bots',
 		description: 'Fully customized Discord bots with advanced features, moderation tools, and unique commands tailored to your server needs',
-		features: ['Custom Commands', 'Auto Moderation', 'Music Player', 'Dashboard Panel'],
-		price: 'Starting at $50',
+		features: ['Custom Commands', 'Music Player', 'Dashboard Panel'],
+		price: 'Starting at $10',
 		icon: (
 			<motion.svg 
 				width="80" 
@@ -152,7 +153,7 @@ const services = [
 		title: 'Web Development',
 		description: 'Modern, responsive websites built with latest technologies. From landing pages to complex web applications',
 		features: ['Responsive Design', 'SEO Optimized', 'Fast Performance', 'Modern UI/UX'],
-		price: 'Starting at $200',
+		price: 'Depends on project scope ngl',
 		icon: (
 			<motion.svg 
 				width="80" 
@@ -243,7 +244,7 @@ const services = [
 		title: 'API Development',
 		description: 'RESTful APIs and backend services with proper documentation and scalable architecture',
 		features: ['REST/GraphQL', 'Authentication', 'Database Design', 'Documentation'],
-		price: 'Starting at $150',
+		price: 'Again depends on api complexity',
 		icon: (
 			<motion.svg 
 				width="80" 
@@ -489,18 +490,17 @@ const SmoothCursor = ({ theme }: { theme: 'dark' | 'light' }) => {
 	)
 }
 
+
+
 const ScrollingTechStack = ({ theme }: { theme: 'dark' | 'light' }) => {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [currentIndex, setCurrentIndex] = useState(0)
 	const [isAutoScrolling, setIsAutoScrolling] = useState(false)
-	
-	// Check if component is in view
-	const isInView = useInView(containerRef, { 
+		const isInView = useInView(containerRef, { 
 		amount: 0.3,
 		margin: "-10% 0px -10% 0px"
 	})
 	
-	// Auto-scroll through tech stack when in view
 	useEffect(() => {
 		if (!isInView) return
 		
