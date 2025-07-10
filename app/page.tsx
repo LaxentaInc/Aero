@@ -6,6 +6,7 @@ import { createRoot } from 'react-dom/client'
 import { motion, useScroll, useTransform, useSpring, AnimatePresence, useInView, animate, spring } from 'framer-motion'
 import { useTheme } from './contexts/ThemeContext'
 import { flushSync} from 'react-dom'
+import { Typewriter } from 'react-simple-typewriter';
 
 
 const SmoothCursor = () => {
@@ -2205,15 +2206,55 @@ export default function LaxentaLanding() {
             Inc */}
             </h1>
             
-            <motion.p
+                <motion.p
               className={`text-sm sm:text-xl md:text-2xl font-mono ${
                 theme === 'dark' ? 'text-white/60' : 'text-black/60'
               }`}
               initial={{ opacity: 0.6 }}
               animate={{ opacity: 0.6 }}
             >
-              {'</'} @me_straight - fullstack developer & system engineer {'>'}
+              <Typewriter
+                words={['</ @me_straight - fullstack developer & system engineer >']}
+                loop={1}
+                cursor
+                typeSpeed={20}
+                deleteSpeed={9999}
+              />
             </motion.p>
+{/* idk whitespace \n breaks not working lol so i gotta dupe ;c */}
+<motion.p
+  className={`text-sm sm:text-xl md:text-2xl font-mono ${
+    theme === 'dark' ? 'text-white/60' : 'text-black/60'
+  }`}
+  initial={{ opacity: 0.6 }}
+  animate={{ opacity: 0.6 }}
+>
+  <Typewriter
+    words={[
+      'Note — I’m not the most advanced guy in system engineering, but I can do most of it!']}
+    loop={1}
+    cursor
+    typeSpeed={40}
+    deleteSpeed={9999}
+  />
+</motion.p>
+{/* 
+<motion.p
+  className={`text-sm sm:text-xl md:text-2xl font-mono ${
+    theme === 'dark' ? 'text-white/60' : 'text-black/60'
+  }`}
+  initial={{ opacity: 0.6 }}
+  animate={{ opacity: 0.6 }}
+>
+  <Typewriter
+    words={[
+            'But yea I’m pretty good with web development and backend stuff ngl']}
+    loop={1}
+    cursor
+    typeSpeed={60}
+    deleteSpeed={9999}
+  />
+</motion.p> */}
           </div>
 
           <ScrollArrow theme={theme} />
