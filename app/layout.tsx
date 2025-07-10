@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from './components/Navbar';
@@ -21,9 +21,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://laxenta.info'), // Add this to resolve social images
   title: "Laxenta Inc",
   description: "Laxenta is a platform for well me lol, im a cool technical developer from hobby",
-  viewport: "width=device-width, initial-scale=1",
   icons: {
     icon: '/favicon.ico',
     shortcut: '/favicon.ico',
@@ -52,6 +52,12 @@ export const metadata: Metadata = {
   }
 };
 
+// Export viewport separately
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -59,9 +65,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
