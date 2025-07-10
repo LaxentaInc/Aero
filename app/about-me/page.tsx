@@ -340,7 +340,7 @@ const services = [
 		title: 'Code Review & Consulting',
 		description: 'Professional code review and optimization suggestions to improve your existing projects',
 		features: ['Code Quality', 'Performance Tips', 'Best Practices', 'Security Audit'],
-		price: 'Starting at $30/hr',
+		price: '$0/second',
 		icon: (
 			<motion.svg 
 				width="80" 
