@@ -597,7 +597,6 @@ const ScrollingTechStack = ({ theme }: { theme: 'dark' | 'light' }) => {
 					}}
 					transition={{ duration: 0.5 }}
 				>
-					{/* Main Card - Horizontal Layout */}
 					<motion.div
 						className={`relative h-full rounded-3xl overflow-hidden border flex flex-col md:flex-row ${
 							theme === 'dark'
@@ -616,7 +615,7 @@ const ScrollingTechStack = ({ theme }: { theme: 'dark' | 'light' }) => {
 							</motion.h2>
 							{!isLocked ? (
 								<p className={`text-base md:text-lg mb-8 ${theme === 'dark' ? 'text-white/70' : 'text-black/70'}`}>
-									: ) Scroll down to know what i know :3
+									uwu pez scroll down to know what i know :3
 								</p>
 							) : (
 								<div className="space-y-6">
@@ -655,7 +654,6 @@ const ScrollingTechStack = ({ theme }: { theme: 'dark' | 'light' }) => {
 								</div>
 							)}
 						</div>
-						{/* Right Section - Cards Display */}
 						<div className="relative w-full md:w-[40%] h-full bg-gradient-to-r from-transparent to-purple-500/5">
 							<div className="absolute inset-0 flex items-center justify-center p-4 md:p-8">
 								{!isLocked ? (
@@ -665,7 +663,7 @@ const ScrollingTechStack = ({ theme }: { theme: 'dark' | 'light' }) => {
 										transition={{ duration: 2, repeat: Infinity }}
 									>
 										<div className="text-5xl md:text-7xl mb-4">⚡</div>
-										<p className="text-xs md:text-sm font-mono">Ready to explore</p>
+										<p className="text-xs md:text-sm font-mono">Check it out!</p>
 									</motion.div>
 								) : (
 									<AnimatePresence mode="wait">
@@ -693,7 +691,6 @@ const ScrollingTechStack = ({ theme }: { theme: 'dark' | 'light' }) => {
 												}}
 												className="flex flex-col items-center gap-4 md:gap-6"
 											>
-												{/* Icon with glow effect */}
 												<motion.div className="relative" whileHover={{ scale: 1.1 }}>
 													<div
 														className="absolute inset-0 blur-xl opacity-50"
@@ -730,7 +727,7 @@ const ScrollingTechStack = ({ theme }: { theme: 'dark' | 'light' }) => {
 																	: theme === 'dark' ? '#a855f7' : '#7c3aed'
 															}}
 														>
-															{learningLanguages.includes(techStacks[currentIndex].name) ? 'Learning' : 'Production Ready'}
+															{learningLanguages.includes(techStacks[currentIndex].name) ? 'Learning' : 'i know this one properly :3'}
 														</span>
 														<span
 															className="text-xs px-3 py-1 rounded-full"
@@ -980,7 +977,7 @@ const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
 export default function HomePage() {
 	const { theme } = useTheme()
 	const router = useRouter()
-
+//depretated :3
 	const skillsText = `// My Skills
 • JavaScript - Experienced in building interactive web apps
 • React/Next.js - Proficient in SSR & static applications
@@ -1118,25 +1115,46 @@ $ Currently exploring Rust & Python for system programming and AI/ML`
 							</h3>
 							<ul className={`font-mono text-base md:text-lg leading-relaxed whitespace-pre-wrap ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'} pl-4`}>
 								<li>• JavaScript - Experienced in building interactive web apps</li>
+																<li>-</li>
+
 								<li>• React/Next.js - Proficient in SSR & static applications</li>
+																<li>-</li>
+
 								<li>• Node.js - Skilled in scalable backend services</li>
+																<li>-</li>
+
 								<li>• Python - Automation, scripting & data analysis</li>
+																<li>-</li>
+
 								<li>• Rust - Systems programming & optimization</li>
+																<li>-</li>
+
 								<li>• TypeScript - Type-safe development</li>
+																<li>-</li>
+
 								<li>• Vue.js - Component-based UI development</li>
+																<li>-</li>
+
 								<li>• Discord.js - Building powerful Discord bots</li>
 							</ul>
 						</div>
 						<div className="flex-1">
 							<h3 className={`font-mono text-xl md:text-2xl font-bold mb-4 ${theme === 'dark' ? 'text-green-300' : 'text-green-700'}`}>
-								// My Journey
+								# Why i started doing this?
 							</h3>
 							<ul className={`font-mono text-base md:text-lg leading-relaxed whitespace-pre-wrap ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} pl-4`}>
-								<li>$ Started programming at age 12, built my first website using HTML & CSS</li>
-								<li>$ Learned JavaScript and fell in love with interactive web development</li>
-								<li>$ Built Discord bots for communities, learned Node.js and API design</li>
-								<li>$ Developed full-stack applications for small businesses and startups</li>
-								<li>$ Currently exploring Rust & Python for system programming and AI/ML</li>
+								<li>$ WHY NOT? i started programming at age 16y after i passed school and returned india, built my first website for fun - it was a chess page lol</li>
+								<li>-</li>
+								<li>$ Learned JavaScript and liked web development cz it gives dopamine when i paste something random and it doesn't have to be edited; it just works :3</li>
+																<li>-</li>
+
+								<li>$ Built Discord bots for myself, communities and also for degenerate people, Node.js is cool and i built allat APIs in life</li>
+																<li>-</li>
+
+								<li>$ Developed full-stack web-applications for small businesses and startups- 90 percent of them scammed me yes LMAO</li>
+																<li>-</li>
+
+								<li>$ Currently tryna learn Rust & python idk i don't wanna learn python much ngl</li>
 							</ul>
 						</div>
 					</div>
@@ -1193,7 +1211,7 @@ $ Currently exploring Rust & Python for system programming and AI/ML`
 						<p className={`text-xl mb-8 ${
 							theme === 'dark' ? 'text-white/60' : 'text-black/60'
 						}`}>
-							Got an idea? Need a Discord bot? Want a website? Hit me up!
+							Got an idea? Need a Discord bot? Want a website? Hit me up @me_straight on discord!
 						</p>
 						<motion.button
 							onClick={() => router.push('/contact')}
@@ -1222,7 +1240,7 @@ $ Currently exploring Rust & Python for system programming and AI/ML`
 						© 2025 • BUILT WITH ❤️ AND NO COFFEE ;C ME BROKE :3
 					</p>
 				</div>
-			</footer>
+			</footer>	
 		</motion.div>
 	)
 }
