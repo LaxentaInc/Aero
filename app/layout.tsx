@@ -23,10 +23,32 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Laxenta Inc",
   description: "Laxenta is a platform for well me lol, im a cool technical developer from hobby",
-    icons: {
+  viewport: "width=device-width, initial-scale=1",
+  icons: {
     icon: '/favicon.ico',
     shortcut: '/favicon.ico',
     apple: '/favicon.ico'
+  },
+  openGraph: {
+    title: "Laxenta Inc",
+    description: "Laxenta is well basically a fun portfolio project, I am a 18yo collage student who is dev from hobby; i made it to get freelance comissions- THE Site is in React Next .tsx ; Provides Free AI models, Image generations, and more.",
+    url: "https://laxenta.info",
+    siteName: "Laxenta Inc",
+    images: [
+      {
+        url: "/og.png",
+        width: 1200,
+        height: 630,
+        alt: "Laxenta Inc Banner"
+      }
+    ],
+    type: "website"
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Laxenta Inc",
+    description: "Laxenta is my cute platform, im a cool technical developer from hobby; it's more like a fun project, check it out!",
+    images: ["/og.png"]
   }
 };
 
@@ -37,19 +59,20 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body 
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </head>
+      <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
         <Providers>
+          <Navbar />
           <main>
-            <Navbar />
             {children}
           </main>
         </Providers>
       </body>
     </html>
-  )
+  );
 }
-
-{/* <meta name="viewport" content="width=device-width, initial-scale=1" /> */}
