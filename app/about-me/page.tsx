@@ -7,6 +7,8 @@ import { useTheme } from '../contexts/ThemeContext'
 import { FaReact, FaNodeJs, FaPython, FaRust, FaJs } from 'react-icons/fa'
 import { SiNextdotjs, SiTypescript, SiVuedotjs, SiDiscord } from 'react-icons/si'
 import { SpotifyNowPlaying } from '../components/SpotifyNowPlaying'
+import { Typewriter } from 'react-simple-typewriter';
+
 // import { useInView } from 'react-intersection-observer';
 
 const techStacks = [
@@ -1027,23 +1029,71 @@ $ Currently exploring Rust & Python for system programming and AI/ML`
 							theme === 'dark' ? 'text-white' : 'text-black'
 						}`}
 					>
-						Hi, I'm a Hobyist Developer :3 
+						Hi, How are You? :)
 					</motion.h1>
 					
-					<motion.p
-						initial={{ opacity: 0, y: 50 }}
-						whileInView={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.5, delay: 1.552 }}
-						className={`text-lg md:text-xl mb-8 ${
-							theme === 'dark' ? 'text-white/80' : 'text-black/80'
-						}`}
-					>
-						Welcome to my about page! I love building useless things, and collaborating to develop cool stuff
-					</motion.p>
-					
+
+{/* 
+<motion.p
+  className={`text-sm sm:text-xl md:text-2xl font-mono mb-8 ${
+    theme === 'dark' ? 'text-white/70' : 'text-black/70'
+  }`}
+  initial={{ opacity: 0, y: 40 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.5, delay: 0.5 }}
+>
+  Welcome to my about page! I love building useless things, and collaborating to code anything that I can lol
+</motion.p> */}
+
+<motion.p
+  className={`text-sm sm:text-xl md:text-2xl font-mono mb-8 ${
+    theme === 'dark' ? 'text-white/70' : 'text-black/70'
+  }`}
+  initial={{ opacity: 0, y: 40 }}
+  whileInView={{ opacity: 1, y: 0 }}
+  transition={{ duration: 0.5, delay: 0.5 }}
+>
+  <Typewriter
+    words={[
+      'Welcome to my about page! I love building useless things, and collaborating to code anything that I can lol :3',
+    ]}
+    loop={1}
+    cursor
+    typeSpeed={20}
+    deleteSpeed={9999}
+  />
+</motion.p>
+
+					            {/* <motion.p
+              className={`text-sm sm:text-xl md:text-2xl font-mono ${
+                theme === 'dark' ? 'text-white/60' : 'text-black/60'
+              }`}
+              initial={{ opacity: 0.6 }}
+              animate={{ opacity: 0.6 }}
+            >
+              {'</'} @me_straight - fullstack developer & system engineer {'>'}
+            </motion.p> */}
+			<motion.p
+  className={`text-sm sm:text-xl md:text-2xl font-mono ${
+    theme === 'dark' ? 'text-white/60' : 'text-black/60'
+  }`}
+  initial={{ opacity: 0.6 }}
+  animate={{ opacity: 0.6 }}
+>
+  <Typewriter
+    words={['</ @me_straight - fullstack developer & system engineer >']}
+    loop={1}
+    cursor
+    typeSpeed={10}
+    deleteSpeed={9999}
+  />
+</motion.p>
+
+
+
 					<motion.button
 						onClick={() => router.push('/contact')}
-						className={`px-8 py-4 rounded-full font-mono text-lg ${
+						className={`mt-8 px-8 py-4 rounded-full font-mono text-lg ${
 							theme === 'dark' 
 								? 'bg-white text-black hover:bg-white/90' 
 								: 'bg-black text-white hover:bg-black/90'
@@ -1059,10 +1109,10 @@ $ Currently exploring Rust & Python for system programming and AI/ML`
 			{/* Spotify Now Playing */}
 			<section className="py-8">
 	<div className="max-w-3xl mx-auto px-8 flex flex-col md:flex-row items-center gap-8">
-		{/* Left text with SVG quotes */}
+		{/*left text with SVG quotes */}
 		<div className="flex-1 flex flex-col items-start justify-center">
 			<div className="flex items-start gap-2 mb-2">
-				{/* Opening quote SVG */}
+				{/*opening quote SVG */}
 				<svg width="32" height="32" viewBox="0 0 32 32" className="text-purple-400" fill="none">
 					<path d="M12 6C7.58 6 4 9.58 4 14c0 3.31 2.69 6 6 6v2c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2h2v-4c-2.21 0-4-1.79-4-4 0-2.21 1.79-4 4-4V6z" fill="currentColor"/>
 				</svg>
@@ -1101,13 +1151,13 @@ $ Currently exploring Rust & Python for system programming and AI/ML`
 						<p className={`text-lg md:text-xl leading-relaxed max-w-3xl mx-auto font-mono ${
 							theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
 						}`}>
-							I'm a passionate developer with experience in building dynamic and responsive web applications. 
+							I'm a cute developer with experience in building dynamic and responsive web applications. 
 							My journey in tech started with a curiosity to understand how things work under the hood. 
-							Today, I enjoy turning complex problems into simple, beautiful, and intuitive designs.
+							I enjoy turning complex problems into dumb, beautiful, and intuitive designs.
 						</p>
 					</motion.div>
 					
-					{/* Present skills and journey as beautiful monospace lists, no cards */}
+					{/*present skills and journey as beautiful monospace lists*/}
 					<div className="max-w-4xl mx-auto flex flex-col md:flex-row gap-12 items-start">
 						<div className="flex-1">
 							<h3 className={`font-mono text-xl md:text-2xl font-bold mb-4 ${theme === 'dark' ? 'text-purple-300' : 'text-purple-700'}`}>
@@ -1176,7 +1226,7 @@ $ Currently exploring Rust & Python for system programming and AI/ML`
 						}`}
 					>
 						<h2 className="text-4xl md:text-5xl font-extrabold mb-4">
-							What I Offer
+							What I Offer?
 						</h2>
 						<p className="text-lg md:text-xl leading-relaxed max-w-3xl mx-auto">
 							I provide a range of services to help bring your ideas to life. 
