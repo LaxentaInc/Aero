@@ -6,7 +6,7 @@ import { NextRequest, NextResponse } from 'next/server';
 interface ImageGenerationRequest {
   prompt: string;
   model: string;
-  style?: 'vivid' | 'natural'; // Updated to match API spec
+  style?: 'vivid' | 'natural'; //updated to match API spec
   n?: number;
   quality?: 'standard' | 'hd';
   size?: '256x256' | '512x512' | '1024x1024' | '1792x1024' | '1024x1792';
