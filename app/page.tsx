@@ -2234,7 +2234,7 @@ export default function LaxentaLanding() {
       'Note — I’m not the most advanced guy in system engineering, but I can do most of it!']}
     loop={1}
     cursor
-    typeSpeed={40}
+    typeSpeed={100}
     deleteSpeed={9999}
   />
 </motion.p>
