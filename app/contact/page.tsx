@@ -457,7 +457,6 @@ const CustomEmailIcon = () => (
 		/>
 	</svg>
 )
-
 // Enhanced Glass Contact Card (Bigger, Vertical)
 const GlassContactCard = ({ 
 	icon, 
@@ -958,7 +957,7 @@ export default function ContactPage() {
 								whileHover={{ scale: 1.05 }}
 								whileTap={{ scale: 0.95 }}
 							>
-								SEND EMAIL
+								DRAFT MESSAGE
 							</motion.button>
 						</motion.div>
 					</div>
@@ -986,7 +985,7 @@ export default function ContactPage() {
 						<p className={`text-2xl font-mono ${
 							theme === 'dark' ? 'text-purple-400' : 'text-purple-600'
 						}`}>
-							Choose your fighter <GameControllerSVG size={32} />
+							Choose your way :3 <GameControllerSVG size={32} />
 						</p>
 					</motion.div>
 
@@ -998,16 +997,16 @@ export default function ContactPage() {
 							color="#5865F2"
 							theme={theme}
 							delay={0.1}
-							backgroundImage="/images/discord-bg.jpg"
+							backgroundImage="https://i.redd.it/21h0du5wfbze1.png"
 						/>
 						<GlassContactCard
 							icon={<CustomEmailIcon />}
 							title="Email"
-							value="your.email@gmail.com"
+							value="gk5598507@gmail.com"
 							color="#EA4335"
 							theme={theme}
 							delay={0.2}
-							backgroundImage="/images/email-bg.jpg"
+							backgroundImage="/bg.jpg"
 						/>
 					</div>
 				</div>
