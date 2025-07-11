@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+
 //test
 const nextConfig: NextConfig = {
   async headers() {
@@ -14,6 +15,7 @@ const nextConfig: NextConfig = {
       }
     ];
   },
+
   webpack(config) {
     config.module.rules.push({
       test: /\.(mp4|webm)$/i,
@@ -27,6 +29,16 @@ const nextConfig: NextConfig = {
       }],
     });
     return config;
+  },
+
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'assets-v2.lottiefiles.com',
+        pathname: '/**',
+      }
+    ]
   }
 };
 

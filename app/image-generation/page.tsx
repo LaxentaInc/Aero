@@ -96,8 +96,9 @@ interface GeneratedImage {
 
 // Model configuration with fallback order
 const MODEL_GROUPS = {
-  premium: ['flux-1.1-pro-ultra', 'flux-pro', 'dall-e-3', 'midjourney-v6.1'],
-  standard: ['flux-dev', 'stable-diffusion-3.5-turbo', 'sdxl'],
+  premium: ['flux-1.1-pro-ultra', 'flux-realism', 'flux-pro', 'dall-e-3', 'midjourney-v6.1'],
+  standard: ['flux-dev', 'stable-diffusion-3.5-turbo', 'sdxl', 'sana', 'stable-diffusion-3', 'playground-v3', 
+  'imagen-3', 'recraft-v3', 'ideogram-v2'],
   fast: ['flux-schnell', 'sdxl-turbo', 'sdxl-lightning'],
 };
 
@@ -105,8 +106,6 @@ const ALL_MODELS = [
   ...MODEL_GROUPS.premium,
   ...MODEL_GROUPS.standard,
   ...MODEL_GROUPS.fast,
-  'stable-diffusion-3', 'flux-realism', 'playground-v3', 
-  'imagen-3', 'recraft-v3', 'ideogram-v2'
 ];
 
 // Enhanced fetch with proper connection handling
@@ -161,7 +160,7 @@ export default function AnimeImageGenerator() {
 
 
   // Constants
-  const GENERATION_LIMIT = 20;
+  const GENERATION_LIMIT = 10;
 
   // Load user data and generation count
   useEffect(() => {
@@ -295,7 +294,7 @@ const generateImage = async () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          prompt: `${prompt}, vibrant anime style, high quality`,
+          prompt: `${prompt}, beautiful anime/seductive style, high quality`,
           model,
           n: 1,
           response_format: 'url',
