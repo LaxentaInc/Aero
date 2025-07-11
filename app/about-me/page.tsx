@@ -950,82 +950,32 @@ const ServiceCard = ({ service, index, theme }: { service: typeof services[0], i
 }
 
 
-// const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
-// 	return (
-// 		<div className="absolute inset-0 z-0 overflow-hidden">
-// 			<video
-// 				autoPlay
-// 				muted
-// 				loop
-// 				playsInline
-// 				crossOrigin="anonymous"
-// 				className={`absolute top-0 left-0 w-full h-full object-cover ${
-// 					theme === 'dark' ? 'opacity-40' : 'opacity-20'
-// 				}`}
-// 			>
-// 				{/* https://static.tradingview.com/static/bundles/northern-lights-pricing-desktop.86b1853e628d56f03bc8.webm */}
-// 				<source 
-// 				    src="/videos/mybaby.mp4" //also add shorekeeper.mp4
-// 					type="video/mp4" 
-// 				/>
-// 			</video>
-			
-// 			<img 
-//   src="https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/85cd7a0e-70d4-434d-82c1-b0b50aa15bf3/dhoco07-5eeaa350-983b-4eb4-ad36-bbc485212648.gif" 
-//   alt="Background GIF"
-//   className={`absolute top-0 left-0 w-full h-full object-cover z-0 ${theme === 'dark' ? 'opacity-40' : 'opacity-20'}`}
-// />
-
-// 			<div className={`absolute inset-0 bg-gradient-to-b ${
-// 				theme === 'dark' 
-// 					? 'from-black/50 via-black/30 to-black/50' 
-// 					: 'from-white/50 via-white/30 to-white/50'
-// 			}`} />
-// 		</div>
-// 	)
-// }
-
 const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
-	// Define the type for the video object
-	type VideoSource = {
-		src: string;
-		type: string;
-	};
-
-	// Initialize with the correct type
-	const [randomVideo, setRandomVideo] = useState<VideoSource | null>(null);
-
-	useEffect(() => {
-		const videos: VideoSource[] = [
-			{ src: "/videos/mybaby.mp4", type: "video/mp4" },
-			{ src: "/videos/shorekeeper.mp4", type: "video/mp4" },
-			{ src: "https://static.tradingview.com/static/bundles/northern-lights-pricing-desktop.86b1853e628d56f03bc8.webm", type: "video/webm" }
-		];
-		
-		const selected = videos[Math.floor(Math.random() * videos.length)];
-		setRandomVideo(selected);
-	}, []);
-
 	return (
 		<div className="absolute inset-0 z-0 overflow-hidden">
-			{randomVideo && (
-				<video
-					autoPlay
-					muted
-					loop
-					playsInline
-					crossOrigin="anonymous"
-					className={`absolute top-0 left-0 w-full h-full object-cover ${
-						theme === 'dark' ? 'opacity-40' : 'opacity-20'
-					}`}
-				>
-					<source 
-						src={randomVideo.src}
-						type={randomVideo.type} 
-					/>
-				</video>
-			)}
+			<video
+				autoPlay
+				muted
+				loop
+				playsInline
+				crossOrigin="anonymous"
+				className={`absolute top-0 left-0 w-full h-full object-cover ${
+					theme === 'dark' ? 'opacity-40' : 'opacity-20'
+				}`}
+			>
+				{/* https://static.tradingview.com/static/bundles/northern-lights-pricing-desktop.86b1853e628d56f03bc8.webm */}
+				<source 
+				    src="/videos/shorekeeper.mp4" //also add shorekeeper.mp4
+					type="video/mp4" 
+				/>
+			</video>
 			
+			<img 
+  src="https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/85cd7a0e-70d4-434d-82c1-b0b50aa15bf3/dhoco07-5eeaa350-983b-4eb4-ad36-bbc485212648.gif" 
+  alt="Background GIF"
+  className={`absolute top-0 left-0 w-full h-full object-cover z-0 ${theme === 'dark' ? 'opacity-40' : 'opacity-20'}`}
+/>
+
 			<div className={`absolute inset-0 bg-gradient-to-b ${
 				theme === 'dark' 
 					? 'from-black/50 via-black/30 to-black/50' 
@@ -1034,6 +984,7 @@ const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
 		</div>
 	)
 }
+
 
 export default function HomePage() {
 	const { theme } = useTheme()
