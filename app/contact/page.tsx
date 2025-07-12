@@ -457,6 +457,7 @@ const CustomEmailIcon = () => (
 		/>
 	</svg>
 )
+
 // Enhanced Glass Contact Card (Bigger, Vertical)
 const GlassContactCard = ({ 
 	icon, 
@@ -580,7 +581,7 @@ const GlassContactCard = ({
 	)
 }
 
-// Enhanced Feature Card (Bigger, with background image option)
+// Enhanced Feature Card (Bigger, no background images)
 const AnimatedFeatureCard = ({ 
 	icon, 
 	title, 
@@ -588,7 +589,6 @@ const AnimatedFeatureCard = ({
 	gradient,
 	theme,
 	delay = 0,
-	backgroundImage
 }: { 
 	icon: React.ReactNode
 	title: string
@@ -596,7 +596,6 @@ const AnimatedFeatureCard = ({
 	gradient: string
 	theme: 'dark' | 'light'
 	delay?: number
-	backgroundImage?: string
 }) => {
 	return (
 		<motion.div
@@ -616,18 +615,6 @@ const AnimatedFeatureCard = ({
 					: '0 15px 35px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.7)'
 			}}
 		>
-			{/* Background Image */}
-			{backgroundImage && (
-				<div 
-					className="absolute inset-0 opacity-20"
-					style={{
-						backgroundImage: `url(${backgroundImage})`,
-						backgroundSize: 'cover',
-						backgroundPosition: 'center',
-					}}
-				/>
-			)}
-
 			<motion.div 
 				className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-30`}
 			/>
@@ -653,28 +640,28 @@ const AnimatedFeatureCard = ({
 	)
 }
 
-// Custom 3D Server with Bouncing Clouds SVG
-const ServerWithCloudsSVG = () => (
+// Black themed server rack SVG - twice as big
+const BlackServerSVG = () => (
 	<motion.svg 
-		width="800" 
-		height="600" 
-		viewBox="0 0 800 600" 
+		width="1600" 
+		height="1200" 
+		viewBox="0 0 1600 1200" 
 		className="w-full h-full"
 		initial={{ opacity: 0 }}
 		animate={{ opacity: 1 }}
 		transition={{ duration: 1 }}
 	>
 		<defs>
-			<linearGradient id="serverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-				<stop offset="0%" stopColor="#667eea" />
-				<stop offset="100%" stopColor="#764ba2" />
+			<linearGradient id="serverGradBlack" x1="0%" y1="0%" x2="100%" y2="100%">
+				<stop offset="0%" stopColor="#2a2a2a" />
+				<stop offset="100%" stopColor="#1a1a1a" />
 			</linearGradient>
-			<linearGradient id="cloudGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-				<stop offset="0%" stopColor="#e0e7ff" />
-				<stop offset="100%" stopColor="#c7d2fe" />
+			<linearGradient id="ledGreen" x1="0%" y1="0%" x2="100%" y2="100%">
+				<stop offset="0%" stopColor="#00ff00" />
+				<stop offset="100%" stopColor="#00cc00" />
 			</linearGradient>
-			<filter id="glow">
-				<feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+			<filter id="serverGlow">
+				<feGaussianBlur stdDeviation="8" result="coloredBlur"/>
 				<feMerge>
 					<feMergeNode in="coloredBlur"/>
 					<feMergeNode in="SourceGraphic"/>
@@ -682,126 +669,158 @@ const ServerWithCloudsSVG = () => (
 			</filter>
 		</defs>
 
-		{/* Central Server Box */}
+		{/* Main Server Rack */}
 		<motion.g
 			initial={{ scale: 0 }}
 			animate={{ scale: 1 }}
-			transition={{ duration: 0.5, type: "spring" }}
+			transition={{ duration: 0.8, type: "spring" }}
 		>
-			{/* Server Body */}
-			<rect x="250" y="250" width="300" height="250" rx="20" fill="url(#serverGrad)" filter="url(#glow)" />
+			{/* Server Frame */}
+			<rect x="400" y="200" width="800" height="800" rx="20" fill="url(#serverGradBlack)" stroke="#333" strokeWidth="4" />
 			
-			{/* Server Details */}
-			<rect x="270" y="270" width="260" height="15" rx="5" fill="rgba(255,255,255,0.3)" />
-			<rect x="270" y="295" width="260" height="15" rx="5" fill="rgba(255,255,255,0.3)" />
-			<rect x="270" y="320" width="260" height="15" rx="5" fill="rgba(255,255,255,0.3)" />
-			<rect x="270" y="345" width="260" height="15" rx="5" fill="rgba(255,255,255,0.3)" />
+			{/* Server Units */}
+			{[0, 1, 2, 3, 4, 5].map((i) => (
+				<g key={i}>
+					{/* Server unit */}
+					<rect 
+						x="450" 
+						y={250 + i * 120} 
+						width="700" 
+						height="100" 
+						rx="10" 
+						fill="#1a1a1a" 
+						stroke="#444" 
+						strokeWidth="2"
+					/>
+					
+					{/* Server face plate */}
+					<rect 
+						x="470" 
+						y={260 + i * 120} 
+						width="660" 
+						height="80" 
+						rx="5" 
+						fill="#222"
+					/>
+					
+					{/* Ventilation slots */}
+					{[0, 1, 2, 3, 4].map((j) => (
+						<rect
+							key={j}
+							x={490 + j * 130}
+							y={275 + i * 120}
+							width="100"
+							height="3"
+							fill="#111"
+						/>
+					))}
+					{[0, 1, 2, 3, 4].map((j) => (
+						<rect
+							key={`v2-${j}`}
+							x={490 + j * 130}
+							y={285 + i * 120}
+							width="100"
+							height="3"
+							fill="#111"
+						/>
+					))}
+					
+					{/* Power button */}
+					<circle cx="500" cy={310 + i * 120} r="8" fill="#333" stroke="#555" strokeWidth="1" />
+					
+					{/* LED indicators */}
+					<circle cx="530" cy={310 + i * 120} r="5" fill="url(#ledGreen)">
+						<animate attributeName="opacity" values="1;0.3;1" dur={`${1.5 + i * 0.2}s`} repeatCount="indefinite" />
+					</circle>
+					<circle cx="550" cy={310 + i * 120} r="5" fill="#ff9900">
+						<animate attributeName="opacity" values="1;0.3;1" dur={`${2 + i * 0.3}s`} repeatCount="indefinite" />
+					</circle>
+					<circle cx="570" cy={310 + i * 120} r="5" fill="#ff0000">
+						<animate attributeName="opacity" values="0.3;0.3;1;0.3" dur="4s" repeatCount="indefinite" />
+					</circle>
+					
+					{/* Drive bays */}
+					{[0, 1, 2].map((k) => (
+						<rect
+							key={k}
+							x={900 + k * 70}
+							y={275 + i * 120}
+							width="50"
+							height="50"
+							rx="3"
+							fill="#333"
+							stroke="#555"
+							strokeWidth="1"
+						/>
+					))}
+				</g>
+			))}
 			
-			{/* Server Lights */}
-			<circle cx="290" cy="450" r="10" fill="#4ade80">
-				<animate attributeName="opacity" values="1;0.3;1" dur="2s" repeatCount="indefinite" />
-			</circle>
-			<circle cx="320" cy="450" r="10" fill="#f59e0b">
-				<animate attributeName="opacity" values="1;0.3;1" dur="2s" begin="0.5s" repeatCount="indefinite" />
-			</circle>
-			<circle cx="350" cy="450" r="10" fill="#ef4444">
-				<animate attributeName="opacity" values="1;0.3;1" dur="2s" begin="1s" repeatCount="indefinite" />
-			</circle>
+			{/* Rack handles */}
+			<rect x="380" y="200" width="20" height="800" rx="10" fill="#333" />
+			<rect x="1200" y="200" width="20" height="800" rx="10" fill="#333" />
 		</motion.g>
 
-		{/* Bouncing Clouds */}
-		{[
-			{ x: 260, y: 150, size: 1, delay: 0 },
-			{ x: 380, y: 125, size: 0.8, delay: 3.5 },
-			{ x: 500, y: 110, size: 1.2, delay: 2.2 },
-			{ x: 320, y: 180, size: 0.9, delay: 5.5 },
-			{ x: 450, y: 160, size: 1.2, delay: 4.5 },
-		].map((cloud, i) => (
-			<motion.g
-				key={i}
-				initial={{ y: cloud.y }}
-				animate={{ y: [cloud.y, cloud.y - 30, cloud.y] }}
-				transition={{
-					duration: 3,
-					repeat: Infinity,
-					delay: cloud.delay,
-					ease: "easeInOut"
-				}}
-			>
-				<g transform={`translate(${cloud.x}, 0) scale(${cloud.size})`}>
-					{/* Cloud shape */}
-					<ellipse cx="0" cy="0" rx="40" ry="25" fill="url(#cloudGrad)" opacity="0.9" filter="url(#glow)" />
-					<ellipse cx="-25" cy="5" rx="30" ry="20" fill="url(#cloudGrad)" opacity="0.9" />
-					<ellipse cx="25" cy="5" rx="30" ry="20" fill="url(#cloudGrad)" opacity="0.9" />
-					<ellipse cx="0" cy="10" rx="35" ry="20" fill="url(#cloudGrad)" opacity="0.9" />
-				</g>
-			</motion.g>
-		))}
-
-		{/* Data streams from server to clouds */}
-		{[0, 1, 2, 3, 4].map((i) => (
+		{/* Floating data particles */}
+		{[...Array(15)].map((_, i) => (
 			<motion.circle
 				key={`data-${i}`}
 				r="4"
-				fill="#fbbf24"
-				filter="url(#glow)"
-				initial={{ opacity: 0, y: 375 }}
+				fill="#00ff00"
+				filter="url(#serverGlow)"
+				initial={{ 
+					opacity: 0, 
+					x: 800,
+					y: 600 
+				}}
 				animate={{
 					opacity: [0, 1, 1, 0],
-					y: [375, 250, 150, 100],
-					x: [400, 400 + (Math.random() - 0.5) * 200, 400 + (Math.random() - 0.5) * 300, 400 + (Math.random() - 0.5) * 400]
+					x: [800, 800 + (Math.random() - 0.5) * 600],
+					y: [600, 300 + Math.random() * 400],
 				}}
 				transition={{
-					duration: 4,
+					duration: 3 + Math.random() * 2,
 					repeat: Infinity,
-					delay: i * 0.8,
+					delay: i * 0.3,
 					ease: "easeOut"
+				}}
+			/>
+		))}
+		
+		{/* Connection lines */}
+		{[0, 1, 2].map((i) => (
+			<motion.path
+				key={`line-${i}`}
+				d={`M ${1150} ${350 + i * 200} Q ${1300} ${350 + i * 200} ${1400} ${200 + i * 150}`}
+				stroke="#00ff00"
+				strokeWidth="2"
+				fill="none"
+				opacity="0.5"
+				strokeDasharray="10 5"
+				initial={{ pathLength: 0 }}
+				animate={{ pathLength: 1 }}
+				transition={{
+					duration: 2,
+					repeat: Infinity,
+					delay: i * 0.5,
+					ease: "linear"
 				}}
 			/>
 		))}
 	</motion.svg>
 )
 
-// Main Contact Page Component
-export default function ContactPage() {
-	const { theme } = useTheme()
-	const router = useRouter()
-	const [formStatus, setFormStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+// Minimal 3D Monospace Contact Form
+const Minimal3DContactForm = ({ theme, formStatus, setFormStatus, error, setError }: {
+	theme: 'dark' | 'light'
+	formStatus: 'idle' | 'sending' | 'sent' | 'error'
+	setFormStatus: (status: 'idle' | 'sending' | 'sent' | 'error') => void
+	error: string
+	setError: (error: string) => void
+}) => {
 	const [contactName, setContactName] = useState('')
 	const [contactEmail, setContactEmail] = useState('')
 	const [contactMessage, setContactMessage] = useState('')
-	const [error, setError] = useState('')
-
-	const features = [
-		{
-			icon: <FaClock />,
-			title: 'Quicckkkk Response',
-			description: '1-2 hours response time, Like your cute gf- jk no :3',
-			gradient: 'from-blue-500 to-cyan-500',
-			backgroundImage: '/bg.jpg' // Add your image paths
-		},
-		{
-			icon: <FaBug />,
-			title: 'Bug Support',
-			description: 'Free Bug fixes for over a year after project completion',
-			gradient: 'from-green-500 to-emerald-500',
-			backgroundImage: 'https://i.pinimg.com/originals/d4/81/f3/d481f3c72e283309071f79e01b05c06d.gif'
-		},
-		{
-			icon: <FaRocket />,
-			title: 'Fast Deployment',
-			description: 'From code to production in 1-2 weeks, not months',
-			gradient: 'from-purple-500 to-pink-500',
-			backgroundImage: 'https://azure.github.io/actions/img/automate_workflows_gif.gif'
-		},
-		{
-			icon: <FaHeart />,
-			title: 'Built Different',
-			description: 'I try to make all code efficient and easy to maintain',
-			gradient: 'from-red-500 to-orange-500',
-			backgroundImage: 'https://i.pinimg.com/originals/0c/34/27/0c34272909ee2a4db5606a014082312b.gif'
-		}
-	]
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()
@@ -850,6 +869,135 @@ export default function ContactPage() {
 			setFormStatus('error')
 		}
 	}
+
+	return (
+		<div
+			className={`relative max-w-2xl mx-auto px-8 py-12 rounded-2xl border-2 shadow-[0_8px_0_#222] ${
+				theme === 'dark'
+					? 'bg-black border-white/20 text-white'
+					: 'bg-white border-black/20 text-black'
+			}`}
+			style={{
+				fontFamily: 'monospace',
+				boxShadow: theme === 'dark'
+					? '0 8px 0 #222, 0 2px 24px rgba(0,0,0,0.5)'
+					: '0 8px 0 #bbb, 0 2px 24px rgba(0,0,0,0.08)'
+			}}
+		>
+			<h3 className="text-3xl font-bold mb-8 text-center tracking-tight" style={{ fontFamily: 'monospace' }}>
+				Send a Message
+			</h3>
+			<form onSubmit={handleSubmit} className="space-y-6">
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+					<input
+						type="text"
+						required
+						className={`w-full px-5 py-4 rounded-lg border-2 outline-none text-lg transition-all duration-150 shadow-[0_2px_0_#222] ${
+							theme === 'dark'
+								? 'bg-black border-white/20 text-white focus:bg-white/10'
+								: 'bg-white border-black/20 text-black focus:bg-black/5'
+						}`}
+						style={{
+							fontFamily: 'monospace',
+						}}
+						placeholder="Your Name"
+						value={contactName}
+						onChange={e => setContactName(e.target.value)}
+					/>
+					<input
+						type="text"
+						required
+						className={`w-full px-5 py-4 rounded-lg border-2 outline-none text-lg transition-all duration-150 shadow-[0_2px_0_#222] ${
+							theme === 'dark'
+								? 'bg-black border-white/20 text-white focus:bg-white/10'
+								: 'bg-white border-black/20 text-black focus:bg-black/5'
+						}`}
+						style={{
+							fontFamily: 'monospace',
+						}}
+						placeholder="Discord or Email"
+						value={contactEmail}
+						onChange={e => setContactEmail(e.target.value)}
+					/>
+				</div>
+				<textarea
+					required
+					rows={7}
+					className={`w-full px-5 py-4 rounded-lg border-2 outline-none text-lg transition-all duration-150 shadow-[0_2px_0_#222] resize-none ${
+						theme === 'dark'
+							? 'bg-black border-white/20 text-white focus:bg-white/10'
+							: 'bg-white border-black/20 text-black focus:bg-black/5'
+					}`}
+					style={{
+						fontFamily: 'monospace',
+					}}
+					placeholder="Tell me about your project..."
+					value={contactMessage}
+					onChange={e => setContactMessage(e.target.value)}
+				/>
+				{error && (
+					<p className={`text-center text-base font-bold ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>
+						{error}
+					</p>
+				)}
+				<button
+					type="submit"
+					disabled={formStatus === 'sending'}
+					className={`w-full py-4 rounded-lg border-2 font-bold text-lg tracking-wider transition-all duration-150 shadow-[0_2px_0_#222] active:translate-y-1 active:shadow-none ${
+						theme === 'dark'
+							? 'bg-black border-white/20 text-white hover:bg-white/10'
+							: 'bg-white border-black/20 text-black hover:bg-black/5'
+					} disabled:opacity-60`}
+					style={{
+						fontFamily: 'monospace',
+					}}
+				>
+					{formStatus === 'idle' && 'SEND'}
+					{formStatus === 'sending' && 'SENDING...'}
+					{formStatus === 'sent' && 'SENT!'}
+					{formStatus === 'error' && 'TRY AGAIN'}
+				</button>
+			</form>
+			<p className={`text-center mt-8 text-base ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+				Discord DMs are usually fastest.
+			</p>
+		</div>
+	)
+}
+
+// Main Contact Page Component
+export default function ContactPage() {
+	const { theme } = useTheme()
+	const router = useRouter()
+	const [formStatus, setFormStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+	const [error, setError] = useState('')
+
+	const features = [
+		{
+			icon: <FaClock />,
+			title: 'Quicckkkk Response',
+			description: '1-2 hours response time, Like your cute gf- jk no :3',
+			gradient: 'from-blue-500 to-cyan-500',
+		},
+		{
+			icon: <FaBug />,
+			title: 'Bug Support',
+			description: 'Free Bug fixes for over a year after project completion',
+			gradient: 'from-green-500 to-emerald-500',
+		},
+		{
+			icon: <FaRocket />,
+			title: 'Fast Deployment',
+			description: 'From code to production in 1-2 weeks, not months',
+			gradient: 'from-purple-500 to-pink-500',
+		},
+		{
+			icon: <FaHeart />,
+			title: 'Built Different',
+			description: 'I try to make all code efficient and easy to maintain',
+			gradient: 'from-red-500 to-orange-500',
+		}
+	]
 
 	return (
 		<motion.div 
@@ -934,6 +1082,7 @@ export default function ContactPage() {
 						>
 							<motion.button
 								onClick={() => window.open('https://discord.com/users/@me_straight', '_blank')}
+
 								className={`px-8 py-4 text-lg font-mono font-bold rounded-2xl ${
 									theme === 'dark' 
 										? 'bg-[#5865F2] text-white hover:bg-[#4752C4]' 
@@ -963,9 +1112,9 @@ export default function ContactPage() {
 					</div>
 				</div>
 
-				{/* Right Side - Server with Clouds SVG */}
+				{/* Right Side - Black Server SVG */}
 				<div className="absolute lg:relative top-0 right-0 w-full lg:w-1/2 h-full flex items-center justify-center p-8">
-					<ServerWithCloudsSVG />
+					<BlackServerSVG />
 				</div>
 			</section>
 
@@ -1062,126 +1211,16 @@ export default function ContactPage() {
 				</div>
 			</section>
 
-			{/* Contact Form */}
+			{/* Enhanced 3D Contact Form */}
 			<section id="contact-form" className="relative py-32 px-8 z-10">
-				<div className="max-w-4xl mx-auto">
-					<motion.div
-						initial={{ opacity: 0, y: 50 }}
-						whileInView={{ opacity: 1, y: 0 }}
-						className={`p-16 rounded-3xl ${
-							theme === 'dark' 
-								? 'bg-gradient-to-br from-gray-900/80 to-black/80 border border-white/20' 
-								: 'bg-gradient-to-br from-white/80 to-gray-100/80 border border-black/20'
-						} backdrop-blur-2xl`}
-						style={{
-							boxShadow: theme === 'dark'
-								? '0 30px 60px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.1)'
-								: '0 30px 60px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.8)'
-						}}
-					>
-						<h3 className={`text-4xl md:text-5xl font-black mb-12 text-center ${
-							theme === 'dark' ? 'text-white' : 'text-black'
-						}`}>
-							Drop a Message <MailSVG size={40} />
-						</h3>
-
-						<form onSubmit={handleSubmit} className="space-y-8">
-							<motion.div
-								initial={{ x: -50, opacity: 0 }}
-								whileInView={{ x: 0, opacity: 1 }}
-								transition={{ delay: 0.1 }}
-							>
-								<input
-									type="text"
-									required
-									className={`w-full px-8 py-6 text-xl font-mono rounded-2xl ${
-										theme === 'dark' 
-											? 'bg-white/10 text-white border border-white/20 focus:border-purple-500' 
-											: 'bg-black/10 text-black border border-black/20 focus:border-purple-500'
-									} outline-none transition-all duration-300 backdrop-blur-xl`}
-									placeholder="Your Name"
-									value={contactName}
-									onChange={e => setContactName(e.target.value)}
-								/>
-							</motion.div>
-
-							<motion.div
-								initial={{ x: -50, opacity: 0 }}
-								whileInView={{ x: 0, opacity: 1 }}
-								transition={{ delay: 0.2 }}
-							>
-								<input
-									type="text"
-									required
-									className={`w-full px-8 py-6 text-xl font-mono rounded-2xl ${
-										theme === 'dark' 
-											? 'bg-white/10 text-white border border-white/20 focus:border-purple-500' 
-											: 'bg-black/10 text-black border border-black/20 focus:border-purple-500'
-									} outline-none transition-all duration-300 backdrop-blur-xl`}
-									placeholder="Discord or Email"
-									value={contactEmail}
-									onChange={e => setContactEmail(e.target.value)}
-								/>
-							</motion.div>
-
-							<motion.div
-								initial={{ x: -50, opacity: 0 }}
-								whileInView={{ x: 0, opacity: 1 }}
-								transition={{ delay: 0.3 }}
-							>
-								<textarea
-									required
-									rows={6}
-									className={`w-full px-8 py-6 text-xl font-mono rounded-2xl resize-none ${
-										theme === 'dark' 
-											? 'bg-white/10 text-white border border-white/20 focus:border-purple-500' 
-											: 'bg-black/10 text-black border border-black/20 focus:border-purple-500'
-									} outline-none transition-all duration-300 backdrop-blur-xl`}
-									placeholder="Tell me about your project..."
-									value={contactMessage}
-									onChange={e => setContactMessage(e.target.value)}
-								/>
-							</motion.div>
-
-							{error && (
-								<motion.p
-									initial={{ opacity: 0, y: -10 }}
-									animate={{ opacity: 1, y: 0 }}
-									className={`text-center text-lg ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}
-								>
-									{error}
-								</motion.p>
-							)}
-
-							<motion.button
-								type="submit"
-								disabled={formStatus === 'sending'}
-								className={`w-full py-6 text-2xl font-black tracking-wider rounded-2xl ${
-									theme === 'dark' 
-										? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600' 
-										: 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700'
-								} transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105`}
-								whileHover={{ scale: 1.02 }}
-								whileTap={{ scale: 0.98 }}
-								style={{
-									boxShadow: '0 20px 40px rgba(168, 85, 247, 0.4)'
-								}}
-							>
-								<AnimatePresence mode="wait">
-									{formStatus === 'idle' && <span>SEND IT <RocketSVG /></span>}
-									{formStatus === 'sending' && <span>SENDING... <HourglassSVG /></span>}
-									{formStatus === 'sent' && <span>DONE <LoveSVG /></span>}
-									{formStatus === 'error' && <span>OOF! TRY AGAIN <SweatSVG /></span>}
-								</AnimatePresence>
-							</motion.button>
-						</form>
-
-						<p className={`text-center mt-10 text-xl font-mono ${
-							theme === 'dark' ? 'text-purple-400' : 'text-purple-600'
-						}`}>
-							Pro tip: Discord DMs are faster <WinkSVG size={28} />
-						</p>
-					</motion.div>
+				<div className="max-w-5xl mx-auto">
+					<Minimal3DContactForm 
+						theme={theme}
+						formStatus={formStatus}
+						setFormStatus={setFormStatus}
+						error={error}
+						setError={setError}
+					/>
 				</div>
 			</section>
 		</motion.div>
