@@ -11,7 +11,7 @@ import {
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 
-const MODELS = ['gpt-4o', 'claude-opus-4-20250514', 'gemini-1.5-pro']
+const MODELS = ['gpt-4o', 'llama-3-70b', 'gemini-1.5-pro','deepseek-r1-nitro']
 
 interface Message {
   id: string
@@ -1126,9 +1126,9 @@ export default function AIChat() {
           <div className="max-w-4xl mx-auto">
             <div className="relative">
               {/* Gradient background */}
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-2xl blur-xl" />
+              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-2xl blur-xl pointer-events-none" />
               
-              <div className="relative bg-gray-800/50 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+              <div className="relative bg-gray-800/50 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden shadow-2xl focus-within:ring-0 focus-within:outline-none animated-glow-border conic">
                 <textarea
                   ref={textareaRef}
                   value={input}
@@ -1136,7 +1136,7 @@ export default function AIChat() {
                   onKeyDown={handleKeyDown}
                   placeholder={isConnected ? "Type your message..." : "You're offline. Check your connection..."}
                   disabled={!isConnected}
-                  className="w-full px-4 py-4 pr-24 bg-transparent text-white placeholder-white/40 resize-none focus:outline-none text-base"
+                  className="w-full px-4 py-4 pr-24 bg-transparent text-white placeholder-white/40 resize-none focus:outline-none text-base relative z-10"
                   rows={1}
                   style={{ minHeight: '56px' }}
                 />
@@ -1346,6 +1346,57 @@ export default function AIChat() {
             max-width: 100% !important;
             padding: 0 !important;
           }
+        }
+
+        /* Moving glowing border for textarea container */
+        .animated-glow-border {
+          position: relative;
+          z-index: 0;
+        }
+
+        .animated-glow-border::before {
+          content: '';
+          position: absolute;
+          inset: -2px;
+          background: linear-gradient(90deg, 
+            #60a5fa 0%, 
+            #a78bfa 25%, 
+            #f472b6 50%, 
+            #a78bfa 75%, 
+            #60a5fa 100%
+          );
+          background-size: 200% 100%;
+          border-radius: inherit;
+          z-index: -2;
+          animation: border-flow 3s linear infinite;
+          opacity: 0;
+          transition: opacity 0.3s;
+          filter: blur(8px);
+        }
+
+        .animated-glow-border:focus-within::before {
+          opacity: 1;
+        }
+
+        .animated-glow-border::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          background: rgb(31 41 55 / 0.5);
+          backdrop-filter: blur(8px);
+          z-index: -1;
+        }
+
+        @keyframes border-flow {
+          0% { background-position: 200% 0; }
+          100% { background-position: -200% 0; }
+        }
+
+        /* Remove default outline for textarea */
+        textarea:focus {
+          outline: none !important;
+          box-shadow: none !important;
         }
       `}</style>
     </div>
