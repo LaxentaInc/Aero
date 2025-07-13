@@ -458,7 +458,7 @@ const CustomEmailIcon = () => (
 	</svg>
 )
 
-// Enhanced Glass Contact Card (Bigger, Vertical)
+// Enhanced Glass Contact Card (No background images, with SVG patterns)
 const GlassContactCard = ({ 
 	icon, 
 	title, 
@@ -466,7 +466,6 @@ const GlassContactCard = ({
 	color, 
 	theme,
 	delay = 0,
-	backgroundImage
 }: { 
 	icon: React.ReactNode
 	title: string
@@ -474,7 +473,6 @@ const GlassContactCard = ({
 	color: string
 	theme: 'dark' | 'light'
 	delay?: number
-	backgroundImage?: string
 }) => {
 	const [copied, setCopied] = useState(false)
 
@@ -489,7 +487,7 @@ const GlassContactCard = ({
 			initial={{ opacity: 0, y: 100 }}
 			whileInView={{ opacity: 1, y: 0 }}
 			transition={{ delay, type: "spring", stiffness: 100 }}
-			whileHover={{ y: -10, scale: 1.02 }}
+			whileHover={{ y: -10 }}
 			className={`relative overflow-hidden cursor-pointer group h-[600px] rounded-3xl ${
 				theme === 'dark' 
 					? 'bg-gradient-to-br from-white/10 to-white/5 border border-white/20' 
@@ -502,36 +500,45 @@ const GlassContactCard = ({
 			}}
 			onClick={handleCopy}
 		>
-			{/* Background Image */}
-			{backgroundImage && (
-				<div 
-					className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity duration-700"
-					style={{
-						backgroundImage: `url(${backgroundImage})`,
-						backgroundSize: 'cover',
-						backgroundPosition: 'center',
-					}}
-				/>
-			)}
-
-			{/* Animated background gradient */}
-			<motion.div 
-				className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700"
-				style={{
-					background: `radial-gradient(circle at 50% 50%, ${color}30, transparent 70%)`
-				}}
-			/>
-			
-			{/* Glass shine effect */}
-			<motion.div
-				className="absolute inset-0 opacity-0 group-hover:opacity-100"
-				initial={{ x: '-100%', rotate: 45 }}
-				whileHover={{ x: '200%' }}
-				transition={{ duration: 0.7 }}
-				style={{
-					background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
-				}}
-			/>
+			{/* Custom SVG Pattern Background */}
+			<svg className="absolute inset-0 w-full h-full opacity-10 group-hover:opacity-20 transition-opacity duration-700">
+				<defs>
+					<pattern id={`pattern-${title}`} x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
+						<motion.circle
+							cx="30"
+							cy="30"
+							r="2"
+							fill={color}
+							animate={{
+								r: [2, 4, 2],
+								opacity: [0.3, 0.6, 0.3]
+							}}
+							transition={{
+								duration: 3,
+								repeat: Infinity,
+								ease: "easeInOut"
+							}}
+						/>
+						<motion.path
+							d="M0,30 Q15,15 30,30 T60,30"
+							stroke={color}
+							strokeWidth="0.5"
+							fill="none"
+							opacity="0.3"
+							animate={{
+								strokeWidth: [0.5, 1, 0.5],
+								opacity: [0.3, 0.5, 0.3]
+							}}
+							transition={{
+								duration: 4,
+								repeat: Infinity,
+								ease: "easeInOut"
+							}}
+						/>
+					</pattern>
+				</defs>
+				<rect width="100%" height="100%" fill={`url(#pattern-${title})`} />
+			</svg>
 
 			<div className="relative z-10 flex flex-col items-center justify-center h-full p-12">
 				<motion.div 
@@ -581,7 +588,7 @@ const GlassContactCard = ({
 	)
 }
 
-// Enhanced Feature Card (Bigger, no background images)
+// Enhanced Feature Card with SVG backgrounds
 const AnimatedFeatureCard = ({ 
 	icon, 
 	title, 
@@ -599,15 +606,15 @@ const AnimatedFeatureCard = ({
 }) => {
 	return (
 		<motion.div
-			initial={{ opacity: 0, rotateY: -90 }}
-			whileInView={{ opacity: 1, rotateY: 0 }}
+			initial={{ opacity: 0, scale: 0.9 }}
+			whileInView={{ opacity: 1, scale: 1 }}
 			transition={{ delay, duration: 0.8 }}
-			whileHover={{ scale: 1.05, z: 50 }}
+			whileHover={{ scale: 1.05 }}
 			className={`relative p-16 h-[400px] overflow-hidden rounded-3xl ${
 				theme === 'dark' 
 					? 'bg-gradient-to-br from-gray-900/90 to-black/90 border border-white/20' 
 					: 'bg-gradient-to-br from-white/90 to-gray-100/90 border border-black/20'
-			} backdrop-blur-xl`}
+			} backdrop-blur-xl group`}
 			style={{ 
 				transformStyle: 'preserve-3d',
 				boxShadow: theme === 'dark'
@@ -615,10 +622,42 @@ const AnimatedFeatureCard = ({
 					: '0 15px 35px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.7)'
 			}}
 		>
-			<motion.div 
-				className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-30`}
-			/>
-			
+			{/* SVG and animation implementations */}
+			<svg className="absolute inset-0 w-full h-full">
+				<defs>
+					<linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+						<stop offset="0%" stopColor="#FF6B6B" />
+						<stop offset="50%" stopColor="#4ECDC4" />
+						<stop offset="100%" stopColor="#45B7D1" />
+					</linearGradient>
+					<linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+						<stop offset="0%" stopColor="#7289DA" />
+						<stop offset="100%" stopColor="#5865F2" />
+					</linearGradient>
+				</defs>
+
+				<motion.rect
+					x="0"
+					y="0"
+					width="100%"
+					height="100%"
+					fill="url(#gradient1)"
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 1 }}
+					transition={{ duration: 1 }}
+				/>
+				<motion.rect
+					x="0"
+					y="0"
+					width="100%"
+					height="100%"
+					fill="url(#gradient2)"
+					initial={{ opacity: 0 }}
+					animate={{ opacity: 1 }}
+					transition={{ duration: 1, delay: 0.5 }}
+				/>
+			</svg>
+
 			<div className="relative z-10 flex flex-col h-full">
 				<motion.div 
 					className={`text-7xl mb-8 ${theme === 'dark' ? 'text-white' : 'text-black'}`}
@@ -1146,7 +1185,6 @@ export default function ContactPage() {
 							color="#5865F2"
 							theme={theme}
 							delay={0.1}
-							backgroundImage="https://i.redd.it/21h0du5wfbze1.png"
 						/>
 						<GlassContactCard
 							icon={<CustomEmailIcon />}
@@ -1155,7 +1193,6 @@ export default function ContactPage() {
 							color="#EA4335"
 							theme={theme}
 							delay={0.2}
-							backgroundImage="/bg.jpg"
 						/>
 					</div>
 				</div>
