@@ -6,12 +6,24 @@ import {
   Copy, Send, Square, Menu, X, Check, Plus, Search, Trash2, Bot, Terminal, 
   Sparkles, ArrowRight, ChevronDown, MessageSquare, Clock, Eye, EyeOff, 
   Home, RefreshCw, Zap, Code2, Loader2, Download, ChevronRight, 
-  Maximize2, Minimize2, ExternalLink
+  Maximize2, Minimize2, ExternalLink, Crown
 } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 
-const MODELS = ['gpt-4o', 'llama-3-70b', 'gemini-1.5-pro','deepseek-r1-nitro']
+// Model interface
+interface ModelInfo {
+  id: string
+  name: string
+  description: string
+  premium_model: boolean
+  metadata?: {
+    vision: boolean
+    function_call: boolean
+    web_search: boolean
+    reasoning: boolean
+  }
+}
 
 interface Message {
   id: string
@@ -31,6 +43,10 @@ interface Conversation {
   updatedAt: Date
   model?: string
 }
+
+// Model cache
+const MODEL_CACHE_KEY = 'ai_models_cache'
+const MODEL_CACHE_DURATION = 1000 * 60 * 60 // 1 hour
 
 // Enhanced Logo with animation
 const Logo = ({ size = 24 }: { size?: number }) => (
@@ -554,26 +570,281 @@ const ConnectionStatus = ({ isConnected }: { isConnected: boolean }) => (
   </div>
 )
 
+const ModelTooltip = ({ 
+  model, 
+  position,
+  isMobile 
+}: { 
+  model: ModelInfo
+  position: { x: number; y: number }
+  isMobile: boolean
+}) => {
+  const [adjustedPosition, setAdjustedPosition] = useState({ x: 0, y: 0 })
+  const [showOnRight, setShowOnRight] = useState(false)
+  const tooltipRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!tooltipRef.current || isMobile) return
+
+    const tooltip = tooltipRef.current
+    const rect = tooltip.getBoundingClientRect()
+    const padding = 20
+    const dropdownWidth = 288 // 72 * 4 = w-72 in tailwind
+    
+    let finalX = position.x - rect.width // Default: show on left
+    let finalY = position.y
+    let onRight = false
+
+    // Check if tooltip would go off the left edge
+    if (finalX < padding) {
+      // Not enough space on left, show on right instead
+      finalX = position.x + dropdownWidth + 20
+      onRight = true
+    }
+
+    // Double-check right positioning doesn't go off screen
+    if (onRight && finalX + rect.width > window.innerWidth - padding) {
+      // If right also doesn't fit, force left at edge
+      finalX = padding
+      onRight = false
+    }
+
+    // Vertical positioning - keep centered but within viewport
+    const halfHeight = rect.height / 2
+    
+    // Adjust if would go above viewport
+    if (finalY - halfHeight < padding) {
+      finalY = halfHeight + padding
+    }
+    
+    // Adjust if would go below viewport
+    if (finalY + halfHeight > window.innerHeight - padding) {
+      finalY = window.innerHeight - halfHeight - padding
+    }
+
+    setAdjustedPosition({ x: finalX, y: finalY })
+    setShowOnRight(onRight)
+  }, [position.x, position.y, isMobile])
+
+  if (isMobile) {
+    // Mobile: Centered overlay
+    return (
+      <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+           onClick={(e) => e.stopPropagation()}>
+        <div 
+          ref={tooltipRef}
+          className="bg-gray-900/95 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl p-4 max-w-sm w-full animate-fadeIn"
+        >
+          <div className="space-y-3">
+            <div className="flex items-start justify-between gap-2">
+              <h3 className="text-white font-semibold text-sm">{model.name}</h3>
+              {model.premium_model && (
+                <Crown size={14} className="text-yellow-400 flex-shrink-0" />
+              )}
+            </div>
+            
+            <p className="text-white/70 text-xs leading-relaxed">
+              {model.description}
+            </p>
+            
+            {model.metadata && (
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/10">
+                {Object.entries(model.metadata).map(([key, value]) => (
+                  <div key={key} className="flex items-center gap-1.5 text-xs">
+                    <div className={`w-2 h-2 rounded-full ${value ? 'bg-green-400' : 'bg-gray-600'}`} />
+                    <span className="text-white/60 capitalize">{key.replace(/_/g, ' ')}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {model.premium_model && (
+              <div className="pt-2 border-t border-white/10">
+                <p className="text-yellow-400 text-xs">Premium model - Upgrade required</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Desktop: Positioned tooltip
+  return (
+    <>
+      <div 
+        ref={tooltipRef}
+        className={`fixed z-[60] bg-gray-900/95 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl p-4 max-w-md pointer-events-none animate-fadeIn`}
+        style={{
+          left: `${adjustedPosition.x}px`,
+          top: `${adjustedPosition.y}px`,
+          transform: 'translateY(-50%)',
+          opacity: adjustedPosition.x === 0 ? 0 : 1
+        }}
+      >
+        {/* Arrow pointing to dropdown */}
+        <div 
+          className={`absolute top-1/2 -translate-y-1/2 w-0 h-0 border-y-[8px] border-y-transparent ${
+            showOnRight 
+              ? 'left-[-8px] border-r-[8px] border-r-gray-900/95' 
+              : 'right-[-8px] border-l-[8px] border-l-gray-900/95'
+          }`}
+        />
+        
+        <div className="space-y-3">
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="text-white font-semibold text-sm">{model.name}</h3>
+            {model.premium_model && (
+              <Crown size={14} className="text-yellow-400 flex-shrink-0" />
+            )}
+          </div>
+          
+          <p className="text-white/70 text-xs leading-relaxed">
+            {model.description}
+          </p>
+          
+          {model.metadata && (
+            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/10">
+              {Object.entries(model.metadata).map(([key, value]) => (
+                <div key={key} className="flex items-center gap-1.5 text-xs">
+                  <div className={`w-2 h-2 rounded-full ${value ? 'bg-green-400' : 'bg-gray-600'}`} />
+                  <span className="text-white/60 capitalize">{key.replace(/_/g, ' ')}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {model.premium_model && (
+            <div className="pt-2 border-t border-white/10">
+              <p className="text-yellow-400 text-xs">Premium model - Upgrade required</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  )
+}
+
 // Main Chat Component
 export default function AIChat() {
   const { data: session } = useSession()
+  const router = useRouter()
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [isStreaming, setIsStreaming] = useState(false)
-  const [selectedModel, setSelectedModel] = useState(MODELS[0])
+  const [models, setModels] = useState<ModelInfo[]>([])
+  const [selectedModel, setSelectedModel] = useState<string>('')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null)
   const [showModelDropdown, setShowModelDropdown] = useState(false)
+  const [hoveredModel, setHoveredModel] = useState<string | null>(null)
+  const [modelHoverPosition, setModelHoverPosition] = useState({ x: 0, y: 0 })
   const [isDesktop, setIsDesktop] = useState(false)
   const [isConnected, setIsConnected] = useState(true)
   const [retryCount, setRetryCount] = useState(0)
+  const [isLoadingModels, setIsLoadingModels] = useState(true)
   
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const streamCacheRef = useRef<string>('')
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const modelDropdownRef = useRef<HTMLDivElement>(null)
+
+  // Fetch and cache models
+// Update the fetchModels function to handle the response structure properly
+const fetchModels = useCallback(async () => {
+  try {
+    // Check cache first
+    const cached = localStorage.getItem(MODEL_CACHE_KEY)
+    if (cached) {
+      const { models: cachedModels, timestamp } = JSON.parse(cached)
+      if (Date.now() - timestamp < MODEL_CACHE_DURATION) {
+        setModels(cachedModels)
+        if (!selectedModel && cachedModels.length > 0) {
+          // Select first non-premium model
+          const firstFreeModel = cachedModels.find((m: ModelInfo) => !m.premium_model) || cachedModels[0]
+          setSelectedModel(firstFreeModel.id)
+        }
+        setIsLoadingModels(false)
+        return
+      }
+    }
+
+    const response = await fetch('https://api.electronhub.ai/models')
+    if (!response.ok) throw new Error('Failed to fetch models')
+    
+    const rawData = await response.json()
+    
+    // Debug: Log the response structure
+    console.log('API Response:', rawData)
+    
+    // Handle different possible response structures
+    let data: any[]
+    if (Array.isArray(rawData)) {
+      data = rawData
+    } else if (rawData.models && Array.isArray(rawData.models)) {
+      data = rawData.models
+    } else if (rawData.data && Array.isArray(rawData.data)) {
+      data = rawData.data
+    } else {
+      console.error('Unexpected response structure:', rawData)
+      throw new Error('Invalid response structure')
+    }
+    
+    // Filter models with required endpoints
+    const chatModels = data.filter((model: any) => 
+      model.endpoints && 
+      (model.endpoints.includes('/v1/chat/completions') ||
+       model.endpoints.includes('/v1/responses') ||
+       model.endpoints.includes('/v1/messages'))
+    ).map((model: any) => ({
+      id: model.id,
+      name: model.name,
+      description: model.description,
+      premium_model: model.premium_model,
+      metadata: model.metadata
+    }))
+
+    // Cache the models
+    localStorage.setItem(MODEL_CACHE_KEY, JSON.stringify({
+      models: chatModels,
+      timestamp: Date.now()
+    }))
+
+    setModels(chatModels)
+    
+    if (!selectedModel && chatModels.length > 0) {
+      // Select first non-premium model
+      const firstFreeModel = chatModels.find((m: ModelInfo) => !m.premium_model) || chatModels[0]
+      setSelectedModel(firstFreeModel.id)
+    }
+  } catch (error) {
+    console.error('Failed to fetch models:', error)
+    // Fallback to some default models
+    const fallbackModels = [
+      {
+        id: 'gpt-4o',
+        name: 'GPT-4',
+        description: 'OpenAI\'s most capable model',
+        premium_model: false,
+        metadata: { vision: true, function_call: true, web_search: false, reasoning: false }
+      }
+    ]
+    setModels(fallbackModels)
+    if (!selectedModel) {
+      setSelectedModel(fallbackModels[0].id)
+    }
+  } finally {
+    setIsLoadingModels(false)
+  }
+}, [selectedModel])
+
+  // Load models on mount
+  useEffect(() => {
+    fetchModels()
+  }, [fetchModels])
 
   // Enhanced connection monitoring
   useEffect(() => {
@@ -609,6 +880,28 @@ export default function AIChat() {
       textareaRef.current.style.height = `${Math.min(scrollHeight, 150)}px`
     }
   }, [input])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modelDropdownRef.current && !modelDropdownRef.current.contains(event.target as Node)) {
+        setShowModelDropdown(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  //to close mobile tooltip when clicking outside
+useEffect(() => {
+  if (!isDesktop && hoveredModel) {
+    const handleClick = () => setHoveredModel(null)
+    document.addEventListener('click', handleClick)
+    return () => document.removeEventListener('click', handleClick)
+  }
+}, [hoveredModel, isDesktop])
+
 
   // Load conversations from localStorage
   useEffect(() => {
@@ -674,6 +967,29 @@ export default function AIChat() {
     scrollToBottom()
   }, [messages, scrollToBottom])
 
+  const handleModelSelect = (modelId: string) => {
+    const model = models.find(m => m.id === modelId)
+    if (model?.premium_model) {
+      // Redirect to pricing page for premium models
+      router.push('/pricing')
+    } else {
+      setSelectedModel(modelId)
+      setShowModelDropdown(false)
+    }
+  }
+
+
+  const handleModelHover = (e: React.MouseEvent, modelId: string) => {
+  const buttonRect = e.currentTarget.getBoundingClientRect()
+  const dropdownRect = modelDropdownRef.current?.getBoundingClientRect()
+  
+  // Calculate position to the LEFT of the dropdown
+  const tooltipX = (dropdownRect?.left || buttonRect.left) - 20  // 20px gap from dropdown
+  const tooltipY = buttonRect.top + (buttonRect.height / 2)
+  
+  setModelHoverPosition({ x: tooltipX, y: tooltipY })
+  setHoveredModel(modelId)
+}
   // Enhanced streaming with caching and retry
   const streamResponse = async (userMessage: string, currentMessages: Message[], isRetry = false) => {
     const assistantMessage: Message = {
@@ -963,6 +1279,8 @@ export default function AIChat() {
     }
   }
 
+  const selectedModelInfo = models.find(m => m.id === selectedModel)
+
   return (
     <div className="flex h-screen bg-gray-950">
       {/* Connection status indicator */}
@@ -1023,38 +1341,77 @@ export default function AIChat() {
             </div>
             
             {/* Model selector */}
-            <div className="relative">
+            <div className="relative" ref={modelDropdownRef}>
               <button
                 onClick={() => setShowModelDropdown(!showModelDropdown)}
-                className="flex items-center gap-2 px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm text-white transition-all group"
+                disabled={isLoadingModels}
+                className="flex items-center gap-2 px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm text-white transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Zap size={14} className="text-yellow-400" />
-                <span className="hidden sm:inline">{selectedModel}</span>
-                <span className="sm:hidden">{selectedModel.split('-')[0]}</span>
+                {isLoadingModels ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : (
+                  <Zap size={14} className="text-yellow-400" />
+                )}
+                <span className="hidden sm:inline">
+                  {selectedModelInfo ? selectedModelInfo.name : 'Select Model'}
+                </span>
+                <span className="sm:hidden">
+                  {selectedModelInfo ? selectedModelInfo.name.split(' ')[0] : 'Model'}
+                </span>
+                {selectedModelInfo?.premium_model && (
+                  <Crown size={12} className="text-yellow-400" />
+                )}
                 <ChevronDown size={14} className={`transition-transform ${showModelDropdown ? 'rotate-180' : ''}`} />
               </button>
               
-              {showModelDropdown && (
-                <div className="absolute right-0 mt-2 w-56 bg-gray-900/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
-                  {MODELS.map(model => (
-                    <button
-                      key={model}
-                      onClick={() => {
-                        setSelectedModel(model)
-                        setShowModelDropdown(false)
-                      }}
-                      className={`w-full text-left px-4 py-3 text-sm transition-all flex items-center justify-between group ${
-                        selectedModel === model 
-                          ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white' 
-                          : 'text-white/70 hover:bg-white/10 hover:text-white'
-                      }`}
-                    >
-                      <span>{model}</span>
-                      {selectedModel === model && <Check size={14} className="text-blue-400" />}
-                    </button>
-                  ))}
+              {showModelDropdown && !isLoadingModels && (
+                <div className="absolute right-0 mt-2 w-72 bg-gray-900/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
+                  <div className="max-h-96 overflow-y-auto">
+                    {models.map(model => (
+                      <button
+                        key={model.id}
+                        onClick={() => {      if (!isDesktop) {
+        // On mobile, show tooltip first, then select on second tap
+        if (hoveredModel === model.id) {
+          handleModelSelect(model.id)
+          setHoveredModel(null)
+        } else {
+          setHoveredModel(model.id)
+        }
+      } else {
+        handleModelSelect(model.id)
+      }
+    }}
+    onMouseEnter={(e) => isDesktop && handleModelHover(e, model.id)}
+    onMouseLeave={() => isDesktop && setHoveredModel(null)}
+
+                        className={`w-full text-left px-4 py-3 text-sm transition-all flex items-center justify-between group ${
+                          selectedModel === model.id 
+                            ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white' 
+                            : 'text-white/70 hover:bg-white/10 hover:text-white'
+                        } ${model.premium_model ? 'cursor-pointer' : ''}`}
+                      >
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <span className="truncate">{model.name}</span>
+                          {model.premium_model && (
+                            <Crown size={12} className="text-yellow-400 flex-shrink-0" />
+                          )}
+                        </div>
+                        {selectedModel === model.id && <Check size={14} className="text-blue-400 flex-shrink-0" />}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
+              
+              {/* Model tooltip */}
+{hoveredModel && !isLoadingModels && (
+  <ModelTooltip 
+    model={models.find(m => m.id === hoveredModel)!} 
+    position={modelHoverPosition}
+    isMobile={!isDesktop} //we pass the mobile state
+  />
+)}
             </div>
           </div>
         </header>
@@ -1176,9 +1533,12 @@ export default function AIChat() {
                   Press <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-white/50 font-mono">Enter</kbd> to send, 
                   <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-white/50 font-mono ml-1">Shift+Enter</kbd> for new line
                 </div>
-                {isDesktop && (
-                  <div className="text-xs text-white/30">
-                    Model: <span className="text-white/50">{selectedModel}</span>
+                {isDesktop && selectedModelInfo && (
+                  <div className="text-xs text-white/30 flex items-center gap-1">
+                    Model: <span className="text-white/50">{selectedModelInfo.name}</span>
+                    {selectedModelInfo.premium_model && (
+                      <Crown size={10} className="text-yellow-400" />
+                    )}
                   </div>
                 )}
               </div>
