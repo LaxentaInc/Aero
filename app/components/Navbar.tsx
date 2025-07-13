@@ -39,7 +39,7 @@ const LoadingAnimation = ({
 
   return (
     <motion.div
-      className={`fixed inset-0 z-[9999] flex items-center justify-center ${
+      className={`fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden ${
         theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100'
       }`}
       initial={{ opacity: 1 }}
@@ -47,10 +47,11 @@ const LoadingAnimation = ({
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
     >
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 w-full h-full">
         <video
           ref={videoRef}
-          className="w-full h-full object-cover"
+          className="absolute top-0 left-0 w-full h-full object-cover"
+          style={{ minWidth: '100%', minHeight: '100%' }}
           autoPlay
           loop
           muted
@@ -69,9 +70,9 @@ const LoadingAnimation = ({
         }`} />
       </div>
 
-      <div className="relative z-10 flex flex-col items-center space-y-8">
+      <div className="relative z-10 flex flex-col items-center justify-center space-y-8">
         <motion.div
-          className="relative w-24 h-24"
+          className="relative w-32 h-32" // Increased size
           animate={{ rotate: 360 }}
           transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
         >
@@ -85,7 +86,7 @@ const LoadingAnimation = ({
               r="45"
               fill="none"
               stroke="currentColor"
-              strokeWidth="2"
+              strokeWidth="4" // Increased stroke width
               strokeDasharray="70 200"
               strokeLinecap="round"
               className="opacity-20"
@@ -96,7 +97,7 @@ const LoadingAnimation = ({
               r="45"
               fill="none"
               stroke="currentColor"
-              strokeWidth="2"
+              strokeWidth="4" // Increased stroke width
               strokeDasharray="70 200"
               strokeLinecap="round"
               animate={{
@@ -112,12 +113,12 @@ const LoadingAnimation = ({
         </motion.div>
 
         <motion.h1
-          className="font-mono font-black text-2xl tracking-wider text-white drop-shadow-lg"
+          className="font-mono font-black text-3xl tracking-wider text-white drop-shadow-lg text-center uppercase"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-             a moment pls....
+          Loading...
         </motion.h1>
 
         <motion.div
@@ -560,7 +561,7 @@ export default function Navbar() {
                       transition={{ delay: 0.4 }}
                     >
                       <button
-                        onClick={() => handleNavigation('/try')}
+                        onClick={() => handleNavigation('/contact')} 
                         className={`relative px-6 py-2 font-mono text-sm font-bold uppercase tracking-wide transition-all duration-300 overflow-hidden group ${
                           theme === 'dark' 
                             ? 'bg-white text-black hover:bg-transparent hover:text-white border border-white' 
