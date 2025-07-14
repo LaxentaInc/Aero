@@ -1808,13 +1808,13 @@ useEffect(() => {
                   onKeyDown={handleKeyDown}
                   placeholder={isConnected ? "Type your message..." : "You're offline. Check your connection..."}
                   disabled={!isConnected}
-                  className="w-full px-4 py-4 pr-24 bg-transparent text-white placeholder-white/40 resize-none focus:outline-none text-base relative z-10"
+                  className="w-full px-4 py-4 pr-24 bg-transparent text-white placeholder-white/40 resize-none focus:outline-none text-base"
                   rows={1}
                   style={{ minHeight: '56px' }}
                 />
 
-                {/* Actions */}
-                <div className="absolute bottom-3 right-3 flex items-center gap-2">
+                {/* Actions - with higher z-index and pointer-events */}
+                <div className="absolute bottom-3 right-3 flex items-center gap-2 z-20">
                   {input.trim() && (
                     <span className="text-xs text-white/40 mr-2">
                       {input.length} chars
@@ -1824,7 +1824,8 @@ useEffect(() => {
                   {isStreaming ? (
                     <button
                       onClick={handleStop}
-                      className="bg-red-500/20 hover:bg-red-500/30 text-red-400 p-2.5 rounded-xl transition-all flex items-center gap-2 group"
+                      className="bg-red-500/20 hover:bg-red-500/30 text-red-400 p-2.5 rounded-xl transition-all flex items-center gap-2 group relative z-30"
+                      type="button"
                     >
                       <Square size={16} />
                       <span className="text-xs hidden group-hover:inline">Stop</span>
@@ -1833,7 +1834,8 @@ useEffect(() => {
                     <button
                       onClick={handleSend}
                       disabled={!input.trim() || !isConnected}
-                      className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white p-2.5 rounded-xl transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none flex items-center gap-2 group"
+                      className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white p-2.5 rounded-xl transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none flex items-center gap-2 group relative z-30"
+                      type="button"
                     >
                       <Send size={16} />
                       <span className="text-xs hidden group-hover:inline">Send</span>
