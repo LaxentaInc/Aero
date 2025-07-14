@@ -1675,12 +1675,12 @@ const ImageGenCard: React.FC<ImageGenCardProps> = ({ theme = 'dark' }) => {
   const [generationsToday, setGenerationsToday] = useState(0);
   const [loadingProgress, setLoadingProgress] = useState(0);
 
-  const MAX_GENERATIONS_PER_DAY = 10;
+  const MAX_GENERATIONS_PER_DAY = 3;
 
   const styles = [
     { id: 'flux-dev', name: 'FLUX DEV', desc: 'High quality, detailed' },
     { id: 'sana', name: 'SANA', desc: 'Realistic & efficient' },
-    { id: 'omni-gen', name: 'OMNI GEN', desc: 'Versatile generation' },
+    { id: 'stable-diffusion-3.5-turbo', name: 'ST. DIFFUSION TURBO', desc: 'Versatile generation' },
     { id: 'sdxl', name: 'SDXL', desc: 'Stable diffusion XL' }
   ];
 
@@ -1718,7 +1718,7 @@ const ImageGenCard: React.FC<ImageGenCardProps> = ({ theme = 'dark' }) => {
   const presetPrompts = [
     "Beautiful anime landscape, mountain scenery, warm sunset, studio ghibli style",
     "Cyberpunk - girl in a city at night, neon lights, rain, futuristic architecture",
-    "hot young princess in her castle, fantasy art, detailed",
+    "Hot young princess in her castle, anime style, vibrant colors, fantasy setting",
     "Serene forest path, morning mist, sunlight filtering through trees",
     "beautiful and realistic, space art"
   ];

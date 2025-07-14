@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
+import DOMPurify from 'dompurify'
 
 // Model interface
 interface ModelInfo {
@@ -129,7 +130,7 @@ const CodeBlock = ({ code, language = 'javascript' }: { code: string; language?:
     <div className="my-4 group relative">
       {/* 3D effect shadow */}
       <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 blur-xl rounded-2xl transform translate-y-2 group-hover:translate-y-3 transition-transform" />
-      
+
       <div className="relative bg-gray-900/90 backdrop-blur-xl rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
         {/* Header */}
         <div className="flex justify-between items-center px-4 py-3 bg-gradient-to-r from-gray-800/50 to-gray-900/50 border-b border-white/10">
@@ -144,7 +145,7 @@ const CodeBlock = ({ code, language = 'javascript' }: { code: string; language?:
               <span className="text-xs text-white/60 font-mono">{normalizedLanguage}</span>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2">
             {needsExpansion && (
               <button
@@ -180,7 +181,7 @@ const CodeBlock = ({ code, language = 'javascript' }: { code: string; language?:
             </button>
           </div>
         </div>
-        
+
         {/* Code content */}
         <div 
           ref={codeRef}
@@ -207,7 +208,7 @@ const CodeBlock = ({ code, language = 'javascript' }: { code: string; language?:
           >
             {code}
           </SyntaxHighlighter>
-          
+
           {/* Gradient fade for collapsed state */}
           {!expanded && needsExpansion && (
             <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-gray-900 to-transparent pointer-events-none" />
@@ -251,84 +252,110 @@ const MessageComponent = ({
   const processContent = useMemo(() => {
     if (!msg.content) return []
 
+    const cleanConfig = {
+      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'code', 'pre', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a', 'blockquote'],
+      ALLOWED_ATTR: ['href', 'target', 'rel', 'class'],
+      FORBID_TAGS: ['style', 'script', 'iframe', 'form', 'input', 'object', 'embed', 'link', 'meta'],
+      FORBID_ATTR: ['onerror', 'onclick', 'onload', 'onanimationstart', 'style', 'srcdoc'],
+      ALLOW_DATA_ATTR: false,
+      ALLOW_UNKNOWN_PROTOCOLS: false,
+      SAFE_FOR_TEMPLATES: true,
+      WHOLE_DOCUMENT: false,
+      RETURN_DOM: false,
+      RETURN_DOM_FRAGMENT: false,
+      FORCE_BODY: true,
+      SANITIZE_DOM: true,
+      KEEP_CONTENT: false,
+      IN_PLACE: false,
+      ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto):|[^a-z]|[a-z+.-]+(?:[^a-z+.-:]|$))/i,
+    }
+
     const parts: React.ReactNode[] = []
     let content = msg.content
-    
+
     // Handle code blocks with proper detection
     const codeBlockRegex = /```(\w*)\n([\s\S]*?)```/g
     const inlineCodeRegex = /`([^`]+)`/g
-    
+
     // Store code blocks temporarily
     const codeBlocks: { placeholder: string; element: React.ReactNode }[] = []
     let blockIndex = 0
-    
+
     // Replace code blocks with placeholders
     content = content.replace(codeBlockRegex, (match, lang, code) => {
       const placeholder = `__CODE_BLOCK_${blockIndex}__`
+      // Sanitize the code content too
+      const sanitizedCode = DOMPurify.sanitize(code.trim(), { ALLOWED_TAGS: [], ALLOWED_ATTR: [], KEEP_CONTENT: true })
       codeBlocks.push({
         placeholder,
-        element: <CodeBlock key={`code-${blockIndex}`} code={code.trim()} language={lang || 'text'} />
+        element: <CodeBlock key={`code-${blockIndex}`} code={sanitizedCode} language={lang || 'text'} />
       })
       blockIndex++
       return placeholder
     })
-    
+
     // Split by paragraphs
     const paragraphs = content.split(/\n\n+/)
-    
+
     paragraphs.forEach((paragraph, pIndex) => {
       if (!paragraph.trim()) return
-      
+
       // Check if it's a code block placeholder
       const codeBlock = codeBlocks.find(cb => cb.placeholder === paragraph.trim())
       if (codeBlock) {
         parts.push(codeBlock.element)
         return
       }
-      
+
       // Process inline elements
       let processedText = paragraph
-      
+
       // Headers
       if (processedText.match(/^#{1,6}\s/)) {
         const level = processedText.match(/^(#{1,6})\s/)?.[1].length || 1
         const text = processedText.replace(/^#{1,6}\s/, '')
         const sizes = ['text-xl', 'text-lg', 'text-base', 'text-base', 'text-sm', 'text-sm']
+        // Sanitize header text
+        const sanitizedText = DOMPurify.sanitize(text, cleanConfig)
         parts.push(
           <h1 key={`h-${pIndex}`} className={`${sizes[level - 1]} font-semibold mb-3 mt-4 text-white`}>
-            {text}
+            {sanitizedText}
           </h1>
         )
         return
       }
-      
+
       // Lists
       if (processedText.match(/^[\*\-]\s/)) {
         const items = processedText.split('\n').filter(item => item.trim())
         parts.push(
           <ul key={`ul-${pIndex}`} className="list-disc list-inside mb-3 space-y-1">
-            {items.map((item, i) => (
-              <li key={i} className="text-white/90">
-                {item.replace(/^[\*\-]\s/, '')}
-              </li>
-            ))}
+            {items.map((item, i) => {
+              const sanitizedItem = DOMPurify.sanitize(item.replace(/^[\*\-]\s/, ''), cleanConfig)
+              return (
+                <li key={i} className="text-white/90" dangerouslySetInnerHTML={{ __html: sanitizedItem }} />
+              )
+            })}
           </ul>
         )
         return
       }
-      
+
       // Process inline markdown
       processedText = processedText.replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-white">$1</strong>')
       processedText = processedText.replace(/\*(.+?)\*/g, '<em class="italic text-white/90">$1</em>')
       processedText = processedText.replace(inlineCodeRegex, '<code class="bg-white/10 text-blue-300 px-1.5 py-0.5 rounded text-sm font-mono">$1</code>')
       processedText = processedText.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-400 hover:text-blue-300 underline decoration-dotted underline-offset-2 transition-colors" target="_blank" rel="noopener noreferrer">$1</a>')
-      
+
+      // SANITIZE THE FINAL HTML
+      const sanitizedHTML = DOMPurify.sanitize(processedText, cleanConfig)
+
       parts.push(
         <p key={`p-${pIndex}`} className="mb-3 leading-relaxed text-white/90" 
-           dangerouslySetInnerHTML={{ __html: processedText }} />
+           dangerouslySetInnerHTML={{ __html: sanitizedHTML }} />
       )
     })
-    
+
     return parts
   }, [msg.content])
 
@@ -359,7 +386,7 @@ const MessageComponent = ({
             )}
           </div>
         </div>
-        
+
         {/* Message content */}
         <div className="flex flex-col flex-1">
           <div className={`${
@@ -380,7 +407,7 @@ const MessageComponent = ({
               </div>
             )}
           </div>
-          
+
           {/* Actions */}
           <div className={`mt-2 flex items-center gap-2 ${isUser ? 'justify-end' : 'justify-start'} ${
             isHovered ? 'opacity-100' : 'opacity-0'
@@ -388,7 +415,7 @@ const MessageComponent = ({
             <span className="text-[10px] text-white/30">
               {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </span>
-            
+
             <button
               onClick={handleCopyMessage}
               className="text-white/30 hover:text-white/60 transition-colors p-1.5 hover:bg-white/10 rounded-lg"
@@ -396,7 +423,7 @@ const MessageComponent = ({
             >
               {copied ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
             </button>
-            
+
             {!isUser && isLastMessage && onRegenerate && (
               <button
                 onClick={onRegenerate}
@@ -458,7 +485,7 @@ const Sidebar = ({
             </button>
           )}
         </div>
-        
+
         {/* Actions */}
         <div className="space-y-2">
           <button
@@ -468,7 +495,7 @@ const Sidebar = ({
             <Plus size={16} />
             New Chat
           </button>
-          
+
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => router.push('/')}
@@ -487,7 +514,7 @@ const Sidebar = ({
           </div>
         </div>
       </div>
-      
+
       {/* Search */}
       <div className="px-4 py-3">
         <div className="relative">
@@ -501,7 +528,7 @@ const Sidebar = ({
           />
         </div>
       </div>
-      
+
       {/* Conversations list */}
       <div className="flex-1 overflow-y-auto px-2 pb-4 space-y-1">
         {filteredConversations.length === 0 ? (
@@ -536,7 +563,7 @@ const Sidebar = ({
                       {conv.messages.length} messages
                     </div>
                   </div>
-                  
+
                   {hoveredId === conv.id && (
                     <button
                       onClick={(e) => {
@@ -588,17 +615,17 @@ const ModelTooltip = ({
 
     const tooltip = tooltipRef.current
     const rect = tooltip.getBoundingClientRect()
-    const padding = 20
-    const dropdownWidth = 288 // 72 * 4 = w-72 in tailwind
-    
-    let finalX = position.x - rect.width // Default: show on left
+    const padding = 40  // Increased from 20 to give more space
+    const dropdownWidth = 288 // w-72 in tailwind
+
+    let finalX = position.x - rect.width - padding  // More padding from dropdown
     let finalY = position.y
     let onRight = false
 
     // Check if tooltip would go off the left edge
     if (finalX < padding) {
       // Not enough space on left, show on right instead
-      finalX = position.x + dropdownWidth + 20
+      finalX = position.x + dropdownWidth + padding + 50  // Add extra 50px spacing on right too
       onRight = true
     }
 
@@ -611,12 +638,12 @@ const ModelTooltip = ({
 
     // Vertical positioning - keep centered but within viewport
     const halfHeight = rect.height / 2
-    
+
     // Adjust if would go above viewport
     if (finalY - halfHeight < padding) {
       finalY = halfHeight + padding
     }
-    
+
     // Adjust if would go below viewport
     if (finalY + halfHeight > window.innerHeight - padding) {
       finalY = window.innerHeight - halfHeight - padding
@@ -642,11 +669,11 @@ const ModelTooltip = ({
                 <Crown size={14} className="text-yellow-400 flex-shrink-0" />
               )}
             </div>
-            
+
             <p className="text-white/70 text-xs leading-relaxed">
               {model.description}
             </p>
-            
+
             {model.metadata && (
               <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/10">
                 {Object.entries(model.metadata).map(([key, value]) => (
@@ -657,7 +684,7 @@ const ModelTooltip = ({
                 ))}
               </div>
             )}
-            
+
             {model.premium_model && (
               <div className="pt-2 border-t border-white/10">
                 <p className="text-yellow-400 text-xs">Premium model - Upgrade required</p>
@@ -674,12 +701,15 @@ const ModelTooltip = ({
     <>
       <div 
         ref={tooltipRef}
-        className={`fixed z-[60] bg-gray-900/95 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl p-4 max-w-md pointer-events-none animate-fadeIn`}
+        className={`fixed z-[100] bg-gray-900/95 backdrop-blur-xl border border-white/20 rounded-xl shadow-2xl p-4 max-w-md pointer-events-none animate-fadeIn`}
         style={{
           left: `${adjustedPosition.x}px`,
           top: `${adjustedPosition.y}px`,
           transform: 'translateY(-50%)',
-          opacity: adjustedPosition.x === 0 ? 0 : 1
+          opacity: adjustedPosition.x === 0 ? 0 : 1,
+          pointerEvents: 'none',
+          userSelect: 'none',
+          visibility: adjustedPosition.x === 0 ? 'hidden' : 'visible', // Add this to prevent the flicker
         }}
       >
         {/* Arrow pointing to dropdown */}
@@ -690,7 +720,7 @@ const ModelTooltip = ({
               : 'right-[-8px] border-l-[8px] border-l-gray-900/95'
           }`}
         />
-        
+
         <div className="space-y-3">
           <div className="flex items-start justify-between gap-2">
             <h3 className="text-white font-semibold text-sm">{model.name}</h3>
@@ -698,11 +728,11 @@ const ModelTooltip = ({
               <Crown size={14} className="text-yellow-400 flex-shrink-0" />
             )}
           </div>
-          
+
           <p className="text-white/70 text-xs leading-relaxed">
             {model.description}
           </p>
-          
+
           {model.metadata && (
             <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/10">
               {Object.entries(model.metadata).map(([key, value]) => (
@@ -713,7 +743,7 @@ const ModelTooltip = ({
               ))}
             </div>
           )}
-          
+
           {model.premium_model && (
             <div className="pt-2 border-t border-white/10">
               <p className="text-yellow-400 text-xs">Premium model - Upgrade required</p>
@@ -744,13 +774,20 @@ export default function AIChat() {
   const [isConnected, setIsConnected] = useState(true)
   const [retryCount, setRetryCount] = useState(0)
   const [isLoadingModels, setIsLoadingModels] = useState(true)
-  
+  const [modelSearchQuery, setModelSearchQuery] = useState('')
+
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const streamCacheRef = useRef<string>('')
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const modelDropdownRef = useRef<HTMLDivElement>(null)
+
+  // --- Tooltip positioning state ---
+  // const [tooltipRect, setTooltipRect] = useState<{ width: number; height: number } | null>(null)
+  // const [tooltipTargetRects, setTooltipTargetRects] = useState<{ buttonRect: DOMRect; dropdownRect: DOMRect } | null>(null)
+  // const tooltipRef = useRef<HTMLDivElement>(null)
+  // const tooltipCallbackRef = useCallback((node: HTMLDivElement | null) => { ... }, [])
 
   // Fetch and cache models
 // Update the fetchModels function to handle the response structure properly
@@ -774,12 +811,12 @@ const fetchModels = useCallback(async () => {
 
     const response = await fetch('https://api.electronhub.ai/models')
     if (!response.ok) throw new Error('Failed to fetch models')
-    
+
     const rawData = await response.json()
-    
+
     // Debug: Log the response structure
     console.log('API Response:', rawData)
-    
+
     // Handle different possible response structures
     let data: any[]
     if (Array.isArray(rawData)) {
@@ -792,7 +829,7 @@ const fetchModels = useCallback(async () => {
       console.error('Unexpected response structure:', rawData)
       throw new Error('Invalid response structure')
     }
-    
+
     // Filter models with required endpoints
     const chatModels = data.filter((model: any) => 
       model.endpoints && 
@@ -814,7 +851,7 @@ const fetchModels = useCallback(async () => {
     }))
 
     setModels(chatModels)
-    
+
     if (!selectedModel && chatModels.length > 0) {
       // Select first non-premium model
       const firstFreeModel = chatModels.find((m: ModelInfo) => !m.premium_model) || chatModels[0]
@@ -841,6 +878,32 @@ const fetchModels = useCallback(async () => {
   }
 }, [selectedModel])
 
+  const [hoverTimeout, setHoverTimeout] = useState<NodeJS.Timeout | null>(null)
+
+  const handleModelHover = (e: React.MouseEvent, modelId: string) => {
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout)
+    }
+    const timeout = setTimeout(() => {
+      const dropdownEl = modelDropdownRef.current
+      if (dropdownEl) {
+        const dropdownRect = dropdownEl.getBoundingClientRect()
+        setModelHoverPosition({
+          x: dropdownRect.left - 50,  // Move 50px more to the left
+          y: dropdownRect.top + 100   // Move lower - 100px from top of dropdown
+        })
+      }
+      setHoveredModel(modelId)
+    }, 600)
+    setHoverTimeout(timeout)
+  }
+
+  const handleModelMouseLeave = () => {
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout)
+    }
+    setHoveredModel(null)
+  }
   // Load models on mount
   useEffect(() => {
     fetchModels()
@@ -851,10 +914,10 @@ const fetchModels = useCallback(async () => {
     const checkConnection = () => {
       setIsConnected(navigator.onLine)
     }
-    
+
     window.addEventListener('online', checkConnection)
     window.addEventListener('offline', checkConnection)
-    
+
     return () => {
       window.removeEventListener('online', checkConnection)
       window.removeEventListener('offline', checkConnection)
@@ -902,6 +965,36 @@ useEffect(() => {
   }
 }, [hoveredModel, isDesktop])
 
+// Hide tooltip on click outside
+useEffect(() => {
+  if (!isDesktop || !hoveredModel) return
+  const handleClick = () => handleModelMouseLeave()
+  document.addEventListener('mousedown', handleClick)
+  return () => document.removeEventListener('mousedown', handleClick)
+}, [hoveredModel, isDesktop])
+
+// Hide tooltip on mouse leave from dropdown
+useEffect(() => {
+  if (!isDesktop || !hoveredModel) return
+  const dropdownNode = modelDropdownRef.current
+  if (!dropdownNode) return
+  const handleLeave = (e: MouseEvent) => {
+    if (!dropdownNode.contains(e.relatedTarget as Node)) {
+      handleModelMouseLeave()
+    }
+  }
+  dropdownNode.addEventListener('mouseleave', handleLeave)
+  return () => dropdownNode.removeEventListener('mouseleave', handleLeave)
+}, [hoveredModel, isDesktop])
+
+// Callback ref to measure tooltip size
+// const tooltipCallbackRef = useCallback((node: HTMLDivElement | null) => {
+//   if (node) {
+//     const rect = node.getBoundingClientRect()
+//     setTooltipRect({ width: rect.width, height: rect.height })
+//   }
+// }, [])
+
 
   // Load conversations from localStorage
   useEffect(() => {
@@ -920,7 +1013,7 @@ useEffect(() => {
             }))
           }))
           setConversations(conversationsWithDates)
-          
+
           if (conversationsWithDates.length > 0 && !currentConversationId) {
             const mostRecent = conversationsWithDates[0]
             setCurrentConversationId(mostRecent.id)
@@ -979,17 +1072,7 @@ useEffect(() => {
   }
 
 
-  const handleModelHover = (e: React.MouseEvent, modelId: string) => {
-  const buttonRect = e.currentTarget.getBoundingClientRect()
-  const dropdownRect = modelDropdownRef.current?.getBoundingClientRect()
   
-  // Calculate position to the LEFT of the dropdown
-  const tooltipX = (dropdownRect?.left || buttonRect.left) - 20  // 20px gap from dropdown
-  const tooltipY = buttonRect.top + (buttonRect.height / 2)
-  
-  setModelHoverPosition({ x: tooltipX, y: tooltipY })
-  setHoveredModel(modelId)
-}
   // Enhanced streaming with caching and retry
   const streamResponse = async (userMessage: string, currentMessages: Message[], isRetry = false) => {
     const assistantMessage: Message = {
@@ -1016,7 +1099,7 @@ useEffect(() => {
         }
 
         abortControllerRef.current = new AbortController()
-        
+
         const timeoutId = setTimeout(() => {
           abortControllerRef.current?.abort()
         }, 60000) // 60 second timeout
@@ -1069,7 +1152,7 @@ useEffect(() => {
           try {
             const { done, value } = await reader.read()
             lastActivity = Date.now()
-            
+
             if (done) {
               clearInterval(activityCheckInterval)
               break
@@ -1084,7 +1167,7 @@ useEffect(() => {
 
               if (line.startsWith('data: ')) {
                 const data = line.slice(6).trim()
-                
+
                 if (data === '[DONE]') {
                   clearInterval(activityCheckInterval)
                   setIsStreaming(false)
@@ -1119,7 +1202,7 @@ useEffect(() => {
           } catch (readError) {
             clearInterval(activityCheckInterval)
             console.error('Read error:', readError)
-            
+
             if (attempt < 3 && (readError as any).name !== 'AbortError') {
               setRetryCount(attempt + 1)
               console.log(`Retrying... (${attempt + 1}/3)`)
@@ -1134,13 +1217,13 @@ useEffect(() => {
           console.log('Request aborted')
         } else {
           console.error('Streaming error:', error)
-          
+
           const errorMessage = !navigator.onLine
             ? 'You are offline. Please check your internet connection.'
             : error.message.includes('network')
             ? 'Network error. Attempting to reconnect...'
             : 'Sorry, there was an error. Please try again.'
-          
+
           setMessages(prev => prev.map(msg =>
             msg.id === assistantMessage.id
               ? {
@@ -1151,7 +1234,7 @@ useEffect(() => {
               }
               : msg
           ))
-          
+
           // Auto-retry for network errors
           if (error.message.includes('network') && attempt < 3) {
             reconnectTimeoutRef.current = setTimeout(() => {
@@ -1169,14 +1252,14 @@ useEffect(() => {
 
   const handleRegenerate = async () => {
     if (messages.length < 2) return
-    
+
     const lastUserMessage = [...messages].reverse().find(m => m.role === 'user')
     if (!lastUserMessage) return
-    
+
     // Remove the last assistant message
     const newMessages = messages.slice(0, -1)
     setMessages(newMessages)
-    
+
     // Regenerate response
     await streamResponse(lastUserMessage.content, newMessages)
   }
@@ -1190,7 +1273,7 @@ useEffect(() => {
       updatedAt: new Date(),
       model: selectedModel
     }
-    
+
     const updatedConvs = [newConv, ...conversations]
     saveConversations(updatedConvs)
     setCurrentConversationId(newConv.id)
@@ -1201,7 +1284,7 @@ useEffect(() => {
   const deleteConversation = (convId: string) => {
     const updatedConvs = conversations.filter(c => c.id !== convId)
     saveConversations(updatedConvs)
-    
+
     if (currentConversationId === convId) {
       if (updatedConvs.length > 0) {
         const nextConv = updatedConvs[0]
@@ -1236,7 +1319,7 @@ useEffect(() => {
     }
 
     let convId = currentConversationId
-    
+
     if (!convId || messages.length === 0) {
       let title = userMsg.content.slice(0, 30)
       if (userMsg.content.length > 30) title += '...'
@@ -1248,7 +1331,7 @@ useEffect(() => {
         updatedAt: new Date(),
         model: selectedModel
       }
-      
+
       const updatedConvs = [newConv, ...conversations]
       saveConversations(updatedConvs)
       setCurrentConversationId(newConv.id)
@@ -1258,7 +1341,7 @@ useEffect(() => {
     const newMessages = [...messages, userMsg]
     setMessages(newMessages)
     setInput('')
-    
+
     await streamResponse(userMsg.content, newMessages)
   }
 
@@ -1285,7 +1368,7 @@ useEffect(() => {
     <div className="flex h-screen bg-gray-950">
       {/* Connection status indicator */}
       {!isConnected && <ConnectionStatus isConnected={isConnected} />}
-      
+
       {/* Desktop Sidebar */}
       {isDesktop && (
         <div className="w-80 h-full">
@@ -1339,7 +1422,7 @@ useEffect(() => {
                 </div>
               </div>
             </div>
-            
+
             {/* Model selector */}
             <div className="relative" ref={modelDropdownRef}>
               <button
@@ -1363,55 +1446,66 @@ useEffect(() => {
                 )}
                 <ChevronDown size={14} className={`transition-transform ${showModelDropdown ? 'rotate-180' : ''}`} />
               </button>
-              
+
               {showModelDropdown && !isLoadingModels && (
                 <div className="absolute right-0 mt-2 w-72 bg-gray-900/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
-                  <div className="max-h-96 overflow-y-auto">
-                    {models.map(model => (
-                      <button
-                        key={model.id}
-                        onClick={() => {      if (!isDesktop) {
-        // On mobile, show tooltip first, then select on second tap
-        if (hoveredModel === model.id) {
-          handleModelSelect(model.id)
-          setHoveredModel(null)
-        } else {
-          setHoveredModel(model.id)
-        }
-      } else {
-        handleModelSelect(model.id)
-      }
-    }}
-    onMouseEnter={(e) => isDesktop && handleModelHover(e, model.id)}
-    onMouseLeave={() => isDesktop && setHoveredModel(null)}
-
-                        className={`w-full text-left px-4 py-3 text-sm transition-all flex items-center justify-between group ${
-                          selectedModel === model.id 
-                            ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white' 
-                            : 'text-white/70 hover:bg-white/10 hover:text-white'
-                        } ${model.premium_model ? 'cursor-pointer' : ''}`}
-                      >
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <span className="truncate">{model.name}</span>
-                          {model.premium_model && (
-                            <Crown size={12} className="text-yellow-400 flex-shrink-0" />
-                          )}
-                        </div>
-                        {selectedModel === model.id && <Check size={14} className="text-blue-400 flex-shrink-0" />}
-                      </button>
-                    ))}
+                  {/* Search bar */}
+                  <div className="p-3 border-b border-white/10">
+                    <div className="relative">
+                      <Search size={14} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/40" />
+                      <input
+                        type="text"
+                        placeholder="Search models..."
+                        value={modelSearchQuery}
+                        onChange={(e) => setModelSearchQuery(e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-white/40 focus:outline-none focus:border-white/20 focus:bg-white/10 transition-all"
+                        autoFocus
+                      />
+                    </div>
+                  </div>
+                  <div className="max-h-80 overflow-y-auto">
+                    {models.filter(model =>
+                      !modelSearchQuery ||
+                      model.name.toLowerCase().includes(modelSearchQuery.toLowerCase()) ||
+                      model.description.toLowerCase().includes(modelSearchQuery.toLowerCase())
+                    ).length === 0 ? (
+                      <div className="p-4 text-center text-white/40 text-sm">
+                        No models found
+                      </div>
+                    ) : (
+                      models.filter(model =>
+                        !modelSearchQuery ||
+                        model.name.toLowerCase().includes(modelSearchQuery.toLowerCase()) ||
+                        model.description.toLowerCase().includes(modelSearchQuery.toLowerCase())
+                      ).map(model => (
+                        <button
+                          key={model.id}
+                          onClick={() => {
+                            handleModelSelect(model.id)
+                            setModelSearchQuery('')
+                          }}
+                          onMouseEnter={(e) => isDesktop && handleModelHover(e, model.id)}
+                          onMouseLeave={isDesktop ? handleModelMouseLeave : undefined}
+                          className={`w-full text-left px-4 py-3 text-sm transition-all flex items-center justify-between group ${
+                            selectedModel === model.id 
+                              ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white' 
+                              : 'text-white/70 hover:bg-white/10 hover:text-white'
+                          } ${model.premium_model ? 'cursor-pointer' : ''}`}
+                        >
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <span className="truncate">{model.name}</span>
+                            {model.premium_model && (
+                              <Crown size={12} className="text-yellow-400 flex-shrink-0" />
+                            )}
+                          </div>
+                          {selectedModel === model.id && <Check size={14} className="text-blue-400 flex-shrink-0" />}
+                        </button>
+                      ))
+                    )}
                   </div>
                 </div>
               )}
-              
-              {/* Model tooltip */}
-{hoveredModel && !isLoadingModels && (
-  <ModelTooltip 
-    model={models.find(m => m.id === hoveredModel)!} 
-    position={modelHoverPosition}
-    isMobile={!isDesktop} //we pass the mobile state
-  />
-)}
             </div>
           </div>
         </header>
@@ -1430,7 +1524,7 @@ useEffect(() => {
                 <p className="text-white/60 text-lg mb-8">
                   Ask me anything or choose a model to get started
                 </p>
-                
+
                 {/* Quick prompts */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-w-2xl mx-auto">
                   {[
@@ -1484,7 +1578,7 @@ useEffect(() => {
             <div className="relative">
               {/* Gradient background */}
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-2xl blur-xl pointer-events-none" />
-              
+
               <div className="relative bg-gray-800/50 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden shadow-2xl focus-within:ring-0 focus-within:outline-none animated-glow-border conic">
                 <textarea
                   ref={textareaRef}
@@ -1497,7 +1591,7 @@ useEffect(() => {
                   rows={1}
                   style={{ minHeight: '56px' }}
                 />
-                
+
                 {/* Actions */}
                 <div className="absolute bottom-3 right-3 flex items-center gap-2">
                   {input.trim() && (
@@ -1505,7 +1599,7 @@ useEffect(() => {
                       {input.length} chars
                     </span>
                   )}
-                  
+
                   {isStreaming ? (
                     <button
                       onClick={handleStop}
@@ -1526,7 +1620,7 @@ useEffect(() => {
                   )}
                 </div>
               </div>
-              
+
               {/* Keyboard shortcut hint */}
               <div className="flex items-center justify-between mt-2 px-1">
                 <div className="text-xs text-white/30">
@@ -1547,6 +1641,15 @@ useEffect(() => {
         </div>
       </div>
 
+      {/* Model Tooltip - ACTUALLY at root level now */}
+      {hoveredModel && !isLoadingModels && (
+        <ModelTooltip 
+          model={models.find(m => m.id === hoveredModel)!}
+          position={modelHoverPosition}
+          isMobile={!isDesktop}
+        />
+      )}
+
       <style jsx global>{`
         @keyframes fadeIn {
           from { 
@@ -1558,7 +1661,7 @@ useEffect(() => {
             transform: translateY(0);
           }
         }
-        
+
         @keyframes slideIn {
           from { 
             opacity: 0; 
@@ -1569,7 +1672,7 @@ useEffect(() => {
             transform: translateX(0);
           }
         }
-        
+
         @keyframes pulse {
           0%, 100% { 
             opacity: 1;
@@ -1578,15 +1681,15 @@ useEffect(() => {
             opacity: 0.5;
           }
         }
-        
+
         .animate-fadeIn {
           animation: fadeIn 0.5s ease-out;
         }
-        
+
         .animate-slideIn {
           animation: slideIn 0.3s ease-out;
         }
-        
+
         .animate-pulse {
           animation: pulse 2s ease-in-out infinite;
         }
@@ -1596,18 +1699,18 @@ useEffect(() => {
           width: 8px;
           height: 8px;
         }
-        
+
         ::-webkit-scrollbar-track {
           background: rgba(0, 0, 0, 0.1);
           border-radius: 4px;
         }
-        
+
         ::-webkit-scrollbar-thumb {
           background: linear-gradient(to bottom, #3b82f6, #8b5cf6);
           border-radius: 4px;
           transition: all 0.3s;
         }
-        
+
         ::-webkit-scrollbar-thumb:hover {
           background: linear-gradient(to bottom, #2563eb, #7c3aed);
         }
@@ -1620,7 +1723,7 @@ useEffect(() => {
         .token.function { color: #DCDCAA; }
         .token.operator { color: #D4D4D4; }
         .token.class-name { color: #4EC9B0; }
-        
+
         /* Line numbers styling */
         .line-numbers-rows {
           border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
@@ -1631,7 +1734,7 @@ useEffect(() => {
           position: relative;
           padding-left: 1rem;
         }
-        
+
         .prose h1::before,
         .prose h2::before,
         .prose h3::before {
@@ -1651,33 +1754,33 @@ useEffect(() => {
           .text-base {
             font-size: 0.875rem;
           }
-          
+
           .text-sm {
             font-size: 0.8125rem;
           }
-          
+
           .text-xs {
             font-size: 0.75rem;
           }
-          
+
           /* Improve touch targets */
           button {
             min-height: 44px;
             min-width: 44px;
           }
         }
-        
+
         /* High contrast mode support */
         @media (prefers-contrast: high) {
           .border-white\\/10 {
             border-color: rgba(255, 255, 255, 0.3);
           }
-          
+
           .bg-white\\/5 {
             background-color: rgba(255, 255, 255, 0.1);
           }
         }
-        
+
         /* Reduced motion support */
         @media (prefers-reduced-motion: reduce) {
           * {
@@ -1686,14 +1789,14 @@ useEffect(() => {
             transition-duration: 0.01ms !important;
           }
         }
-        
+
         /* Focus styles for accessibility */
         *:focus-visible {
           outline: 2px solid #3b82f6;
           outline-offset: 2px;
           border-radius: 4px;
         }
-        
+
         /* Print styles */
         @media print {
           .sidebar,
@@ -1701,7 +1804,7 @@ useEffect(() => {
           .input-area {
             display: none !important;
           }
-          
+
           .message-area {
             max-width: 100% !important;
             padding: 0 !important;
