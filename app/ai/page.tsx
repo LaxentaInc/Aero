@@ -250,10 +250,13 @@ const MessageComponent = ({
   }
 
   const processContent = useMemo(() => {
-    if (!msg.content) return []
+    // Add this check at the beginning
+    if (!msg.content || msg.content.trim() === '') {
+      return [<p key="empty" className="text-white/50 italic">No content</p>]
+    }
 
     const cleanConfig = {
-      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'code', 'pre', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a', 'blockquote'],
+      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'code', 'pre', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a', 'blockquote', 'del'], // Added 'del' for strikethrough
       ALLOWED_ATTR: ['href', 'target', 'rel', 'class'],
       FORBID_TAGS: ['style', 'script', 'iframe', 'form', 'input', 'object', 'embed', 'link', 'meta'],
       FORBID_ATTR: ['onerror', 'onclick', 'onload', 'onanimationstart', 'style', 'srcdoc'],
@@ -265,7 +268,7 @@ const MessageComponent = ({
       RETURN_DOM_FRAGMENT: false,
       FORCE_BODY: true,
       SANITIZE_DOM: true,
-      KEEP_CONTENT: false,
+      KEEP_CONTENT: true, // ← CHANGED FROM false TO true
       IN_PLACE: false,
       ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto):|[^a-z]|[a-z+.-]+(?:[^a-z+.-:]|$))/i,
     }
@@ -300,6 +303,14 @@ const MessageComponent = ({
     paragraphs.forEach((paragraph, pIndex) => {
       if (!paragraph.trim()) return
 
+      // Horizontal rule
+      if (paragraph.trim().match(/^(-{3,}|_{3,}|\*{3,})$/)) {
+        parts.push(
+          <hr key={`hr-${pIndex}`} className="my-6 border-t border-white/20" />
+        )
+        return
+      }
+
       // Check if it's a code block placeholder
       const codeBlock = codeBlocks.find(cb => cb.placeholder === paragraph.trim())
       if (codeBlock) {
@@ -309,6 +320,18 @@ const MessageComponent = ({
 
       // Process inline elements
       let processedText = paragraph
+
+      // Blockquotes
+      if (processedText.match(/^>\s/)) {
+        const quoteText = processedText.replace(/^>\s/, '')
+        const sanitizedQuote = DOMPurify.sanitize(quoteText, cleanConfig)
+        parts.push(
+          <blockquote key={`quote-${pIndex}`} className="border-l-4 border-white/20 pl-4 my-3 text-white/80 italic">
+            <p dangerouslySetInnerHTML={{ __html: sanitizedQuote }} />
+          </blockquote>
+        )
+        return
+      }
 
       // Headers
       if (processedText.match(/^#{1,6}\s/)) {
@@ -341,14 +364,35 @@ const MessageComponent = ({
         return
       }
 
-      // Process inline markdown
+      // Process inline markdown - ENHANCED VERSION
+      // Bold and italic (triple asterisks or underscores) - must come first
+      processedText = processedText.replace(/\*\*\*(.+?)\*\*\*/g, '<strong class="font-semibold text-white"><em class="italic">$1</em></strong>')
+      processedText = processedText.replace(/___(.+?)___/g, '<strong class="font-semibold text-white"><em class="italic">$1</em></strong>')
+
+      // Bold (double asterisks or underscores)
       processedText = processedText.replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-white">$1</strong>')
-      processedText = processedText.replace(/\*(.+?)\*/g, '<em class="italic text-white/90">$1</em>')
-      processedText = processedText.replace(inlineCodeRegex, '<code class="bg-white/10 text-blue-300 px-1.5 py-0.5 rounded text-sm font-mono">$1</code>')
+      processedText = processedText.replace(/__(.+?)__/g, '<strong class="font-semibold text-white">$1</strong>')
+
+      // Italic (single asterisks or underscores) - avoid matching within words
+      processedText = processedText.replace(/(?<!\w)\*(?!\s)(.+?)(?<!\s)\*(?!\w)/g, '<em class="italic text-white/90">$1</em>')
+      processedText = processedText.replace(/(?<!\w)_(?!\s)(.+?)(?<!\s)_(?!\w)/g, '<em class="italic text-white/90">$1</em>')
+
+      // Strikethrough
+      processedText = processedText.replace(/~~(.+?)~~/g, '<del class="line-through text-white/70">$1</del>')
+
+      // Inline code (keeping existing)
+      processedText = processedText.replace(/`([^`]+)`/g, '<code class="bg-white/10 text-blue-300 px-1.5 py-0.5 rounded text-sm font-mono">$1</code>')
+
+      // Links (keeping existing)
       processedText = processedText.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-400 hover:text-blue-300 underline decoration-dotted underline-offset-2 transition-colors" target="_blank" rel="noopener noreferrer">$1</a>')
 
       // SANITIZE THE FINAL HTML
       const sanitizedHTML = DOMPurify.sanitize(processedText, cleanConfig)
+
+      // Ensure plain text gets rendered (skip empty paragraphs)
+      if (!sanitizedHTML || sanitizedHTML.trim() === '') {
+        return // Skip empty paragraphs
+      }
 
       parts.push(
         <p key={`p-${pIndex}`} className="mb-3 leading-relaxed text-white/90" 
@@ -403,7 +447,9 @@ const MessageComponent = ({
               </div>
             ) : (
               <div className="prose prose-invert max-w-none">
-                {processContent}
+                {processContent.length > 0 ? processContent : (
+                  <p className="text-white/90">{msg.content || 'No content available'}</p>
+                )}
               </div>
             )}
           </div>
@@ -857,7 +903,7 @@ export default function AIChat() {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const modelDropdownRef = useRef<HTMLDivElement>(null)
 
-  // --- Tooltip positioning state ---
+  //--- Tooltip positioning state ---
   // const [tooltipRect, setTooltipRect] = useState<{ width: number; height: number } | null>(null)
   // const [tooltipTargetRects, setTooltipTargetRects] = useState<{ buttonRect: DOMRect; dropdownRect: DOMRect } | null>(null)
   // const tooltipRef = useRef<HTMLDivElement>(null)
