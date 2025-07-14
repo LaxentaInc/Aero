@@ -776,6 +776,30 @@ export default function AIChat() {
   const [isLoadingModels, setIsLoadingModels] = useState(true)
   const [modelSearchQuery, setModelSearchQuery] = useState('')
 
+  // Track message count for unauth users
+  const [messageCount, setMessageCount] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('unauth_message_count')
+      return saved ? parseInt(saved) : 0
+    }
+    return 0
+  })
+
+  // Update message count in localStorage for guests
+  useEffect(() => {
+    if (!session && messageCount > 0) {
+      localStorage.setItem('unauth_message_count', messageCount.toString())
+    }
+  }, [messageCount, session])
+
+  // Reset count on login
+  useEffect(() => {
+    if (session) {
+      setMessageCount(0)
+      localStorage.removeItem('unauth_message_count')
+    }
+  }, [session])
+
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -809,7 +833,7 @@ const fetchModels = useCallback(async () => {
       }
     }
 
-    const response = await fetch('https://api.electronhub.ai/models')
+    const response = await fetch('/api/models')
     if (!response.ok) throw new Error('Failed to fetch models')
 
     const rawData = await response.json()
@@ -830,7 +854,7 @@ const fetchModels = useCallback(async () => {
       throw new Error('Invalid response structure')
     }
 
-    // Filter models with required endpoints
+    // Filter models with required endpoints AND not in blacklist
     const chatModels = data.filter((model: any) => 
       model.endpoints && 
       (model.endpoints.includes('/v1/chat/completions') ||
@@ -1311,11 +1335,28 @@ useEffect(() => {
   const handleSend = async () => {
     if (!input.trim() || isStreaming || !isConnected) return
 
+    // Check message limit for unauth users
+    if (!session && messageCount >= 5) {
+      // Show auth prompt
+      const shouldAuth = confirm(
+        "You've reached the 5 message limit for guests. Please sign in to continue using AI Assistant without limits!"
+      )
+      if (shouldAuth) {
+        router.push('/auth/signin') // or your auth route
+      }
+      return
+    }
+
     const userMsg: Message = {
       id: `${Date.now()}-user`,
       role: 'user',
       content: input.trim(),
       timestamp: new Date()
+    }
+
+    // Increment message count for unauth users
+    if (!session) {
+      setMessageCount(prev => prev + 1)
     }
 
     let convId = currentConversationId
@@ -1648,6 +1689,21 @@ useEffect(() => {
           position={modelHoverPosition}
           isMobile={!isDesktop}
         />
+      )}
+
+      {/* Guest mode message counter indicator */}
+      {!session && (
+        <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-yellow-500/10 rounded-lg border border-yellow-500/20 ml-4">
+          <span className="text-xs text-yellow-400">
+            Guest Mode: {5 - messageCount} messages left
+          </span>
+          <button
+            onClick={() => router.push('/auth/signin')}
+            className="text-xs text-yellow-300 hover:text-yellow-200 underline"
+          >
+            Sign in
+          </button>
+        </div>
       )}
 
       <style jsx global>{`
