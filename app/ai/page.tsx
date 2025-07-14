@@ -651,15 +651,16 @@ const Sidebar = ({
                 <div className="text-yellow-400 text-xs">
                   {GUEST_LIMIT - messageCount} messages left (resets every 16h)
                 </div>
-                <div className="text-white/40 text-xs mt-1">
-Only <span className="font-bold">Basic OpenAi</span> model available for <span className="text-green-500 font-semibold">guest users</span> to prevent abuse ;c
+                <div className="text-cyan-400 text-xs mt-1">
+Log in to unlock access to <span className="text-red-400 font-semibold">100+</span> Unseen and Advanced AI models.
+Currently, only one LLM is available for <span className="text-green-500 font-semibold">Guest Users</span> to help prevent abuse ;c
                 </div>
               </div>
               <a
-                href="/api/auth/signin"
+                href="/login"
                 className="w-full block text-center py-2 bg-[#5865F2] hover:bg-[#4752C4] text-white rounded-lg text-sm font-medium transition-all"
               >
-                Login with Discord
+                Login with discord
               </a>
             </div>
           )}

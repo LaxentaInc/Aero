@@ -13,16 +13,16 @@ export async function GET() {
       'gpt-4-vision-preview',
       'anthropic/claude-3.5-sonnet:beta',
       'o1',
-      'o3-turbo'
+      'o3-turbo',
+      'gpt-3.5-turbo'
     ]
 
-    const BLOCKED_MODEL_PATTERNS = [
-    //   /opus/i,
-    //   /turbo/i,
-      /^gpt-4-/,
-    //   /claude-3\.5/i,
-    /o3/,
-    ]
+const BLOCKED_MODEL_PATTERNS = [
+  /^gpt-4[.]?5/i,     // Matches "gpt-4.5", "gpt-45", "gpt-4.5-turbo", etc.
+  /^gpt-4[.]?1/i,     // Matches "gpt-4.1", "gpt-41", "gpt-4.1-mini", etc.
+  /o3/i,              // Matches anything with "o3" in it (case-insensitive)
+]
+
 
     // Filter the models
     const filteredModels = {
