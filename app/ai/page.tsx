@@ -127,60 +127,102 @@ const CodeBlock = ({ code, language = 'javascript' }: { code: string; language?:
   const normalizedLanguage = getLanguage(language)
 
   return (
-    <div className="my-4 group relative w-full overflow-hidden">
-      <div className="hidden sm:block absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 blur-xl rounded-2xl transform translate-y-2 group-hover:translate-y-3 transition-transform" />
-      <div className="relative bg-gray-900/90 backdrop-blur-xl rounded-lg sm:rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
-        <div className="flex justify-between items-center px-3 sm:px-4 py-2 sm:py-3 bg-gradient-to-r from-gray-800/50 to-gray-900/50 border-b border-white/10">
+    <div className="my-4 group relative w-full">
+      {/* 3D effect shadow - visible on all screens */}
+      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 \
+                      blur-lg sm:blur-xl rounded-lg sm:rounded-2xl \
+                      transform translate-y-1 sm:translate-y-2 \
+                      group-hover:translate-y-2 sm:group-hover:translate-y-3 \
+                      transition-all duration-300 \
+                      group-hover:from-blue-500/30 group-hover:to-purple-500/30" />
+      <div className="relative bg-gray-900/90 backdrop-blur-xl rounded-lg sm:rounded-2xl \
+                      overflow-hidden border border-white/10 shadow-2xl \
+                      transform transition-all duration-300 \
+                      group-hover:scale-[1.01] group-hover:shadow-[0_20px_70px_-15px_rgba(0,0,0,0.3)] \
+                      group-hover:border-white/20">
+        {/* Header with gradient animation */}
+        <div className="flex justify-between items-center px-3 sm:px-4 py-2 sm:py-3 \
+                        bg-gradient-to-r from-gray-800/50 to-gray-900/50 \
+                        border-b border-white/10 \
+                        group-hover:from-gray-800/60 group-hover:to-gray-900/60 \
+                        transition-all duration-300">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <div className="hidden sm:flex gap-1.5">
-              <div className="w-3 h-3 bg-red-500 rounded-full opacity-80" />
-              <div className="w-3 h-3 bg-yellow-500 rounded-full opacity-80" />
-              <div className="w-3 h-3 bg-green-500 rounded-full opacity-80" />
+            {/* Window controls with hover effects */}
+            <div className="flex gap-1.5">
+              <div className="w-3 h-3 bg-red-500 rounded-full opacity-80 \
+                            group-hover:opacity-100 transition-opacity duration-300 \
+                            hover:scale-110 hover:shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
+              <div className="w-3 h-3 bg-yellow-500 rounded-full opacity-80 \
+                            group-hover:opacity-100 transition-opacity duration-300 \
+                            hover:scale-110 hover:shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
+              <div className="w-3 h-3 bg-green-500 rounded-full opacity-80 \
+                            group-hover:opacity-100 transition-opacity duration-300 \
+                            hover:scale-110 hover:shadow-[0_0_10px_rgba(34,197,94,0.5)]" />
             </div>
             <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-              <Code2 size={12} className="text-white/40 flex-shrink-0" />
-              <span className="text-xs text-white/60 font-mono truncate">{language}</span>
+              <Code2 size={14} className="text-white/40 group-hover:text-white/60 transition-colors flex-shrink-0" />
+              <span className="text-xs text-white/60 font-mono truncate \
+                             group-hover:text-white/80 transition-colors">
+                {language}
+              </span>
             </div>
           </div>
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             {needsExpansion && (
               <button
                 onClick={() => setExpanded(!expanded)}
-                className="hidden sm:flex items-center gap-1 text-xs text-white/40 hover:text-white/60 transition-colors"
+                className="hidden sm:flex items-center gap-1 text-xs text-white/40 \
+                         hover:text-white/80 transition-all duration-200 \
+                         hover:bg-white/10 px-2 py-1 rounded-md"
               >
                 {expanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
               </button>
             )}
             <button 
               onClick={handleDownload}
-              className="hidden sm:block text-white/40 hover:text-white/60 transition-colors p-1"
+              className="hidden sm:block text-white/40 hover:text-white/80 \
+                       transition-all duration-200 p-1.5 rounded-md \
+                       hover:bg-white/10"
               title="Download code"
             >
               <Download size={14} />
             </button>
             <button 
               onClick={handleCopy}
-              className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 text-xs bg-white/10 hover:bg-white/20 rounded-md sm:rounded-lg transition-all"
+              className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 \
+                       text-xs bg-white/10 hover:bg-white/20 \
+                       rounded-md sm:rounded-lg transition-all duration-200 \
+                       hover:shadow-[0_0_20px_rgba(255,255,255,0.1)] \
+                       hover:scale-105 active:scale-95"
             >
               {copied ? (
                 <>
-                  <Check size={12} className="text-green-400" />
+                  <Check size={12} className="text-green-400 animate-bounce" />
                   <span className="hidden sm:inline text-green-400">Copied!</span>
                 </>
               ) : (
                 <>
-                  <Copy size={12} />
+                  <Copy size={12} className="group-hover:rotate-[-10deg] transition-transform" />
                   <span className="hidden sm:inline">Copy</span>
                 </>
               )}
             </button>
           </div>
         </div>
+        {/* Code content with gradient border glow on hover */}
         <div 
           ref={codeRef}
-          className={`relative ${!expanded && needsExpansion ? 'max-h-[300px] sm:max-h-[400px]' : ''} overflow-auto`}
-          style={{ WebkitOverflowScrolling: 'touch' }}
+          className={`relative ${!expanded && needsExpansion ? 'max-h-[300px] sm:max-h-[400px]' : ''} \
+                     overflow-auto transition-all duration-300 \
+                     group-hover:bg-black/20`}
+          style={{
+            WebkitOverflowScrolling: 'touch'
+          }}
         >
+          {/* Extra glow layer */}
+          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 \
+                        bg-gradient-to-b from-blue-500/5 via-transparent to-purple-500/5 \
+                        pointer-events-none transition-opacity duration-500" />
           <SyntaxHighlighter
             language={language}
             style={vscDarkPlus}
@@ -194,8 +236,7 @@ const CodeBlock = ({ code, language = 'javascript' }: { code: string; language?:
               fontSize: '0.75rem',
               lineHeight: '1.5',
               overflowX: 'auto',
-              minWidth: 'min-content',
-              maxWidth: '100vw',
+              minWidth: 'min-content'
             }}
             lineNumberStyle={{
               minWidth: '2.5em',
@@ -208,10 +249,15 @@ const CodeBlock = ({ code, language = 'javascript' }: { code: string; language?:
             {code}
           </SyntaxHighlighter>
           {!expanded && needsExpansion && (
-            <div className="absolute bottom-0 left-0 right-0 h-16 sm:h-20 bg-gradient-to-t from-gray-900 to-transparent pointer-events-none" />
+            <div className="absolute bottom-0 left-0 right-0 h-16 sm:h-20 \
+                          bg-gradient-to-t from-gray-900 to-transparent pointer-events-none" />
           )}
         </div>
       </div>
+      {/* Bottom reflection glow */}
+      <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 \
+                    w-3/4 h-8 bg-gradient-to-r from-blue-500/20 to-purple-500/20 \
+                    blur-2xl opacity-0 group-hover:opacity-50 transition-opacity duration-500" />
     </div>
   )
 }
