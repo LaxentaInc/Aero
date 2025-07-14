@@ -127,91 +127,88 @@ const CodeBlock = ({ code, language = 'javascript' }: { code: string; language?:
   const normalizedLanguage = getLanguage(language)
 
   return (
-    <div className="my-4 group relative">
-      {/* 3D effect shadow */}
-      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 blur-xl rounded-2xl transform translate-y-2 group-hover:translate-y-3 transition-transform" />
-
-      <div className="relative bg-gray-900/90 backdrop-blur-xl rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
-        {/* Header */}
-        <div className="flex justify-between items-center px-4 py-3 bg-gradient-to-r from-gray-800/50 to-gray-900/50 border-b border-white/10">
-          <div className="flex items-center gap-3">
-            <div className="flex gap-1.5">
+    <div className="my-4 group relative w-full overflow-hidden">
+      <div className="hidden sm:block absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 blur-xl rounded-2xl transform translate-y-2 group-hover:translate-y-3 transition-transform" />
+      <div className="relative bg-gray-900/90 backdrop-blur-xl rounded-lg sm:rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
+        <div className="flex justify-between items-center px-3 sm:px-4 py-2 sm:py-3 bg-gradient-to-r from-gray-800/50 to-gray-900/50 border-b border-white/10">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <div className="hidden sm:flex gap-1.5">
               <div className="w-3 h-3 bg-red-500 rounded-full opacity-80" />
               <div className="w-3 h-3 bg-yellow-500 rounded-full opacity-80" />
               <div className="w-3 h-3 bg-green-500 rounded-full opacity-80" />
             </div>
-            <div className="flex items-center gap-2">
-              <Code2 size={14} className="text-white/40" />
-              <span className="text-xs text-white/60 font-mono">{normalizedLanguage}</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+              <Code2 size={12} className="text-white/40 flex-shrink-0" />
+              <span className="text-xs text-white/60 font-mono truncate">{language}</span>
             </div>
           </div>
-
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             {needsExpansion && (
               <button
                 onClick={() => setExpanded(!expanded)}
-                className="flex items-center gap-1 text-xs text-white/40 hover:text-white/60 transition-colors"
+                className="hidden sm:flex items-center gap-1 text-xs text-white/40 hover:text-white/60 transition-colors"
               >
                 {expanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
-                {expanded ? 'Collapse' : 'Expand'}
               </button>
             )}
             <button 
               onClick={handleDownload}
-              className="text-white/40 hover:text-white/60 transition-colors"
+              className="hidden sm:block text-white/40 hover:text-white/60 transition-colors p-1"
               title="Download code"
             >
               <Download size={14} />
             </button>
             <button 
               onClick={handleCopy}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-white/10 hover:bg-white/20 rounded-lg transition-all"
+              className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 text-xs bg-white/10 hover:bg-white/20 rounded-md sm:rounded-lg transition-all"
             >
               {copied ? (
                 <>
                   <Check size={12} className="text-green-400" />
-                  <span className="text-green-400">Copied!</span>
+                  <span className="hidden sm:inline text-green-400">Copied!</span>
                 </>
               ) : (
                 <>
                   <Copy size={12} />
-                  <span>Copy</span>
+                  <span className="hidden sm:inline">Copy</span>
                 </>
               )}
             </button>
           </div>
         </div>
-
-        {/* Code content */}
         <div 
           ref={codeRef}
-          className={`relative ${!expanded && needsExpansion ? 'max-h-[400px]' : ''} overflow-auto`}
+          className={`relative ${!expanded && needsExpansion ? 'max-h-[300px] sm:max-h-[400px]' : ''} overflow-auto`}
+          style={{ WebkitOverflowScrolling: 'touch' }}
         >
           <SyntaxHighlighter
-            language={normalizedLanguage}
+            language={language}
             style={vscDarkPlus}
             showLineNumbers={true}
-            wrapLines={true}
+            wrapLines={false}
+            wrapLongLines={false}
             customStyle={{
               margin: 0,
-              padding: '1.5rem',
+              padding: '1rem',
               background: 'transparent',
-              fontSize: '0.875rem',
-              lineHeight: '1.7',
+              fontSize: '0.75rem',
+              lineHeight: '1.5',
+              overflowX: 'auto',
+              minWidth: 'min-content',
+              maxWidth: '100vw',
             }}
             lineNumberStyle={{
-              minWidth: '3em',
-              paddingRight: '1em',
+              minWidth: '2.5em',
+              paddingRight: '0.75em',
               color: 'rgba(255, 255, 255, 0.3)',
               userSelect: 'none',
+              fontSize: '0.7rem'
             }}
           >
             {code}
           </SyntaxHighlighter>
-
-          {/* Gradient fade for collapsed state */}
           {!expanded && needsExpansion && (
-            <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-gray-900 to-transparent pointer-events-none" />
+            <div className="absolute bottom-0 left-0 right-0 h-16 sm:h-20 bg-gradient-to-t from-gray-900 to-transparent pointer-events-none" />
           )}
         </div>
       </div>
@@ -461,20 +458,13 @@ const MessageComponent = ({
 
   return (
     <div 
-      className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-6 group animate-fadeIn`}
+      className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 sm:mb-6 group animate-fadeIn px-2 sm:px-0`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className={`flex gap-3 ${isUser ? 'flex-row-reverse' : ''} ${isUser ? 'max-w-[85%]' : 'w-full'}`}>
-        {/* Avatar */}
+      <div className={`flex gap-2 sm:gap-3 ${isUser ? 'flex-row-reverse' : ''} ${isUser ? 'max-w-[85%]' : 'max-w-full sm:max-w-[85%]'}`}>
         <div className="flex-shrink-0">
-          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shadow-lg transform transition-transform ${
-            isHovered ? 'scale-110' : ''
-          } ${
-            isUser 
-              ? 'bg-gradient-to-br from-blue-500 to-blue-600' 
-              : 'bg-gradient-to-br from-purple-500 to-pink-500'
-          }`}>
+          <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg transform transition-transform ${isHovered ? 'scale-110' : ''} ${isUser ? 'bg-gradient-to-br from-blue-500 to-blue-600' : 'bg-gradient-to-br from-purple-500 to-pink-500'}`}>
             {isUser ? (
               userAvatar ? (
                 <img src={userAvatar} alt="User" className="w-full h-full rounded-xl object-cover" />
@@ -486,38 +476,27 @@ const MessageComponent = ({
             )}
           </div>
         </div>
-
-        {/* Message content */}
-        <div className="flex flex-col flex-1">
-          <div className={`${
-            isUser 
-              ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg rounded-2xl px-4 py-3' 
-              : 'text-white'
-          }`}>
+        <div className="flex flex-col min-w-0 max-w-full">
+          <div className={`${isUser ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg rounded-2xl px-3 py-2 sm:px-4 sm:py-3' : 'text-white'} break-words`}>
             {msg.isStreaming && !msg.content ? (
               <TypingIndicator />
             ) : msg.error ? (
               <div className="text-red-400 flex items-center gap-2">
                 <X size={16} />
-                <span>{msg.content}</span>
+                <span className="text-sm">{msg.content}</span>
               </div>
             ) : (
-              <div className="prose prose-invert max-w-none">
+              <div className="prose prose-invert max-w-none prose-sm sm:prose-base prose-p:break-words prose-pre:max-w-full prose-pre:overflow-x-auto">
                 {processContent.length > 0 ? processContent : (
-                  <p className="text-white/90">{msg.content || 'No content available'}</p>
+                  <p className="text-white/90 break-words">{msg.content || 'No content available'}</p>
                 )}
               </div>
             )}
           </div>
-
-          {/* Actions */}
-          <div className={`mt-2 flex items-center gap-2 ${isUser ? 'justify-end' : 'justify-start'} ${
-            isHovered ? 'opacity-100' : 'opacity-0'
-          } transition-opacity`}>
+          <div className={`mt-1 sm:mt-2 flex items-center gap-2 ${isUser ? 'justify-end' : 'justify-start'} ${isHovered ? 'opacity-100' : 'opacity-0 sm:opacity-0'} transition-opacity`}>
             <span className="text-[10px] text-white/30">
               {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </span>
-
             <button
               onClick={handleCopyMessage}
               className="text-white/30 hover:text-white/60 transition-colors p-1.5 hover:bg-white/10 rounded-lg"
@@ -525,7 +504,6 @@ const MessageComponent = ({
             >
               {copied ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
             </button>
-
             {!isUser && isLastMessage && onRegenerate && (
               <button
                 onClick={onRegenerate}
