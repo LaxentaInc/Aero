@@ -8,7 +8,7 @@ import {
   Home, RefreshCw, Zap, Code2, Loader2, Download, ChevronRight, 
   Maximize2, Minimize2, ExternalLink, Crown
 } from 'lucide-react'
-import { useSession } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import DOMPurify from 'dompurify'
 
@@ -449,7 +449,9 @@ const Sidebar = ({
   onNewChat, 
   onDeleteConversation,
   isMobile = false,
-  onClose
+  onClose,
+  session, // ADD
+  messageCount // ADD
 }: {
   conversations: Conversation[]
   currentConversationId: string | null
@@ -458,6 +460,8 @@ const Sidebar = ({
   onDeleteConversation: (id: string) => void
   isMobile?: boolean
   onClose?: () => void
+  session: any // ADD
+  messageCount: number // ADD
 }) => {
   const [searchQuery, setSearchQuery] = useState('')
   const [hoveredId, setHoveredId] = useState<string | null>(null)
@@ -483,6 +487,52 @@ const Sidebar = ({
             >
               <X size={20} />
             </button>
+          )}
+        </div>
+
+        {/* ACCOUNT INFO SECTION */}
+        <div className="mb-4 p-3 bg-white/5 rounded-xl border border-white/10">
+          {session?.user ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <img 
+                  src={session.user.image || '/default-avatar.png'} 
+                  alt={session.user.name || 'User'} 
+                  className="w-10 h-10 rounded-full border-2 border-white/20"
+                />
+                <div className="flex-1">
+                  <div className="text-white font-semibold text-sm truncate">
+                    {session.user.name || 'User'}
+                  </div>
+                  <div className="text-white/60 text-xs">
+                    Premium Account
+                  </div>
+                </div>
+              </div>
+              <button
+                onClick={() => signOut()}
+                className="w-full py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg text-sm font-medium transition-all"
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="text-center">
+                <div className="text-white/60 text-sm mb-1">
+                  Guest Mode
+                </div>
+                <div className="text-yellow-400 text-xs">
+                  {5 - messageCount} messages left
+                </div>
+              </div>
+              <a
+                href="/api/auth/signin"
+                className="w-full block text-center py-2 bg-[#5865F2] hover:bg-[#4752C4] text-white rounded-lg text-sm font-medium transition-all"
+              >
+                Login with Discord
+              </a>
+            </div>
           )}
         </div>
 
@@ -1419,6 +1469,8 @@ useEffect(() => {
             onSelectConversation={handleConversationClick}
             onNewChat={createNewConversation}
             onDeleteConversation={deleteConversation}
+            session={session} // ADD
+            messageCount={messageCount} // ADD
           />
         </div>
       )}
@@ -1436,6 +1488,8 @@ useEffect(() => {
               onDeleteConversation={deleteConversation}
               isMobile={true}
               onClose={() => setSidebarOpen(false)}
+              session={session} // ADD
+              messageCount={messageCount} // ADD
             />
           </div>
         </div>
@@ -1689,21 +1743,6 @@ useEffect(() => {
           position={modelHoverPosition}
           isMobile={!isDesktop}
         />
-      )}
-
-      {/* Guest mode message counter indicator */}
-      {!session && (
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-yellow-500/10 rounded-lg border border-yellow-500/20 ml-4">
-          <span className="text-xs text-yellow-400">
-            Guest Mode: {5 - messageCount} messages left
-          </span>
-          <button
-            onClick={() => router.push('/auth/signin')}
-            className="text-xs text-yellow-300 hover:text-yellow-200 underline"
-          >
-            Sign in
-          </button>
-        </div>
       )}
 
       <style jsx global>{`
