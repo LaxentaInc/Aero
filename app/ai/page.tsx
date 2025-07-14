@@ -649,7 +649,10 @@ const Sidebar = ({
                   Guest Mode
                 </div>
                 <div className="text-yellow-400 text-xs">
-                  {5 - messageCount} messages left
+                  {GUEST_LIMIT - messageCount} messages left (resets every 16h)
+                </div>
+                <div className="text-white/40 text-xs mt-1">
+Only <span className="font-bold">Basic OpenAi</span> model available for <span className="text-green-500 font-semibold">guest users</span> to prevent abuse ;c
                 </div>
               </div>
               <a
@@ -931,6 +934,46 @@ const ModelTooltip = ({
   )
 }
 
+// Utility to get a simple browser fingerprint (local only, not secure, but enough for rate limiting)
+function getGuestFingerprint() {
+  const nav = window.navigator;
+  const keys = [
+    nav.userAgent,
+    nav.language,
+    nav.platform,
+    nav.hardwareConcurrency,
+    // @ts-ignore
+    typeof nav.deviceMemory !== 'undefined' ? nav.deviceMemory : 'unknown',
+    window.screen.width,
+    window.screen.height,
+    window.screen.colorDepth
+  ];
+  return keys.join('|');
+}
+
+// Guest message limit config
+const GUEST_LIMIT = 100;
+const GUEST_RESET_HOURS = 16;
+const GUEST_MODEL_ID = 'gpt-3.5-turbo';
+const GUEST_LIMIT_KEY = 'guest_msg_limit_v2';
+
+function getGuestLimitInfo() {
+  const fp = getGuestFingerprint();
+  const raw = localStorage.getItem(GUEST_LIMIT_KEY);
+  if (!raw) return { count: 0, lastReset: Date.now(), fp };
+  try {
+    const data = JSON.parse(raw);
+    if (data.fp !== fp) return { count: 0, lastReset: Date.now(), fp };
+    return data;
+  } catch {
+    return { count: 0, lastReset: Date.now(), fp };
+  }
+}
+
+function setGuestLimitInfo(info: { count: number; lastReset: number; fp: string }) {
+  localStorage.setItem(GUEST_LIMIT_KEY, JSON.stringify(info));
+}
+
 // Main Chat Component
 export default function AIChat() {
   const { data: session } = useSession()
@@ -952,29 +995,41 @@ export default function AIChat() {
   const [isLoadingModels, setIsLoadingModels] = useState(true)
   const [modelSearchQuery, setModelSearchQuery] = useState('')
 
-  // Track message count for unauth users
+  // Track message count for unauth users (now using fingerprinted storage)
   const [messageCount, setMessageCount] = useState(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('unauth_message_count')
-      return saved ? parseInt(saved) : 0
+      const info = getGuestLimitInfo();
+      // Check if reset needed
+      if (Date.now() - info.lastReset > GUEST_RESET_HOURS * 60 * 60 * 1000) {
+        setGuestLimitInfo({ count: 0, lastReset: Date.now(), fp: info.fp });
+        return 0;
+      }
+      return info.count || 0;
     }
-    return 0
-  })
+    return 0;
+  });
 
   // Update message count in localStorage for guests
   useEffect(() => {
-    if (!session && messageCount > 0) {
-      localStorage.setItem('unauth_message_count', messageCount.toString())
+    if (!session) {
+      const info = getGuestLimitInfo();
+      // Reset if needed
+      if (Date.now() - info.lastReset > GUEST_RESET_HOURS * 60 * 60 * 1000) {
+        setGuestLimitInfo({ count: 0, lastReset: Date.now(), fp: info.fp });
+        setMessageCount(0);
+      } else {
+        setGuestLimitInfo({ ...info, count: messageCount });
+      }
     }
-  }, [messageCount, session])
+  }, [messageCount, session]);
 
   // Reset count on login
   useEffect(() => {
     if (session) {
-      setMessageCount(0)
-      localStorage.removeItem('unauth_message_count')
+      setMessageCount(0);
+      localStorage.removeItem(GUEST_LIMIT_KEY);
     }
-  }, [session])
+  }, [session]);
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
@@ -1512,55 +1567,61 @@ useEffect(() => {
     if (!input.trim() || isStreaming || !isConnected) return
 
     // Check message limit for unauth users
-    if (!session && messageCount >= 5) {
+    if (!session && messageCount >= GUEST_LIMIT) {
       // Show auth prompt
       const shouldAuth = confirm(
-        "You've reached the 5 message limit for guests. Please sign in to continue using AI Assistant without limits!"
-      )
+        `You've reached the ${GUEST_LIMIT} message limit for guests. Please sign in to continue using AI Assistant without limits!`
+      );
       if (shouldAuth) {
-        router.push('/auth/signin') // or your auth route
+        router.push('/login');
       }
-      return
+      return;
+    }
+
+    // For guests, force model to gpt-3.5-turbo
+    if (!session) {
+      setSelectedModel(GUEST_MODEL_ID);
     }
 
     const userMsg: Message = {
       id: `${Date.now()}-user`,
       role: 'user',
       content: input.trim(),
-      timestamp: new Date()
-    }
+      timestamp: new Date(),
+      model: !session ? GUEST_MODEL_ID : selectedModel
+    };
 
     // Increment message count for unauth users
     if (!session) {
-      setMessageCount(prev => prev + 1)
+      setMessageCount((prev: number) => prev + 1);
     }
 
-    let convId = currentConversationId
+    let convId = currentConversationId;
 
     if (!convId || messages.length === 0) {
-      let title = userMsg.content.slice(0, 30)
-      if (userMsg.content.length > 30) title += '...'
+      let title = userMsg.content.slice(0, 30);
+      if (userMsg.content.length > 30) title += '...';
       const newConv: Conversation = {
         id: `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         title,
         messages: [],
         createdAt: new Date(),
         updatedAt: new Date(),
-        model: selectedModel
-      }
+        model: !session ? GUEST_MODEL_ID : selectedModel
+      };
 
-      const updatedConvs = [newConv, ...conversations]
-      saveConversations(updatedConvs)
-      setCurrentConversationId(newConv.id)
-      convId = newConv.id
+      const updatedConvs = [newConv, ...conversations];
+      saveConversations(updatedConvs);
+      setCurrentConversationId(newConv.id);
+      convId = newConv.id;
     }
 
-    const newMessages = [...messages, userMsg]
-    setMessages(newMessages)
-    setInput('')
+    const newMessages = [...messages, userMsg];
+    setMessages(newMessages);
+    setInput('');
 
-    await streamResponse(userMsg.content, newMessages)
-  }
+    await streamResponse(userMsg.content, newMessages);
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -1638,96 +1699,98 @@ useEffect(() => {
               <div className="flex items-center gap-3">
                 <Logo size={32} />
                 <div className="hidden sm:block">
-                  <div className="text-white font-semibold">AI Assistant</div>
+                  <div className="text-white font-semibold">Laxenta AI</div>
                   <div className="text-xs text-white/60">Powered by Laxenta</div>
                 </div>
               </div>
             </div>
 
-            {/* Model selector */}
-            <div className="relative" ref={modelDropdownRef}>
-              <button
-                onClick={() => setShowModelDropdown(!showModelDropdown)}
-                disabled={isLoadingModels}
-                className="flex items-center gap-2 px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm text-white transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoadingModels ? (
-                  <Loader2 size={14} className="animate-spin" />
-                ) : (
-                  <Zap size={14} className="text-yellow-400" />
-                )}
-                <span className="hidden sm:inline">
-                  {selectedModelInfo ? selectedModelInfo.name : 'Select Model'}
-                </span>
-                <span className="sm:hidden">
-                  {selectedModelInfo ? selectedModelInfo.name.split(' ')[0] : 'Model'}
-                </span>
-                {selectedModelInfo?.premium_model && (
-                  <Crown size={12} className="text-yellow-400" />
-                )}
-                <ChevronDown size={14} className={`transition-transform ${showModelDropdown ? 'rotate-180' : ''}`} />
-              </button>
+            {/* Model selector - only show if logged in */}
+            {session?.user && (
+              <div className="relative" ref={modelDropdownRef}>
+                <button
+                  onClick={() => setShowModelDropdown(!showModelDropdown)}
+                  disabled={isLoadingModels}
+                  className="flex items-center gap-2 px-3 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm text-white transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoadingModels ? (
+                    <Loader2 size={14} className="animate-spin" />
+                  ) : (
+                    <Zap size={14} className="text-yellow-400" />
+                  )}
+                  <span className="hidden sm:inline">
+                    {selectedModelInfo ? selectedModelInfo.name : 'Select Model'}
+                  </span>
+                  <span className="sm:hidden">
+                    {selectedModelInfo ? selectedModelInfo.name.split(' ')[0] : 'Model'}
+                  </span>
+                  {selectedModelInfo?.premium_model && (
+                    <Crown size={12} className="text-yellow-400" />
+                  )}
+                  <ChevronDown size={14} className={`transition-transform ${showModelDropdown ? 'rotate-180' : ''}`} />
+                </button>
 
-              {showModelDropdown && !isLoadingModels && (
-                <div className="absolute right-0 mt-2 w-72 bg-gray-900/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
-                  {/* Search bar */}
-                  <div className="p-3 border-b border-white/10">
-                    <div className="relative">
-                      <Search size={14} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/40" />
-                      <input
-                        type="text"
-                        placeholder="Search models..."
-                        value={modelSearchQuery}
-                        onChange={(e) => setModelSearchQuery(e.target.value)}
-                        onClick={(e) => e.stopPropagation()}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-white/40 focus:outline-none focus:border-white/20 focus:bg-white/10 transition-all"
-                        autoFocus
-                      />
-                    </div>
-                  </div>
-                  <div className="max-h-80 overflow-y-auto">
-                    {models.filter(model =>
-                      !modelSearchQuery ||
-                      model.name.toLowerCase().includes(modelSearchQuery.toLowerCase()) ||
-                      model.description.toLowerCase().includes(modelSearchQuery.toLowerCase())
-                    ).length === 0 ? (
-                      <div className="p-4 text-center text-white/40 text-sm">
-                        No models found
+                {showModelDropdown && !isLoadingModels && (
+                  <div className="absolute right-0 mt-2 w-72 bg-gray-900/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
+                    {/* Search bar */}
+                    <div className="p-3 border-b border-white/10">
+                      <div className="relative">
+                        <Search size={14} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/40" />
+                        <input
+                          type="text"
+                          placeholder="Search models..."
+                          value={modelSearchQuery}
+                          onChange={(e) => setModelSearchQuery(e.target.value)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-white/40 focus:outline-none focus:border-white/20 focus:bg-white/10 transition-all"
+                          autoFocus
+                        />
                       </div>
-                    ) : (
-                      models.filter(model =>
+                    </div>
+                    <div className="max-h-80 overflow-y-auto">
+                      {models.filter(model =>
                         !modelSearchQuery ||
                         model.name.toLowerCase().includes(modelSearchQuery.toLowerCase()) ||
                         model.description.toLowerCase().includes(modelSearchQuery.toLowerCase())
-                      ).map(model => (
-                        <button
-                          key={model.id}
-                          onClick={() => {
-                            handleModelSelect(model.id)
-                            setModelSearchQuery('')
-                          }}
-                          onMouseEnter={(e) => isDesktop && handleModelHover(e, model.id)}
-                          onMouseLeave={isDesktop ? handleModelMouseLeave : undefined}
-                          className={`w-full text-left px-4 py-3 text-sm transition-all flex items-center justify-between group ${
-                            selectedModel === model.id 
-                              ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white' 
-                              : 'text-white/70 hover:bg-white/10 hover:text-white'
-                          } ${model.premium_model ? 'cursor-pointer' : ''}`}
-                        >
-                          <div className="flex items-center gap-2 flex-1 min-w-0">
-                            <span className="truncate">{model.name}</span>
-                            {model.premium_model && (
-                              <Crown size={12} className="text-yellow-400 flex-shrink-0" />
-                            )}
-                          </div>
-                          {selectedModel === model.id && <Check size={14} className="text-blue-400 flex-shrink-0" />}
-                        </button>
-                      ))
-                    )}
+                      ).length === 0 ? (
+                        <div className="p-4 text-center text-white/40 text-sm">
+                          No models found
+                        </div>
+                      ) : (
+                        models.filter(model =>
+                          !modelSearchQuery ||
+                          model.name.toLowerCase().includes(modelSearchQuery.toLowerCase()) ||
+                          model.description.toLowerCase().includes(modelSearchQuery.toLowerCase())
+                        ).map(model => (
+                          <button
+                            key={model.id}
+                            onClick={() => {
+                              handleModelSelect(model.id)
+                              setModelSearchQuery('')
+                            }}
+                            onMouseEnter={(e) => isDesktop && handleModelHover(e, model.id)}
+                            onMouseLeave={isDesktop ? handleModelMouseLeave : undefined}
+                            className={`w-full text-left px-4 py-3 text-sm transition-all flex items-center justify-between group ${
+                              selectedModel === model.id 
+                                ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white' 
+                                : 'text-white/70 hover:bg-white/10 hover:text-white'
+                            } ${model.premium_model ? 'cursor-pointer' : ''}`}
+                          >
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <span className="truncate">{model.name}</span>
+                              {model.premium_model && (
+                                <Crown size={12} className="text-yellow-400 flex-shrink-0" />
+                              )}
+                            </div>
+                            {selectedModel === model.id && <Check size={14} className="text-blue-400 flex-shrink-0" />}
+                          </button>
+                        ))
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
           </div>
         </header>
 
@@ -1740,10 +1803,10 @@ useEffect(() => {
                   <Sparkles size={40} className="text-white" />
                 </div>
                 <h1 className="text-3xl font-bold text-white mb-3">
-                  Welcome to AI Assistant
+                  Welcome, How's your day?
                 </h1>
                 <p className="text-white/60 text-lg mb-8">
-                  Ask me anything or choose a model to get started
+                  Ask anything or choose a model to get started :3 We pay so you don't have to!
                 </p>
 
                 {/* Quick prompts */}

@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
       temperature: 0.9,
       presence_penalty: 0.6,
       frequency_penalty: 0.7,
-      limit: 10,
+      limit: 5,
       stream,
     });
 
