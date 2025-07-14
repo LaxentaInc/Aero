@@ -250,157 +250,213 @@ const MessageComponent = ({
   }
 
   const processContent = useMemo(() => {
-    // Add this check at the beginning
     if (!msg.content || msg.content.trim() === '') {
       return [<p key="empty" className="text-white/50 italic">No content</p>]
-    }
-
-    const cleanConfig = {
-      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'code', 'pre', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'a', 'blockquote', 'del'], // Added 'del' for strikethrough
-      ALLOWED_ATTR: ['href', 'target', 'rel', 'class'],
-      FORBID_TAGS: ['style', 'script', 'iframe', 'form', 'input', 'object', 'embed', 'link', 'meta'],
-      FORBID_ATTR: ['onerror', 'onclick', 'onload', 'onanimationstart', 'style', 'srcdoc'],
-      ALLOW_DATA_ATTR: false,
-      ALLOW_UNKNOWN_PROTOCOLS: false,
-      SAFE_FOR_TEMPLATES: true,
-      WHOLE_DOCUMENT: false,
-      RETURN_DOM: false,
-      RETURN_DOM_FRAGMENT: false,
-      FORCE_BODY: true,
-      SANITIZE_DOM: true,
-      KEEP_CONTENT: true, // ← CHANGED FROM false TO true
-      IN_PLACE: false,
-      ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto):|[^a-z]|[a-z+.-]+(?:[^a-z+.-:]|$))/i,
     }
 
     const parts: React.ReactNode[] = []
     let content = msg.content
 
-    // Handle code blocks with proper detection
+    // First, handle code blocks and store them
     const codeBlockRegex = /```(\w*)\n([\s\S]*?)```/g
-    const inlineCodeRegex = /`([^`]+)`/g
-
-    // Store code blocks temporarily
     const codeBlocks: { placeholder: string; element: React.ReactNode }[] = []
     let blockIndex = 0
 
-    // Replace code blocks with placeholders
     content = content.replace(codeBlockRegex, (match, lang, code) => {
       const placeholder = `__CODE_BLOCK_${blockIndex}__`
-      // Sanitize the code content too
-      const sanitizedCode = DOMPurify.sanitize(code.trim(), { ALLOWED_TAGS: [], ALLOWED_ATTR: [], KEEP_CONTENT: true })
       codeBlocks.push({
         placeholder,
-        element: <CodeBlock key={`code-${blockIndex}`} code={sanitizedCode} language={lang || 'text'} />
+        element: <CodeBlock key={`code-${blockIndex}`} code={code.trim()} language={lang || 'text'} />
       })
       blockIndex++
       return placeholder
     })
 
-    // Split by paragraphs
-    const paragraphs = content.split(/\n\n+/)
+    // Process markdown line by line to preserve structure
+    const lines = content.split('\n')
+    let currentParagraph: string[] = []
+    let inList = false
+    let listItems: string[] = []
 
-    paragraphs.forEach((paragraph, pIndex) => {
-      if (!paragraph.trim()) return
+    const processInlineMarkdown = (text: string): string => {
+      // Escape HTML first to prevent XSS
+      text = text.replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;')
+
+      // Apply markdown transformations
+      // Links (do this first to avoid conflicts)
+      text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, 
+        '<a href="$2" class="text-blue-400 hover:text-blue-300 underline decoration-dotted underline-offset-2 transition-colors" target="_blank" rel="noopener noreferrer">$1</a>')
+      
+      // Bold and italic (***text*** or ___text___)
+      text = text.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+      text = text.replace(/___(.+?)___/g, '<strong><em>$1</em></strong>')
+      
+      // Bold (**text** or __text__)
+      text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      text = text.replace(/__(.+?)__/g, '<strong>$1</strong>')
+      
+      // Italic (*text* or _text_) - simplified regex
+      text = text.replace(/\*([^*]+)\*/g, '<em>$1</em>')
+      text = text.replace(/\b_([^_]+)_\b/g, '<em>$1</em>')
+      
+      // Strikethrough (~~text~~)
+      text = text.replace(/~~(.+?)~~/g, '<del>$1</del>')
+      
+      // Inline code (`code`)
+      text = text.replace(/`([^`]+)`/g, 
+        '<code class="bg-white/10 text-blue-300 px-1.5 py-0.5 rounded text-sm font-mono">$1</code>')
+
+      return text
+    }
+
+    const flushParagraph = () => {
+      if (currentParagraph.length > 0) {
+        const text = currentParagraph.join(' ').trim()
+        if (text) {
+          const processedText = processInlineMarkdown(text)
+          parts.push(
+            <p key={`p-${parts.length}`} 
+               className="mb-3 leading-relaxed text-white/90" 
+               dangerouslySetInnerHTML={{ __html: processedText }} />
+          )
+        }
+        currentParagraph = []
+      }
+    }
+
+    const flushList = () => {
+      if (listItems.length > 0) {
+        parts.push(
+          <ul key={`ul-${parts.length}`} className="list-disc list-inside mb-3 space-y-1">
+            {listItems.map((item, i) => (
+              <li key={i} 
+                  className="text-white/90" 
+                  dangerouslySetInnerHTML={{ __html: processInlineMarkdown(item) }} />
+            ))}
+          </ul>
+        )
+        listItems = []
+        inList = false
+      }
+    }
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]
+
+      // Check for code block placeholder
+      if (line.trim().startsWith('__CODE_BLOCK_')) {
+        flushParagraph()
+        flushList()
+        const block = codeBlocks.find(cb => cb.placeholder === line.trim())
+        if (block) {
+          parts.push(block.element)
+        }
+        continue
+      }
 
       // Horizontal rule
-      if (paragraph.trim().match(/^(-{3,}|_{3,}|\*{3,})$/)) {
-        parts.push(
-          <hr key={`hr-${pIndex}`} className="my-6 border-t border-white/20" />
-        )
-        return
-      }
-
-      // Check if it's a code block placeholder
-      const codeBlock = codeBlocks.find(cb => cb.placeholder === paragraph.trim())
-      if (codeBlock) {
-        parts.push(codeBlock.element)
-        return
-      }
-
-      // Process inline elements
-      let processedText = paragraph
-
-      // Blockquotes
-      if (processedText.match(/^>\s/)) {
-        const quoteText = processedText.replace(/^>\s/, '')
-        const sanitizedQuote = DOMPurify.sanitize(quoteText, cleanConfig)
-        parts.push(
-          <blockquote key={`quote-${pIndex}`} className="border-l-4 border-white/20 pl-4 my-3 text-white/80 italic">
-            <p dangerouslySetInnerHTML={{ __html: sanitizedQuote }} />
-          </blockquote>
-        )
-        return
+      if (line.trim().match(/^(-{3,}|_{3,}|\*{3,})$/)) {
+        flushParagraph()
+        flushList()
+        parts.push(<hr key={`hr-${parts.length}`} className="my-6 border-t border-white/20" />)
+        continue
       }
 
       // Headers
-      if (processedText.match(/^#{1,6}\s/)) {
-        const level = processedText.match(/^(#{1,6})\s/)?.[1].length || 1
-        const text = processedText.replace(/^#{1,6}\s/, '')
-        const sizes = ['text-xl', 'text-lg', 'text-base', 'text-base', 'text-sm', 'text-sm']
-        // Sanitize header text
-        const sanitizedText = DOMPurify.sanitize(text, cleanConfig)
+      const headerMatch = line.match(/^(#{1,6})\s+(.+)/)
+      if (headerMatch) {
+        flushParagraph()
+        flushList()
+        const level = headerMatch[1].length
+        const text = processInlineMarkdown(headerMatch[2])
+        const sizes = ['text-2xl', 'text-xl', 'text-lg', 'text-base', 'text-sm', 'text-sm']
+        // Render header explicitly to avoid JSX/TS errors
+        let headerEl: React.ReactNode = null
+        switch (level) {
+          case 1:
+            headerEl = <h1 key={`h-${parts.length}`} className={`${sizes[0]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: text }} />
+            break
+          case 2:
+            headerEl = <h2 key={`h-${parts.length}`} className={`${sizes[1]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: text }} />
+            break
+          case 3:
+            headerEl = <h3 key={`h-${parts.length}`} className={`${sizes[2]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: text }} />
+            break
+          case 4:
+            headerEl = <h4 key={`h-${parts.length}`} className={`${sizes[3]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: text }} />
+            break
+          case 5:
+            headerEl = <h5 key={`h-${parts.length}`} className={`${sizes[4]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: text }} />
+            break
+          case 6:
+            headerEl = <h6 key={`h-${parts.length}`} className={`${sizes[5]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: text }} />
+            break
+          default:
+            headerEl = <h1 key={`h-${parts.length}`} className={`${sizes[0]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: text }} />
+        }
+        parts.push(headerEl)
+        continue
+      }
+
+      // Blockquotes
+      if (line.startsWith('>')) {
+        flushParagraph()
+        flushList()
+        const quoteText = line.replace(/^>\s?/, '')
         parts.push(
-          <h1 key={`h-${pIndex}`} className={`${sizes[level - 1]} font-semibold mb-3 mt-4 text-white`}>
-            {sanitizedText}
-          </h1>
+          <blockquote key={`quote-${parts.length}`} 
+                      className="border-l-4 border-white/20 pl-4 my-3 text-white/80 italic">
+            <p dangerouslySetInnerHTML={{ __html: processInlineMarkdown(quoteText) }} />
+          </blockquote>
         )
-        return
+        continue
       }
 
       // Lists
-      if (processedText.match(/^[\*\-]\s/)) {
-        const items = processedText.split('\n').filter(item => item.trim())
-        parts.push(
-          <ul key={`ul-${pIndex}`} className="list-disc list-inside mb-3 space-y-1">
-            {items.map((item, i) => {
-              const sanitizedItem = DOMPurify.sanitize(item.replace(/^[\*\-]\s/, ''), cleanConfig)
-              return (
-                <li key={i} className="text-white/90" dangerouslySetInnerHTML={{ __html: sanitizedItem }} />
-              )
-            })}
-          </ul>
-        )
-        return
+      if (line.match(/^[\*\-\+]\s+/)) {
+        flushParagraph()
+        if (!inList) {
+          inList = true
+        }
+        listItems.push(line.replace(/^[\*\-\+]\s+/, ''))
+        continue
+      } else if (inList && line.trim() === '') {
+        flushList()
+        continue
       }
 
-      // Process inline markdown - ENHANCED VERSION
-      // Bold and italic (triple asterisks or underscores) - must come first
-      processedText = processedText.replace(/\*\*\*(.+?)\*\*\*/g, '<strong class="font-semibold text-white"><em class="italic">$1</em></strong>')
-      processedText = processedText.replace(/___(.+?)___/g, '<strong class="font-semibold text-white"><em class="italic">$1</em></strong>')
-
-      // Bold (double asterisks or underscores)
-      processedText = processedText.replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-white">$1</strong>')
-      processedText = processedText.replace(/__(.+?)__/g, '<strong class="font-semibold text-white">$1</strong>')
-
-      // Italic (single asterisks or underscores) - avoid matching within words
-      processedText = processedText.replace(/(?<!\w)\*(?!\s)(.+?)(?<!\s)\*(?!\w)/g, '<em class="italic text-white/90">$1</em>')
-      processedText = processedText.replace(/(?<!\w)_(?!\s)(.+?)(?<!\s)_(?!\w)/g, '<em class="italic text-white/90">$1</em>')
-
-      // Strikethrough
-      processedText = processedText.replace(/~~(.+?)~~/g, '<del class="line-through text-white/70">$1</del>')
-
-      // Inline code (keeping existing)
-      processedText = processedText.replace(/`([^`]+)`/g, '<code class="bg-white/10 text-blue-300 px-1.5 py-0.5 rounded text-sm font-mono">$1</code>')
-
-      // Links (keeping existing)
-      processedText = processedText.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-400 hover:text-blue-300 underline decoration-dotted underline-offset-2 transition-colors" target="_blank" rel="noopener noreferrer">$1</a>')
-
-      // SANITIZE THE FINAL HTML
-      const sanitizedHTML = DOMPurify.sanitize(processedText, cleanConfig)
-
-      // Ensure plain text gets rendered (skip empty paragraphs)
-      if (!sanitizedHTML || sanitizedHTML.trim() === '') {
-        return // Skip empty paragraphs
+      // Numbered lists
+      if (line.match(/^\d+\.\s+/)) {
+        flushParagraph()
+        flushList()
+        // For now, treat as a paragraph, but you could implement ordered lists
+        currentParagraph.push(line)
+        continue
       }
 
-      parts.push(
-        <p key={`p-${pIndex}`} className="mb-3 leading-relaxed text-white/90" 
-           dangerouslySetInnerHTML={{ __html: sanitizedHTML }} />
-      )
-    })
+      // Empty line - flush current paragraph
+      if (line.trim() === '') {
+        flushParagraph()
+        flushList()
+        continue
+      }
 
-    return parts
+      // Regular text
+      if (inList) {
+        flushList()
+      }
+      currentParagraph.push(line)
+    }
+
+    // Flush any remaining content
+    flushParagraph()
+    flushList()
+
+    return parts.length > 0 ? parts : [<p key="default" className="text-white/90">{msg.content}</p>]
   }, [msg.content])
 
   return (
