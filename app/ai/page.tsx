@@ -127,137 +127,152 @@ const CodeBlock = ({ code, language = 'javascript' }: { code: string; language?:
   const normalizedLanguage = getLanguage(language)
 
   return (
-    <div className="my-4 group relative w-full">
-      {/* 3D effect shadow - visible on all screens */}
-      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 \
-                      blur-lg sm:blur-xl rounded-lg sm:rounded-2xl \
-                      transform translate-y-1 sm:translate-y-2 \
-                      group-hover:translate-y-2 sm:group-hover:translate-y-3 \
-                      transition-all duration-300 \
-                      group-hover:from-blue-500/30 group-hover:to-purple-500/30" />
-      <div className="relative bg-gray-900/90 backdrop-blur-xl rounded-lg sm:rounded-2xl \
-                      overflow-hidden border border-white/10 shadow-2xl \
-                      transform transition-all duration-300 \
-                      group-hover:scale-[1.01] group-hover:shadow-[0_20px_70px_-15px_rgba(0,0,0,0.3)] \
-                      group-hover:border-white/20">
-        {/* Header with gradient animation */}
-        <div className="flex justify-between items-center px-3 sm:px-4 py-2 sm:py-3 \
-                        bg-gradient-to-r from-gray-800/50 to-gray-900/50 \
-                        border-b border-white/10 \
-                        group-hover:from-gray-800/60 group-hover:to-gray-900/60 \
-                        transition-all duration-300">
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            {/* Window controls with hover effects */}
-            <div className="flex gap-1.5">
-              <div className="w-3 h-3 bg-red-500 rounded-full opacity-80 \
-                            group-hover:opacity-100 transition-opacity duration-300 \
-                            hover:scale-110 hover:shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
-              <div className="w-3 h-3 bg-yellow-500 rounded-full opacity-80 \
-                            group-hover:opacity-100 transition-opacity duration-300 \
-                            hover:scale-110 hover:shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
-              <div className="w-3 h-3 bg-green-500 rounded-full opacity-80 \
-                            group-hover:opacity-100 transition-opacity duration-300 \
-                            hover:scale-110 hover:shadow-[0_0_10px_rgba(34,197,94,0.5)]" />
+    <div className="my-4 px-4"> {/* Add horizontal padding to contain the glow */}
+      <div className="group relative w-full">
+        {/* 3D effect shadow - enhanced visibility */}
+        <div className="absolute -inset-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 \
+                        blur-xl rounded-2xl \
+                        transform translate-y-2 \
+                        group-hover:from-blue-500/30 group-hover:to-purple-500/30 \
+                        group-hover:translate-y-3 \
+                        transition-all duration-300" />
+        {/* Additional glow layer for more depth */}
+        <div className="absolute -inset-1 bg-gradient-to-r from-blue-600/10 to-purple-600/10 \
+                        blur-md rounded-2xl opacity-0 group-hover:opacity-100 \
+                        transition-all duration-300" />
+        {/* Main code block container */}
+        <div className="relative bg-gray-900/90 backdrop-blur-xl rounded-lg sm:rounded-2xl \
+                        overflow-hidden border border-white/10 \
+                        shadow-[0_8px_32px_rgba(59,130,246,0.12)] \
+                        transform transition-all duration-300 \
+                        group-hover:scale-[1.01] \
+                        group-hover:shadow-[0_20px_70px_rgba(59,130,246,0.25)] \
+                        group-hover:border-white/20">
+          {/* Header with gradient animation */}
+          <div className="flex justify-between items-center px-3 sm:px-4 py-2 sm:py-3 \
+                          bg-gradient-to-r from-gray-800/50 to-gray-900/50 \
+                          border-b border-white/10 \
+                          group-hover:from-gray-800/60 group-hover:to-gray-900/60 \
+                          transition-all duration-300">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              {/* Window controls with hover effects */}
+              <div className="flex gap-1.5">
+                <div className="w-3 h-3 bg-red-500 rounded-full opacity-80 \
+                              group-hover:opacity-100 transition-opacity duration-300 \
+                              hover:scale-110 hover:shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
+                <div className="w-3 h-3 bg-yellow-500 rounded-full opacity-80 \
+                              group-hover:opacity-100 transition-opacity duration-300 \
+                              hover:scale-110 hover:shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
+                <div className="w-3 h-3 bg-green-500 rounded-full opacity-80 \
+                              group-hover:opacity-100 transition-opacity duration-300 \
+                              hover:scale-110 hover:shadow-[0_0_10px_rgba(34,197,94,0.5)]" />
+              </div>
+              <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                <Code2 size={14} className="text-white/40 group-hover:text-white/60 transition-colors flex-shrink-0" />
+                <span className="text-xs text-white/60 font-mono truncate \
+                               group-hover:text-white/80 transition-colors">
+                  {language}
+                </span>
+              </div>
             </div>
-            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-              <Code2 size={14} className="text-white/40 group-hover:text-white/60 transition-colors flex-shrink-0" />
-              <span className="text-xs text-white/60 font-mono truncate \
-                             group-hover:text-white/80 transition-colors">
-                {language}
-              </span>
-            </div>
-          </div>
-          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-            {needsExpansion && (
-              <button
-                onClick={() => setExpanded(!expanded)}
-                className="hidden sm:flex items-center gap-1 text-xs text-white/40 \
-                         hover:text-white/80 transition-all duration-200 \
-                         hover:bg-white/10 px-2 py-1 rounded-md"
-              >
-                {expanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
-              </button>
-            )}
-            <button 
-              onClick={handleDownload}
-              className="hidden sm:block text-white/40 hover:text-white/80 \
-                       transition-all duration-200 p-1.5 rounded-md \
-                       hover:bg-white/10"
-              title="Download code"
-            >
-              <Download size={14} />
-            </button>
-            <button 
-              onClick={handleCopy}
-              className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 sm:py-1.5 \
-                       text-xs bg-white/10 hover:bg-white/20 \
-                       rounded-md sm:rounded-lg transition-all duration-200 \
-                       hover:shadow-[0_0_20px_rgba(255,255,255,0.1)] \
-                       hover:scale-105 active:scale-95"
-            >
-              {copied ? (
-                <>
-                  <Check size={12} className="text-green-400 animate-bounce" />
-                  <span className="hidden sm:inline text-green-400">Copied!</span>
-                </>
-              ) : (
-                <>
-                  <Copy size={12} className="group-hover:rotate-[-10deg] transition-transform" />
-                  <span className="hidden sm:inline">Copy</span>
-                </>
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
+              {needsExpansion && (
+                <button
+                  onClick={() => setExpanded(!expanded)}
+                  className="hidden sm:flex items-center gap-1 text-xs text-white/40 \
+                           hover:text-white/80 transition-all duration-200 \
+                           hover:bg-white/10 px-2 py-1 rounded-md"
+                >
+                  {expanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                </button>
               )}
-            </button>
+              <button 
+                onClick={handleDownload}
+                className="hidden sm:block text-white/40 hover:text-white/80 \
+                         transition-all duration-200 p-1.5 rounded-md \
+                         hover:bg-white/10"
+                title="Download code"
+              >
+                <Download size={14} />
+              </button>
+              <button 
+                onClick={handleCopy}
+                className="flex items-center gap-1 sm:gap-1.5 px-3 py-2 sm:px-3 sm:py-1.5 \
+                  text-xs bg-white/10 hover:bg-white/20 \
+                  rounded-md sm:rounded-lg transition-all duration-200 \
+                  hover:shadow-[0_0_20px_rgba(59,130,246,0.3)] \
+                  hover:scale-105 active:scale-95 \
+                  focus:outline-none focus:ring-2 focus:ring-blue-400 \
+                  min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 select-none"
+                style={{ WebkitTapHighlightColor: 'transparent' }}
+              >
+                {copied ? (
+                  <>
+                    <Check size={16} className="text-green-400 animate-bounce" />
+                    <span className="inline text-green-400 font-semibold">Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy size={16} className="group-hover:rotate-[-10deg] transition-transform" />
+                    <span className="inline">Copy</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
-        </div>
-        {/* Code content with gradient border glow on hover */}
-        <div 
-          ref={codeRef}
-          className={`relative ${!expanded && needsExpansion ? 'max-h-[300px] sm:max-h-[400px]' : ''} \
+          {/* Code content with gradient border glow on hover */}
+          <div 
+            ref={codeRef}
+            className={`relative ${!expanded && needsExpansion ? 'max-h-[300px] sm:max-h-[400px]' : ''} \
                      overflow-auto transition-all duration-300 \
                      group-hover:bg-black/20`}
-          style={{
-            WebkitOverflowScrolling: 'touch'
-          }}
-        >
-          {/* Extra glow layer */}
-          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 \
-                        bg-gradient-to-b from-blue-500/5 via-transparent to-purple-500/5 \
-                        pointer-events-none transition-opacity duration-500" />
-          <SyntaxHighlighter
-            language={language}
-            style={vscDarkPlus}
-            showLineNumbers={true}
-            wrapLines={false}
-            wrapLongLines={false}
-            customStyle={{
-              margin: 0,
-              padding: '1rem',
-              background: 'transparent',
-              fontSize: '0.75rem',
-              lineHeight: '1.5',
-              overflowX: 'auto',
-              minWidth: 'min-content'
-            }}
-            lineNumberStyle={{
-              minWidth: '2.5em',
-              paddingRight: '0.75em',
-              color: 'rgba(255, 255, 255, 0.3)',
-              userSelect: 'none',
-              fontSize: '0.7rem'
+            style={{
+              WebkitOverflowScrolling: 'touch',
+              maxWidth: '100%',
             }}
           >
-            {code}
-          </SyntaxHighlighter>
-          {!expanded && needsExpansion && (
-            <div className="absolute bottom-0 left-0 right-0 h-16 sm:h-20 \
-                          bg-gradient-to-t from-gray-900 to-transparent pointer-events-none" />
-          )}
+            {/* Extra glow layer */}
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 \
+                          bg-gradient-to-b from-blue-500/5 via-transparent to-purple-500/5 \
+                          pointer-events-none transition-opacity duration-500" />
+            <SyntaxHighlighter
+              language={language}
+              style={vscDarkPlus}
+              showLineNumbers={true}
+              wrapLines={true}
+              wrapLongLines={true}
+              customStyle={{
+                margin: 0,
+                padding: '1rem',
+                background: 'transparent',
+                fontSize: '0.75rem',
+                lineHeight: '1.5',
+                overflowX: 'auto',
+                wordBreak: 'break-word',
+                whiteSpace: 'pre-wrap',
+                maxWidth: '100%',
+              }}
+              lineNumberStyle={{
+                minWidth: '2.5em',
+                paddingRight: '0.75em',
+                color: 'rgba(255, 255, 255, 0.3)',
+                userSelect: 'none',
+                fontSize: '0.7rem'
+              }}
+            >
+              {code}
+            </SyntaxHighlighter>
+            {!expanded && needsExpansion && (
+              <div className="absolute bottom-0 left-0 right-0 h-16 sm:h-20 \
+                            bg-gradient-to-t from-gray-900 to-transparent pointer-events-none" />
+            )}
+          </div>
         </div>
+        {/* Bottom reflection glow */}
+        <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 \
+                        w-3/4 h-12 bg-gradient-to-r from-blue-500/30 to-purple-500/30 \
+                        blur-2xl opacity-50 group-hover:opacity-70 transition-opacity duration-500" />
       </div>
-      {/* Bottom reflection glow */}
-      <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 \
-                    w-3/4 h-8 bg-gradient-to-r from-blue-500/20 to-purple-500/20 \
-                    blur-2xl opacity-0 group-hover:opacity-50 transition-opacity duration-500" />
     </div>
   )
 }
@@ -300,215 +315,245 @@ const MessageComponent = ({
     const parts: React.ReactNode[] = []
     let content = msg.content
 
-    // First, handle code blocks and store them
-    const codeBlockRegex = /```(\w*)\n([\s\S]*?)```/g
-    const codeBlocks: { placeholder: string; element: React.ReactNode }[] = []
-    let blockIndex = 0
+    // Helper function to process markdown content (complete code blocks)
+    const processMarkdownContent = (text: string): React.ReactNode[] => {
+      const contentParts: React.ReactNode[] = []
+      const codeBlockRegex = /```(\w*)\n([\s\S]*?)```/g
+      const codeBlocks: { placeholder: string; element: React.ReactNode }[] = []
+      let blockIndex = 0
 
-    content = content.replace(codeBlockRegex, (match, lang, code) => {
-      const placeholder = `__CODE_BLOCK_${blockIndex}__`
-      codeBlocks.push({
-        placeholder,
-        element: <CodeBlock key={`code-${blockIndex}`} code={code.trim()} language={lang || 'text'} />
+      text = text.replace(codeBlockRegex, (match, lang, code) => {
+        const placeholder = `__CODE_BLOCK_${blockIndex}__`
+        codeBlocks.push({
+          placeholder,
+          element: <CodeBlock key={`code-${blockIndex}`} code={code.trim()} language={lang || 'text'} />
+        })
+        blockIndex++
+        return placeholder
       })
-      blockIndex++
-      return placeholder
-    })
 
-    // Process markdown line by line to preserve structure
-    const lines = content.split('\n')
-    let currentParagraph: string[] = []
-    let inList = false
-    let listItems: string[] = []
+      // Process markdown line by line to preserve structure
+      const lines = text.split('\n')
+      let currentParagraph: string[] = []
+      let inList = false
+      let listItems: string[] = []
 
-    const processInlineMarkdown = (text: string): string => {
-      // Escape HTML first to prevent XSS
-      text = text.replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;')
-                .replace(/'/g, '&#039;')
+      const processInlineMarkdown = (text: string): string => {
+        // Escape HTML first to prevent XSS
+        text = text.replace(/&/g, '&amp;')
+                  .replace(/</g, '&lt;')
+                  .replace(/>/g, '&gt;')
+                  .replace(/"/g, '&quot;')
+                  .replace(/'/g, '&#039;')
 
-      // Apply markdown transformations
-      // Links (do this first to avoid conflicts)
-      text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, 
-        '<a href="$2" class="text-blue-400 hover:text-blue-300 underline decoration-dotted underline-offset-2 transition-colors" target="_blank" rel="noopener noreferrer">$1</a>')
-      
-      // Bold and italic (***text*** or ___text___)
-      text = text.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
-      text = text.replace(/___(.+?)___/g, '<strong><em>$1</em></strong>')
-      
-      // Bold (**text** or __text__)
-      text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      text = text.replace(/__(.+?)__/g, '<strong>$1</strong>')
-      
-      // Italic (*text* or _text_) - simplified regex
-      text = text.replace(/\*([^*]+)\*/g, '<em>$1</em>')
-      text = text.replace(/\b_([^_]+)_\b/g, '<em>$1</em>')
-      
-      // Strikethrough (~~text~~)
-      text = text.replace(/~~(.+?)~~/g, '<del>$1</del>')
-      
-      // Inline code (`code`)
-      text = text.replace(/`([^`]+)`/g, 
-        '<code class="bg-white/10 text-blue-300 px-1.5 py-0.5 rounded text-sm font-mono">$1</code>')
+        // Apply markdown transformations
+        // Links (do this first to avoid conflicts)
+        text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, 
+          '<a href="$2" class="text-blue-400 hover:text-blue-300 underline decoration-dotted underline-offset-2 transition-colors" target="_blank" rel="noopener noreferrer">$1</a>')
+        
+        // Bold and italic (***text*** or ___text___)
+        text = text.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+        text = text.replace(/___(.+?)___/g, '<strong><em>$1</em></strong>')
+        
+        // Bold (**text** or __text__)
+        text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        text = text.replace(/__(.+?)__/g, '<strong>$1</strong>')
+        
+        // Italic (*text* or _text_) - simplified regex
+        text = text.replace(/\*([^*]+)\*/g, '<em>$1</em>')
+        text = text.replace(/\b_([^_]+)_\b/g, '<em>$1</em>')
+        
+        // Strikethrough (~~text~~)
+        text = text.replace(/~~(.+?)~~/g, '<del>$1</del>')
+        
+        // Inline code (`code`)
+        text = text.replace(/`([^`]+)`/g, 
+          '<code class="bg-white/10 text-blue-300 px-1.5 py-0.5 rounded text-sm font-mono">$1</code>')
 
-      return text
-    }
+        return text
+      }
 
-    const flushParagraph = () => {
-      if (currentParagraph.length > 0) {
-        const text = currentParagraph.join(' ').trim()
-        if (text) {
-          const processedText = processInlineMarkdown(text)
-          parts.push(
-            <p key={`p-${parts.length}`} 
-               className="mb-3 leading-relaxed text-white/90" 
-               dangerouslySetInnerHTML={{ __html: processedText }} />
+      const flushParagraph = () => {
+        if (currentParagraph.length > 0) {
+          const text = currentParagraph.join(' ').trim()
+          if (text) {
+            const processedText = processInlineMarkdown(text)
+            contentParts.push(
+              <p key={`p-${contentParts.length}`} 
+                 className="mb-3 leading-relaxed text-white/90" 
+                 dangerouslySetInnerHTML={{ __html: processedText }} />
+            )
+          }
+          currentParagraph = []
+        }
+      }
+
+      const flushList = () => {
+        if (listItems.length > 0) {
+          contentParts.push(
+            <ul key={`ul-${contentParts.length}`} className="list-disc list-inside mb-3 space-y-1">
+              {listItems.map((item, i) => (
+                <li key={i} 
+                    className="text-white/90" 
+                    dangerouslySetInnerHTML={{ __html: processInlineMarkdown(item) }} />
+              ))}
+            </ul>
           )
+          listItems = []
+          inList = false
         }
-        currentParagraph = []
       }
-    }
 
-    const flushList = () => {
-      if (listItems.length > 0) {
-        parts.push(
-          <ul key={`ul-${parts.length}`} className="list-disc list-inside mb-3 space-y-1">
-            {listItems.map((item, i) => (
-              <li key={i} 
-                  className="text-white/90" 
-                  dangerouslySetInnerHTML={{ __html: processInlineMarkdown(item) }} />
-            ))}
-          </ul>
-        )
-        listItems = []
-        inList = false
-      }
-    }
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i]
 
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i]
-
-      // Check for code block placeholder
-      if (line.trim().startsWith('__CODE_BLOCK_')) {
-        flushParagraph()
-        flushList()
-        const block = codeBlocks.find(cb => cb.placeholder === line.trim())
-        if (block) {
-          parts.push(block.element)
+        // Check for code block placeholder
+        if (line.trim().startsWith('__CODE_BLOCK_')) {
+          flushParagraph()
+          flushList()
+          const block = codeBlocks.find(cb => cb.placeholder === line.trim())
+          if (block) {
+            contentParts.push(block.element)
+          }
+          continue
         }
-        continue
-      }
 
-      // Horizontal rule
-      if (line.trim().match(/^(-{3,}|_{3,}|\*{3,})$/)) {
-        flushParagraph()
-        flushList()
-        parts.push(<hr key={`hr-${parts.length}`} className="my-6 border-t border-white/20" />)
-        continue
-      }
-
-      // Headers
-      const headerMatch = line.match(/^(#{1,6})\s+(.+)/)
-      if (headerMatch) {
-        flushParagraph()
-        flushList()
-        const level = headerMatch[1].length
-        const text = processInlineMarkdown(headerMatch[2])
-        const sizes = ['text-2xl', 'text-xl', 'text-lg', 'text-base', 'text-sm', 'text-sm']
-        // Render header explicitly to avoid JSX/TS errors
-        let headerEl: React.ReactNode = null
-        switch (level) {
-          case 1:
-            headerEl = <h1 key={`h-${parts.length}`} className={`${sizes[0]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: text }} />
-            break
-          case 2:
-            headerEl = <h2 key={`h-${parts.length}`} className={`${sizes[1]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: text }} />
-            break
-          case 3:
-            headerEl = <h3 key={`h-${parts.length}`} className={`${sizes[2]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: text }} />
-            break
-          case 4:
-            headerEl = <h4 key={`h-${parts.length}`} className={`${sizes[3]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: text }} />
-            break
-          case 5:
-            headerEl = <h5 key={`h-${parts.length}`} className={`${sizes[4]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: text }} />
-            break
-          case 6:
-            headerEl = <h6 key={`h-${parts.length}`} className={`${sizes[5]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: text }} />
-            break
-          default:
-            headerEl = <h1 key={`h-${parts.length}`} className={`${sizes[0]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: text }} />
+        // Horizontal rule
+        if (line.trim().match(/^(-{3,}|_{3,}|\*{3,})$/)) {
+          flushParagraph()
+          flushList()
+          contentParts.push(<hr key={`hr-${contentParts.length}`} className="my-6 border-t border-white/20" />)
+          continue
         }
-        parts.push(headerEl)
-        continue
-      }
 
-      // Blockquotes
-      if (line.startsWith('>')) {
-        flushParagraph()
-        flushList()
-        const quoteText = line.replace(/^>\s?/, '')
-        parts.push(
-          <blockquote key={`quote-${parts.length}`} 
-                      className="border-l-4 border-white/20 pl-4 my-3 text-white/80 italic">
-            <p dangerouslySetInnerHTML={{ __html: processInlineMarkdown(quoteText) }} />
-          </blockquote>
-        )
-        continue
-      }
-
-      // Lists
-      if (line.match(/^[\*\-\+]\s+/)) {
-        flushParagraph()
-        if (!inList) {
-          inList = true
+        // Headers
+        const headerMatch = line.match(/^(#{1,6})\s+(.+)/)
+        if (headerMatch) {
+          flushParagraph()
+          flushList()
+          const level = headerMatch[1].length
+          const text = processInlineMarkdown(headerMatch[2])
+          const sizes = ['text-2xl', 'text-xl', 'text-lg', 'text-base', 'text-sm', 'text-sm']
+          // Render header explicitly to avoid JSX/TS errors
+          let headerEl: React.ReactNode = null
+          switch (level) {
+            case 1:
+              headerEl = <h1 key={`h-${contentParts.length}`} className={`${sizes[0]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: text }} />
+              break
+            case 2:
+              headerEl = <h2 key={`h-${contentParts.length}`} className={`${sizes[1]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: text }} />
+              break
+            case 3:
+              headerEl = <h3 key={`h-${contentParts.length}`} className={`${sizes[2]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: text }} />
+              break
+            case 4:
+              headerEl = <h4 key={`h-${contentParts.length}`} className={`${sizes[3]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: text }} />
+              break
+            case 5:
+              headerEl = <h5 key={`h-${contentParts.length}`} className={`${sizes[4]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: text }} />
+              break
+            case 6:
+              headerEl = <h6 key={`h-${contentParts.length}`} className={`${sizes[5]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: text }} />
+              break
+            default:
+              headerEl = <h1 key={`h-${contentParts.length}`} className={`${sizes[0]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: text }} />
+          }
+          contentParts.push(headerEl)
+          continue
         }
-        listItems.push(line.replace(/^[\*\-\+]\s+/, ''))
-        continue
-      } else if (inList && line.trim() === '') {
-        flushList()
-        continue
-      }
 
-      // Numbered lists
-      if (line.match(/^\d+\.\s+/)) {
-        flushParagraph()
-        flushList()
-        // For now, treat as a paragraph, but you could implement ordered lists
+        // Blockquotes
+        if (line.startsWith('>')) {
+          flushParagraph()
+          flushList()
+          const quoteText = line.replace(/^>\s?/, '')
+          contentParts.push(
+            <blockquote key={`quote-${contentParts.length}`} 
+                        className="border-l-4 border-white/20 pl-4 my-3 text-white/80 italic">
+              <p dangerouslySetInnerHTML={{ __html: processInlineMarkdown(quoteText) }} />
+            </blockquote>
+          )
+          continue
+        }
+
+        // Lists
+        if (line.match(/^[\*\-\+]\s+/)) {
+          flushParagraph()
+          if (!inList) {
+            inList = true
+          }
+          listItems.push(line.replace(/^[\*\-\+]\s+/, ''))
+          continue
+        } else if (inList && line.trim() === '') {
+          flushList()
+          continue
+        }
+
+        // Numbered lists
+        if (line.match(/^\d+\.\s+/)) {
+          flushParagraph()
+          flushList()
+          // For now, treat as a paragraph, but you could implement ordered lists
+          currentParagraph.push(line)
+          continue
+        }
+
+        // Empty line - flush current paragraph
+        if (line.trim() === '') {
+          flushParagraph()
+          flushList()
+          continue
+        }
+
+        // Regular text
+        if (inList) {
+          flushList()
+        }
         currentParagraph.push(line)
-        continue
       }
 
-      // Empty line - flush current paragraph
-      if (line.trim() === '') {
-        flushParagraph()
-        flushList()
-        continue
-      }
+      // Flush any remaining content
+      flushParagraph()
+      flushList()
 
-      // Regular text
-      if (inList) {
-        flushList()
-      }
-      currentParagraph.push(line)
+      return contentParts.length > 0 ? contentParts : [<p key="default" className="text-white/90">{msg.content}</p>]
     }
 
-    // Flush any remaining content
-    flushParagraph()
-    flushList()
+    // --- Streaming code block support ---
+    const openCodeBlockMatch = content.match(/```(\w*)\n?([^`]*)$/)
+    if (openCodeBlockMatch && msg.isStreaming) {
+      // We have an unclosed code block during streaming
+      const beforeCode = content.substring(0, content.lastIndexOf('```'))
+      const language = openCodeBlockMatch[1] || 'text'
+      const codeContent = openCodeBlockMatch[2] || ''
+      // Process content before the code block
+      if (beforeCode) {
+        const processedBefore = processMarkdownContent(beforeCode)
+        parts.push(...processedBefore)
+      }
+      // Add the streaming code block
+      parts.push(
+        <CodeBlock 
+          key="streaming-code" 
+          code={codeContent} 
+          language={language} 
+        />
+      )
+      return parts
+    }
 
-    return parts.length > 0 ? parts : [<p key="default" className="text-white/90">{msg.content}</p>]
-  }, [msg.content])
+    // Process the full content
+    const processedContent = processMarkdownContent(content)
+    return processedContent.length > 0 ? processedContent : [<p key="default" className="text-white/90">{content}</p>]
+  }, [msg.content, msg.isStreaming])
 
   return (
     <div 
-      className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 sm:mb-6 group animate-fadeIn px-2 sm:px-0`}
+      className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4 sm:mb-6 group animate-fadeIn px-2 sm:px-0 overflow-hidden`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className={`flex gap-2 sm:gap-3 ${isUser ? 'flex-row-reverse' : ''} ${isUser ? 'max-w-[85%]' : 'max-w-full sm:max-w-[85%]'}`}>
+      <div className={`flex gap-2 sm:gap-3 ${isUser ? 'flex-row-reverse' : ''} ${isUser ? 'max-w-[85%]' : 'max-w-full sm:max-w-[85%]'} min-w-0`}>
         <div className="flex-shrink-0">
           <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl flex items-center justify-center shadow-lg transform transition-transform ${isHovered ? 'scale-110' : ''} ${isUser ? 'bg-gradient-to-br from-blue-500 to-blue-600' : 'bg-gradient-to-br from-purple-500 to-pink-500'}`}>
             {isUser ? (
@@ -727,11 +772,20 @@ Currently, only one LLM is available for <span className="text-green-500 font-se
             >
               <div
                 onClick={() => onSelectConversation(conv)}
-                className={`w-full text-left p-3 rounded-xl transition-all cursor-pointer ${
-                  currentConversationId === conv.id
-                    ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-white/20'
-                    : 'hover:bg-white/5 border border-transparent'
-                }`}
+                className={`w-full text-left p-3 rounded-xl transition-all cursor-pointer shadow-sm border \
+                  ${currentConversationId === conv.id
+                    ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 border-blue-400/30 shadow-lg'
+                    : 'bg-gray-900/80 border-gray-700/60 hover:shadow-[0_4px_24px_0_rgba(59,130,246,0.10)] hover:border-blue-400/40 hover:bg-gray-900/90'} \
+                  group-hover:scale-[1.02] group-hover:shadow-[0_8px_32px_0_rgba(59,130,246,0.15)] \
+                  group-hover:border-blue-400/50 \
+                  duration-200 ease-out \
+                  backdrop-blur-xl`}
+                style={{
+                  boxShadow: currentConversationId === conv.id
+                    ? '0 6px 32px 0 rgba(59,130,246,0.18), 0 1.5px 6px 0 rgba(0,0,0,0.10)'
+                    : undefined,
+                  borderWidth: '1.5px',
+                }}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex-1 min-w-0">
@@ -743,7 +797,6 @@ Currently, only one LLM is available for <span className="text-green-500 font-se
                       {conv.messages.length} messages
                     </div>
                   </div>
-
                   {hoveredId === conv.id && (
                     <button
                       onClick={(e) => {
@@ -1644,7 +1697,7 @@ useEffect(() => {
   const selectedModelInfo = models.find(m => m.id === selectedModel)
 
   return (
-    <div className="flex h-screen bg-gray-950">
+    <div className="flex h-screen bg-gray-950 overflow-hidden">
       {/* Connection status indicator */}
       {!isConnected && <ConnectionStatus isConnected={isConnected} />}
 
@@ -2147,6 +2200,40 @@ useEffect(() => {
         textarea:focus {
           outline: none !important;
           box-shadow: none !important;
+        }
+
+        /* Hide scrollbars on mobile */
+        @media (max-width: 768px) {
+          * {
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE and Edge */
+          }
+          *::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+          }
+          * {
+            -webkit-overflow-scrolling: touch;
+          }
+        }
+
+        /* Enhanced scrollbar - ONLY FOR DESKTOP */
+        @media (min-width: 769px) {
+          ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+          }
+          ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+          }
+          ::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #3b82f6, #8b5cf6);
+            border-radius: 4px;
+            transition: all 0.3s;
+          }
+          ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to bottom, #2563eb, #7c3aed);
+          }
         }
       `}</style>
     </div>
