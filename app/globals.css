@@ -300,3 +300,16 @@ img {
   position: relative;
   z-index: 1;
 }
+
+/* Add to your global styles */
+.h-dynamic {
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height */
+  height: -webkit-fill-available; /* iOS Safari */
+}
+
+/* For your main container */
+.mobile-safe-height {
+  height: 100vh;
+  height: calc(var(--vh, 1vh) * 100);
+}
