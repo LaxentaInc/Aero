@@ -23,8 +23,8 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL('https://laxenta.info'),
   title: {
-    default: "Laxenta AI - Free AI Chat & Image Generation",
-    template: "%s | Laxenta AI"
+    default: "Laxenta Inc- Free Dc Shapes/AI Chat & Image Generation",
+    template: "%s | Laxenta Inc"
   },
   description: "Create customized shapes for Discord (NSFW/SFW)! Access 100+ AI models free. Chat with GPT-4, Claude, and reasoning models. Generate images with DALL-E 3, Midjourney, Flux Pro/Ultra, and more. API coming soon!",
   keywords: [
@@ -63,17 +63,11 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
+  // Simplified icon setup - just use favicon.ico for everything
   icons: {
-    icon: [
-      { url: '/favicon.ico' },
-      { url: '/icon-16x16.png', sizes: '16x16', type: 'image/png' },
-      { url: '/icon-32x32.png', sizes: '32x32', type: 'image/png' }
-    ],
+    icon: '/favicon.ico',
     shortcut: '/favicon.ico',
-    apple: [
-      { url: '/apple-icon.png' },
-      { url: '/apple-icon-180x180.png', sizes: '180x180' }
-    ]
+    apple: '/favicon.ico',
   },
   manifest: '/manifest.json',
   openGraph: {
@@ -106,7 +100,7 @@ export const metadata: Metadata = {
     description: 'Access 100+ AI models free. Chat with GPT-4, Claude & more. Generate images with DALL-E 3. Create Discord shapes. Built by a passionate 18yo developer 🚀',
     images: {
       url: '/og-image.png',
-      alt: 'Laxenta AI Platform Preview'
+      alt: 'Laxenta Inc Platform Preview'
     }
   },
   robots: {
@@ -172,16 +166,20 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/*theme colors */}
+        {/* Simple favicon setup */}
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="apple-touch-icon" href="/favicon.ico" />
+        
+        {/* Theme colors */}
         <meta name="theme-color" content="#5865F2" />
         <meta name="msapplication-TileColor" content="#5865F2" />
         
-        {/*apple specific */}
+        {/* Apple specific */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Laxenta AI" />
         
-        {/* additional OG tags for better Discord embeds */}
+        {/* Additional OG tags for better Discord embeds */}
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta property="og:image:alt" content="Laxenta AI - Free AI Platform" />
@@ -189,11 +187,11 @@ export default function RootLayout({
         {/* PWA tags */}
         <link rel="manifest" href="/manifest.json" />
         
-        {/* preconnect to external domains if you use any */}
+        {/* Preconnect to external domains */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         
-        {/* structured data */}
+        {/* Structured data */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
