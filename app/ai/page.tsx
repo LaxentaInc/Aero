@@ -179,41 +179,41 @@ const CodeBlock = ({ code, language = 'javascript' }: { code: string; language?:
               {needsExpansion && (
                 <button
                   onClick={() => setExpanded(!expanded)}
-                  className="hidden sm:flex items-center gap-1 text-xs text-white/40 \
+                  className="hidden sm:flex items-center gap-1 text-xs sm:text-sm text-white/40 \
                            hover:text-white/80 transition-all duration-200 \
-                           hover:bg-white/10 px-2 py-1 rounded-md"
+                           hover:bg-white/10 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-md"
                 >
-                  {expanded ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+                  {expanded ? <Minimize2 size={14} className="sm:w-[16px] sm:h-[16px]" /> : <Maximize2 size={14} className="sm:w-[16px] sm:h-[16px]" />}
                 </button>
               )}
               <button 
                 onClick={handleDownload}
                 className="hidden sm:block text-white/40 hover:text-white/80 \
-                         transition-all duration-200 p-1.5 rounded-md \
+                         transition-all duration-200 p-2 sm:p-2.5 rounded-md \
                          hover:bg-white/10"
                 title="Download code"
               >
-                <Download size={14} />
+                <Download size={14} className="sm:w-[16px] sm:h-[16px]" />
               </button>
               <button 
                 onClick={handleCopy}
-                className="flex items-center gap-1 sm:gap-1.5 px-3 py-2 sm:px-3 sm:py-1.5 \
-                  text-xs bg-white/10 hover:bg-white/20 \
+                className="flex items-center gap-1 sm:gap-1.5 px-3 py-2 sm:px-4 sm:py-2.5 \
+                  text-xs sm:text-sm bg-white/10 hover:bg-white/20 \
                   rounded-md sm:rounded-lg transition-all duration-200 \
                   hover:shadow-[0_0_20px_rgba(59,130,246,0.3)] \
                   hover:scale-105 active:scale-95 \
                   focus:outline-none focus:ring-2 focus:ring-blue-400 \
-                  min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 select-none"
+                  min-h-[44px] min-w-[44px] sm:min-h-[36px] sm:min-w-[80px] select-none"
                 style={{ WebkitTapHighlightColor: 'transparent' }}
               >
                 {copied ? (
                   <>
-                    <Check size={16} className="text-green-400 animate-bounce" />
+                    <Check size={16} className="text-green-400 animate-bounce sm:w-[18px] sm:h-[18px]" />
                     <span className="inline text-green-400 font-semibold">Copied!</span>
                   </>
                 ) : (
                   <>
-                    <Copy size={16} className="group-hover:rotate-[-10deg] transition-transform" />
+                    <Copy size={16} className="group-hover:rotate-[-10deg] transition-transform sm:w-[18px] sm:h-[18px]" />
                     <span className="inline">Copy</span>
                   </>
                 )}
@@ -1082,6 +1082,7 @@ export default function AIChat() {
   const [retryCount, setRetryCount] = useState(0)
   const [isLoadingModels, setIsLoadingModels] = useState(true)
   const [modelSearchQuery, setModelSearchQuery] = useState('')
+  const [userScrolled, setUserScrolled] = useState(false)
 
   // Add this line
   const isDev = isDevAccount(session);
@@ -1407,8 +1408,27 @@ useEffect(() => {
   }, [messages, isStreaming, saveCurrentConversation])
 
   const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [])
+    if (!userScrolled) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [userScrolled])
+
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const element = e.currentTarget
+    const isAtBottom = Math.abs(element.scrollHeight - element.scrollTop - element.clientHeight) < 50
+    if (!isAtBottom && messages.length > 0) {
+      setUserScrolled(true)
+    } else if (isAtBottom) {
+      setUserScrolled(false)
+    }
+  }, [messages.length])
+
+  useEffect(() => {
+    const lastMessage = messages[messages.length - 1]
+    if (lastMessage?.role === 'user') {
+      setUserScrolled(false)
+    }
+  }, [messages])
 
   useEffect(() => {
     scrollToBottom()
@@ -1901,7 +1921,7 @@ useEffect(() => {
         </header>
 
         {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto" onScroll={handleScroll}>
           <div className="max-w-4xl mx-auto px-4 py-8">
             {messages.length === 0 ? (
               <div className="text-center py-20 animate-fadeIn">
