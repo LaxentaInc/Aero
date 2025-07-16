@@ -12,7 +12,7 @@ import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import DOMPurify from 'dompurify'
 
-// Model interface
+//model interface
 interface ModelInfo {
   id: string
   name: string
@@ -381,7 +381,7 @@ const MessageComponent = ({
             contentParts.push(
               <p key={`p-${contentParts.length}`} 
                  className="mb-3 leading-relaxed text-white/90" 
-                 dangerouslySetInnerHTML={{ __html: processedText }} />
+                 dangerouslySetInnerHTML={{ __html: sanitizeHTML(processedText) }} />
             )
           }
           currentParagraph = []
@@ -395,7 +395,7 @@ const MessageComponent = ({
               {listItems.map((item, i) => (
                 <li key={i} 
                     className="text-white/90" 
-                    dangerouslySetInnerHTML={{ __html: processInlineMarkdown(item) }} />
+                    dangerouslySetInnerHTML={{ __html: sanitizeHTML(processInlineMarkdown(item)) }} />
               ))}
             </ul>
           )
@@ -438,25 +438,25 @@ const MessageComponent = ({
           let headerEl: React.ReactNode = null
           switch (level) {
             case 1:
-              headerEl = <h1 key={`h-${contentParts.length}`} className={`${sizes[0]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: text }} />
+              headerEl = <h1 key={`h-${contentParts.length}`} className={`${sizes[0]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: sanitizeHTML(text) }} />
               break
             case 2:
-              headerEl = <h2 key={`h-${contentParts.length}`} className={`${sizes[1]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: text }} />
+              headerEl = <h2 key={`h-${contentParts.length}`} className={`${sizes[1]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: sanitizeHTML(text) }} />
               break
             case 3:
-              headerEl = <h3 key={`h-${contentParts.length}`} className={`${sizes[2]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: text }} />
+              headerEl = <h3 key={`h-${contentParts.length}`} className={`${sizes[2]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: sanitizeHTML(text) }} />
               break
             case 4:
-              headerEl = <h4 key={`h-${contentParts.length}`} className={`${sizes[3]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: text }} />
+              headerEl = <h4 key={`h-${contentParts.length}`} className={`${sizes[3]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: sanitizeHTML(text) }} />
               break
             case 5:
-              headerEl = <h5 key={`h-${contentParts.length}`} className={`${sizes[4]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: text }} />
+              headerEl = <h5 key={`h-${contentParts.length}`} className={`${sizes[4]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: sanitizeHTML(text) }} />
               break
             case 6:
-              headerEl = <h6 key={`h-${contentParts.length}`} className={`${sizes[5]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: text }} />
+              headerEl = <h6 key={`h-${contentParts.length}`} className={`${sizes[5]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: sanitizeHTML(text) }} />
               break
             default:
-              headerEl = <h1 key={`h-${contentParts.length}`} className={`${sizes[0]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: text }} />
+              headerEl = <h1 key={`h-${contentParts.length}`} className={`${sizes[0]} font-semibold mb-3 mt-4 text-white`} dangerouslySetInnerHTML={{ __html: sanitizeHTML(text) }} />
           }
           contentParts.push(headerEl)
           continue
@@ -470,7 +470,7 @@ const MessageComponent = ({
           contentParts.push(
             <blockquote key={`quote-${contentParts.length}`} 
                         className="border-l-4 border-white/20 pl-4 my-3 text-white/80 italic">
-              <p dangerouslySetInnerHTML={{ __html: processInlineMarkdown(quoteText) }} />
+              <p dangerouslySetInnerHTML={{ __html: sanitizeHTML(processInlineMarkdown(quoteText)) }} />
             </blockquote>
           )
           continue
@@ -622,7 +622,8 @@ const Sidebar = ({
   isMobile = false,
   onClose,
   session, // ADD
-  messageCount // ADD
+  messageCount, // ADD
+  isDev // ADD
 }: {
   conversations: Conversation[]
   currentConversationId: string | null
@@ -633,6 +634,7 @@ const Sidebar = ({
   onClose?: () => void
   session: any // ADD
   messageCount: number // ADD
+  isDev?: boolean // ADD
 }) => {
   const [searchQuery, setSearchQuery] = useState('')
   const [hoveredId, setHoveredId] = useState<string | null>(null)
@@ -676,7 +678,11 @@ const Sidebar = ({
                     {session.user.name || 'User'}
                   </div>
                   <div className="text-white/60 text-xs">
-                    Premium Account
+                    {isDev ? (
+                      <span className="text-purple-400 font-bold">🚀 Dev Account</span>
+                    ) : (
+                      'Premium Account'
+                    )}
                   </div>
                 </div>
               </div>
@@ -1028,6 +1034,34 @@ function setGuestLimitInfo(info: { count: number; lastReset: number; fp: string 
   localStorage.setItem(GUEST_LIMIT_KEY, JSON.stringify(info));
 }
 
+// Add this function after your imports
+const sanitizeHTML = (html: string): string => {
+  // Safety check for server-side rendering
+  if (typeof window === 'undefined') return html;
+  return DOMPurify.sanitize(html, {
+    ALLOWED_TAGS: [
+      'p', 'br', 'strong', 'em', 'del', 'code', 'pre', 
+      'blockquote', 'ul', 'ol', 'li', 'h1', 'h2', 'h3', 
+      'h4', 'h5', 'h6', 'a', 'hr', 'span', 'div'
+    ],
+    ALLOWED_ATTR: ['href', 'class', 'target', 'rel'],
+    KEEP_CONTENT: true,  // Important: keeps the text content
+    FORBID_TAGS: ['script', 'style', 'iframe', 'object', 'embed', 'form'],
+    FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'style']
+  });
+};
+
+// Dev accounts configuration
+const DEV_EMAILS = [
+  'gk559850@gmail.com',  // Your email
+  // Add more dev emails here if needed
+];
+
+// Helper function to check if user is dev
+const isDevAccount = (session: any): boolean => {
+  return session?.user?.email && DEV_EMAILS.includes(session.user.email);
+};
+
 // Main Chat Component
 export default function AIChat() {
   const { data: session } = useSession()
@@ -1048,6 +1082,17 @@ export default function AIChat() {
   const [retryCount, setRetryCount] = useState(0)
   const [isLoadingModels, setIsLoadingModels] = useState(true)
   const [modelSearchQuery, setModelSearchQuery] = useState('')
+
+  // Add this line
+  const isDev = isDevAccount(session);
+
+  // Log it to verify it's working
+  useEffect(() => {
+    if (session?.user) {
+      console.log('User email:', session.user.email);
+      console.log('Is dev account:', isDev);
+    }
+  }, [session, isDev]);
 
   // Track message count for unauth users (now using fingerprinted storage)
   const [messageCount, setMessageCount] = useState(() => {
@@ -1371,8 +1416,9 @@ useEffect(() => {
 
   const handleModelSelect = (modelId: string) => {
     const model = models.find(m => m.id === modelId)
-    if (model?.premium_model) {
-      // Redirect to pricing page for premium models
+    
+    // Dev accounts can use any model
+    if (model?.premium_model && !isDev) {
       router.push('/pricing')
     } else {
       setSelectedModel(modelId)
@@ -1620,9 +1666,8 @@ useEffect(() => {
   const handleSend = async () => {
     if (!input.trim() || isStreaming || !isConnected) return
 
-    // Check message limit for unauth users
+    // Only check guest limits if NOT logged in
     if (!session && messageCount >= GUEST_LIMIT) {
-      // Show auth prompt
       const shouldAuth = confirm(
         `You've reached the ${GUEST_LIMIT} message limit for guests. Please sign in to continue using AI Assistant without limits!`
       );
@@ -1632,7 +1677,7 @@ useEffect(() => {
       return;
     }
 
-    // For guests, force model to gpt-3.5-turbo
+    // Only force model for actual guests (not logged in)
     if (!session) {
       setSelectedModel(GUEST_MODEL_ID);
     }
@@ -1712,6 +1757,7 @@ useEffect(() => {
             onDeleteConversation={deleteConversation}
             session={session} // ADD
             messageCount={messageCount} // ADD
+            isDev={isDev} // ADD
           />
         </div>
       )}
@@ -1731,6 +1777,7 @@ useEffect(() => {
               onClose={() => setSidebarOpen(false)}
               session={session} // ADD
               messageCount={messageCount} // ADD
+              isDev={isDev} // ADD
             />
           </div>
         </div>
@@ -1756,6 +1803,11 @@ useEffect(() => {
                   <div className="text-white font-semibold">Laxenta AI</div>
                   <div className="text-xs text-white/60">Powered by Laxenta</div>
                 </div>
+                {isDev && (
+                  <div className="px-2 py-1 bg-purple-500/20 border border-purple-500/30 rounded-full">
+                    <span className="text-xs text-purple-400 font-bold">DEV</span>
+                  </div>
+                )}
               </div>
             </div>
 
