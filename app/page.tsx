@@ -2214,7 +2214,7 @@ export default function LaxentaLanding() {
               animate={{ opacity: 0.6 }}
             >
               <Typewriter
-                words={['</ @me_straight - fullstack developer & system engineer >']}
+                words={['<Laxenta/> - A Discord Shapes and Free Tier AI Platform!']}
                 loop={1}
                 cursor
                 typeSpeed={20}
@@ -2231,13 +2231,15 @@ export default function LaxentaLanding() {
 >
   <Typewriter
     words={[
-      'Note — I’m not the most advanced guy in system engineering, but I can do most of it!']}
+      'Providing Discord Shapes! Use of Multiple Ai Models for coding/nsfw rp etc.!']}
     loop={1}
     cursor
-    typeSpeed={100}
+    typeSpeed={50}
     deleteSpeed={9999}
   />
 </motion.p>
+
+
 {/* 
 <motion.p
   className={`text-sm sm:text-xl md:text-2xl font-mono ${
@@ -2248,7 +2250,7 @@ export default function LaxentaLanding() {
 >
   <Typewriter
     words={[
-            'But yea I’m pretty good with web development and backend stuff ngl']}
+            'But yea I'm pretty good with web development and backend stuff ngl']}
     loop={1}
     cursor
     typeSpeed={60}
@@ -2263,28 +2265,28 @@ export default function LaxentaLanding() {
         {/*servicessection */}
         <motion.div className="w-full">
           <MegaCard
-            title="WEB DEV"
-            description="Frontend dev with React, Next.js, Vue and PHP :3 Building responsive and dynamic web applications with modern tech stacks."
-            platform="REACT • NEXT • VUE • PHP"
-            icon={<WebDevIcon theme={theme} />}
+            title="DISCORD BOTS"
+            description="Create NSFW RP Discord bots for free! Shape your perfect companion with custom personalities, advanced conversation flows, and unrestricted content. No limits, no censorship."
+            platform="DISCORD • NSFW • FREE"
+            icon={<DiscordBotsIcon theme={theme} />}
             index={0}
             theme={theme}
           />
           
           <MegaCard
-            title="BACKEND"
-            description="Backend developer proficient in Node.js, JavaScript, and learning Rust for fun. Experienced in building scalable server architectures."
-            platform="NODE.JS • JS • RUST"
-            icon={<BackendIcon theme={theme} />}
+            title="AI IMAGE GEN"
+            description="Generate stunning AI images with multiple models including FLUX, SANA, and Stable Diffusion. Create anything from anime art to photorealistic renders - all for free!"
+            platform="FLUX • SANA • SDXL • FREE"
+            icon={<AIImageIcon theme={theme} />}
             index={1}
             theme={theme}
           />
           
           <MegaCard
-            title="PROJECTS"
-            description="From Discord bots to hosting platforms, creating full-stack solutions including Pterodactyl panels and custom business applications."
-            platform="DISCORD • HOSTING • CUSTOM"
-            icon={<ProjectsIcon theme={theme} />}
+            title="100+ AI MODELS"
+            description="Access over 100 premium AI models on our free tier! From GPT-4 to Claude, Gemini to specialized coding models. Fair use limits to prevent abuse while keeping it free."
+            platform="GPT-4 • CLAUDE • GEMINI • FREE"
+            icon={<AIModelsIcon theme={theme} />}
             index={2}
             theme={theme}
           />
@@ -2298,3 +2300,194 @@ export default function LaxentaLanding() {
     </>
   )
 }
+
+// Discord Bots Icon
+const DiscordBotsIcon = ({ theme }: { theme: 'dark' | 'light' }) => (
+  <motion.svg
+    viewBox="0 0 200 200"
+    className="w-full h-full"
+  >
+    {/* Discord logo shape */}
+    <motion.g
+      animate={{ scale: [1, 1.05, 1] }}
+      transition={{ duration: 3, repeat: Infinity }}
+    >
+      <path
+        d="M80 60 C60 60, 50 80, 50 100 C50 120, 60 140, 80 140 L120 140 C140 140, 150 120, 150 100 C150 80, 140 60, 120 60 Z"
+        fill="none"
+        stroke={theme === 'dark' ? 'white' : 'black'}
+        strokeWidth="2"
+      />
+      {/* Bot eyes */}
+      <motion.circle
+        cx="75"
+        cy="90"
+        r="8"
+        fill={theme === 'dark' ? 'white' : 'black'}
+        animate={{ scale: [1, 1.2, 1] }}
+        transition={{ duration: 2, repeat: Infinity, delay: 0.2 }}
+      />
+      <motion.circle
+        cx="125"
+        cy="90"
+        r="8"
+        fill={theme === 'dark' ? 'white' : 'black'}
+        animate={{ scale: [1, 1.2, 1] }}
+        transition={{ duration: 2, repeat: Infinity, delay: 0.4 }}
+      />
+      {/* Bot smile */}
+      <motion.path
+        d="M70 110 Q100 130 130 110"
+        fill="none"
+        stroke={theme === 'dark' ? 'white' : 'black'}
+        strokeWidth="2"
+        strokeLinecap="round"
+        animate={{ d: ["M70 110 Q100 130 130 110", "M70 110 Q100 125 130 110", "M70 110 Q100 130 130 110"] }}
+        transition={{ duration: 2, repeat: Infinity }}
+      />
+    </motion.g>
+    {/* NSFW hearts floating */}
+    {[0, 1, 2].map((i) => (
+      <motion.path
+        key={i}
+        d={`M${60 + i * 40} ${160 + i * 5} C${60 + i * 40} ${155 + i * 5}, ${55 + i * 40} ${150 + i * 5}, ${50 + i * 40} ${150 + i * 5} C${45 + i * 40} ${150 + i * 5}, ${40 + i * 40} ${155 + i * 5}, ${40 + i * 40} ${160 + i * 5} C${40 + i * 40} ${165 + i * 5}, ${50 + i * 40} ${175 + i * 5}, ${50 + i * 40} ${175 + i * 5} C${50 + i * 40} ${175 + i * 5}, ${60 + i * 40} ${165 + i * 5}, ${60 + i * 40} ${160 + i * 5} Z`}
+        fill={theme === 'dark' ? 'white' : 'black'}
+        initial={{ opacity: 0, y: 0 }}
+        animate={{ opacity: [0, 1, 0], y: -30 }}
+        transition={{ duration: 3, repeat: Infinity, delay: i * 0.7 }}
+      />
+    ))}
+  </motion.svg>
+)
+
+// AI Image Generation Icon
+const AIImageIcon = ({ theme }: { theme: 'dark' | 'light' }) => (
+  <motion.svg
+    viewBox="0 0 200 200"
+    className="w-full h-full"
+  >
+    {/* Image frame */}
+    <rect
+      x="50"
+      y="50"
+      width="100"
+      height="100"
+      rx="8"
+      fill="none"
+      stroke={theme === 'dark' ? 'white' : 'black'}
+      strokeWidth="2"
+    />
+    {/* AI sparkles */}
+    <motion.g
+      animate={{ rotate: 360 }}
+      transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+      style={{ transformOrigin: '100px 100px' }}
+    >
+      {[0, 45, 90, 135, 180, 225, 270, 315].map((angle, i) => (
+        <motion.path
+          key={i}
+          d={`M100 100 L${100 + 30 * Math.cos(angle * Math.PI / 180)} ${100 + 30 * Math.sin(angle * Math.PI / 180)}`}
+          stroke={theme === 'dark' ? 'white' : 'black'}
+          strokeWidth="1"
+          opacity="0.3"
+          animate={{ opacity: [0.3, 1, 0.3] }}
+          transition={{ duration: 2, repeat: Infinity, delay: i * 0.2 }}
+        />
+      ))}
+    </motion.g>
+    {/* Landscape inside frame */}
+    <motion.path
+      d="M50 120 L80 90 L100 110 L120 85 L150 120 L150 150 L50 150 Z"
+      fill={theme === 'dark' ? 'white' : 'black'}
+      opacity="0.2"
+      animate={{ opacity: [0.2, 0.4, 0.2] }}
+      transition={{ duration: 3, repeat: Infinity }}
+    />
+    {/* Sun/moon */}
+    <motion.circle
+      cx="120"
+      cy="75"
+      r="10"
+      fill={theme === 'dark' ? 'white' : 'black'}
+      animate={{ scale: [1, 1.2, 1] }}
+      transition={{ duration: 4, repeat: Infinity }}
+    />
+  </motion.svg>
+)
+
+// AI Models Icon
+const AIModelsIcon = ({ theme }: { theme: 'dark' | 'light' }) => (
+  <motion.svg
+    viewBox="0 0 200 200"
+    className="w-full h-full"
+  >
+    {/* Central AI brain */}
+    <motion.g
+      animate={{ scale: [1, 1.1, 1] }}
+      transition={{ duration: 3, repeat: Infinity }}
+    >
+      <circle
+        cx="100"
+        cy="100"
+        r="30"
+        fill="none"
+        stroke={theme === 'dark' ? 'white' : 'black'}
+        strokeWidth="2"
+      />
+      <path
+        d="M85 100 Q85 90 95 90 T105 100 T95 110 T85 100"
+        fill="none"
+        stroke={theme === 'dark' ? 'white' : 'black'}
+        strokeWidth="1.5"
+      />
+      <path
+        d="M95 100 Q95 90 105 90 T115 100 T105 110 T95 100"
+        fill="none"
+        stroke={theme === 'dark' ? 'white' : 'black'}
+        strokeWidth="1.5"
+      />
+    </motion.g>
+    {/* Orbiting models */}
+    {[0, 72, 144, 216, 288].map((angle, i) => (
+      <motion.g
+        key={i}
+        animate={{ rotate: 360 }}
+        transition={{ duration: 10 + i * 2, repeat: Infinity, ease: "linear" }}
+        style={{ transformOrigin: '100px 100px' }}
+      >
+        <circle
+          cx={100 + 50 * Math.cos((angle * Math.PI) / 180)}
+          cy={100 + 50 * Math.sin((angle * Math.PI) / 180)}
+          r="12"
+          fill="none"
+          stroke={theme === 'dark' ? 'white' : 'black'}
+          strokeWidth="2"
+        />
+        <circle
+          cx={100 + 50 * Math.cos((angle * Math.PI) / 180)}
+          cy={100 + 50 * Math.sin((angle * Math.PI) / 180)}
+          r="4"
+          fill={theme === 'dark' ? 'white' : 'black'}
+        />
+      </motion.g>
+    ))}
+    {/* Connection lines */}
+    <motion.g
+      animate={{ opacity: [0.3, 1, 0.3] }}
+      transition={{ duration: 2, repeat: Infinity }}
+    >
+      {[0, 72, 144, 216, 288].map((angle, i) => (
+        <line
+          key={i}
+          x1="100"
+          y1="100"
+          x2={100 + 50 * Math.cos((angle * Math.PI) / 180)}
+          y2={100 + 50 * Math.sin((angle * Math.PI) / 180)}
+          stroke={theme === 'dark' ? 'white' : 'black'}
+          strokeWidth="0.5"
+          strokeDasharray="2,2"
+        />
+      ))}
+    </motion.g>
+  </motion.svg>
+)
