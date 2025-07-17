@@ -277,6 +277,48 @@ const CodeBlock = ({ code, language = 'javascript' }: { code: string; language?:
   )
 }
 
+// Thinking Box Component
+const ThinkingBox = ({ content, isExpanded, onToggle }: { 
+  content: string; 
+  isExpanded: boolean; 
+  onToggle: () => void 
+}) => {
+  return (
+    <div className="my-3 mx-4">
+      <div
+        className="w-full bg-black border border-neutral-800 rounded-xl p-3 shadow-lg transition-all group flex items-center cursor-pointer select-none"
+        onClick={onToggle}
+        style={{ minHeight: '44px' }}
+      >
+        <div className="flex items-center gap-3 flex-1">
+          <div className="relative flex items-center justify-center w-5 h-5">
+            <svg className="animate-spin" viewBox="0 0 24 24" fill="none" width="20" height="20">
+              <circle cx="12" cy="12" r="10" stroke="#222" strokeWidth="2" />
+              <path d="M12 2 A10 10 0 0 1 22 12" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          </div>
+          <span className="text-white font-mono text-sm tracking-tight">AI is thinking...</span>
+        </div>
+        <button
+          aria-label={isExpanded ? 'Collapse thinking details' : 'Expand thinking details'}
+          className="ml-2 p-1 rounded hover:bg-neutral-900 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+          tabIndex={0}
+          type="button"
+        >
+          <ChevronRight size={18} className={`text-white/60 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
+        </button>
+      </div>
+      {isExpanded && (
+        <div className="mt-2 bg-neutral-950 border border-neutral-900 rounded-xl p-4 animate-fadeIn shadow-md">
+          <div className="text-white/80 text-sm font-mono whitespace-pre-wrap break-words leading-relaxed">
+            {content}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 // Enhanced Message Component
 const MessageComponent = ({ 
   msg, 
@@ -295,6 +337,9 @@ const MessageComponent = ({
 }) => {
   const [copied, setCopied] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
+  const [isThinkingExpanded, setIsThinkingExpanded] = useState(false)
+  // Persist thinking content for the lifetime of the message
+  const [persistedThinkingContent, setPersistedThinkingContent] = useState<string | null>(null)
 
   const handleCopyMessage = async () => {
     try {
@@ -314,6 +359,46 @@ const MessageComponent = ({
 
     const parts: React.ReactNode[] = []
     let content = msg.content
+
+    // Check for thinking tags at the beginning
+    const thinkingMatch = content.match(/^<think>([\s\S]*?)<\/think>([\s\S]*)$/)
+    if (thinkingMatch && !isUser) {
+      const [, thinkingContent, remainingContent] = thinkingMatch
+      // Store the thinking content persistently
+      if (!persistedThinkingContent || persistedThinkingContent !== thinkingContent.trim()) {
+        setPersistedThinkingContent(thinkingContent.trim())
+      }
+      // Process remaining content
+      content = remainingContent
+    }
+
+    // Handle streaming thinking tags
+    const openThinkingMatch = content.match(/^<think>([\s\S]*)$/)
+    if (openThinkingMatch && msg.isStreaming && !isUser) {
+      const [, thinkingContent] = openThinkingMatch
+      // Don't update persisted content while streaming
+      parts.push(
+        <ThinkingBox 
+          key="thinking-box-streaming"
+          content={thinkingContent.trim() || "Processing..."}
+          isExpanded={isThinkingExpanded}
+          onToggle={() => setIsThinkingExpanded(!isThinkingExpanded)}
+        />
+      )
+      return parts
+    }
+
+    // Always render the thinking box if we have persisted content
+    if (persistedThinkingContent && !isUser) {
+      parts.push(
+        <ThinkingBox 
+          key="thinking-box-persistent"
+          content={persistedThinkingContent}
+          isExpanded={isThinkingExpanded}
+          onToggle={() => setIsThinkingExpanded(!isThinkingExpanded)}
+        />
+      )
+    }
 
     // Helper function to process markdown content (complete code blocks)
     const processMarkdownContent = (text: string): React.ReactNode[] => {
@@ -545,7 +630,7 @@ const MessageComponent = ({
     // Process the full content
     const processedContent = processMarkdownContent(content)
     return processedContent.length > 0 ? processedContent : [<p key="default" className="text-white/90">{content}</p>]
-  }, [msg.content, msg.isStreaming])
+  }, [msg.content, msg.isStreaming, isThinkingExpanded, persistedThinkingContent])
 
   return (
     <div 
@@ -1780,6 +1865,12 @@ useEffect(() => {
     await attemptStream();
   };
 
+  useEffect(() => {
+    if (!userScrolled && messages.length > 0) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, userScrolled]);
+
   return (
     <div className="flex h-screen bg-gray-950 overflow-hidden">
       {/* Connection status indicator */}
@@ -2325,6 +2416,19 @@ useEffect(() => {
           ::-webkit-scrollbar-thumb:hover {
             background: linear-gradient(to bottom, #2563eb, #7c3aed);
           }
+        }
+
+        @keyframes spin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
+        .animate-spin {
+          animation: spin 1s linear infinite;
         }
       `}</style>
     </div>
