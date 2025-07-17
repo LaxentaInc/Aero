@@ -752,7 +752,11 @@ const MegaCard = ({
   icon,
   index,
   theme,
-  isHosting = false
+  isHosting = false,
+  ctaRoute,
+  learnMoreRoute,
+  ctaText = 'CONTACT ME',
+  learnMoreText = 'LEARN MORE',
 }: {
   title: string
   description: string
@@ -761,6 +765,10 @@ const MegaCard = ({
   index: number
   theme: 'dark' | 'light'
   isHosting?: boolean
+  ctaRoute?: string
+  learnMoreRoute?: string
+  ctaText?: string
+  learnMoreText?: string
 }) => {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: "-10%" })
@@ -771,25 +779,25 @@ const MegaCard = ({
     e.stopPropagation()
     setIsNavigating(true)
     setTimeout(() => {
-      window.location.href = '/docs'
-    }, 1500)
+      window.location.href = learnMoreRoute || '/docs'
+    }, 1000)
   }
 
   const handleCTAClick = (e: React.MouseEvent) => {
     e.preventDefault()
     setIsNavigating(true)
     setTimeout(() => {
-      window.location.href = '/contact'
+      window.location.href = ctaRoute || '/contact'
       setIsNavigating(false)
-    }, 1000)
+    }, 700)
   }
 
   const handleTooltipClick = (e: React.MouseEvent) => {
     e.stopPropagation()
     setIsNavigating(true)
     setTimeout(() => {
-      window.location.href = '/docs'
-    }, 1500)
+      window.location.href = learnMoreRoute || '/docs'
+    }, 1000)
   }
 
   const tooltipTexts = {
@@ -837,13 +845,13 @@ const MegaCard = ({
                 {/* CTA Buttons */}
                 <div className="flex flex-col sm:flex-row gap-4 items-center justify-center lg:justify-start">
                   <CTAButton
-                    text="CONTACT ME"
+                    text={ctaText}
                     onClick={handleCTAClick}
                     theme={theme}
                     variant="primary"
                   />
                   <CTAButton
-                    text="LEARN MORE"
+                    text={learnMoreText}
                     onClick={handleLearnMore}
                     theme={theme}
                     variant="secondary"
@@ -2271,6 +2279,10 @@ export default function LaxentaLanding() {
             icon={<DiscordBotsIcon theme={theme} />}
             index={0}
             theme={theme}
+            ctaRoute="/shapes"
+            learnMoreRoute="/shapes"
+            ctaText="TRY NOW"
+            learnMoreText="LEARN MORE"
           />
           
           <MegaCard
@@ -2280,6 +2292,10 @@ export default function LaxentaLanding() {
             icon={<AIImageIcon theme={theme} />}
             index={1}
             theme={theme}
+            ctaRoute="/image-generation"
+            learnMoreRoute="/image-generation"
+            ctaText="GENERATE"
+            learnMoreText="LEARN MORE"
           />
           
           <MegaCard
@@ -2289,6 +2305,23 @@ export default function LaxentaLanding() {
             icon={<AIModelsIcon theme={theme} />}
             index={2}
             theme={theme}
+            ctaRoute="/ai"
+            learnMoreRoute="/ai"
+            ctaText="CHAT NOW"
+            learnMoreText="LEARN MORE"
+          />
+
+          <MegaCard
+            title="CODE COMMISSIONS"
+            description="Professional web development, bots, and custom solutions. Accepting commissions for websites, Discord bots, and more. Check out my about page or contact me for a quote!"
+            platform="WEB DEV • BOTS • COMMISSIONS"
+            icon={<CommissionIcon theme={theme} />}
+            index={3}
+            theme={theme}
+            ctaRoute="/contact"
+            learnMoreRoute="/about-me"
+            ctaText="CONTACT ME"
+            learnMoreText="ABOUT ME"
           />
         </motion.div>
 
@@ -2489,5 +2522,52 @@ const AIModelsIcon = ({ theme }: { theme: 'dark' | 'light' }) => (
         />
       ))}
     </motion.g>
+  </motion.svg>
+)
+
+// Commission Services Icon
+const CommissionIcon = ({ theme }: { theme: 'dark' | 'light' }) => (
+  <motion.svg
+    viewBox="0 0 200 200"
+    className="w-full h-full"
+  >
+    {/* Code editor window */}
+    <rect
+      x="40"
+      y="40"
+      width="120"
+      height="120"
+      rx="8"
+      fill="none"
+      stroke={theme === 'dark' ? 'white' : 'black'}
+      strokeWidth="2"
+    />
+    {/* Window controls */}
+    <circle cx="55" cy="55" r="4" fill={theme === 'dark' ? 'white' : 'black'} opacity="0.5" />
+    <circle cx="70" cy="55" r="4" fill={theme === 'dark' ? 'white' : 'black'} opacity="0.5" />
+    <circle cx="85" cy="55" r="4" fill={theme === 'dark' ? 'white' : 'black'} opacity="0.5" />
+    {/* Code lines */}
+    {[0, 1, 2, 3].map((i) => (
+      <motion.rect
+        key={i}
+        x={55}
+        y={75 + i * 15}
+        width={90 - i * 10}
+        height="4"
+        rx="2"
+        fill={theme === 'dark' ? 'white' : 'black'}
+        opacity="0.3"
+        animate={{ width: [90 - i * 10, 100 - i * 10, 90 - i * 10] }}
+        transition={{ duration: 2 + i, repeat: Infinity, repeatType: 'reverse' }}
+      />
+    ))}
+    {/* Mouse pointer */}
+    <motion.polygon
+      points="140,120 150,130 140,130 140,120"
+      fill={theme === 'dark' ? 'white' : 'black'}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: [0, 1, 0] }}
+      transition={{ duration: 2, repeat: Infinity }}
+    />
   </motion.svg>
 )
