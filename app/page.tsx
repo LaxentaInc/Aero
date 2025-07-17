@@ -2160,6 +2160,34 @@ const WaveSeparator = ({ theme = 'light', width = 320, height = 32 }) => {
   );
 };
 
+// Add VideoBackground component
+const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
+  return (
+    <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        crossOrigin="anonymous"
+        className={`absolute top-0 left-0 w-full h-full object-cover ${
+          theme === 'dark' ? 'opacity-40' : 'opacity-20'
+        }`}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover'
+        }}
+      >
+        <source src="https://static.tradingview.com/static/bundles/northern-lights-pricing-desktop.86b1853e628d56f03bc8.webm" type="video/webm" />
+      </video>
+    </div>
+  )
+}
+
 export default function LaxentaLanding() {
   const { theme } = useTheme()
   const { scrollYProgress } = useScroll()
@@ -2193,7 +2221,6 @@ export default function LaxentaLanding() {
           />
         )}
       </AnimatePresence>
-      
       <motion.div className={`relative min-h-screen ${
         theme === 'dark' ? 'bg-black text-white' : 'bg-white text-black'
       } select-none`}>
@@ -2205,6 +2232,10 @@ export default function LaxentaLanding() {
           style={{ scale: heroScale, opacity: heroOpacity }}
           className="min-h-screen flex items-center justify-center relative overflow-hidden px-4"
         >
+          {/* Add isolation to create a new stacking context */}
+          <div className="absolute inset-0 z-0 isolate pointer-events-none">
+            <VideoBackground theme={theme} />
+          </div>
           <div className="relative z-10 text-center space-y-6">
             <h1 className="text-5xl sm:text-7xl md:text-9xl lg:text-[12rem] font-black tracking-tighter select-none">
               Laxenta
@@ -2258,7 +2289,7 @@ export default function LaxentaLanding() {
 >
   <Typewriter
     words={[
-            'But yea I'm pretty good with web development and backend stuff ngl']}
+            'But yea I\'m pretty good with web development and backend stuff ngl']}
     loop={1}
     cursor
     typeSpeed={60}
