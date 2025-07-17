@@ -1062,6 +1062,15 @@ const isDevAccount = (session: any): boolean => {
   return session?.user?.email && DEV_EMAILS.includes(session.user.email);
 };
 
+// Simple debounce implementation (if lodash is not available)
+function debounce<T extends (...args: any[]) => void>(func: T, wait: number) {
+  let timeout: ReturnType<typeof setTimeout>;
+  return function(this: any, ...args: Parameters<T>) {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func.apply(this, args), wait);
+  } as T;
+}
+
 // Main Chat Component
 export default function AIChat() {
   const { data: session } = useSession()
@@ -1351,14 +1360,14 @@ useEffect(() => {
 // }, [])
 
 
-  // Load conversations from localStorage
+  // Load conversations from API
   useEffect(() => {
-    const loadConversations = () => {
-      const saved = localStorage.getItem('ai_conversations')
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved)
-          const conversationsWithDates = parsed.map((conv: any) => ({
+    const loadConversations = async () => {
+      try {
+        const response = await fetch('/api/conversations');
+        if (response.ok) {
+          const data = await response.json();
+          const conversationsWithDates = data.map((conv: any) => ({
             ...conv,
             createdAt: new Date(conv.createdAt),
             updatedAt: new Date(conv.updatedAt),
@@ -1366,280 +1375,62 @@ useEffect(() => {
               ...msg,
               timestamp: new Date(msg.timestamp)
             }))
-          }))
-          setConversations(conversationsWithDates)
-
+          }));
+          setConversations(conversationsWithDates);
           if (conversationsWithDates.length > 0 && !currentConversationId) {
-            const mostRecent = conversationsWithDates[0]
-            setCurrentConversationId(mostRecent.id)
-            setMessages(mostRecent.messages)
+            const mostRecent = conversationsWithDates[0];
+            setCurrentConversationId(mostRecent.id);
+            setMessages(mostRecent.messages);
           }
-        } catch (error) {
-          console.error('Failed to load conversations:', error)
+        }
+      } catch (error) {
+        console.error('Failed to load conversations:', error);
+      }
+    };
+    loadConversations();
+  }, []);
+
+  // Debounced save function to prevent spamming PUT requests
+  const debouncedSave = useMemo(
+    () => debounce((convId: string | null, msgs: Message[], convs: Conversation[]) => {
+      if (convId && msgs.length > 0) {
+        const conversation = convs.find(c => c.id === convId);
+        if (conversation) {
+          const updated = {
+            ...conversation,
+            messages: msgs,
+            updatedAt: new Date().toISOString()
+          };
+          fetch(`/api/conversations/${convId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updated)
+          }).then(() => {
+            setConversations(prev =>
+              prev.map(conv =>
+                conv.id === convId
+                  ? { ...updated, updatedAt: new Date(updated.updatedAt) } as Conversation
+                  : conv
+              )
+            );
+          }).catch(error => {
+            console.error('Failed to save conversation:', error);
+          });
         }
       }
-    }
-    loadConversations()
-  }, [])
+    }, 2000), // Wait 2 seconds after last change
+    []
+  )
 
-  const saveConversations = useCallback((convs: Conversation[]) => {
-    localStorage.setItem('ai_conversations', JSON.stringify(convs))
-    setConversations(convs)
-  }, [])
-
-  const saveCurrentConversation = useCallback(() => {
-    if (currentConversationId && messages.length > 0) {
-      setConversations(prev => {
-        const updated = prev.map(conv => 
-          conv.id === currentConversationId
-            ? { ...conv, messages, updatedAt: new Date() }
-            : conv
-        )
-        saveConversations(updated)
-        return updated
-      })
-    }
-  }, [currentConversationId, messages, saveConversations])
-
+  // Replace the problematic useEffect with a debounced version
   useEffect(() => {
     if (messages.length > 0 && !isStreaming) {
-      saveCurrentConversation()
+      debouncedSave(currentConversationId, messages, conversations);
     }
-  }, [messages, isStreaming, saveCurrentConversation])
+  }, [messages, isStreaming, currentConversationId, conversations, debouncedSave]);
 
-  const scrollToBottom = useCallback(() => {
-    if (!userScrolled) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-    }
-  }, [userScrolled])
-
-  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    const element = e.currentTarget
-    const isAtBottom = Math.abs(element.scrollHeight - element.scrollTop - element.clientHeight) < 50
-    if (!isAtBottom && messages.length > 0) {
-      setUserScrolled(true)
-    } else if (isAtBottom) {
-      setUserScrolled(false)
-    }
-  }, [messages.length])
-
-  useEffect(() => {
-    const lastMessage = messages[messages.length - 1]
-    if (lastMessage?.role === 'user') {
-      setUserScrolled(false)
-    }
-  }, [messages])
-
-  useEffect(() => {
-    scrollToBottom()
-  }, [messages, scrollToBottom])
-
-  const handleModelSelect = (modelId: string) => {
-    const model = models.find(m => m.id === modelId)
-    
-    // Dev accounts can use any model
-    if (model?.premium_model && !isDev) {
-      router.push('/pricing')
-    } else {
-      setSelectedModel(modelId)
-      setShowModelDropdown(false)
-    }
-  }
-
-
-  
-  // Enhanced streaming with caching and retry
-  const streamResponse = async (userMessage: string, currentMessages: Message[], isRetry = false) => {
-    const assistantMessage: Message = {
-      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      role: 'assistant',
-      content: isRetry ? streamCacheRef.current : '',
-      timestamp: new Date(),
-      isStreaming: true,
-      model: selectedModel
-    }
-
-    if (!isRetry) {
-      streamCacheRef.current = ''
-    }
-
-    setMessages(prev => [...prev, assistantMessage])
-    setIsStreaming(true)
-    setRetryCount(0)
-
-    const attemptStream = async (attempt = 0): Promise<void> => {
-      try {
-        if (reconnectTimeoutRef.current) {
-          clearTimeout(reconnectTimeoutRef.current)
-        }
-
-        abortControllerRef.current = new AbortController()
-
-        const timeoutId = setTimeout(() => {
-          abortControllerRef.current?.abort()
-        }, 60000) // 60 second timeout
-
-        const response = await fetch('/api/ai', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Keep-Alive': 'timeout=60, max=1000'
-          },
-          body: JSON.stringify({
-            messages: currentMessages.map(m => ({
-              role: m.role,
-              content: m.content
-            })),
-            stream: true,
-            model: selectedModel
-          }),
-          signal: abortControllerRef.current.signal
-        })
-
-        clearTimeout(timeoutId)
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`)
-        }
-
-        const reader = response.body?.getReader()
-        if (!reader) {
-          throw new Error('No reader available')
-        }
-
-        const decoder = new TextDecoder()
-        let buffer = ''
-        let lastActivity = Date.now()
-
-        const activityCheckInterval = setInterval(() => {
-          if (Date.now() - lastActivity > 15000) { // 15 seconds no activity
-            console.warn('Connection stalled, attempting reconnection')
-            reader.cancel()
-            clearInterval(activityCheckInterval)
-            if (attempt < 3) {
-              setRetryCount(attempt + 1)
-              attemptStream(attempt + 1)
-            }
-          }
-        }, 1000)
-
-        while (true) {
-          try {
-            const { done, value } = await reader.read()
-            lastActivity = Date.now()
-
-            if (done) {
-              clearInterval(activityCheckInterval)
-              break
-            }
-
-            buffer += decoder.decode(value, { stream: true })
-            const lines = buffer.split('\n')
-            buffer = lines.pop() || ''
-
-            for (const line of lines) {
-              if (line.trim() === '') continue
-
-              if (line.startsWith('data: ')) {
-                const data = line.slice(6).trim()
-
-                if (data === '[DONE]') {
-                  clearInterval(activityCheckInterval)
-                  setIsStreaming(false)
-                  setMessages(prev => prev.map(msg =>
-                    msg.id === assistantMessage.id
-                      ? { ...msg, isStreaming: false }
-                      : msg
-                  ))
-                  streamCacheRef.current = ''
-                  return
-                }
-
-                try {
-                  const parsed = JSON.parse(data)
-                  const content = parsed.choices?.[0]?.delta?.content || 
-                                parsed.choices?.[0]?.message?.content || 
-                                ''
-
-                  if (content) {
-                    streamCacheRef.current += content
-                    setMessages(prev => prev.map(msg =>
-                      msg.id === assistantMessage.id
-                        ? { ...msg, content: streamCacheRef.current }
-                        : msg
-                    ))
-                  }
-                } catch (e) {
-                  console.error('JSON parsing error:', e)
-                }
-              }
-            }
-          } catch (readError) {
-            clearInterval(activityCheckInterval)
-            console.error('Read error:', readError)
-
-            if (attempt < 3 && (readError as any).name !== 'AbortError') {
-              setRetryCount(attempt + 1)
-              console.log(`Retrying... (${attempt + 1}/3)`)
-              await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)))
-              return attemptStream(attempt + 1)
-            }
-            throw readError
-          }
-        }
-      } catch (error: any) {
-        if (error.name === 'AbortError') {
-          console.log('Request aborted')
-        } else {
-          console.error('Streaming error:', error)
-
-          const errorMessage = !navigator.onLine
-            ? 'You are offline. Please check your internet connection.'
-            : error.message.includes('network')
-            ? 'Network error. Attempting to reconnect...'
-            : 'Sorry, there was an error. Please try again.'
-
-          setMessages(prev => prev.map(msg =>
-            msg.id === assistantMessage.id
-              ? {
-                ...msg,
-                content: streamCacheRef.current || errorMessage,
-                isStreaming: false,
-                error: true
-              }
-              : msg
-          ))
-
-          // Auto-retry for network errors
-          if (error.message.includes('network') && attempt < 3) {
-            reconnectTimeoutRef.current = setTimeout(() => {
-              console.log('Auto-retrying after network error...')
-              streamResponse(userMessage, currentMessages, true)
-            }, 3000)
-          }
-        }
-        setIsStreaming(false)
-      }
-    }
-
-    await attemptStream()
-  }
-
-  const handleRegenerate = async () => {
-    if (messages.length < 2) return
-
-    const lastUserMessage = [...messages].reverse().find(m => m.role === 'user')
-    if (!lastUserMessage) return
-
-    // Remove the last assistant message
-    const newMessages = messages.slice(0, -1)
-    setMessages(newMessages)
-
-    // Regenerate response
-    await streamResponse(lastUserMessage.content, newMessages)
-  }
-
-  const createNewConversation = () => {
+  // Create a new conversation via API
+  const createNewConversation = async () => {
     const newConv: Conversation = {
       id: `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       title: 'New Chat',
@@ -1647,30 +1438,45 @@ useEffect(() => {
       createdAt: new Date(),
       updatedAt: new Date(),
       model: selectedModel
+    };
+    try {
+      await fetch('/api/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newConv)
+      });
+      const updatedConvs = [newConv, ...conversations];
+      setConversations(updatedConvs);
+      setCurrentConversationId(newConv.id);
+      setMessages([]);
+      setSidebarOpen(false);
+    } catch (error) {
+      console.error('Failed to create conversation:', error);
     }
+  };
 
-    const updatedConvs = [newConv, ...conversations]
-    saveConversations(updatedConvs)
-    setCurrentConversationId(newConv.id)
-    setMessages([])
-    setSidebarOpen(false)
-  }
-
-  const deleteConversation = (convId: string) => {
-    const updatedConvs = conversations.filter(c => c.id !== convId)
-    saveConversations(updatedConvs)
-
-    if (currentConversationId === convId) {
-      if (updatedConvs.length > 0) {
-        const nextConv = updatedConvs[0]
-        setCurrentConversationId(nextConv.id)
-        setMessages(nextConv.messages)
-      } else {
-        setCurrentConversationId(null)
-        setMessages([])
+  // Delete a conversation via API
+  const deleteConversation = async (convId: string) => {
+    try {
+      await fetch(`/api/conversations/${convId}`, {
+        method: 'DELETE'
+      });
+      const updatedConvs = conversations.filter(c => c.id !== convId);
+      setConversations(updatedConvs);
+      if (currentConversationId === convId) {
+        if (updatedConvs.length > 0) {
+          const nextConv = updatedConvs[0];
+          setCurrentConversationId(nextConv.id);
+          setMessages(nextConv.messages);
+        } else {
+          setCurrentConversationId(null);
+          setMessages([]);
+        }
       }
+    } catch (error) {
+      console.error('Failed to delete conversation:', error);
     }
-  }
+  };
 
   const handleConversationClick = (conv: Conversation) => {
     if (isStreaming) {
@@ -1728,11 +1534,19 @@ useEffect(() => {
         updatedAt: new Date(),
         model: !session ? GUEST_MODEL_ID : selectedModel
       };
-
-      const updatedConvs = [newConv, ...conversations];
-      saveConversations(updatedConvs);
-      setCurrentConversationId(newConv.id);
-      convId = newConv.id;
+      try {
+        await fetch('/api/conversations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newConv)
+        });
+        const updatedConvs = [newConv, ...conversations];
+        setConversations(updatedConvs);
+        setCurrentConversationId(newConv.id);
+        convId = newConv.id;
+      } catch (error) {
+        console.error('Failed to create conversation:', error);
+      }
     }
 
     const newMessages = [...messages, userMsg];
@@ -1760,6 +1574,211 @@ useEffect(() => {
   }
 
   const selectedModelInfo = models.find(m => m.id === selectedModel)
+
+  // Restore missing functions
+  const handleModelSelect = (modelId: string) => {
+    const model = models.find(m => m.id === modelId);
+    if (model?.premium_model && !isDev) {
+      router.push('/pricing');
+    } else {
+      setSelectedModel(modelId);
+      setShowModelDropdown(false);
+    }
+  };
+
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const element = e.currentTarget;
+    const isAtBottom = Math.abs(element.scrollHeight - element.scrollTop - element.clientHeight) < 50;
+    if (!isAtBottom && messages.length > 0) {
+      setUserScrolled(true);
+    } else if (isAtBottom) {
+      setUserScrolled(false);
+    }
+  }, [messages.length]);
+
+  const handleRegenerate = async () => {
+    if (messages.length < 2) return;
+    const lastUserMessage = [...messages].reverse().find(m => m.role === 'user');
+    if (!lastUserMessage) return;
+    // Remove the last assistant message
+    const newMessages = messages.slice(0, -1);
+    setMessages(newMessages);
+    // Regenerate response
+    await streamResponse(lastUserMessage.content, newMessages);
+  };
+
+  // Replace the streamResponse function with a version that updates the same message on retry
+  const streamResponse = async (
+    userMessage: string,
+    currentMessages: Message[],
+    isRetry = false,
+    retryMessageId?: string
+  ) => {
+    // Use the same message ID for retries
+    const messageId = retryMessageId || `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+    const assistantMessage: Message = {
+      id: messageId,
+      role: 'assistant',
+      content: '', // Always start fresh on retry
+      timestamp: new Date(),
+      isStreaming: true,
+      model: selectedModel
+    };
+
+    if (!isRetry) {
+      // New message - append it
+      streamCacheRef.current = '';
+      setMessages(prev => [...prev, assistantMessage]);
+    } else {
+      // Retry - update the existing message
+      streamCacheRef.current = '';
+      setMessages(prev => prev.map(msg =>
+        msg.id === messageId
+          ? { ...msg, content: '', isStreaming: true, error: false }
+          : msg
+      ));
+    }
+
+    setIsStreaming(true);
+    setRetryCount(0);
+
+    const attemptStream = async (attempt = 0): Promise<void> => {
+      try {
+        if (reconnectTimeoutRef.current) {
+          clearTimeout(reconnectTimeoutRef.current);
+        }
+        abortControllerRef.current = new AbortController();
+        const timeoutId = setTimeout(() => {
+          abortControllerRef.current?.abort();
+        }, 60000);
+        const response = await fetch('/api/ai', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Keep-Alive': 'timeout=60, max=1000'
+          },
+          body: JSON.stringify({
+            messages: currentMessages.map(m => ({
+              role: m.role,
+              content: m.content
+            })),
+            stream: true,
+            model: selectedModel
+          }),
+          signal: abortControllerRef.current.signal
+        });
+        clearTimeout(timeoutId);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const reader = response.body?.getReader();
+        if (!reader) {
+          throw new Error('No reader available');
+        }
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let lastActivity = Date.now();
+        const activityCheckInterval = setInterval(() => {
+          if (Date.now() - lastActivity > 15000) {
+            console.warn('Connection stalled, attempting reconnection');
+            reader.cancel();
+            clearInterval(activityCheckInterval);
+            if (attempt < 3) {
+              setRetryCount(attempt + 1);
+              attemptStream(attempt + 1);
+            }
+          }
+        }, 1000);
+        while (true) {
+          try {
+            const { done, value } = await reader.read();
+            lastActivity = Date.now();
+            if (done) {
+              clearInterval(activityCheckInterval);
+              break;
+            }
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split('\n');
+            buffer = lines.pop() || '';
+            for (const line of lines) {
+              if (line.trim() === '') continue;
+              if (line.startsWith('data: ')) {
+                const data = line.slice(6).trim();
+                if (data === '[DONE]') {
+                  clearInterval(activityCheckInterval);
+                  setIsStreaming(false);
+                  setMessages(prev => prev.map(msg =>
+                    msg.id === messageId
+                      ? { ...msg, isStreaming: false }
+                      : msg
+                  ));
+                  streamCacheRef.current = '';
+                  return;
+                }
+                try {
+                  const parsed = JSON.parse(data);
+                  const content = parsed.choices?.[0]?.delta?.content ||
+                    parsed.choices?.[0]?.message?.content || '';
+                  if (content) {
+                    streamCacheRef.current += content;
+                    setMessages(prev => prev.map(msg =>
+                      msg.id === messageId
+                        ? { ...msg, content: streamCacheRef.current }
+                        : msg
+                    ));
+                  }
+                } catch (e) {
+                  console.error('JSON parsing error:', e);
+                }
+              }
+            }
+          } catch (readError) {
+            clearInterval(activityCheckInterval);
+            console.error('Read error:', readError);
+            if (attempt < 3 && (readError as any).name !== 'AbortError') {
+              setRetryCount(attempt + 1);
+              console.log(`Retrying... (${attempt + 1}/3)`);
+              await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+              return attemptStream(attempt + 1);
+            }
+            throw readError;
+          }
+        }
+      } catch (error: any) {
+        if (error.name === 'AbortError') {
+          console.log('Request aborted');
+        } else {
+          console.error('Streaming error:', error);
+          const errorMessage = !navigator.onLine
+            ? 'You are offline. Please check your internet connection.'
+            : error.message.includes('network')
+              ? 'Network error. Attempting to reconnect...'
+              : 'Sorry, there was an error. Please try again.';
+          setMessages(prev => prev.map(msg =>
+            msg.id === messageId
+              ? {
+                ...msg,
+                content: streamCacheRef.current || errorMessage,
+                isStreaming: false,
+                error: true
+              }
+              : msg
+          ));
+          // Auto-retry with the SAME message ID
+          if (error.message.includes('network') && attempt < 3) {
+            reconnectTimeoutRef.current = setTimeout(() => {
+              console.log('Auto-retrying after network error...');
+              streamResponse(userMessage, currentMessages, true, messageId); // Pass the messageId!
+            }, 3000);
+          }
+        }
+        setIsStreaming(false);
+      }
+    };
+
+    await attemptStream();
+  };
 
   return (
     <div className="flex h-screen bg-gray-950 overflow-hidden">
