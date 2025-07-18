@@ -23,25 +23,19 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL('https://laxenta.info'),
   title: {
-    default: "Laxenta Inc- Free Dc Shapes/AI Chat & Image Generation",
+    default: "Laxenta Inc - Free AI Chat & Image Generation",
     template: "%s | Laxenta Inc"
   },
-  description: "Create customized shapes for Discord (NSFW/SFW)! Access 100+ AI models free. Chat with GPT-4, Claude, and reasoning models. Generate images with DALL-E 3, Midjourney, Flux Pro/Ultra, and more. API coming soon!",
+  description: "Create customized shapes for Discord (NSFW/SFW)! Access 100+ AI models free. Chat with GPT-4, Claude, and reasoning models. Generate images with DALL-E 3, Midjourney, Flux Pro/Ultra, and more.",
   keywords: [
     "AI chat",
     "Shapes for Discord",
-    "Shapes.inc",
-    "shapes",
     "image generation",
     "chatbots",
     "laxenta",
     "AI assistant",
     "free AI models",
     "AI platform",
-    "AI API",
-    "code editor online",
-    "urlscan",
-    "AI image generation",
     "DALL-E 3",
     "GPT-4",
     "Claude",
@@ -63,7 +57,6 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  // Simplified icon setup - just use favicon.ico for everything
   icons: {
     icon: '/favicon.ico',
     shortcut: '/favicon.ico',
@@ -76,7 +69,7 @@ export const metadata: Metadata = {
     url: 'https://laxenta.info',
     siteName: 'Laxenta Inc',
     title: 'Laxenta Inc - Discord Shapes, AI Chat & Image Generation Platform',
-    description: 'Create Discord shapes & chat with 100+ AI models including GPT-4, Claude, and Gemini for free. Generate images with DALL-E 3, Flux, and more. No credit card required. Built with ❤️ by an 18yo developer.',
+    description: 'Create Discord shapes & chat with 100+ AI models including GPT-4, Claude, and Gemini for free. Generate images with DALL-E 3, Flux, and more. No credit card required.',
     images: [
       {
         url: '/og-image.png',
@@ -84,20 +77,13 @@ export const metadata: Metadata = {
         height: 630,
         alt: 'Laxenta Inc - Free AI, Images, Shapes & Coding Platform',
         type: 'image/png',
-      },
-      {
-        url: '/og-image-square.png',
-        width: 600,
-        height: 600,
-        alt: 'Laxenta AI Logo',
-        type: 'image/png',
       }
     ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Laxenta Inc - Discord Shapes Free AI Chat & Image Generation',
-    description: 'Access 100+ AI models free. Chat with GPT-4, Claude & more. Generate images with DALL-E 3. Create Discord shapes. Built by a passionate 18yo developer 🚀',
+    description: 'Access 100+ AI models free. Chat with GPT-4, Claude & more. Generate images with DALL-E 3. Create Discord shapes.',
     images: {
       url: '/og-image.png',
       alt: 'Laxenta Inc Platform Preview'
@@ -120,7 +106,6 @@ export const metadata: Metadata = {
   category: 'technology',
 };
 
-// Export viewport separately
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
@@ -132,7 +117,6 @@ export const viewport: Viewport = {
   ],
 };
 
-// Add structured data for better SEO
 export default function RootLayout({
   children,
 }: {
@@ -142,7 +126,7 @@ export default function RootLayout({
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
     name: 'Laxenta AI',
-    description: 'Free AI chat, Discord shapes and image generation platform with 100+ models! Create Discord shapes (NSFW/SFW support), generate images, and Debug your code without paying to random ai providers! With us, you get higher free limits :3 ',
+    description: 'Free AI chat, Discord shapes and image generation platform with 100+ models',
     url: 'https://laxenta.info',
     applicationCategory: 'Artificial Intelligence',
     operatingSystem: 'Web',
@@ -154,7 +138,6 @@ export default function RootLayout({
     author: {
       '@type': 'Person',
       name: 'Laxenta',
-      description: 'Check out hundreds of ai models that you might have never heard OF! and btw who doesn\'t like cute ai shape friends on Discord? Fr I\'m an 18yo hobbyist dev btw :3 i study, this aint my job lol',
     },
     aggregateRating: {
       '@type': 'AggregateRating',
@@ -166,7 +149,26 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Simple favicon setup */}
+        {/* Essential Meta Tags for Discord/Social Media */}
+        <meta property="og:title" content="Laxenta Inc - Discord Shapes, AI Chat & Image Generation" />
+        <meta property="og:description" content="Create Discord shapes & chat with 100+ AI models including GPT-4, Claude, and Gemini for free. Generate images with DALL-E 3, Flux, and more." />
+        <meta property="og:image" content="https://laxenta.info/og-image.png" />
+        <meta property="og:url" content="https://laxenta.info" />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="Laxenta Inc" />
+        <meta property="og:locale" content="en_US" />
+        
+        {/* Twitter Card */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Laxenta Inc - Discord Shapes Free AI Chat & Image Generation" />
+        <meta name="twitter:description" content="Access 100+ AI models free. Chat with GPT-4, Claude & more. Generate images with DALL-E 3. Create Discord shapes." />
+        <meta name="twitter:image" content="https://laxenta.info/og-image.png" />
+        
+        {/* Basic Meta Tags */}
+        <meta name="description" content="Create customized shapes for Discord (NSFW/SFW)! Access 100+ AI models free. Chat with GPT-4, Claude, and reasoning models. Generate images with DALL-E 3, Midjourney, Flux Pro/Ultra, and more." />
+        <link rel="canonical" href="https://laxenta.info" />
+        
+        {/* Favicon */}
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/favicon.ico" />
         
@@ -179,15 +181,10 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="Laxenta AI" />
         
-        {/* Additional OG tags for better Discord embeds */}
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:image:alt" content="Laxenta AI - Free AI Platform" />
-        
-        {/* PWA tags */}
+        {/* PWA */}
         <link rel="manifest" href="/manifest.json" />
         
-        {/* Preconnect to external domains */}
+        {/* Preconnect */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         
