@@ -127,7 +127,7 @@ export default function RootLayout({
     '@type': 'WebApplication',
     name: 'Laxenta AI',
     description: 'Free AI chat, Discord shapes and image generation platform with 100+ models',
-    url: 'https://laxenta.tech',
+    url: 'https://www.laxenta.tech',
     applicationCategory: 'Artificial Intelligence',
     operatingSystem: 'Web',
     offers: {
@@ -152,8 +152,8 @@ export default function RootLayout({
         {/* Essential Meta Tags for Discord/Social Media */}
         <meta property="og:title" content="Laxenta Inc - Discord Shapes, AI Chat & Image Generation" />
         <meta property="og:description" content="Create Discord shapes & chat with 100+ AI models including GPT-4, Claude, and Gemini for free. Generate images with DALL-E 3, Flux, and more." />
-        <meta property="og:image" content="https://laxenta.tech/og-image.png" />
-        <meta property="og:url" content="https://laxenta.tech" />
+        <meta property="og:image" content="https://www.laxenta.tech/og-image.png" />
+        <meta property="og:url" content="https://www.laxenta.tech" />
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="Laxenta Inc" />
         <meta property="og:locale" content="en_US" />
@@ -166,7 +166,7 @@ export default function RootLayout({
         
         {/* Basic Meta Tags */}
         <meta name="description" content="Create customized shapes for Discord (NSFW/SFW)! Access 100+ AI models free. Chat with GPT-4, Claude, and reasoning models. Generate images with DALL-E 3, Midjourney, Flux Pro/Ultra, and more." />
-        <link rel="canonical" href="https://laxenta.tech" />
+        <link rel="canonical" href="https://www.laxenta.tech" />
         
         {/* Favicon */}
         <link rel="icon" href="/favicon.ico" sizes="any" />
