@@ -60,12 +60,10 @@ const SmoothCursor = () => {
 
       frameRef.current = requestAnimationFrame(animateFrame)
     }
-
     window.addEventListener('mousemove', handleMouseMove, { passive: true })
     document.addEventListener('mouseenter', handleMouseEnter, true)
     document.addEventListener('mouseleave', handleMouseLeave, true)
     frameRef.current = requestAnimationFrame(animateFrame)
-
     return () => {
       document.body.style.cursor = ''
       window.removeEventListener('mousemove', handleMouseMove)
@@ -74,7 +72,7 @@ const SmoothCursor = () => {
       cancelAnimationFrame(frameRef.current)
     }
   }, [isMobile])
-
+//mobile no need dis :)
   if (isMobile) return null
 
   return (
@@ -195,7 +193,7 @@ const LoadingScreen = ({ theme, onClose }: { theme: 'dark' | 'light', onClose?: 
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-                  talk to me uwu :3... become ma friend ;c my discord = @me_straight  :3
+                  Loading..
         </motion.h1>
 
         <motion.div
@@ -1134,8 +1132,6 @@ const ScrollArrow = ({ theme }: { theme: 'dark' | 'light' }) => {
 }
 
 //I seriously do not understand why the streaming is not working, its making it buggy too, so imma just keep it like this, its annyoing
-//If anyone ever sees this, please help me fix it, i have no idea 
-
 // CodeBlock component for syntax highlighting
 function CodeBlock({ code, language = 'javascript' }: { code: string, language?: string }) {
   return (
@@ -2095,7 +2091,7 @@ const ImageGenCard: React.FC<ImageGenCardProps> = ({ theme = 'dark' }) => {
                       ? 'group-hover:text-white group-hover:drop-shadow-[0_0_12px_rgba(255,255,255,0.9)]' 
                       : 'group-hover:text-black'
                   }`}>
-                    TRY MORE AI TOOLS
+                    TRY IMAGE GEN
                   </span>
                   
                   {/* Force pitch black/white overlay */}
@@ -2253,7 +2249,7 @@ export default function LaxentaLanding() {
               animate={{ opacity: 0.6 }}
             >
               <Typewriter
-                words={['<Laxenta/> - A Discord Shapes and Free Tier AI Platform!']}
+                words={['< A Discord Shapes and Free Tier AI Platform! />']}
                 loop={1}
                 cursor
                 typeSpeed={20}
