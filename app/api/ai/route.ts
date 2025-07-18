@@ -229,7 +229,7 @@ export async function POST(req: NextRequest) {
 
   // Request size limit
   const contentLength = req.headers.get('content-length');
-  if (contentLength && parseInt(contentLength) > 100000) {
+  if (contentLength && parseInt(contentLength) > 1200000) {
     return new Response(JSON.stringify({ error: 'Request too large' }), {
       status: 413,
       headers: { 'Content-Type': 'application/json' },
@@ -354,7 +354,7 @@ export async function POST(req: NextRequest) {
           buffer += text;
           
           // Buffer overflow protection
-          if (buffer.length > 3000000 ) { // 3mb limit goes hard
+          if (buffer.length > 3000000 ) { //3mb hard limit to prevent abuse
             console.error('[⚠️ Buffer overflow]');
             buffer = '';
             const errorData = {
