@@ -1,4 +1,4 @@
-// /app/api/ai/route.t
+// /app/api/ai/route.ts
 import { NextRequest } from 'next/server';
 
 // Use Edge Runtime for no timeout on Vercel
@@ -7,6 +7,7 @@ export const maxDuration = 300; // 5 minutes
 
 const API_KEY = process.env.ELECTRON_API_KEY;
 const API_URL = 'https://api.electronhub.ai/v1/chat/completions';
+const MODELS_URL = 'https://api.electronhub.ai/models';
 
 // Rate limiting setup
 const RATE_LIMIT = 5;
@@ -20,7 +21,17 @@ const streamBuffers = new Map<string, {
   retryCount: number 
 }>();
 
-// Clean up old buffers AND rate limit map every minute
+// Model info cache
+interface ModelInfo {
+  tokens: number;
+  name: string;
+  id: string;
+}
+
+const modelCache = new Map<string, { data: ModelInfo; timestamp: number }>();
+const MODEL_CACHE_TTL = 60 * 60 * 1000; // 1 hour
+
+// Clean up old buffers, rate limit map, and model cache
 setInterval(() => {
   const now = Date.now();
   
@@ -37,7 +48,113 @@ setInterval(() => {
       ipMap.delete(ip);
     }
   }
+  
+  // Clean model cache
+  for (const [modelId, cache] of modelCache.entries()) {
+    if (now - cache.timestamp > MODEL_CACHE_TTL) {
+      modelCache.delete(modelId);
+    }
+  }
 }, 60 * 1000);
+
+// Fetch model info from ElectronHub API
+async function getModelInfo(modelId: string): Promise<ModelInfo | null> {
+  try {
+    // Check cache first
+    const cached = modelCache.get(modelId);
+    if (cached && Date.now() - cached.timestamp < MODEL_CACHE_TTL) {
+      console.log(`[📦 Cache hit] Model info for ${modelId}`);
+      return cached.data;
+    }
+
+    console.log(`[🌐 Fetching] Model info for ${modelId}`);
+    const response = await fetch(MODELS_URL, {
+      headers: {
+        'Authorization': `Bearer ${API_KEY}`,
+      },
+    });
+
+    if (!response.ok) {
+      console.error('[❌ Models API Error]', response.status);
+      return null;
+    }
+
+    const data = await response.json();
+    const models = data.data || [];
+    
+    const modelInfo = models.find((m: any) => m.id === modelId);
+    if (!modelInfo) {
+      console.warn(`[⚠️ Model not found] ${modelId}`);
+      return null;
+    }
+
+    const info: ModelInfo = {
+      tokens: modelInfo.tokens || 4000, // Default to 4000 if not specified
+      name: modelInfo.name,
+      id: modelInfo.id,
+    };
+
+    // Cache the result
+    modelCache.set(modelId, { data: info, timestamp: Date.now() });
+    console.log(`[✅ Model info] ${modelId}: ${info.tokens} tokens`);
+    
+    return info;
+  } catch (error) {
+    console.error('[❌ Error fetching model info]', error);
+    return null;
+  }
+}
+
+// Simple token estimation (roughly 4 chars per token)
+function estimateTokens(text: string): number {
+  // More accurate estimation based on common patterns
+  // Average is ~4 chars per token for English text
+  // But we'll be conservative and use 3.5 to avoid cutting too much
+  return Math.ceil(text.length / 3.5);
+}
+
+// Truncate messages to fit within token limit
+function truncateMessages(messages: any[], maxTokens: number): any[] {
+  if (!messages || messages.length === 0) return messages;
+
+  // Reserve some tokens for the response and system overhead
+  const availableTokens = Math.floor(maxTokens * 0.85); // Use 85% of limit for safety
+  
+  let totalTokens = 0;
+  const truncatedMessages = [];
+  
+  // Always keep the most recent messages, work backwards
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const message = messages[i];
+    const content = message.content || '';
+    const messageTokens = estimateTokens(JSON.stringify(message));
+    
+    if (totalTokens + messageTokens <= availableTokens) {
+      truncatedMessages.unshift(message);
+      totalTokens += messageTokens;
+    } else if (i === messages.length - 1) {
+      // Always keep at least the last message, but truncate it if needed
+      const remainingTokens = availableTokens - totalTokens;
+      const charLimit = Math.floor(remainingTokens * 3.5);
+      
+      if (charLimit > 100) { // Keep at least 100 chars
+        truncatedMessages.unshift({
+          ...message,
+          content: content.substring(content.length - charLimit),
+        });
+      } else {
+        truncatedMessages.unshift(message);
+      }
+      break;
+    } else {
+      // Stop adding older messages
+      break;
+    }
+  }
+  
+  console.log(`[✂️ Truncated] ${messages.length} → ${truncatedMessages.length} messages (${totalTokens} tokens)`);
+  return truncatedMessages;
+}
 
 function checkRateLimit(ip: string): boolean {
   const now = Date.now();
@@ -133,6 +250,14 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Get model info and token limit
+    const modelInfo = await getModelInfo(model);
+    const tokenLimit = modelInfo?.tokens || 4000; // Default to 4000 if fetch fails
+    console.log(`[🎯 Token Limit] ${tokenLimit} tokens for model ${model}`);
+
+    // Truncate messages based on token limit
+    const truncatedMessages = truncateMessages(messages, tokenLimit);
+
     // ONE SIMPLE 5 MINUTE TIMEOUT - THAT'S IT
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
@@ -150,11 +275,11 @@ export async function POST(req: NextRequest) {
 
     const body = JSON.stringify({
       model,
-      messages,
+      messages: truncatedMessages, // Use truncated messages
       temperature: 0.9,
       presence_penalty: 0.6,
       frequency_penalty: 0.7,
-      limit: 5,
+      limit: 10,
       stream,
     });
 

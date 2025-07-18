@@ -1,6 +1,5 @@
-import { IConfig } from 'next-sitemap'
-
-const config: IConfig = {
+/** @type {import('next-sitemap').IConfig} */
+module.exports = {
   siteUrl: 'https://www.laxenta.tech',
   generateRobotsTxt: true,
   generateIndexSitemap: false,
@@ -16,5 +15,3 @@ const config: IConfig = {
   changefreq: 'daily',
   priority: 0.7,
 }
-
-export default config
