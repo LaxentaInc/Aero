@@ -354,7 +354,7 @@ export async function POST(req: NextRequest) {
           buffer += text;
           
           // Buffer overflow protection
-          if (buffer.length > 3000000 ) { // 100KB limit
+          if (buffer.length > 3000000 ) { // 3mb limit goes hard
             console.error('[⚠️ Buffer overflow]');
             buffer = '';
             const errorData = {

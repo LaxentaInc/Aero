@@ -101,7 +101,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: 'https://laxenta.tech',
+    canonical: 'https://www.laxenta.tech',
   },
   category: 'technology',
 };
