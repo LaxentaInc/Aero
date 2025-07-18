@@ -21,7 +21,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://laxenta.info'),
+  metadataBase: new URL('https://www.laxenta.tech'),
   title: {
     default: "Laxenta Inc - Free AI Chat & Image Generation",
     template: "%s | Laxenta Inc"
@@ -66,10 +66,10 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://laxenta.info',
+    url: 'https://www.laxenta.tech',
     siteName: 'Laxenta Inc',
-    title: 'Laxenta Inc - Discord Shapes, AI Chat & Image Generation Platform',
-    description: 'Create Discord shapes & chat with 100+ AI models including GPT-4, Claude, and Gemini for free. Generate images with DALL-E 3, Flux, and more. No credit card required.',
+    title: 'Laxenta Inc - Discord Shapes, AI & Images and code collaboration',
+    description: 'Create Discord shapes & chat with 100+ AI models including GPT-4, NousResearch, AIXONLabs, Inception Mercury etc. and more.  for free (included in free tier). Generate images with DALL-E 3, Flux, and more. No credit card required.',
     images: [
       {
         url: '/og-image.png',
@@ -82,8 +82,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Laxenta Inc - Discord Shapes Free AI Chat & Image Generation',
-    description: 'Access 100+ AI models free. Chat with GPT-4, Claude & more. Generate images with DALL-E 3. Create Discord shapes.',
+    title: 'Laxenta Inc - Free Discord bots creation (shapes), AI & Image Gen, with Free tier(100+ ai models on free)',
+    description: 'Under dev- Access 100+ AI models free. Chat with GPT-4, Claude & more. Generate images with DALL-E 3. Create Discord shapes.',
     images: {
       url: '/og-image.png',
       alt: 'Laxenta Inc Platform Preview'
@@ -101,7 +101,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: 'https://laxenta.info',
+    canonical: 'https://laxenta.tech',
   },
   category: 'technology',
 };
@@ -127,7 +127,7 @@ export default function RootLayout({
     '@type': 'WebApplication',
     name: 'Laxenta AI',
     description: 'Free AI chat, Discord shapes and image generation platform with 100+ models',
-    url: 'https://laxenta.info',
+    url: 'https://laxenta.tech',
     applicationCategory: 'Artificial Intelligence',
     operatingSystem: 'Web',
     offers: {
@@ -152,8 +152,8 @@ export default function RootLayout({
         {/* Essential Meta Tags for Discord/Social Media */}
         <meta property="og:title" content="Laxenta Inc - Discord Shapes, AI Chat & Image Generation" />
         <meta property="og:description" content="Create Discord shapes & chat with 100+ AI models including GPT-4, Claude, and Gemini for free. Generate images with DALL-E 3, Flux, and more." />
-        <meta property="og:image" content="https://laxenta.info/og-image.png" />
-        <meta property="og:url" content="https://laxenta.info" />
+        <meta property="og:image" content="https://laxenta.tech/og-image.png" />
+        <meta property="og:url" content="https://laxenta.tech" />
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="Laxenta Inc" />
         <meta property="og:locale" content="en_US" />
@@ -162,11 +162,11 @@ export default function RootLayout({
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Laxenta Inc - Discord Shapes Free AI Chat & Image Generation" />
         <meta name="twitter:description" content="Access 100+ AI models free. Chat with GPT-4, Claude & more. Generate images with DALL-E 3. Create Discord shapes." />
-        <meta name="twitter:image" content="https://laxenta.info/og-image.png" />
+        <meta name="twitter:image" content="https://laxenta.tech/og-image.png" />
         
         {/* Basic Meta Tags */}
         <meta name="description" content="Create customized shapes for Discord (NSFW/SFW)! Access 100+ AI models free. Chat with GPT-4, Claude, and reasoning models. Generate images with DALL-E 3, Midjourney, Flux Pro/Ultra, and more." />
-        <link rel="canonical" href="https://laxenta.info" />
+        <link rel="canonical" href="https://laxenta.tech" />
         
         {/* Favicon */}
         <link rel="icon" href="/favicon.ico" sizes="any" />
