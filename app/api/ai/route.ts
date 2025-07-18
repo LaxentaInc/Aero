@@ -89,7 +89,7 @@ async function getModelInfo(modelId: string): Promise<ModelInfo | null> {
     }
 
     const info: ModelInfo = {
-      tokens: modelInfo.tokens || 4000, // Default to 4000 if not specified
+      tokens: modelInfo.tokens || 1000, // Default to 4000 if not specified000000000000000000000000000000000000!!!
       name: modelInfo.name,
       id: modelInfo.id,
     };
@@ -252,7 +252,7 @@ export async function POST(req: NextRequest) {
 
     // Get model info and token limit
     const modelInfo = await getModelInfo(model);
-    const tokenLimit = modelInfo?.tokens || 4000; // Default to 4000 if fetch fails
+    const tokenLimit = modelInfo?.tokens || 1000; // Default to 4000 if fetch fails !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     console.log(`[🎯 Token Limit] ${tokenLimit} tokens for model ${model}`);
 
     // Truncate messages based on token limit
@@ -354,7 +354,7 @@ export async function POST(req: NextRequest) {
           buffer += text;
           
           // Buffer overflow protection
-          if (buffer.length > 100000) { // 100KB limit
+          if (buffer.length > 3000000 ) { // 100KB limit
             console.error('[⚠️ Buffer overflow]');
             buffer = '';
             const errorData = {
