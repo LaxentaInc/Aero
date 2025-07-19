@@ -1137,14 +1137,24 @@ const sanitizeHTML = (html: string): string => {
 };
 
 // Dev accounts configuration
-const DEV_EMAILS = [
-  'gk559850@gmail.com',  // Your email
-  // Add more dev emails here if needed
+const DEV_DISCORD_USERS = [
+  'me_straight',  // Discord username
+  // You can also use Discord IDs if preferred:
+  // '123456789012345678',  // Discord ID
+  // Add more dev usernames or IDs here if needed
 ];
 
 // Helper function to check if user is dev
 const isDevAccount = (session: any): boolean => {
-  return session?.user?.email && DEV_EMAILS.includes(session.user.email);
+  // Check by Discord username
+  if (session?.user?.name && DEV_DISCORD_USERS.includes(session.user.name)) {
+    return true;
+  }
+  // Also check by Discord ID if you want to support both
+  if (session?.user?.id && DEV_DISCORD_USERS.includes(session.user.id)) {
+    return true;
+  }
+  return false;
 };
 
 // Simple debounce implementation (if lodash is not available)
@@ -1184,7 +1194,7 @@ export default function AIChat() {
   // Log it to verify it's working
   useEffect(() => {
     if (session?.user) {
-      console.log('User email:', session.user.email);
+      console.log('Discord user:', session.user.name, 'ID:', session.user.id);
       console.log('Is dev account:', isDev);
     }
   }, [session, isDev]);
@@ -1448,6 +1458,11 @@ useEffect(() => {
   // Load conversations from API
   useEffect(() => {
     const loadConversations = async () => {
+      // Don't load conversations for guests
+      if (!session?.user?.id) {
+        setConversations([]);
+        return;
+      }
       try {
         const response = await fetch('/api/conversations');
         if (response.ok) {
@@ -1473,11 +1488,13 @@ useEffect(() => {
       }
     };
     loadConversations();
-  }, []);
+  }, [session]);
 
   // Debounced save function to prevent spamming PUT requests
   const debouncedSave = useMemo(
     () => debounce((convId: string | null, msgs: Message[], convs: Conversation[]) => {
+      // Don't save for guests
+      if (!session?.user?.id) return;
       if (convId && msgs.length > 0) {
         const conversation = convs.find(c => c.id === convId);
         if (conversation) {
@@ -1503,9 +1520,9 @@ useEffect(() => {
           });
         }
       }
-    }, 2000), // Wait 2 seconds after last change
-    []
-  )
+    }, 2000),
+    [session]
+  );
 
   // Replace the problematic useEffect with a debounced version
   useEffect(() => {
@@ -1524,6 +1541,15 @@ useEffect(() => {
       updatedAt: new Date(),
       model: selectedModel
     };
+    // For guests, just update local state
+    if (!session?.user?.id) {
+      setConversations([newConv, ...conversations]);
+      setCurrentConversationId(newConv.id);
+      setMessages([]);
+      setSidebarOpen(false);
+      return;
+    }
+    // For logged-in users, save to database
     try {
       await fetch('/api/conversations', {
         method: 'POST',
@@ -1542,6 +1568,23 @@ useEffect(() => {
 
   // Delete a conversation via API
   const deleteConversation = async (convId: string) => {
+    // For guests, just update local state
+    if (!session?.user?.id) {
+      const updatedConvs = conversations.filter(c => c.id !== convId);
+      setConversations(updatedConvs);
+      if (currentConversationId === convId) {
+        if (updatedConvs.length > 0) {
+          const nextConv = updatedConvs[0];
+          setCurrentConversationId(nextConv.id);
+          setMessages(nextConv.messages);
+        } else {
+          setCurrentConversationId(null);
+          setMessages([]);
+        }
+      }
+      return;
+    }
+    // For logged-in users, delete from database
     try {
       await fetch(`/api/conversations/${convId}`, {
         method: 'DELETE'
@@ -1619,18 +1662,27 @@ useEffect(() => {
         updatedAt: new Date(),
         model: !session ? GUEST_MODEL_ID : selectedModel
       };
-      try {
-        await fetch('/api/conversations', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newConv)
-        });
+      // For guests, just update local state
+      if (!session?.user?.id) {
         const updatedConvs = [newConv, ...conversations];
         setConversations(updatedConvs);
         setCurrentConversationId(newConv.id);
         convId = newConv.id;
-      } catch (error) {
-        console.error('Failed to create conversation:', error);
+      } else {
+        // For logged-in users, save to database
+        try {
+          await fetch('/api/conversations', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newConv)
+          });
+          const updatedConvs = [newConv, ...conversations];
+          setConversations(updatedConvs);
+          setCurrentConversationId(newConv.id);
+          convId = newConv.id;
+        } catch (error) {
+          console.error('Failed to create conversation:', error);
+        }
       }
     }
 

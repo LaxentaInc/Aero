@@ -1,5 +1,8 @@
-import NextAuth from 'next-auth'
+// our next auth
+import NextAuth, { NextAuthOptions } from 'next-auth'
 import DiscordProvider from 'next-auth/providers/discord'
+import { JWT } from 'next-auth/jwt'
+import { Session } from 'next-auth'
 
 // Extend the session object
 declare module 'next-auth' {
@@ -28,7 +31,7 @@ interface DiscordProfile {
   avatar: string
 }
 
-const handler = NextAuth({
+export const authOptions: NextAuthOptions = {
   providers: [
     DiscordProvider({
       clientId: process.env.DISCORD_CLIENT_ID!,
@@ -64,6 +67,8 @@ const handler = NextAuth({
     signIn: '/login',
     error: '/error',
   },
-})
+}
+
+const handler = NextAuth(authOptions)
 
 export { handler as GET, handler as POST }
