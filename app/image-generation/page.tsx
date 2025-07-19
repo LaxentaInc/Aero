@@ -164,8 +164,8 @@ export default function AnimeImageGenerator() {
 
   // Load user data and generation count
   useEffect(() => {
-    if (session?.user?.email) {
-      const savedImages = localStorage.getItem(`images_${session.user.email}`);
+    if (session?.user?.id) {
+      const savedImages = localStorage.getItem(`images_${session.user.id}`);
       if (savedImages) {
         const images = JSON.parse(savedImages);
         setGeneratedImages(images);
@@ -174,13 +174,29 @@ export default function AnimeImageGenerator() {
     }
   }, [session]);
 
-  // Generate background on mount
+  // Load or generate background
   useEffect(() => {
-    if (!bgGeneratedRef.current) {
-      bgGeneratedRef.current = true;
+    const loadBackground = async () => {
+      if (!session?.user?.id) return;
+      const BG_KEY = `bg_image_${session.user.id}`;
+      const BG_TIMESTAMP_KEY = `bg_timestamp_${session.user.id}`;
+      const savedBg = localStorage.getItem(BG_KEY);
+      const savedTimestamp = localStorage.getItem(BG_TIMESTAMP_KEY);
+      // Check if background exists and is less than 7 days old
+      if (savedBg && savedTimestamp) {
+        const age = Date.now() - parseInt(savedTimestamp);
+        const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
+        if (age < SEVEN_DAYS) {
+          setBackgroundImage(savedBg);
+          setBgRefreshed(true);
+          return;
+        }
+      }
+      // Generate new background if needed
       generateBackgroundImage();
-    }
-  }, []);
+    };
+    loadBackground();
+  }, [session]);
 
   // Auth check
   useEffect(() => {
@@ -226,7 +242,14 @@ const generateBackgroundImage = async () => {
       if (data.success && data.imageUrl) {
         const img = new Image();
         img.src = data.imageUrl;
-        img.onload = () => setBackgroundImage(data.imageUrl);
+        img.onload = () => {
+          setBackgroundImage(data.imageUrl);
+          // Save to localStorage with user ID
+          if (session?.user?.id) {
+            localStorage.setItem(`bg_image_${session.user.id}`, data.imageUrl);
+            localStorage.setItem(`bg_timestamp_${session.user.id}`, Date.now().toString());
+          }
+        };
         break;
       }
     } catch (error) {
@@ -343,21 +366,21 @@ const generateImage = async () => {
 
   if (successfulModel && imageUrl) {
     const newImage: GeneratedImage = {
-      id: `${session?.user?.email}_${Date.now()}`,
+      id: `${session?.user?.id}_${Date.now()}`,
       url: imageUrl,
       prompt,
       model: successfulModel,
       generationTime,
       timestamp: new Date().toISOString(),
-      userId: session?.user?.email || '',
+      userId: session?.user?.id || '',
       username: session?.user?.name || 'Anonymous',
     };
 
     setCurrentImage(newImage);
     setGeneratedImages(prev => {
       const updated = [newImage, ...prev];
-      if (session?.user?.email) {
-        localStorage.setItem(`images_${session.user.email}`, JSON.stringify(updated));
+      if (session?.user?.id) {
+        localStorage.setItem(`images_${session.user.id}`, JSON.stringify(updated));
       }
       return updated;
     });
@@ -426,8 +449,8 @@ const generateImage = async () => {
 
   // Filter images for current user
   const userImages = useMemo(() => {
-    if (!session?.user?.email) return [];
-    return generatedImages.filter(img => img.userId === session.user.email);
+    if (!session?.user?.id) return [];
+    return generatedImages.filter(img => img.userId === session.user.id);
   }, [generatedImages, session]);
 
   // Snow animation component
