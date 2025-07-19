@@ -1,6 +1,6 @@
 'use client'
 
-import { motion, useScroll, useTransform } from 'framer-motion'
+import { motion, useScroll } from 'framer-motion'
 import Link from 'next/link'
 import { useTheme } from '../contexts/ThemeContext'
 import { useState, useEffect } from 'react'
@@ -30,8 +30,8 @@ const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
   )
 }
 
-// Table of Contents Component
-const TableOfContents = ({ sections, activeSection }: { sections: string[], activeSection: string }) => {
+// Quick Navigation Component
+const QuickNav = ({ sections, activeSection }: { sections: string[], activeSection: string }) => {
   const { theme } = useTheme()
   
   return (
@@ -46,7 +46,7 @@ const TableOfContents = ({ sections, activeSection }: { sections: string[], acti
       transition={{ delay: 0.5 }}
     >
       <h3 className={`text-lg font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-        Table of Contents
+        Quick Navigation
       </h3>
       <nav className="space-y-2">
         {sections.map((section, index) => (
@@ -56,8 +56,8 @@ const TableOfContents = ({ sections, activeSection }: { sections: string[], acti
             className={`block py-2 px-4 rounded-lg text-sm transition-all ${
               activeSection === section.toLowerCase().replace(/\s+/g, '-')
                 ? theme === 'dark'
-                  ? 'bg-purple-500/20 text-purple-300 border-l-2 border-purple-500'
-                  : 'bg-purple-500/10 text-purple-700 border-l-2 border-purple-600'
+                  ? 'bg-blue-500/20 text-blue-300 border-l-2 border-blue-500'
+                  : 'bg-blue-500/10 text-blue-700 border-l-2 border-blue-600'
                 : theme === 'dark'
                   ? 'text-gray-400 hover:text-white hover:bg-white/5'
                   : 'text-gray-600 hover:text-black hover:bg-black/5'
@@ -74,13 +74,13 @@ const TableOfContents = ({ sections, activeSection }: { sections: string[], acti
   )
 }
 
-// Section Component
-const Section = ({ 
+// Privacy Section Component
+const PrivacySection = ({ 
   id, 
   title, 
   children, 
   icon,
-  gradient = 'from-purple-500 to-blue-500' 
+  gradient = 'from-blue-500 to-cyan-500' 
 }: { 
   id: string, 
   title: string, 
@@ -132,12 +132,12 @@ const Section = ({
 }
 
 // Highlight Component
-const Highlight = ({ children, color = 'purple' }: { children: React.ReactNode, color?: string }) => {
+const Highlight = ({ children, color = 'blue' }: { children: React.ReactNode, color?: string }) => {
   const { theme } = useTheme()
   const colors = {
-    purple: theme === 'dark' ? 'bg-purple-500/20 text-purple-300' : 'bg-purple-500/10 text-purple-700',
     blue: theme === 'dark' ? 'bg-blue-500/20 text-blue-300' : 'bg-blue-500/10 text-blue-700',
     green: theme === 'dark' ? 'bg-green-500/20 text-green-300' : 'bg-green-500/10 text-green-700',
+    purple: theme === 'dark' ? 'bg-purple-500/20 text-purple-300' : 'bg-purple-500/10 text-purple-700',
     red: theme === 'dark' ? 'bg-red-500/20 text-red-300' : 'bg-red-500/10 text-red-700',
   }
   
@@ -148,26 +148,23 @@ const Highlight = ({ children, color = 'purple' }: { children: React.ReactNode, 
   )
 }
 
-export default function TermsOfUsage() {
+export default function PrivacyPolicy() {
   const { theme } = useTheme()
   const [activeSection, setActiveSection] = useState('')
-  const { scrollY } = useScroll()
   
   const sections = [
-    'Acceptance of Terms',
-    'Services Description',
-    'User Accounts',
-    'Intellectual Property',
-    'User Content',
-    'Prohibited Uses',
-    'Service Modifications',
-    'Disclaimers',
-    'Limitation of Liability',
-    'Indemnification',
-    'Privacy Policy',
-    'Termination',
-    'Governing Law',
-    'Contact Information'
+    'Introduction',
+    'Information We Collect',
+    'How We Use Information',
+    'Data Storage',
+    'Data Sharing',
+    'Your Rights',
+    'Data Security',
+    'Cookies',
+    'Third Party Services',
+    'Children Privacy',
+    'Updates',
+    'Contact'
   ]
 
   useEffect(() => {
@@ -210,8 +207,8 @@ export default function TermsOfUsage() {
             animate={{ scale: 1 }}
             transition={{ type: "spring", stiffness: 200 }}
           >
-            <span className="bg-gradient-to-r from-purple-400 via-pink-500 to-blue-500 bg-clip-text text-transparent">
-              Terms of Usage
+            <span className="bg-gradient-to-r from-blue-400 via-cyan-500 to-teal-500 bg-clip-text text-transparent">
+              Privacy Policy
             </span>
           </motion.h1>
           <motion.p 
@@ -220,7 +217,7 @@ export default function TermsOfUsage() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
           >
-            Last updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+            Your privacy is our top priority
           </motion.p>
           <motion.p 
             className={`text-lg font-mono ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}
@@ -228,559 +225,553 @@ export default function TermsOfUsage() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
           >
-            Please read these terms carefully before using LAXENTA services
+            Last updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
           </motion.p>
-          <motion.div 
-            className={`mt-6 p-4 rounded-lg ${theme === 'dark' ? 'bg-blue-500/10 border border-blue-500/30' : 'bg-blue-500/5 border border-blue-500/20'}`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-          >
-            <p className={`text-sm font-mono ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
-              ℹ️ LAXENTA is a personal project and not a registered legal entity. By using this site, you agree to the terms below as-is.
-            </p>
-          </motion.div>
         </div>
       </motion.div>
 
       {/* Main Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 pb-20">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Table of Contents - Desktop */}
+          {/* Quick Navigation - Desktop */}
           <div className="hidden lg:block">
-            <TableOfContents sections={sections} activeSection={activeSection} />
+            <QuickNav sections={sections} activeSection={activeSection} />
           </div>
 
           {/* Content */}
           <div className="lg:col-span-3">
-            <Section 
-              id="acceptance-of-terms" 
-              title="Acceptance of Terms"
-              icon={<svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>}
-              gradient="from-purple-500 to-pink-500"
-            >
-              <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                By accessing and using <Highlight>LAXENTA</Highlight> ("we," "our," or "the Service"), including but not limited to our AI tools, 
-                image generation services, Discord bots, and various other tools, you acknowledge that you have read, understood, 
-                and agree to be bound by these Terms of Usage.
-              </p>
-              <p className={`mt-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                If you do not agree to these terms, please do not use our services. Your continued use of LAXENTA 
-                constitutes acceptance of these terms and any future modifications.
-              </p>
-              <div className={`mt-6 p-4 rounded-lg ${theme === 'dark' ? 'bg-yellow-500/10 border border-yellow-500/30' : 'bg-yellow-500/5 border border-yellow-500/20'}`}>
-                <p className={`text-sm font-mono ${theme === 'dark' ? 'text-yellow-300' : 'text-yellow-700'}`}>
-                  ⚠️ By using our services, you confirm that you are at least 13 years of age and have the legal capacity to enter into this agreement.
-                </p>
-              </div>
-            </Section>
-
-            <Section 
-              id="services-description" 
-              title="Services Description"
-              icon={<svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" /></svg>}
+            <PrivacySection 
+              id="introduction" 
+              title="Introduction"
+              icon={<svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" /></svg>}
               gradient="from-blue-500 to-cyan-500"
             >
               <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                LAXENTA provides a comprehensive suite of digital services designed to enhance your online experience:
+                Welcome to <Highlight>LAXENTA</Highlight>'s Privacy Policy. This document explains how we collect, use, and protect 
+                your personal information when you use our services including AI tools, image generation, Discord services, and 
+                various development tools.
               </p>
-              <ul className={`mt-4 space-y-3 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                <li className="flex items-start gap-3">
-                  <span className="text-blue-500 mt-1">▸</span>
-                  <div>
-                    <strong>AI Tools:</strong> Advanced artificial intelligence services including chatbots, content generation, 
-                    and intelligent assistants powered by cutting-edge language models.
-                  </div>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-purple-500 mt-1">▸</span>
-                  <div>
-                    <strong>Image Generation:</strong> AI-powered image creation tools that can generate, modify, and enhance 
-                    visual content based on text prompts or existing images.
-                  </div>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-pink-500 mt-1">▸</span>
-                  <div>
-                    <strong>Discord Services:</strong> Custom Discord bots, server management tools, role systems, moderation features, 
-                    and interactive Discord shapes for community engagement.
-                  </div>
-                </li>
-                <li className="flex items-start gap-3">
-                  <span className="text-green-500 mt-1">▸</span>
-                  <div>
-                    <strong>Developer Tools:</strong> APIs, webhooks, integration services, and various utilities designed to 
-                    streamline development workflows and enhance productivity.
-                  </div>
-                </li>
-              </ul>
+              
               <motion.div 
-                className={`mt-6 p-4 rounded-lg ${theme === 'dark' ? 'bg-blue-500/10 border border-blue-500/30' : 'bg-blue-500/5 border border-blue-500/20'}`}
+                className={`mt-6 p-6 rounded-lg ${theme === 'dark' ? 'bg-green-500/10 border border-green-500/30' : 'bg-green-500/5 border border-green-500/20'}`}
                 whileHover={{ scale: 1.02 }}
               >
-                <p className={`text-sm ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
-                  💡 Our services are continuously evolving. We regularly add new features and improvements based on user feedback and technological advancements.
-                </p>
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">🔒</span>
+                  <div>
+                    <h3 className={`text-lg font-bold mb-2 ${theme === 'dark' ? 'text-green-300' : 'text-green-700'}`}>
+                      Our Privacy Commitment
+                    </h3>
+                    <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
+                      <strong>Your data is NEVER made public.</strong> As a single-developer operation run by @me_straight, 
+                      I personally ensure that your information remains private and secure. I have no interest in your personal 
+                      data beyond what's necessary to provide you with excellent service.
+                    </p>
+                  </div>
+                </div>
               </motion.div>
-            </Section>
+            </PrivacySection>
 
-            <Section 
-              id="user-accounts" 
-              title="User Accounts"
-              icon={<svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" /></svg>}
-              gradient="from-green-500 to-emerald-500"
-            >
-              <h3 className={`text-xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-                Account Creation and Security
-              </h3>
-              <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                To access certain features of LAXENTA, you must create an account through Discord OAuth. By creating an account, you agree to:
-              </p>
-              <ol className={`mt-4 space-y-2 list-decimal list-inside ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                <li>Provide accurate and complete information during registration</li>
-                <li>Maintain the security and confidentiality of your Discord account credentials</li>
-                <li>Promptly update any changes to your account information</li>
-                <li>Accept responsibility for all activities that occur under your account</li>
-                <li>Notify us immediately of any unauthorized use or security breach</li>
-              </ol>
-
-              <h3 className={`text-xl font-bold mt-8 mb-4 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-                Account Restrictions
-              </h3>
-              <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                You may not:
-              </p>
-              <ul className={`mt-4 space-y-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                <li>• Create multiple accounts for abusive purposes</li>
-                <li>• Share your account with others</li>
-                <li>• Use another person's account without permission</li>
-                <li>• Create accounts through automated means</li>
-                <li>• Sell, trade, or transfer your account</li>
-              </ul>
-
-              <div className={`mt-6 p-4 rounded-lg ${theme === 'dark' ? 'bg-green-500/10 border border-green-500/30' : 'bg-green-500/5 border border-green-500/20'}`}>
-                <p className={`text-sm ${theme === 'dark' ? 'text-green-300' : 'text-green-700'}`}>
-                  🔒 We use Discord OAuth for secure authentication. Your Discord credentials are never stored on our servers.
-                </p>
-              </div>
-            </Section>
-
-            <Section 
-              id="intellectual-property" 
-              title="Intellectual Property"
-              icon={<svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762z" /></svg>}
-              gradient="from-orange-500 to-red-500"
-            >
-              <h3 className={`text-xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-                LAXENTA Property
-              </h3>
-              <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                All content, features, and functionality of LAXENTA, including but not limited to:
-              </p>
-              <ul className={`mt-4 space-y-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                <li>• Software code and algorithms</li>
-                <li>• User interface designs and graphics</li>
-                <li>• Logos, trademarks, and brand elements</li>
-                <li>• Documentation and written content</li>
-                <li>• Audio and video materials</li>
-              </ul>
-              <p className={`mt-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                Are provided by the creator of LAXENTA, 
-                and abuse of these will result in account termination.
-              </p>
-
-              <h3 className={`text-xl font-bold mt-8 mb-4 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-                Limited Usage Access
-              </h3>
-              <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                We grant you a limited, non-exclusive, non-transferable, revocable license to access and use our services 
-                for personal or business purposes, subject to these Terms.
-              </p>
-
-              <motion.div 
-                className={`mt-6 p-4 rounded-lg ${theme === 'dark' ? 'bg-red-500/10 border border-red-500/30' : 'bg-red-500/5 border border-red-500/20'}`}
-                whileHover={{ scale: 1.02 }}
-              >
-                <p className={`text-sm font-bold ${theme === 'dark' ? 'text-red-300' : 'text-red-700'}`}>
-                  ⚖️ Unauthorized use/abuse may result in permanent account termination.
-                </p>
-              </motion.div>
-            </Section>
-
-            <Section 
-              id="user-content" 
-              title="User Content"
-              icon={<svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" /></svg>}
-              gradient="from-purple-500 to-blue-500"
-            >
-              <h3 className={`text-xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-                Your Content Rights
-              </h3>
-              <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                You retain ownership of all content you create, upload, or generate using our services ("User Content"). 
-                However, by using Laxenta, you grant us a worldwide, non-exclusive, royalty-free license to:
-              </p>
-              <ul className={`mt-4 space-y-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                <li>• Store and host your content on our servers- everything is safe don't worry</li>
-                <li>• Display your content within the service- excluding personal information</li>
-                <li>• Analyze your content to improve our services- if needed in future, which is less likely and we don't do it yet</li>
-                <li>• Create backups for data protection</li>
-              </ul>
-
-              <h3 className={`text-xl font-bold mt-8 mb-4 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-                Content Guidelines
-              </h3>
-              <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                You agree that your User Content will not:
-              </p>
-              <ul className={`mt-4 space-y-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                <li>• Violate any laws or regulations</li>
-                <li>• Infringe on intellectual property rights</li>
-                <li>• Contain harmful, offensive, or discriminatory material</li>
-                <li>• Include malware, viruses, or malicious code</li>
-                <li>• Promote illegal activities or violence</li>
-                <li>• Contain false or misleading information</li>
-              </ul>
-
-              <div className={`mt-6 p-4 rounded-lg ${theme === 'dark' ? 'bg-purple-500/10 border border-purple-500/30' : 'bg-purple-500/5 border border-purple-500/20'}`}>
-                <p className={`text-sm ${theme === 'dark' ? 'text-purple-300' : 'text-purple-700'}`}>
-                  💭 AI-generated content may be subject to additional terms and limitations based on the underlying AI models used.
-                </p>
-              </div>
-            </Section>
-
-            <Section 
-              id="prohibited-uses" 
-              title="Prohibited Uses"
-              icon={<svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clipRule="evenodd" /></svg>}
-              gradient="from-red-500 to-pink-500"
+            <PrivacySection 
+              id="information-we-collect" 
+              title="Information We Collect"
+              icon={<svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" /><path fillRule="evenodd" d="M4 5a2 2 0 012-2 1 1 0 000 2H6a2 2 0 00-2 2v6a2 2 0 002 2h2a1 1 0 100-2H6V7h11v6h-2a1 1 0 100 2h2a2 2 0 002-2V7a2 2 0 00-2-2H6z" clipRule="evenodd" /></svg>}
+              gradient="from-purple-500 to-pink-500"
             >
               <p className={`mb-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                You agree not to use LAXENTA services for any of the following purposes:
+                We collect only the minimum information necessary to provide our services:
               </p>
 
               <div className="space-y-6">
                 <div>
-                  <h4 className={`text-lg font-semibold mb-3 ${theme === 'dark' ? 'text-red-300' : 'text-red-700'}`}>
-                    🚫 Illegal Activities
-                  </h4>
+                  <h3 className={`text-xl font-semibold mb-3 ${theme === 'dark' ? 'text-purple-300' : 'text-purple-700'}`}>
+                    🔐 Account Information
+                  </h3>
                   <ul className={`space-y-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                    <li>• Any activity that violates local, state, national, or international law</li>
-                    <li>• Fraud, or other scams</li>
-                    {/* <li>• Distribution of controlled substances or illegal materials</li> */}
+                    <li>• Discord username and ID (via Discord OAuth)</li>
+                    <li>• Discord avatar URL</li>
+                    <li>• Email address (if provided by Discord)</li>
+                    <li>• Account creation date</li>
                   </ul>
                 </div>
 
                 <div>
-                  <h4 className={`text-lg font-semibold mb-3 ${theme === 'dark' ? 'text-orange-300' : 'text-orange-700'}`}>
-                    ⚠️ Harmful Activities
-                  </h4>
+                  <h3 className={`text-xl font-semibold mb-3 ${theme === 'dark' ? 'text-pink-300' : 'text-pink-700'}`}>
+                    📊 Usage Information
+                  </h3>
                   <ul className={`space-y-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                    <li>• Harassment, bullying, or threats against individuals anyhow</li>
-                    <li>• Distribution of malware, viruses, or harmful code through any of our services</li>
-                    <li>• Phishing, spamming, or other deceptive practices</li>
-                    <li>• Impersonation of others or misrepresentation</li>
+                    <li>• Features you use within our services</li>
+                    <li>• AI prompts and generated content (temporarily)</li>
+                    <li>• Service preferences and settings</li>
+                    <li>• Basic analytics (page views, feature usage)</li>
                   </ul>
                 </div>
 
                 <div>
-                  <h4 className={`text-lg font-semibold mb-3 ${theme === 'dark' ? 'text-yellow-300' : 'text-yellow-700'}`}>
-                    🔧 Technical Violations
-                  </h4>
+                  <h3 className={`text-xl font-semibold mb-3 ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
+                    🖥️ Technical Information
+                  </h3>
                   <ul className={`space-y-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                    <li>• Multiple accounts</li>
-                    <li>• Circumventing security measures or access controls</li>
-                    <li>• Excessive automated requests or API abuse</li>
-                    <li>• Interfering with service operation or other users' access</li>
+                    <li>• Browser type and version</li>
+                    <li>• Operating system</li>
+                    <li>• IP address (for security and rate limiting)</li>
+                    <li>• Session cookies</li>
                   </ul>
                 </div>
               </div>
 
+              <div className={`mt-6 p-4 rounded-lg ${theme === 'dark' ? 'bg-blue-500/10 border border-blue-500/30' : 'bg-blue-500/5 border border-blue-500/20'}`}>
+                <p className={`text-sm ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
+                  💡 We do NOT collect: Credit card information, passwords, private messages, or any data unrelated to our services.
+                </p>
+              </div>
+            </PrivacySection>
+
+            <PrivacySection 
+              id="how-we-use-information" 
+              title="How We Use Your Information"
+              icon={<svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" /></svg>}
+              gradient="from-green-500 to-emerald-500"
+            >
+              <p className={`mb-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                Your information is used exclusively to provide and improve our services:
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <motion.div 
+                  className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-green-500/10 border border-green-500/30' : 'bg-green-500/5 border border-green-500/20'}`}
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <h4 className={`font-bold mb-2 ${theme === 'dark' ? 'text-green-300' : 'text-green-700'}`}>
+                    ✅ Service Delivery
+                  </h4>
+                  <ul className={`text-sm space-y-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <li>• Authenticate your account</li>
+                    <li>• Provide AI and tool access</li>
+                    <li>• Save your preferences</li>
+                    <li>• Process your requests</li>
+                  </ul>
+                </motion.div>
+
+                <motion.div 
+                  className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-emerald-500/10 border border-emerald-500/30' : 'bg-emerald-500/5 border border-emerald-500/20'}`}
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <h4 className={`font-bold mb-2 ${theme === 'dark' ? 'text-emerald-300' : 'text-emerald-700'}`}>
+                    📈 Service Improvement
+                  </h4>
+                  <ul className={`text-sm space-y-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <li>• Understand usage patterns</li>
+                    <li>• Fix bugs and issues</li>
+                    <li>• Develop new features</li>
+                    <li>• Optimize performance</li>
+                  </ul>
+                </motion.div>
+
+                <motion.div 
+                  className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-teal-500/10 border border-teal-500/30' : 'bg-teal-500/5 border border-teal-500/20'}`}
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <h4 className={`font-bold mb-2 ${theme === 'dark' ? 'text-teal-300' : 'text-teal-700'}`}>
+                    💬 Communication
+                  </h4>
+                  <ul className={`text-sm space-y-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <li>• Service updates</li>
+                    <li>• Security alerts</li>
+                    <li>• Feature announcements</li>
+                    <li>• Support responses</li>
+                  </ul>
+                </motion.div>
+
+                <motion.div 
+                  className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-cyan-500/10 border border-cyan-500/30' : 'bg-cyan-500/5 border border-cyan-500/20'}`}
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <h4 className={`font-bold mb-2 ${theme === 'dark' ? 'text-cyan-300' : 'text-cyan-700'}`}>
+                    🛡️ Security
+                  </h4>
+                  <ul className={`text-sm space-y-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <li>• Prevent abuse</li>
+                    <li>• Detect anomalies</li>
+                    <li>• Protect accounts</li>
+                    <li>• Comply with laws</li>
+                  </ul>
+                </motion.div>
+              </div>
+            </PrivacySection>
+
+            <PrivacySection 
+              id="data-storage" 
+              title="Data Storage & Retention"
+              icon={<svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M3 12v3c0 1.657 3.134 3 7 3s7-1.343 7-3v-3c0 1.657-3.134 3-7 3s-7-1.343-7-3z" /><path d="M3 7v3c0 1.657 3.134 3 7 3s7-1.343 7-3V7c0 1.657-3.134 3-7 3S3 8.657 3 7z" /><path d="M17 5c0 1.657-3.134 3-7 3S3 6.657 3 5s3.134-3 7-3 7 1.343 7 3z" /></svg>}
+              gradient="from-indigo-500 to-purple-500"
+            >
+              <p className={`mb-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                We take data storage seriously and follow best practices:
+              </p>
+
+              <div className="space-y-4">
+                <motion.div 
+                  className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-indigo-500/10 border border-indigo-500/30' : 'bg-indigo-500/5 border border-indigo-500/20'}`}
+                  whileHover={{ scale: 1.01 }}
+                >
+                  <h4 className={`font-bold mb-2 ${theme === 'dark' ? 'text-indigo-300' : 'text-indigo-700'}`}>
+                    📍 Where We Store Data
+                  </h4>
+                  <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
+                    Your data is stored on secure servers with encryption at rest. We use reputable cloud providers with 
+                    strong security certifications. All data remains within secure data centers.
+                  </p>
+                </motion.div>
+
+                <motion.div 
+                  className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-purple-500/10 border border-purple-500/30' : 'bg-purple-500/5 border border-purple-500/20'}`}
+                  whileHover={{ scale: 1.01 }}
+                >
+                  <h4 className={`font-bold mb-2 ${theme === 'dark' ? 'text-purple-300' : 'text-purple-700'}`}>
+                    ⏰ How Long We Keep Data
+                  </h4>
+                  <ul className={`space-y-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <li>• <strong>Account data:</strong> As long as your account is active</li>
+                    <li>• <strong>AI-generated content:</strong> 30 days (unless you save it)</li>
+                    <li>• <strong>Logs:</strong> 90 days for security purposes</li>
+                    <li>• <strong>Deleted accounts:</strong> Removed within 30 days</li>
+                  </ul>
+                </motion.div>
+              </div>
+
+              <div className={`mt-6 p-4 rounded-lg ${theme === 'dark' ? 'bg-yellow-500/10 border border-yellow-500/30' : 'bg-yellow-500/5 border border-yellow-500/20'}`}>
+                <p className={`text-sm font-bold ${theme === 'dark' ? 'text-yellow-300' : 'text-yellow-700'}`}>
+                  🗑️ You can request immediate data deletion at any time by contacting @me_straight on Discord.
+                </p>
+              </div>
+            </PrivacySection>
+
+            <PrivacySection 
+              id="data-sharing" 
+              title="Data Sharing & Disclosure"
+              icon={<svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" /></svg>}
+              gradient="from-red-500 to-pink-500"
+            >
               <motion.div 
-                className={`mt-8 p-4 rounded-lg ${theme === 'dark' ? 'bg-red-900/30 border border-red-500' : 'bg-red-50 border border-red-300'}`}
+                className={`p-6 rounded-lg mb-6 ${theme === 'dark' ? 'bg-red-500/10 border border-red-500/30' : 'bg-red-500/5 border border-red-500/20'}`}
                 initial={{ scale: 0.95 }}
                 whileInView={{ scale: 1 }}
                 transition={{ type: "spring" }}
               >
-                <p className={`font-bold ${theme === 'dark' ? 'text-red-300' : 'text-red-700'}`}>
-                  ⛔ Violation of these prohibitions will result in immediate termination of your account/ip and may lead to legal action.
-                </p>
-              </motion.div>
-            </Section>
-
-            <Section 
-              id="service-modifications" 
-              title="Service Modifications"
-              icon={<svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" /></svg>}
-              gradient="from-indigo-500 to-purple-500"
-            >
-              <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                LAXENTA reserves the right to modify, suspend, or discontinue any aspect of our services at any time, including:
-              </p>
-              <ul className={`mt-4 space-y-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                <li>• Adding or removing features</li>
-                <li>• Changing service availability or pricing</li>
-                <li>• Updating technical requirements</li>
-                <li>• Modifying API endpoints or functionality</li>
-                <li>• Implementing usage limits or quotas</li>
-              </ul>
-
-              <h3 className={`text-xl font-bold mt-8 mb-4 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-                Notification of Changes
-              </h3>
-              <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                We will make reasonable efforts to notify users of significant changes through:
-              </p>
-              <ul className={`mt-4 space-y-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                <li>• Email notifications to registered users -if they opt in</li>
-                {/* <li>• In-app notifications</li> */}
-                <li>• Updates on our Discord server</li>
-                <li>• Announcements on our website/discord</li>
-              </ul>
-
-              <div className={`mt-6 p-4 rounded-lg ${theme === 'dark' ? 'bg-indigo-500/10 border border-indigo-500/30' : 'bg-indigo-500/5 border border-indigo-500/20'}`}>
-                <p className={`text-sm ${theme === 'dark' ? 'text-indigo-300' : 'text-indigo-700'}`}>
-                  📱 We recommend joining our discord to stay informed about important service updates and changes.
-                </p>
-              </div>
-            </Section>
-
-            <Section 
-              id="disclaimers" 
-              title="Disclaimers"
-              icon={<svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" /></svg>}
-              gradient="from-yellow-500 to-orange-500"
-            >
-              <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-yellow-500/10 border border-yellow-500/30' : 'bg-yellow-500/5 border border-yellow-500/20'}`}>
-                <h3 className={`text-xl font-bold mb-4 uppercase ${theme === 'dark' ? 'text-yellow-300' : 'text-yellow-700'}`}>
-                  "AS IS" AND "AS AVAILABLE" BASIS
-                </h3>
-                <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                  LAXENTA services are provided on an "as is" and "as available" basis without warranties of any kind, 
-                  either express or implied, including but not limited to:
-                </p>
-                <ul className={`mt-4 space-y-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                  <li>• Implied warranties of merchantability</li>
-                  <li>• Fitness for a particular purpose</li>
-                  <li>• Non-infringement</li>
-                  <li>• Continuous, uninterrupted service</li>
-                  <li>• Accuracy or reliability of information</li>
-                </ul>
-              </div>
-
-              <h3 className={`text-xl font-bold mt-8 mb-4 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-                No Guarantee of Results
-              </h3>
-              <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                We do not guarantee that:
-              </p>
-              <ul className={`mt-4 space-y-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                <li>• AI-generated content will be accurate or suitable for your purposes</li>
-                <li>• Our services will meet all your requirements</li>
-                <li>• Results will be error-free or bug-free</li>
-                <li>• Third-party integrations will always function properly</li>
-              </ul>
-            </Section>
-
-            <Section 
-              id="limitation-of-liability" 
-              title="Limitation of Liability"
-              icon={<svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>}
-              gradient="from-red-500 to-orange-500"
-            >
-              <div className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-red-500/10 border border-red-500/30' : 'bg-red-500/5 border border-red-500/20'}`}>
-                <h3 className={`text-xl font-bold mb-4 uppercase ${theme === 'dark' ? 'text-red-300' : 'text-red-700'}`}>
-                  Maximum Liability
+                <h3 className={`text-xl font-bold mb-3 ${theme === 'dark' ? 'text-red-300' : 'text-red-700'}`}>
+                  🚫 We NEVER Sell Your Data
                 </h3>
                 <p className={`font-bold ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                  TO THE MAXIMUM EXTENT PERMITTED BY LAW, LAXENTA'S TOTAL LIABILITY FOR ANY CLAIMS ARISING OUT OF OR 
-                  RELATED TO THESE TERMS OR YOUR USE OF OUR SERVICES SHALL NOT EXCEED THE AMOUNT YOU HAVE PAID TO 
-                  LAXENTA IN THE TWELVE (12) MONTHS PRIOR TO THE EVENT GIVING RISE TO THE LIABILITY.
-                </p>
-              </div>
-
-              <h3 className={`text-xl font-bold mt-8 mb-4 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-                Exclusion of Damages
-              </h3>
-              <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                In no event shall LAXENTA be liable for:
-              </p>
-              <ul className={`mt-4 space-y-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                <li>• Indirect, incidental, or consequential damages</li>
-                <li>• Loss of profits, revenue, or business opportunities</li>
-                <li>• Loss of data or information</li>
-                <li>• Damages arising from third-party services</li>
-                <li>• Damages exceeding the limitations stated above</li>
-              </ul>
-
-              <motion.div 
-                className={`mt-6 p-4 rounded-lg ${theme === 'dark' ? 'bg-orange-500/10 border border-orange-500/30' : 'bg-orange-500/5 border border-orange-500/20'}`}
-                whileHover={{ scale: 1.02 }}
-              >
-                <p className={`text-sm ${theme === 'dark' ? 'text-orange-300' : 'text-orange-700'}`}>
-                  ⚖️ Some jurisdictions do not allow certain limitations of liability, so some of these limitations may not apply to you.
+                  Your personal information is not for sale. Period. We don't sell, rent, or trade your data to anyone.
                 </p>
               </motion.div>
-            </Section>
 
-            <Section 
-              id="indemnification" 
-              title="Indemnification"
-              icon={<svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>}
-              gradient="from-teal-500 to-green-500"
-            >
-              <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                You agree to indemnify, defend, and hold harmless the creator of LAXENTA from and against any claims, 
-                liabilities, damages, losses, and expenses, including reasonable attorney's fees, arising out of or in 
-                any way connected with:
+              <p className={`mb-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                We only share your information in these specific circumstances:
               </p>
-              <ul className={`mt-4 space-y-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                <li>• Your access to or use of our services</li>
-                <li>• Your violation of these Terms</li>
-                <li>• Your violation of any third-party rights</li>
-                <li>• Your User Content or any content you submit</li>
-                <li>• Any harmful actions you take related to our services</li>
+
+              <ul className={`space-y-3 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                <li className="flex items-start gap-3">
+                  <span className="text-green-500 mt-1">✓</span>
+                  <div>
+                    <strong>With your consent:</strong> When you explicitly allow us to share specific information
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-green-500 mt-1">✓</span>
+                  <div>
+                    <strong>For legal reasons:</strong> If required by law, court order, or legal process
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-green-500 mt-1">✓</span>
+                  <div>
+                    <strong>To protect rights:</strong> When necessary to protect LAXENTA, users, or the public from harm
+                  </div>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-green-500 mt-1">✓</span>
+                  <div>
+                    <strong>Service providers:</strong> With trusted partners who help us operate (e.g., hosting providers) 
+                    under strict confidentiality agreements
+                  </div>
+                </li>
               </ul>
+            </PrivacySection>
 
-              <h3 className={`text-xl font-bold mt-8 mb-4 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-                Defense and Settlement
-              </h3>
-              <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                We reserve the right to assume exclusive defense and control of any matter subject to indemnification, 
-                and you agree to cooperate with our defense of such claims. You may not settle any claim without our 
-                prior written consent.
-              </p>
-            </Section>
-
-            <Section 
-              id="privacy-policy" 
-              title="Privacy Policy"
-              icon={<svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" /></svg>}
-              gradient="from-blue-500 to-indigo-500"
-            >
-              <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                Your privacy is important to us. Our <Link href="/privacy" className={`font-bold underline ${theme === 'dark' ? 'text-blue-300 hover:text-blue-200' : 'text-blue-700 hover:text-blue-600'}`}>Privacy Policy</Link> explains 
-                how we collect, use, and protect your information when you use LAXENTA services. By using our services, 
-                you consent to our data practices as described in the Privacy Policy.
-              </p>
-
-              <h3 className={`text-xl font-bold mt-8 mb-4 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-                Key Privacy Points
-              </h3>
-              <ul className={`space-y-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                <li>• We collect minimal personal information necessary for service operation</li>
-                <li>• Your data is encrypted and securely stored</li>
-                <li>• We do not sell your personal information to third parties</li>
-                <li>• You can request data deletion at any time</li>
-                <li>• We comply with applicable data protection regulations</li>
-              </ul>
-
-              <motion.div 
-                className={`mt-6 p-4 rounded-lg ${theme === 'dark' ? 'bg-blue-500/10 border border-blue-500/30' : 'bg-blue-500/5 border border-blue-500/20'}`}
-                whileHover={{ scale: 1.02 }}
-              >
-                <p className={`text-sm ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
-                  🔐 We use industry-standard security measures to protect your data and maintain your privacy.
-                </p>
-              </motion.div>
-            </Section>
-
-            <Section 
-              id="termination" 
-              title="Termination"
-              icon={<svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" /></svg>}
-              gradient="from-gray-600 to-gray-800"
-            >
-              <h3 className={`text-xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-                Termination by You
-              </h3>
-              <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                You may terminate your account at any time by:
-              </p>
-              <ul className={`mt-4 space-y-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                <li>• Contacting our support team</li>
-                <li>• Using the account deletion feature in your settings</li>
-                <li>• Sending a written request to our legal department</li>
-              </ul>
-
-              <h3 className={`text-xl font-bold mt-8 mb-4 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-                Termination by LAXENTA
-              </h3>
-              <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                We may terminate or suspend your account immediately, without prior notice or liability, if:
-              </p>
-              <ul className={`mt-4 space-y-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                <li>• You breach any provision of these Terms</li>
-                <li>• You engage in prohibited activities</li>
-                <li>• We receive legal requests or orders requiring termination</li>
-                <li>• We detect fraudulent or abusive behavior</li>
-                <li>• We discontinue or materially modify the service</li>
-              </ul>
-
-              <h3 className={`text-xl font-bold mt-8 mb-4 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-                Effects of Termination
-              </h3>
-              <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                Upon termination:
-              </p>
-              <ul className={`mt-4 space-y-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                <li>• Your access to all services will be immediately revoked</li>
-                <li>• Your data may be deleted after a 30-day grace period</li>
-                <li>• Any outstanding payments remain due</li>
-                <li>• Provisions that should survive termination will remain in effect</li>
-              </ul>
-
-              <div className={`mt-6 p-4 rounded-lg ${theme === 'dark' ? 'bg-gray-600/10 border border-gray-600/30' : 'bg-gray-500/5 border border-gray-500/20'}`}>
-                <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                  💾 We recommend exporting your data before terminating your account, as recovery may not be possible after deletion.
-                </p>
-              </div>
-            </Section>
-
-            <Section 
-              id="governing-law" 
-              title="Governing Law"
-              icon={<svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM4.332 8.027a6.012 6.012 0 011.912-2.706C6.512 5.73 6.974 6 7.5 6A1.5 1.5 0 019 7.5V8a2 2 0 004 0 2 2 0 011.523-1.943A5.977 5.977 0 0116 10c0 .34-.028.675-.083 1H15a2 2 0 00-2 2v2.197A5.973 5.973 0 0110 16v-2a2 2 0 00-2-2 2 2 0 01-2-2 2 2 0 00-1.668-1.973z" clipRule="evenodd" /></svg>}
-              gradient="from-emerald-500 to-teal-500"
-            >
-              <h3 className={`text-xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-                Applicable Law
-              </h3>
-              <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                These Terms of Usage shall be governed by and construed in accordance with the laws of the United States, 
-                without regard to its conflict of law provisions.
-              </p>
-
-              <h3 className={`text-xl font-bold mt-8 mb-4 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-                Dispute Resolution
-              </h3>
-              <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                Any disputes arising from these Terms or your use of LAXENTA services shall be resolved through:
-              </p>
-              <ol className={`mt-4 space-y-2 list-decimal list-inside ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                <li><strong>Informal Resolution:</strong> First attempting to resolve disputes informally by contacting us</li>
-                <li><strong>Binding Arbitration:</strong> If informal resolution fails, through binding arbitration under the rules of the American Arbitration Association</li>
-                <li><strong>Small Claims:</strong> Either party may bring claims in small claims court if eligible</li>
-              </ol>
-
-              <motion.div 
-                className={`mt-6 p-4 rounded-lg ${theme === 'dark' ? 'bg-emerald-500/10 border border-emerald-500/30' : 'bg-emerald-500/5 border border-emerald-500/20'}`}
-                whileHover={{ scale: 1.02 }}
-              >
-                <p className={`text-sm font-bold ${theme === 'dark' ? 'text-emerald-300' : 'text-emerald-700'}`}>
-                  ⚖️ CLASS ACTION WAIVER: You agree to resolve disputes with LAXENTA on an individual basis and waive any right to participate in class actions.
-                </p>
-              </motion.div>
-            </Section>
-
-            <Section 
-              id="contact-information" 
-              title="Contact Information"
-              icon={<svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" /></svg>}
-              gradient="from-pink-500 to-purple-500"
+            <PrivacySection 
+              id="your-rights" 
+              title="Your Privacy Rights"
+              icon={<svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" /></svg>}
+              gradient="from-emerald-500 to-green-500"
             >
               <p className={`mb-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                If you have any questions, concerns, or feedback regarding these Terms of Usage, please contact us through:
+                You have complete control over your personal information:
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[
+                  { icon: '👁️', title: 'Access Your Data', desc: 'Request a copy of all data we have about you' },
+                  { icon: '✏️', title: 'Update Information', desc: 'Correct or update your personal information' },
+                  { icon: '🗑️', title: 'Delete Your Data', desc: 'Request complete deletion of your account and data' },
+                  { icon: '📦', title: 'Data Portability', desc: 'Export your data in a machine-readable format' },
+                  { icon: '🚫', title: 'Restrict Processing', desc: 'Limit how we use your information' },
+                  { icon: '❌', title: 'Opt Out', desc: 'Unsubscribe from non-essential communications' }
+                ].map((right, index) => (
+                  <motion.div 
+                    key={index}
+                    className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-green-500/10 border border-green-500/30' : 'bg-green-500/5 border border-green-500/20'}`}
+                    whileHover={{ scale: 1.02 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="text-2xl">{right.icon}</span>
+                      <div>
+                        <h4 className={`font-bold ${theme === 'dark' ? 'text-green-300' : 'text-green-700'}`}>
+                          {right.title}
+                        </h4>
+                        <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                          {right.desc}
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              <motion.div 
+                className={`mt-6 p-4 rounded-lg text-center ${theme === 'dark' ? 'bg-emerald-500/10 border border-emerald-500/30' : 'bg-emerald-500/5 border border-emerald-500/20'}`}
+                whileHover={{ scale: 1.02 }}
+              >
+                <p className={`font-bold ${theme === 'dark' ? 'text-emerald-300' : 'text-emerald-700'}`}>
+                  To exercise any of these rights, just message @me_straight on Discord!
+                </p>
+              </motion.div>
+            </PrivacySection>
+
+            <PrivacySection 
+              id="data-security" 
+              title="Data Security"
+              icon={<svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" /></svg>}
+              gradient="from-orange-500 to-red-500"
+            >
+              <p className={`mb-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                We implement industry-standard security measures to protect your data:
+              </p>
+
+              <div className="space-y-4">
+                {[
+                  { 
+                    title: '🔐 Encryption', 
+                    desc: 'All data is encrypted in transit using TLS/SSL and at rest using AES-256 encryption' 
+                  },
+                  { 
+                    title: '🔑 Secure Authentication', 
+                    desc: 'Discord OAuth2 ensures we never handle your passwords directly' 
+                  },
+                  { 
+                    title: '🛡️ Access Controls', 
+                    desc: 'Strict access controls ensure only authorized personnel (just me!) can access systems' 
+                  },
+                  { 
+                    title: '📊 Regular Audits', 
+                    desc: 'Security measures are regularly reviewed and updated to address new threats' 
+                  },
+                  { 
+                    title: '🚨 Incident Response', 
+                    desc: 'Procedures in place to quickly respond to any security incidents' 
+                  },
+                  { 
+                    title: '💾 Secure Backups', 
+                    desc: 'Encrypted backups ensure data recovery without compromising security' 
+                  }
+                ].map((item, index) => (
+                  <motion.div 
+                    key={index}
+                    className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-orange-500/10 border border-orange-500/30' : 'bg-orange-500/5 border border-orange-500/20'}`}
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <h4 className={`font-bold mb-1 ${theme === 'dark' ? 'text-orange-300' : 'text-orange-700'}`}>
+                      {item.title}
+                    </h4>
+                    <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {item.desc}
+                    </p>
+                  </motion.div>
+                ))}
+              </div>
+            </PrivacySection>
+
+            <PrivacySection 
+              id="cookies" 
+              title="Cookies & Tracking"
+              icon={<svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" /></svg>}
+              gradient="from-yellow-500 to-orange-500"
+            >
+              <p className={`mb-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                We use cookies minimally and transparently:
+              </p>
+
+              <div className="space-y-4">
+                <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-yellow-500/10 border border-yellow-500/30' : 'bg-yellow-500/5 border border-yellow-500/20'}`}>
+                  <h4 className={`font-bold mb-2 ${theme === 'dark' ? 'text-yellow-300' : 'text-yellow-700'}`}>
+                    🍪 Essential Cookies
+                  </h4>
+                  <ul className={`text-sm space-y-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <li>• Authentication tokens (keep you logged in)</li>
+                    <li>• Session identifiers (temporary)</li>
+                    <li>• Security tokens (protect against attacks)</li>
+                  </ul>
+                </div>
+
+                <div className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-orange-500/10 border border-orange-500/30' : 'bg-orange-500/5 border border-orange-500/20'}`}>
+                  <h4 className={`font-bold mb-2 ${theme === 'dark' ? 'text-orange-300' : 'text-orange-700'}`}>
+                    📊 Analytics (Optional)
+                  </h4>
+                  <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    We use privacy-focused analytics to understand usage patterns. No personal data is collected, 
+                    and you can opt out at any time.
+                  </p>
+                </div>
+              </div>
+
+              <p className={`mt-4 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                We do NOT use tracking cookies, advertising cookies, or share cookie data with third parties.
+              </p>
+            </PrivacySection>
+
+            <PrivacySection 
+              id="third-party-services" 
+              title="Third-Party Services"
+              icon={<svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" /></svg>}
+              gradient="from-blue-500 to-indigo-500"
+            >
+              <p className={`mb-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                We integrate with select third-party services to provide functionality:
+              </p>
+
+              <div className="space-y-4">
+                <motion.div 
+                  className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-blue-500/10 border border-blue-500/30' : 'bg-blue-500/5 border border-blue-500/20'}`}
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <h4 className={`font-bold mb-2 ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
+                    Discord
+                  </h4>
+                  <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    For authentication only. We receive only basic profile information you authorize.
+                  </p>
+                </motion.div>
+
+                <motion.div 
+                  className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-indigo-500/10 border border-indigo-500/30' : 'bg-indigo-500/5 border border-indigo-500/20'}`}
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <h4 className={`font-bold mb-2 ${theme === 'dark' ? 'text-indigo-300' : 'text-indigo-700'}`}>
+                    AI Providers
+                  </h4>
+                  <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Your prompts are sent to AI services for processing. We don't store prompts permanently.
+                  </p>
+                </motion.div>
+
+                <motion.div 
+                  className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-purple-500/10 border border-purple-500/30' : 'bg-purple-500/5 border border-purple-500/20'}`}
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <h4 className={`font-bold mb-2 ${theme === 'dark' ? 'text-purple-300' : 'text-purple-700'}`}>
+                    Infrastructure
+                  </h4>
+                  <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    Cloud hosting providers store encrypted data under strict security agreements.
+                  </p>
+                </motion.div>
+              </div>
+
+              <p className={`mt-4 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                All third-party services are carefully vetted for privacy and security compliance.
+              </p>
+            </PrivacySection>
+
+            <PrivacySection 
+              id="children-privacy" 
+              title="Children's Privacy"
+              icon={<svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 0016 0zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" /></svg>}
+              gradient="from-pink-500 to-purple-500"
+            >
+              <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
+                LAXENTA services are not directed to children under 13. We do not knowingly collect personal 
+                information from children under 13. If we discover that a child under 13 has provided us with 
+                personal information, we will delete it immediately.
+              </p>
+              
+              <div className={`mt-6 p-4 rounded-lg ${theme === 'dark' ? 'bg-pink-500/10 border border-pink-500/30' : 'bg-pink-500/5 border border-pink-500/20'}`}>
+                <p className={`text-sm ${theme === 'dark' ? 'text-pink-300' : 'text-pink-700'}`}>
+ 
+                👪 Parents: If you believe your child has provided us with personal information, please contact us immediately at privacy@laxenta.app
+                </p>
+              </div>
+            </PrivacySection>
+
+            <PrivacySection 
+              id="updates" 
+              title="Policy Updates"
+              icon={<svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" /></svg>}
+              gradient="from-teal-500 to-cyan-500"
+            >
+              <p className={`mb-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                We may update this Privacy Policy from time to time to reflect changes in our practices or for legal reasons.
+              </p>
+
+              <div className="space-y-4">
+                <motion.div 
+                  className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-teal-500/10 border border-teal-500/30' : 'bg-teal-500/5 border border-teal-500/20'}`}
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <h4 className={`font-bold mb-2 ${theme === 'dark' ? 'text-teal-300' : 'text-teal-700'}`}>
+                    📅 How We Notify You
+                  </h4>
+                  <ul className={`text-sm space-y-1 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <li>• Email notification for major changes</li>
+                    <li>• In-app notifications</li>
+                    <li>• Update notice on this page</li>
+                    <li>• Announcement on our Discord</li>
+                  </ul>
+                </motion.div>
+
+                <motion.div 
+                  className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-cyan-500/10 border border-cyan-500/30' : 'bg-cyan-500/5 border border-cyan-500/20'}`}
+                  whileHover={{ scale: 1.02 }}
+                >
+                  <h4 className={`font-bold mb-2 ${theme === 'dark' ? 'text-cyan-300' : 'text-cyan-700'}`}>
+                    ⏱️ Grace Period
+                  </h4>
+                  <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                    For significant changes, we'll provide at least 30 days notice before they take effect, 
+                    giving you time to review and decide if you want to continue using our services.
+                  </p>
+                </motion.div>
+              </div>
+
+              <p className={`mt-4 text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                Last update: {new Date().toLocaleDateString()} • Check this page periodically for updates
+              </p>
+            </PrivacySection>
+
+            <PrivacySection 
+              id="contact" 
+              title="Contact Us"
+              icon={<svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" /></svg>}
+              gradient="from-purple-500 to-pink-500"
+            >
+              <p className={`mb-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                Have questions about your privacy? Want to exercise your rights? Just want to chat about data protection? 
+                I'm here to help!
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -789,111 +780,164 @@ export default function TermsOfUsage() {
                   whileHover={{ scale: 1.02 }}
                 >
                   <h4 className={`text-lg font-bold mb-3 ${theme === 'dark' ? 'text-purple-300' : 'text-purple-700'}`}>
-                    📧 Email Support
+                    💬 Quick Contact
                   </h4>
                   <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                    General inquiries: <Highlight color="purple">support@laxenta.app</Highlight><br />
-                    Legal matters: <Highlight color="purple">legal@laxenta.app</Highlight><br />
-                    Privacy concerns: <Highlight color="purple">privacy@laxenta.app</Highlight>
+                    Discord: <Highlight color="purple">@me_straight</Highlight><br />
+                    Response time: Usually within 24 hours<br />
+                    Best for: Quick questions, data requests
                   </p>
                 </motion.div>
 
                 <motion.div 
-                  className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-blue-500/10 border border-blue-500/30' : 'bg-blue-500/5 border border-blue-500/20'}`}
+                  className={`p-6 rounded-lg ${theme === 'dark' ? 'bg-pink-500/10 border border-pink-500/30' : 'bg-pink-500/5 border border-pink-500/20'}`}
                   whileHover={{ scale: 1.02 }}
                 >
-                  <h4 className={`text-lg font-bold mb-3 ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
-                    💬 Discord Support
+                  <h4 className={`text-lg font-bold mb-3 ${theme === 'dark' ? 'text-pink-300' : 'text-pink-700'}`}>
+                    📧 Email Support
                   </h4>
                   <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                    Direct message: <Highlight color="blue">@me_straight</Highlight><br />
-                    Response time: Usually within 24-48 hours<br />
-                    Available for: Quick questions & support
+                    Privacy: <Highlight color="purple">privacy@laxenta.app</Highlight><br />
+                    General: <Highlight color="purple">support@laxenta.app</Highlight><br />
+                    Best for: Formal requests, detailed issues
                   </p>
                 </motion.div>
               </div>
 
               <motion.div 
-                className={`mt-8 p-6 rounded-lg text-center ${theme === 'dark' ? 'bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-white/10' : 'bg-gradient-to-r from-purple-500/5 to-blue-500/5 border border-black/10'}`}
+                className={`mt-8 p-6 rounded-lg text-center ${theme === 'dark' ? 'bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-white/10' : 'bg-gradient-to-r from-purple-500/5 to-pink-500/5 border border-black/10'}`}
                 whileHover={{ scale: 1.01 }}
               >
-                <h4 className={`text-lg font-bold mb-3 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-                  🏢 Legal Entity Information
+                <div className="text-3xl mb-3">🛡️</div>
+                <h4 className={`text-lg font-bold mb-2 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+                  Your Privacy Matters
                 </h4>
-                <p className={`font-mono ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                  LAXENTA<br />
-                  Personal Project<br />
-                  Operating worldwide 🌍
+                <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
+                  As a solo developer, I personally handle every privacy request. Your trust means everything to me, 
+                  and I'm committed to protecting your data as if it were my own.
+                </p>
+                <p className={`mt-3 font-mono text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                  - @me_straight, Developer of LAXENTA
                 </p>
               </motion.div>
-            </Section>
+            </PrivacySection>
 
-            {/* Additional Important Sections */}
+            {/* Additional Privacy Commitments */}
             <motion.div 
               className={`mt-16 p-8 rounded-2xl backdrop-blur-xl ${
                 theme === 'dark' 
-                  ? 'bg-gradient-to-r from-purple-900/30 to-blue-900/30 border border-purple-500/30' 
-                  : 'bg-gradient-to-r from-purple-100/30 to-blue-100/30 border border-purple-500/20'
+                  ? 'bg-gradient-to-r from-blue-900/30 to-purple-900/30 border border-blue-500/30' 
+                  : 'bg-gradient-to-r from-blue-100/30 to-purple-100/30 border border-blue-500/20'
               }`}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
               <h2 className={`text-2xl font-bold mb-6 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-                📋 Additional Terms
+                🌟 Our Privacy Promises
               </h2>
 
-              <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {[
+                  {
+                    icon: '🔒',
+                    title: 'Always Private',
+                    desc: 'Your data never becomes public without explicit consent'
+                  },
+                  {
+                    icon: '🚫',
+                    title: 'No Ads Ever',
+                    desc: 'We don\'t use your data for advertising or marketing'
+                  },
+                  {
+                    icon: '💎',
+                    title: 'Transparency First',
+                    desc: 'Clear communication about what we collect and why'
+                  },
+                  {
+                    icon: '⚡',
+                    title: 'Minimal Collection',
+                    desc: 'We only collect what\'s necessary for the service to work'
+                  },
+                  {
+                    icon: '🛡️',
+                    title: 'Security Focused',
+                    desc: 'Industry-standard security to protect your information'
+                  },
+                  {
+                    icon: '❤️',
+                    title: 'User First',
+                    desc: 'Your privacy rights always come before profit'
+                  }
+                ].map((promise, index) => (
+                  <motion.div 
+                    key={index}
+                    className={`p-4 rounded-lg ${theme === 'dark' ? 'bg-white/5' : 'bg-black/5'}`}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: index * 0.1 }}
+                    whileHover={{ scale: 1.05 }}
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="text-2xl">{promise.icon}</span>
+                      <div>
+                        <h3 className={`font-bold mb-1 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+                          {promise.title}
+                        </h3>
+                        <p className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
+                          {promise.desc}
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* GDPR/CCPA Compliance Notice */}
+            <motion.div 
+              className={`mt-12 p-8 rounded-2xl ${
+                theme === 'dark' 
+                  ? 'bg-gradient-to-r from-green-900/30 to-emerald-900/30 border border-green-500/30' 
+                  : 'bg-gradient-to-r from-green-100/30 to-emerald-100/30 border border-green-500/20'
+              }`}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              <h2 className={`text-2xl font-bold mb-6 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+                ⚖️ Legal Compliance
+              </h2>
+
+              <div className="space-y-4">
                 <div>
-                  <h3 className={`text-lg font-semibold mb-3 ${theme === 'dark' ? 'text-purple-300' : 'text-purple-700'}`}>
-                    Entire Agreement
+                  <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-green-300' : 'text-green-700'}`}>
+                    GDPR Compliance (European Users)
                   </h3>
                   <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                    These Terms constitute the entire agreement between you and LAXENTA regarding the use of our services, 
-                    superseding any prior agreements.
+                    We comply with the General Data Protection Regulation, ensuring EU users have full control 
+                    over their personal data, including rights to access, rectification, erasure, and portability.
                   </p>
                 </div>
 
                 <div>
-                  <h3 className={`text-lg font-semibold mb-3 ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
-                    Severability
+                  <h3 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-emerald-300' : 'text-emerald-700'}`}>
+                    CCPA Compliance (California Users)
                   </h3>
                   <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                    If any provision of these Terms is found to be unenforceable, the remaining provisions will continue 
-                    in full force and effect.
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className={`text-lg font-semibold mb-3 ${theme === 'dark' ? 'text-green-300' : 'text-green-700'}`}>
-                    Assignment
-                  </h3>
-                  <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                    You may not assign or transfer these Terms or your rights under them without our prior written consent. 
-                    LAXENTA may assign these Terms without restriction.
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className={`text-lg font-semibold mb-3 ${theme === 'dark' ? 'text-orange-300' : 'text-orange-700'}`}>
-                    Force Majeure
-                  </h3>
-                  <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                    LAXENTA shall not be liable for any failure to perform due to circumstances beyond our reasonable control, 
-                    including but not limited to acts of God, natural disasters, war, terrorism, riots, embargoes, acts of 
-                    civil or military authorities, fire, floods, accidents, strikes, or shortages of transportation facilities, 
-                    fuel, energy, labor, or materials.
+                    California residents have additional rights under the California Consumer Privacy Act, 
+                    including the right to know what personal information is collected and the right to opt-out.
                   </p>
                 </div>
               </div>
             </motion.div>
 
-            {/* Final Acknowledgment */}
+            {/* Final Thank You */}
             <motion.div 
               className={`mt-12 p-8 rounded-2xl text-center ${
                 theme === 'dark' 
-                  ? 'bg-gradient-to-r from-green-900/30 to-emerald-900/30 border border-green-500/30' 
-                  : 'bg-gradient-to-r from-green-100/30 to-emerald-100/30 border border-green-500/20'
+                  ? 'bg-gradient-to-r from-purple-900/30 to-pink-900/30 border border-purple-500/30' 
+                  : 'bg-gradient-to-r from-purple-100/30 to-pink-100/30 border border-purple-500/20'
               }`}
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
@@ -901,32 +945,50 @@ export default function TermsOfUsage() {
               transition={{ type: "spring", stiffness: 200 }}
             >
               <motion.div 
-                className="text-4xl mb-4"
-                animate={{ rotate: [0, 10, -10, 0] }}
+                className="text-5xl mb-4"
+                animate={{ 
+                  rotate: [0, 10, -10, 0],
+                  scale: [1, 1.1, 1]
+                }}
                 transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
               >
-                ✅
+                🎉
               </motion.div>
               <h2 className={`text-2xl font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-                Thank You for Reading!
+                Thanks for Reading!
               </h2>
               <p className={`text-lg mb-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                We appreciate you taking the time to understand our Terms of Usage. By using LAXENTA, 
-                you're agreeing to these terms. If you have any questions, don't hesitate to reach out!
+                I know privacy policies can be boring, but your privacy is important! If you have any questions 
+                or concerns, don't hesitate to reach out. I'm always happy to chat about how we protect your data.
               </p>
-              <Link href="/login">
-                <motion.button
-                  className={`px-8 py-4 rounded-full font-mono text-lg ${
-                    theme === 'dark' 
-                      ? 'bg-white text-black hover:bg-white/90' 
-                      : 'bg-black text-white hover:bg-black/90'
-                  } transition-colors`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  Continue to Login
-                </motion.button>
-              </Link>
+              <div className="flex justify-center gap-4">
+                <Link href="/terms">
+                  <motion.button
+                    className={`px-6 py-3 rounded-full font-mono ${
+                      theme === 'dark' 
+                        ? 'bg-white/10 text-white hover:bg-white/20' 
+                        : 'bg-black/10 text-black hover:bg-black/20'
+                    } transition-colors`}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Read Terms
+                  </motion.button>
+                </Link>
+                <Link href="/login">
+                  <motion.button
+                    className={`px-6 py-3 rounded-full font-mono ${
+                      theme === 'dark' 
+                        ? 'bg-purple-500 text-white hover:bg-purple-600' 
+                        : 'bg-purple-600 text-white hover:bg-purple-700'
+                    } transition-colors`}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Continue to Login
+                  </motion.button>
+                </Link>
+              </div>
             </motion.div>
           </div>
         </div>
@@ -940,11 +1002,11 @@ export default function TermsOfUsage() {
           <p className={`font-mono text-sm ${
             theme === 'dark' ? 'text-white/40' : 'text-black/40'
           }`}>
-            © 2025 LAXENTA • All rights reserved • Terms effective as of {new Date().toLocaleDateString()}
+            © 2025 LAXENTA Inc. • Privacy Policy effective as of {new Date().toLocaleDateString()}
           </p>
           <div className="mt-4 flex justify-center gap-6">
-            <Link href="/privacy" className={`text-sm hover:underline ${theme === 'dark' ? 'text-white/60 hover:text-white' : 'text-black/60 hover:text-black'}`}>
-              Privacy Policy
+            <Link href="/terms" className={`text-sm hover:underline ${theme === 'dark' ? 'text-white/60 hover:text-white' : 'text-black/60 hover:text-black'}`}>
+              Terms of Service
             </Link>
             <Link href="/" className={`text-sm hover:underline ${theme === 'dark' ? 'text-white/60 hover:text-white' : 'text-black/60 hover:text-black'}`}>
               Home
@@ -957,4 +1019,4 @@ export default function TermsOfUsage() {
       </footer>
     </div>
   )
-}
+}           
