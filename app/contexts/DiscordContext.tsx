@@ -7,7 +7,7 @@ interface DiscordUser {
   username: string
   discriminator: string
   avatar: string
-  email?: string
+  // email?: string  // Remove this line
 }
 
 interface DiscordContextType {
@@ -35,7 +35,7 @@ export function DiscordProvider({ children }: { children: React.ReactNode }) {
         username: session.user.name?.split('#')[0] || '',
         discriminator: session.user.name?.split('#')[1] || '0000',
         avatar: session.user.image || '',
-        email: session.user.email || undefined,
+        // email: session.user.email || undefined,  // Remove this line
       })
     } else {
       setUser(null)
