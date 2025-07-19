@@ -1,33 +1,31 @@
 import NextAuth from 'next-auth'
 import DiscordProvider from 'next-auth/providers/discord'
 
+// Extend the session object
 declare module 'next-auth' {
   interface Session {
     user: {
       id: string
       name?: string | null
-      email?: string | null
       image?: string | null
     }
   }
 }
 
+// Extend the JWT token
 declare module 'next-auth/jwt' {
   interface JWT {
     id: string
     username: string
-    discriminator: string
     avatar: string
   }
 }
 
-//we define Discord profile interface :3
+// Discord profile definition
 interface DiscordProfile {
   id: string
   username: string
-  discriminator: string
   avatar: string
-  email?: string
 }
 
 const handler = NextAuth({
@@ -37,7 +35,7 @@ const handler = NextAuth({
       clientSecret: process.env.DISCORD_CLIENT_SECRET!,
       authorization: {
         params: {
-          scope: 'identify email guilds',
+          scope: 'identify',
         },
       },
     }),
@@ -49,7 +47,6 @@ const handler = NextAuth({
         const discordProfile = profile as DiscordProfile
         token.id = discordProfile.id
         token.username = discordProfile.username
-        token.discriminator = discordProfile.discriminator
         token.avatar = discordProfile.avatar
       }
       return token
@@ -57,7 +54,7 @@ const handler = NextAuth({
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string
-        session.user.name = `${token.username}#${token.discriminator}`
+        session.user.name = token.username
         session.user.image = `https://cdn.discordapp.com/avatars/${token.id}/${token.avatar}.png`
       }
       return session
