@@ -230,6 +230,16 @@ export default function TermsOfUsage() {
           >
             Please read these terms carefully before using LAXENTA services
           </motion.p>
+          <motion.div 
+            className={`mt-6 p-4 rounded-lg ${theme === 'dark' ? 'bg-blue-500/10 border border-blue-500/30' : 'bg-blue-500/5 border border-blue-500/20'}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+          >
+            <p className={`text-sm font-mono ${theme === 'dark' ? 'text-blue-300' : 'text-blue-700'}`}>
+              ℹ️ LAXENTA is a personal project and not a registered legal entity. By using this site, you agree to the terms below as-is.
+            </p>
+          </motion.div>
         </div>
       </motion.div>
 
@@ -375,8 +385,8 @@ export default function TermsOfUsage() {
                 <li>• Audio and video materials</li>
               </ul>
               <p className={`mt-4 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                Are provided by Laxenta Inc, 
-                and abuse of these will result in a account termination.
+                Are provided by the creator of LAXENTA, 
+                and abuse of these will result in account termination.
               </p>
 
               <h3 className={`text-xl font-bold mt-8 mb-4 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
@@ -456,8 +466,8 @@ export default function TermsOfUsage() {
                   </h4>
                   <ul className={`space-y-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                     <li>• Any activity that violates local, state, national, or international law</li>
-                    <li>• Fraud, money laundering, or other financial crimes</li>
-                    <li>• Distribution of controlled substances or illegal materials</li>
+                    <li>• Fraud, or other scams</li>
+                    {/* <li>• Distribution of controlled substances or illegal materials</li> */}
                   </ul>
                 </div>
 
@@ -466,8 +476,8 @@ export default function TermsOfUsage() {
                     ⚠️ Harmful Activities
                   </h4>
                   <ul className={`space-y-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                    <li>• Harassment, bullying, or threats against individuals</li>
-                    <li>• Distribution of malware, viruses, or harmful code</li>
+                    <li>• Harassment, bullying, or threats against individuals anyhow</li>
+                    <li>• Distribution of malware, viruses, or harmful code through any of our services</li>
                     <li>• Phishing, spamming, or other deceptive practices</li>
                     <li>• Impersonation of others or misrepresentation</li>
                   </ul>
@@ -478,7 +488,7 @@ export default function TermsOfUsage() {
                     🔧 Technical Violations
                   </h4>
                   <ul className={`space-y-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                    <li>• Attempting to reverse engineer or decompile our software</li>
+                    <li>• Multiple accounts</li>
                     <li>• Circumventing security measures or access controls</li>
                     <li>• Excessive automated requests or API abuse</li>
                     <li>• Interfering with service operation or other users' access</li>
@@ -493,7 +503,7 @@ export default function TermsOfUsage() {
                 transition={{ type: "spring" }}
               >
                 <p className={`font-bold ${theme === 'dark' ? 'text-red-300' : 'text-red-700'}`}>
-                  ⛔ Violation of these prohibitions will result in immediate termination of your account and may lead to legal action.
+                  ⛔ Violation of these prohibitions will result in immediate termination of your account/ip and may lead to legal action.
                 </p>
               </motion.div>
             </Section>
@@ -522,15 +532,15 @@ export default function TermsOfUsage() {
                 We will make reasonable efforts to notify users of significant changes through:
               </p>
               <ul className={`mt-4 space-y-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                <li>• Email notifications to registered users</li>
-                <li>• In-app notifications</li>
+                <li>• Email notifications to registered users -if they opt in</li>
+                {/* <li>• In-app notifications</li> */}
                 <li>• Updates on our Discord server</li>
-                <li>• Announcements on our website</li>
+                <li>• Announcements on our website/discord</li>
               </ul>
 
               <div className={`mt-6 p-4 rounded-lg ${theme === 'dark' ? 'bg-indigo-500/10 border border-indigo-500/30' : 'bg-indigo-500/5 border border-indigo-500/20'}`}>
                 <p className={`text-sm ${theme === 'dark' ? 'text-indigo-300' : 'text-indigo-700'}`}>
-                  📱 We recommend enabling notifications to stay informed about important service updates and changes.
+                  📱 We recommend joining our discord to stay informed about important service updates and changes.
                 </p>
               </div>
             </Section>
@@ -620,9 +630,9 @@ export default function TermsOfUsage() {
               gradient="from-teal-500 to-green-500"
             >
               <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                You agree to indemnify, defend, and hold harmless LAXENTA Inc., its officers, directors, employees, 
-                agents, and affiliates from and against any claims, liabilities, damages, losses, and expenses, including 
-                reasonable attorney's fees, arising out of or in any way connected with:
+                You agree to indemnify, defend, and hold harmless the creator of LAXENTA from and against any claims, 
+                liabilities, damages, losses, and expenses, including reasonable attorney's fees, arising out of or in 
+                any way connected with:
               </p>
               <ul className={`mt-4 space-y-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
                 <li>• Your access to or use of our services</li>
@@ -737,8 +747,8 @@ export default function TermsOfUsage() {
                 Applicable Law
               </h3>
               <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                These Terms of Usage shall be governed by and construed in accordance with the laws of the United States 
-                and the State of Delaware, without regard to its conflict of law provisions.
+                These Terms of Usage shall be governed by and construed in accordance with the laws of the United States, 
+                without regard to its conflict of law provisions.
               </p>
 
               <h3 className={`text-xl font-bold mt-8 mb-4 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
@@ -811,8 +821,8 @@ export default function TermsOfUsage() {
                   🏢 Legal Entity Information
                 </h4>
                 <p className={`font-mono ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                  LAXENTA Inc.<br />
-                  Incorporated in Delaware, USA<br />
+                  LAXENTA<br />
+                  Personal Project<br />
                   Operating worldwide 🌍
                 </p>
               </motion.div>
@@ -930,7 +940,7 @@ export default function TermsOfUsage() {
           <p className={`font-mono text-sm ${
             theme === 'dark' ? 'text-white/40' : 'text-black/40'
           }`}>
-            © 2025 LAXENTA Inc. • All rights reserved • Terms effective as of {new Date().toLocaleDateString()}
+            © 2025 LAXENTA • All rights reserved • Terms effective as of {new Date().toLocaleDateString()}
           </p>
           <div className="mt-4 flex justify-center gap-6">
             <Link href="/privacy" className={`text-sm hover:underline ${theme === 'dark' ? 'text-white/60 hover:text-white' : 'text-black/60 hover:text-black'}`}>
