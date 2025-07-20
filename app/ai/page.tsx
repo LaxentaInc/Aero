@@ -706,9 +706,15 @@ const Sidebar = ({
   onDeleteConversation,
   isMobile = false,
   onClose,
-  session, // ADD
-  messageCount, // ADD
-  isDev // ADD
+  session,
+  messageCount,
+  isDev,
+  // ADD THESE NEW PROPS:
+  models,
+  selectedModel,
+  onModelSelect,
+  isLoadingModels,
+  showOnAndroid = false
 }: {
   conversations: Conversation[]
   currentConversationId: string | null
@@ -717,9 +723,15 @@ const Sidebar = ({
   onDeleteConversation: (id: string) => void
   isMobile?: boolean
   onClose?: () => void
-  session: any // ADD
-  messageCount: number // ADD
-  isDev?: boolean // ADD
+  session: any
+  messageCount: number
+  isDev?: boolean
+  // ADD THESE NEW PROP TYPES:
+  models?: ModelInfo[]
+  selectedModel?: string
+  onModelSelect?: (modelId: string) => void
+  isLoadingModels?: boolean
+  showOnAndroid?: boolean
 }) => {
   const [searchQuery, setSearchQuery] = useState('')
   const [hoveredId, setHoveredId] = useState<string | null>(null)
@@ -801,6 +813,28 @@ Currently, only one LLM is available for <span className="text-green-500 font-se
             </div>
           )}
         </div>
+
+        {/* MODEL SELECTOR - Only show on Android and if user is logged in */}
+        {showOnAndroid && session?.user && models && (
+          <div className="mb-3 p-3 bg-white/5 rounded-xl border border-white/10">
+            <div className="text-white/60 text-xs font-semibold mb-2 uppercase tracking-wider">Model</div>
+            <select
+              value={selectedModel}
+              onChange={(e) => onModelSelect?.(e.target.value)}
+              disabled={isLoadingModels}
+              className="w-full bg-gray-800 border border-white/20 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue-400 transition-all"
+            >
+              {models.map(model => (
+                <option key={model.id} value={model.id}>
+                  {model.name} {model.premium_model && !isDev ? '👑 (Premium)' : ''}
+                </option>
+              ))}
+            </select>
+            {models.find(m => m.id === selectedModel)?.premium_model && !isDev && (
+              <p className="text-yellow-400 text-xs mt-2">Premium model - Upgrade required</p>
+            )}
+          </div>
+        )}
 
         {/* Actions */}
         <div className="space-y-2">
@@ -1189,6 +1223,7 @@ export default function AIChat() {
   const [isLoadingModels, setIsLoadingModels] = useState(true)
   const [modelSearchQuery, setModelSearchQuery] = useState('')
   const [userScrolled, setUserScrolled] = useState(false)
+  const [isAndroid, setIsAndroid] = useState(false)
 
   // Add this line
   const isDev = isDevAccount(session);
@@ -1395,6 +1430,18 @@ const fetchModels = useCallback(async () => {
     window.addEventListener('resize', checkDesktop)
     return () => window.removeEventListener('resize', checkDesktop)
   }, [])
+
+  // Android detection
+  useEffect(() => {
+    const checkAndroid = () => {
+      const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera
+      const isAndroidDevice = /android/i.test(userAgent)
+      setIsAndroid(isAndroidDevice && !isDesktop)
+    }
+    checkAndroid()
+    window.addEventListener('resize', checkAndroid)
+    return () => window.removeEventListener('resize', checkAndroid)
+  }, [isDesktop])
 
   // Auto-resize textarea
   useEffect(() => {
@@ -1926,7 +1973,7 @@ useEffect(() => {
   }, [messages, userScrolled]);
 
   return (
-    <div className="flex h-screen bg-gray-950 overflow-hidden">
+    <div className={`flex ${isAndroid ? 'android-height' : 'h-screen'} bg-gray-950 overflow-hidden ${isAndroid ? 'fixed inset-0' : ''}`}>
       {/* Connection status indicator */}
       {!isConnected && <ConnectionStatus isConnected={isConnected} />}
 
@@ -1939,18 +1986,24 @@ useEffect(() => {
             onSelectConversation={handleConversationClick}
             onNewChat={createNewConversation}
             onDeleteConversation={deleteConversation}
-            session={session} // ADD
-            messageCount={messageCount} // ADD
-            isDev={isDev} // ADD
+            session={session}
+            messageCount={messageCount}
+            isDev={isDev}
+            // ADD THESE:
+            models={models}
+            selectedModel={selectedModel}
+            onModelSelect={handleModelSelect}
+            isLoadingModels={isLoadingModels}
+            showOnAndroid={isAndroid}
           />
         </div>
       )}
 
       {/* Mobile Sidebar */}
       {!isDesktop && sidebarOpen && (
-        <div className="fixed inset-0 z-50 flex lg:hidden">
+        <div className={`fixed inset-0 z-50 flex lg:hidden ${isAndroid ? 'android-height' : ''}`}>
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setSidebarOpen(false)} />
-          <div className="relative w-80 max-w-[85vw]">
+          <div className={`relative w-80 max-w-[85vw] ${isAndroid ? 'h-full' : ''}`}>
             <Sidebar
               conversations={conversations}
               currentConversationId={currentConversationId}
@@ -1959,18 +2012,25 @@ useEffect(() => {
               onDeleteConversation={deleteConversation}
               isMobile={true}
               onClose={() => setSidebarOpen(false)}
-              session={session} // ADD
-              messageCount={messageCount} // ADD
-              isDev={isDev} // ADD
+              session={session}
+              messageCount={messageCount}
+              isDev={isDev}
+              // ADD THESE:
+              models={models}
+              selectedModel={selectedModel}
+              onModelSelect={handleModelSelect}
+              isLoadingModels={isLoadingModels}
+              showOnAndroid={isAndroid}
             />
           </div>
         </div>
       )}
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Header */}
-        <header className="bg-gray-900/50 backdrop-blur-xl border-b border-white/10 px-4 py-3 sticky top-0 z-40">
+      <div className={`flex-1 flex flex-col min-w-0 ${isAndroid ? 'h-full' : ''}`}>
+        {/* Header - HIDE ON ANDROID */}
+        {!isAndroid && (
+          <header className="bg-gray-900/50 backdrop-blur-xl border-b border-white/10 px-4 py-3 sticky top-0 z-40">
           <div className="flex items-center justify-between max-w-5xl mx-auto">
             <div className="flex items-center gap-3">
               {!isDesktop && (
@@ -2083,10 +2143,11 @@ useEffect(() => {
             )}
           </div>
         </header>
+        )}
 
         {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto" onScroll={handleScroll}>
-          <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className={`flex-1 overflow-y-auto ${isAndroid ? 'pt-4 pb-24' : ''}`} onScroll={handleScroll}>
+          <div className={`max-w-4xl mx-auto px-4 ${isAndroid ? 'py-4' : 'py-8'}`}>
             {messages.length === 0 ? (
               <div className="text-center py-20 animate-fadeIn">
                 <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-6 shadow-2xl">
@@ -2147,71 +2208,89 @@ useEffect(() => {
         </div>
 
         {/* Input Area */}
-        <div className="border-t border-white/10 bg-gray-900/50 backdrop-blur-xl p-4 sticky bottom-0">
+        <div className={`border-t border-white/10 bg-gray-900/50 backdrop-blur-xl p-4 ${isAndroid ? 'fixed bottom-0 left-0 right-0 android-safe-area' : 'sticky bottom-0'}`}>
           <div className="max-w-4xl mx-auto">
-            <div className="relative">
+            <div className={`relative ${isAndroid ? 'pb-4' : ''}`}>
               {/* Gradient background */}
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-2xl blur-xl pointer-events-none" />
 
-              <div className="relative bg-gray-800/50 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden shadow-2xl focus-within:ring-0 focus-within:outline-none animated-glow-border conic">
-                <textarea
-                  ref={textareaRef}
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder={isConnected ? "Type your message..." : "You're offline. Check your connection..."}
-                  disabled={!isConnected}
-                  className="w-full px-4 py-4 pr-24 bg-transparent text-white placeholder-white/40 resize-none focus:outline-none text-base"
-                  rows={1}
-                  style={{ minHeight: '56px' }}
-                />
-
-                {/* Actions - with higher z-index and pointer-events */}
-                <div className="absolute bottom-3 right-3 flex items-center gap-2 z-20">
-                  {input.trim() && (
-                    <span className="text-xs text-white/40 mr-2">
-                      {input.length} chars
-                    </span>
-                  )}
-
-                  {isStreaming ? (
-                    <button
-                      onClick={handleStop}
-                      className="bg-red-500/20 hover:bg-red-500/30 text-red-400 p-2.5 rounded-xl transition-all flex items-center gap-2 group relative z-30"
-                      type="button"
-                    >
-                      <Square size={16} />
-                      <span className="text-xs hidden group-hover:inline">Stop</span>
-                    </button>
-                  ) : (
-                    <button
-                      onClick={handleSend}
-                      disabled={!input.trim() || !isConnected}
-                      className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white p-2.5 rounded-xl transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none flex items-center gap-2 group relative z-30"
-                      type="button"
-                    >
-                      <Send size={16} />
-                      <span className="text-xs hidden group-hover:inline">Send</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Keyboard shortcut hint */}
-              <div className="flex items-center justify-between mt-2 px-1">
-                <div className="text-xs text-white/30">
-                  Press <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-white/50 font-mono">Enter</kbd> to send, 
-                  <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-white/50 font-mono ml-1">Shift+Enter</kbd> for new line
-                </div>
-                {isDesktop && selectedModelInfo && (
-                  <div className="text-xs text-white/30 flex items-center gap-1">
-                    Model: <span className="text-white/50">{selectedModelInfo.name}</span>
-                    {selectedModelInfo.premium_model && (
-                      <Crown size={10} className="text-yellow-400" />
-                    )}
-                  </div>
+              <div className={`relative flex items-center gap-2 ${isAndroid ? 'pr-0' : ''}`}>
+                {/* Hamburger button for Android - NOW OUTSIDE */}
+                {isAndroid && (
+                  <button
+                    onClick={() => setSidebarOpen(true)}
+                    className="flex-shrink-0 text-white/60 hover:text-white p-3 hover:bg-white/10 bg-gray-800/50 backdrop-blur-sm border border-white/10 rounded-2xl transition-all"
+                    type="button"
+                  >
+                    <Menu size={20} />
+                  </button>
                 )}
+                
+                {/* Input container - NOW SEPARATE */}
+                <div className="flex-1 bg-gray-800/50 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden shadow-2xl focus-within:ring-0 focus-within:outline-none animated-glow-border conic">
+                  <div className="flex items-start gap-2">
+                    <textarea
+                      ref={textareaRef}
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      placeholder={isConnected ? "Type your message..." : "You're offline. Check your connection..."}
+                      disabled={!isConnected}
+                      className={`w-full px-4 py-4 ${isAndroid ? 'pr-16' : 'pr-24'} bg-transparent text-white placeholder-white/40 resize-none focus:outline-none text-base`}
+                      rows={1}
+                      style={{ minHeight: '56px' }}
+                    />
+
+                    {/* Actions - with higher z-index and pointer-events */}
+                    <div className={`absolute ${isAndroid ? 'bottom-2 right-2' : 'bottom-3 right-3'} flex items-center gap-2 z-20`}>
+                      {input.trim() && !isAndroid && (
+                        <span className="text-xs text-white/40 mr-2">
+                          {input.length} chars
+                        </span>
+                      )}
+
+                      {isStreaming ? (
+                        <button
+                          onClick={handleStop}
+                          className={`${isAndroid ? 'text-red-500 hover:text-red-600' : 'bg-red-500/20 hover:bg-red-500/30 text-red-400'} p-2.5 rounded-xl transition-all flex items-center gap-2 group relative z-30`}
+                          type="button"
+                        >
+                          <Square size={16} />
+                          {!isAndroid && <span className="text-xs hidden group-hover:inline">Stop</span>}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={handleSend}
+                          disabled={!input.trim() || !isConnected}
+                          className={`${isAndroid ? 'text-blue-500 hover:text-blue-600' : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl'} disabled:opacity-50 disabled:cursor-not-allowed p-2.5 rounded-xl transition-all transform hover:-translate-y-0.5 disabled:transform-none flex items-center gap-2 group relative z-30`}
+                          type="button"
+                        >
+                          <Send size={16} />
+                          {!isAndroid && <span className="text-xs hidden group-hover:inline">Send</span>}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
+
+              {/* Keyboard shortcut hint - hide on Android */}
+              {!isAndroid && (
+                <div className="flex items-center justify-between mt-2 px-1">
+                  <div className="text-xs text-white/30">
+                    Press <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-white/50 font-mono">Enter</kbd> to send, 
+                    <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-white/50 font-mono ml-1">Shift+Enter</kbd> for new line
+                  </div>
+                  {isDesktop && selectedModelInfo && (
+                    <div className="text-xs text-white/30 flex items-center gap-1">
+                      Model: <span className="text-white/50">{selectedModelInfo.name}</span>
+                      {selectedModelInfo.premium_model && (
+                        <Crown size={10} className="text-yellow-400" />
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -2483,6 +2562,23 @@ useEffect(() => {
 
         .animate-spin {
           animation: spin 1s linear infinite;
+        }
+
+        /* Android-specific viewport handling */
+        @supports (height: 100dvh) {
+          .android-height {
+            height: 100dvh !important;
+          }
+        }
+
+        @supports not (height: 100dvh) {
+          .android-height {
+            height: calc(100vh - env(safe-area-inset-bottom)) !important;
+          }
+        }
+
+        .android-safe-area {
+          padding-bottom: env(safe-area-inset-bottom, 0);
         }
       `}</style>
     </div>
