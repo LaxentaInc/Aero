@@ -1289,18 +1289,7 @@ $ Currently exploring Rust & Python for system programming and AI/ML`
 				</div>
 			</section>
 
-			{/* Footer */}
-			<footer className={`py-12 px-8 border-t ${
-				theme === 'dark' ? 'border-white/10' : 'border-black/10'
-			}`}>
-				<div className="max-w-7xl mx-auto text-center">
-					<p className={`font-mono text-sm ${
-						theme === 'dark' ? 'text-white/40' : 'text-black/40'
-					}`}>
-						© 2025 • BUILT WITH ❤️ AND NO COFFEE ;C ME BROKE :3
-					</p>
-				</div>
-			</footer>	
+{/* //removed footer  */}
 		</motion.div>
 	)
 }

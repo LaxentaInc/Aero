@@ -406,7 +406,7 @@ export default function Navbar() {
     toggleTheme()
   }
 // /AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-  const navItems = ['about-me','ai', 'image-generation', 'contact', 'terms', 'privacy']
+  const navItems = ['about-me','ai', 'shapes', 'image-generation', 'contact']
 
   return (
     <AnimatePresence mode="wait">
@@ -569,7 +569,7 @@ export default function Navbar() {
                         }`}
                         onMouseEnter={() => playSound('hover')}
                       >
-                        <span className="relative z-10">GET A DEMO</span>
+                        <span className="relative z-10">COMISSIONS?</span>
                         <motion.span
                           className={`absolute inset-0 ${theme === 'dark' ? 'bg-white' : 'bg-black'} origin-left`}
                           initial={{ scaleX: 1 }}
@@ -707,7 +707,7 @@ export default function Navbar() {
                           }`}
                           onMouseEnter={() => playSound('hover')}
                         >
-                          GET A SERVICE DEMO
+                          COMISSIONS?
                         </button>
                       </motion.div>
                     </div>
