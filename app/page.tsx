@@ -2241,7 +2241,47 @@ export default function LaxentaLanding() {
             Inc */}
             </h1>
             
-                <motion.p
+          
+          
+<motion.p
+  className={`text-sm sm:text-xl md:text-2xl font-mono ${
+    theme === 'dark' ? 'text-white/60' : 'text-black/60'
+  }`}
+  initial={{ opacity: 0.6 }}
+  animate={{ opacity: 0.6 }}
+>
+  <Typewriter
+    words={['<A Discord Shapes and Free Tier AI platform made by a ']}
+    loop={1}
+    cursor={false}
+    typeSpeed={10}
+    deleteSpeed={9999}
+  />
+  <a
+    href="/about-me"
+    className="underline hover:text-blue-500 transition-colors duration-200"
+  >
+    <Typewriter
+      words={['Standalone hobbyist Developer']}
+      loop={1}
+      cursor
+      typeSpeed={80}
+      deleteSpeed={9999}
+    />
+  </a>
+  <Typewriter
+    words={['! />']}
+    loop={1}
+    cursor={false}
+    typeSpeed={5}
+    deleteSpeed={9999}
+  />
+</motion.p>
+
+
+
+
+                {/* <motion.p
               className={`text-sm sm:text-xl md:text-2xl font-mono ${
                 theme === 'dark' ? 'text-white/60' : 'text-black/60'
               }`}
@@ -2249,13 +2289,13 @@ export default function LaxentaLanding() {
               animate={{ opacity: 0.6 }}
             >
               <Typewriter
-                words={['< A Discord Shapes and Free Tier AI Platform! />']}
+                words={['<A Discord Shapes and Free Tier AI platform made by a Standalone hobbyist Developer! />']}
                 loop={1}
                 cursor
-                typeSpeed={20}
+                typeSpeed={5}
                 deleteSpeed={9999}
               />
-            </motion.p>
+            </motion.p> */}
 {/* idk whitespace \n breaks not working lol so i gotta dupe ;c */}
 <motion.p
   className={`text-sm sm:text-xl md:text-2xl font-mono ${
@@ -2266,10 +2306,10 @@ export default function LaxentaLanding() {
 >
   <Typewriter
     words={[
-      'Providing Discord Shapes! Use of Multiple Ai Models for coding/nsfw rp etc.!']}
+      'Providing Discord Shapes For free and 100+ AI\'s for exploring/debugging/ideas.. etc for free too!']}
     loop={1}
     cursor
-    typeSpeed={50}
+    typeSpeed={20}
     deleteSpeed={9999}
   />
 </motion.p>
