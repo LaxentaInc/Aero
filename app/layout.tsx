@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     default: "Laxenta Inc - Free AI Chat & Image Generation",
     template: "%s | Laxenta Inc"
   },
-  description: "Create customized shapes for Discord (NSFW/SFW)! Access 100+ AI models free. Chat with GPT-4, Claude, and reasoning models. Generate images with DALL-E 3, Midjourney, Flux Pro/Ultra, and more.",
+  description: "Create customized shapes for Discord! Access 100+ AI models free. Chat with GPT-4, Claude, and reasoning models. Generate images with DALL-E 3, Midjourney, Flux Pro/Ultra, and more.",
   keywords: [
     "AI chat",
     "Shapes for Discord",
