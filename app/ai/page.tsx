@@ -1138,7 +1138,9 @@ const sanitizeHTML = (html: string): string => {
 
 // Dev accounts configuration
 const DEV_DISCORD_USERS = [
-  'me_straight',  // Discord username
+  'me_straight',
+  'need_assworm',
+  // Discord username
   // You can also use Discord IDs if preferred:
   // '123456789012345678',  // Discord ID
   // Add more dev usernames or IDs here if needed
