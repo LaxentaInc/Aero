@@ -4,11 +4,9 @@ import { ShapeConfig } from '@/types/shape'
 
 export async function POST(
   request: NextRequest,
-  context: {
-    params: { id: string }
-  }
+  { params }: { params: { id: string } }
 ) {
-  const { id } = context.params
+  const { id } = params
   const db = await connectToDatabase()
   const shapes = db.collection<ShapeConfig>('shapes')
   
