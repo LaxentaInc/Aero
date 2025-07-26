@@ -1,8 +1,9 @@
 export interface ShapeConfig {
-  id: string
-  status: 'online' | 'offline' | 'error' | 'starting' | 'pending' | 'creating' | 'failed'
-  action?: 'create' | 'start' | 'stop' | 'delete'
-  error?: string
+  id: string;
+  token: string;
+  status: 'online' | 'offline' | 'error' | 'starting' | 'pending' | 'creating' | 'failed';
+  action?: 'create' | 'stop' | 'update';
+  error?: string;
   config: {
     model: string
     limit: number
