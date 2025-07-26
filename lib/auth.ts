@@ -2,6 +2,7 @@ import { NextAuthOptions } from 'next-auth'
 import DiscordProvider from 'next-auth/providers/discord'
 import { JWT } from 'next-auth/jwt'
 import { Session } from 'next-auth'
+import { NextRequest } from 'next/server'
 
 // Extend the session object
 declare module 'next-auth' {
@@ -66,4 +67,14 @@ export const authOptions: NextAuthOptions = {
     signIn: '/login',
     error: '/error',
   },
+}
+
+export function authenticate(req: NextRequest) {
+  const authHeader = req.headers.get('Authorization')
+  if (!authHeader?.startsWith('Bearer ')) {
+    return false
+  }
+  
+  const token = authHeader.split(' ')[1]
+  return token === process.env.BOT_API_AUTH
 }
