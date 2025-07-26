@@ -1,13 +1,12 @@
-// api/shapes/[id]/stop/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { connectToDatabase } from '@/lib/db'
 import { ShapeConfig } from '@/types/shape'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }  // params is now a Promise
 ) {
-  const { id } = params
+  const { id } = await params  // await the params
   const db = await connectToDatabase()
   const shapes = db.collection<ShapeConfig>('shapes')
   

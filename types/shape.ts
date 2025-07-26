@@ -1,3 +1,4 @@
+// types/shape.ts
 export interface ShapeConfig {
   id: string;
   token: string;
