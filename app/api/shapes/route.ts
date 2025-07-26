@@ -53,7 +53,7 @@ function authenticate(req: NextRequest): boolean {
   }
   
   const token = authHeader.substring(7);
-  const validToken = process.env.BOT_API_AUTH_TOKEN || 'your-secret-auth-token';
+  const validToken = process.env.BOT_API_AUTH || 'your-secret-auth-token';
   
   return token === validToken;
 }
@@ -93,11 +93,16 @@ export async function GET(req: NextRequest) {
   const userId = searchParams.get('userId');
   const pending = searchParams.get('pending') === 'true';
   
+  const isAuthenticated = authenticate(req);
+  
   try {
     let query: any = {};
     
-    // If fetching pending shapes for bot host
-    if (pending && authenticate(req)) {
+    if (pending) {
+      if (!isAuthenticated) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+      
       query = {
         $or: [
           { status: 'pending' },
@@ -107,7 +112,6 @@ export async function GET(req: NextRequest) {
       
       const pendingShapes = await shapes.find(query).toArray();
       
-      // Mark as creating
       for (const shape of pendingShapes) {
         if (shape.status === 'pending') {
           await shapes.updateOne(
@@ -120,7 +124,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: true, bots: pendingShapes });
     }
     
-    // Build query for regular fetches
     if (publicOnly) {
       query.isPublic = true;
     }
@@ -129,14 +132,16 @@ export async function GET(req: NextRequest) {
       query.userId = userId;
     }
     
-    // Add search functionality
     if (search) {
       query.$or = [
         { 'discordInfo.username': { $regex: search, $options: 'i' } },
         { description: { $regex: search, $options: 'i' } },
-        { tags: { $in: [new RegExp(search, 'i')] } },
-        { instruction: { $regex: search, $options: 'i' } }
+        { tags: { $in: [new RegExp(search, 'i')] } }
       ];
+      
+      if (isAuthenticated) {
+        query.$or.push({ instruction: { $regex: search, $options: 'i' } });
+      }
     }
     
     const allShapes = await shapes
@@ -145,17 +150,40 @@ export async function GET(req: NextRequest) {
       .limit(publicOnly ? 50 : 100)
       .toArray();
     
-    // Generate invite URLs for public shapes
-    const shapesWithInvites = allShapes.map(shape => ({
-      ...shape,
-      inviteUrl: shape.discordInfo?.id 
-        ? `https://discord.com/api/oauth2/authorize?client_id=${shape.discordInfo.id}&permissions=8&scope=bot%20applications.commands`
-        : undefined
-    }));
+    const sanitizedShapes = allShapes.map(shape => {
+      const sanitized: any = {
+        id: shape.id,
+        status: shape.status,
+        discordInfo: shape.discordInfo,
+        guilds: shape.guilds,
+        isPublic: shape.isPublic,
+        description: shape.description,
+        tags: shape.tags,
+        createdAt: shape.createdAt,
+        inviteUrl: shape.discordInfo?.id 
+          ? `https://discord.com/api/oauth2/authorize?client_id=${shape.discordInfo.id}&permissions=8&scope=bot%20applications.commands`
+          : undefined
+      };
+      
+      if (isAuthenticated || shape.userId === userId) {
+        sanitized.token = shape.token;
+        sanitized.userId = shape.userId;
+        sanitized.model = shape.model;
+        sanitized.limit = shape.limit;
+        sanitized.instruction = shape.instruction;
+        sanitized.cooldown = shape.cooldown;
+        sanitized.maxLength = shape.maxLength;
+        sanitized.action = shape.action;
+        sanitized.error = shape.error;
+        sanitized.hostInfo = shape.hostInfo;
+      }
+      
+      return sanitized;
+    });
     
     return NextResponse.json({ 
       success: true, 
-      shapes: shapesWithInvites,
+      shapes: sanitizedShapes,
       total: await shapes.countDocuments(query)
     });
     
