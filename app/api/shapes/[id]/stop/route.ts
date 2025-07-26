@@ -1,3 +1,4 @@
+// api/shapes/[id]/stop/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { authenticate } from '@/lib/auth'
 import { connectToDatabase } from '@/lib/db'
