@@ -1,13 +1,15 @@
 // /api/shapes/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/lib/auth"  // ← Change this!
+import { authOptions } from "@/lib/auth"
 import { connectToDatabase } from '@/lib/db'
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params  // await the params!
+  
   const session = await getServerSession(authOptions)
   if (!session?.user) {
     return NextResponse.json({ error: 'Please login' }, { status: 401 })
@@ -17,7 +19,7 @@ export async function GET(
   const shapes = db.collection('shapes')
   
   const shape = await shapes.findOne({ 
-    id: params.id,
+    id: id,
     userId: session.user.id 
   })
   
@@ -30,8 +32,10 @@ export async function GET(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params  // await the params!
+  
   const session = await getServerSession(authOptions)
   if (!session?.user) {
     return NextResponse.json({ error: 'Please login' }, { status: 401 })
@@ -41,7 +45,7 @@ export async function DELETE(
   const shapes = db.collection('shapes')
   
   const shape = await shapes.findOne({ 
-    id: params.id,
+    id: id,
     userId: session.user.id 
   })
   
@@ -50,12 +54,12 @@ export async function DELETE(
   }
 
   await shapes.updateOne(
-    { id: params.id },
+    { id: id },
     { $set: { action: 'stop' } }
   )
   
   setTimeout(async () => {
-    await shapes.deleteOne({ id: params.id })
+    await shapes.deleteOne({ id: id })
   }, 10000)
   
   return NextResponse.json({ success: true })
@@ -63,8 +67,10 @@ export async function DELETE(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params  // await the params!
+  
   const session = await getServerSession(authOptions)
   if (!session?.user) {
     return NextResponse.json({ error: 'Please login' }, { status: 401 })
@@ -91,7 +97,7 @@ export async function PATCH(
   }
   
   const result = await shapes.updateOne(
-    { id: params.id, userId: session.user.id },
+    { id: id, userId: session.user.id },
     { $set: updateData }
   )
   
