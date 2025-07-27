@@ -283,34 +283,46 @@ const ThinkingBox = ({ content, isExpanded, onToggle }: {
   isExpanded: boolean; 
   onToggle: () => void 
 }) => {
+  // Persist expanded state
+  const [localExpanded, setLocalExpanded] = useState(isExpanded);
+  
+  useEffect(() => {
+    setLocalExpanded(isExpanded);
+  }, [isExpanded]);
+
   return (
-    <div className="my-3 mx-4">
+    <div className="my-4 mx-4">
       <div
-        className="w-full bg-black border border-neutral-800 rounded-xl p-3 shadow-lg transition-all group flex items-center cursor-pointer select-none"
-        onClick={onToggle}
-        style={{ minHeight: '44px' }}
+        className="w-full bg-black border border-white/10 rounded-2xl p-4 shadow-2xl transition-all group cursor-pointer select-none hover:border-white/20"
+        onClick={() => {
+          setLocalExpanded(!localExpanded);
+          onToggle();
+        }}
       >
         <div className="flex items-center gap-3 flex-1">
-          <div className="relative flex items-center justify-center w-5 h-5">
-            <svg className="animate-spin" viewBox="0 0 24 24" fill="none" width="20" height="20">
-              <circle cx="12" cy="12" r="10" stroke="#222" strokeWidth="2" />
-              <path d="M12 2 A10 10 0 0 1 22 12" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
+          <div className="relative flex items-center justify-center w-6 h-6">
+            {/* Custom thinking SVG */}
+            <svg viewBox="0 0 24 24" fill="none" width="24" height="24" className="animate-pulse">
+              <circle cx="12" cy="12" r="10" stroke="url(#thinkingGradient)" strokeWidth="2" strokeLinecap="round" strokeDasharray="4 2" className="animate-spin" style={{ animationDuration: '3s' }} />
+              <circle cx="12" cy="8" r="1.5" fill="url(#thinkingGradient)" className="animate-pulse" />
+              <circle cx="16" cy="12" r="1.5" fill="url(#thinkingGradient)" className="animate-pulse" style={{ animationDelay: '0.5s' }} />
+              <circle cx="12" cy="16" r="1.5" fill="url(#thinkingGradient)" className="animate-pulse" style={{ animationDelay: '1s' }} />
+              <circle cx="8" cy="12" r="1.5" fill="url(#thinkingGradient)" className="animate-pulse" style={{ animationDelay: '1.5s' }} />
+              <defs>
+                <linearGradient id="thinkingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#3b82f6" />
+                  <stop offset="100%" stopColor="#8b5cf6" />
+                </linearGradient>
+              </defs>
             </svg>
           </div>
-          <span className="text-white font-mono text-sm tracking-tight">AI is thinking...</span>
+          <span className="text-white/80 font-medium text-base">AI is thinking...</span>
+          <ChevronRight size={20} className={`text-white/60 transition-transform duration-300 ml-auto ${localExpanded ? 'rotate-90' : ''}`} />
         </div>
-        <button
-          aria-label={isExpanded ? 'Collapse thinking details' : 'Expand thinking details'}
-          className="ml-2 p-1 rounded hover:bg-neutral-900 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
-          tabIndex={0}
-          type="button"
-        >
-          <ChevronRight size={18} className={`text-white/60 transition-transform duration-200 ${isExpanded ? 'rotate-90' : ''}`} />
-        </button>
       </div>
-      {isExpanded && (
-        <div className="mt-2 bg-neutral-950 border border-neutral-900 rounded-xl p-4 animate-fadeIn shadow-md">
-          <div className="text-white/80 text-sm font-mono whitespace-pre-wrap break-words leading-relaxed">
+      {localExpanded && content && (
+        <div className="mt-3 bg-black/50 border border-white/10 rounded-2xl p-5 animate-fadeIn shadow-inner">
+          <div className="text-white/70 text-sm font-mono whitespace-pre-wrap break-words leading-relaxed">
             {content}
           </div>
         </div>
@@ -669,25 +681,25 @@ const MessageComponent = ({
               </div>
             )}
           </div>
-          <div className={`mt-1 sm:mt-2 flex items-center gap-2 ${isUser ? 'justify-end' : 'justify-start'} ${isHovered ? 'opacity-100' : 'opacity-0 sm:opacity-0'} transition-opacity`}>
-            <span className="text-[10px] text-white/30">
+          <div className={`mt-2 sm:mt-3 flex items-center gap-4 ${isUser ? 'justify-end' : 'justify-start'} ${isHovered ? 'opacity-100' : 'opacity-0 sm:opacity-0'} transition-opacity`}>
+            <span className="text-xs text-white/30">
               {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </span>
             <button
               onClick={handleCopyMessage}
-              className="text-white/30 hover:text-white/60 transition-colors p-1.5 hover:bg-white/10 rounded-lg"
+              className="text-white/40 hover:text-white/80 transition-all p-3 hover:bg-white/10 rounded-xl min-w-[48px] min-h-[48px] flex items-center justify-center"
               title="Copy message"
             >
-              {copied ? <Check size={12} className="text-green-400" /> : <Copy size={12} />}
+              {copied ? <Check size={20} className="text-green-400" /> : <Copy size={20} />}
             </button>
             {!isUser && isLastMessage && onRegenerate && (
               <button
                 onClick={onRegenerate}
-                className="text-white/30 hover:text-white/60 transition-colors p-1.5 hover:bg-white/10 rounded-lg flex items-center gap-1"
+                className="text-white/40 hover:text-white/80 transition-all p-3 hover:bg-white/10 rounded-xl flex items-center gap-2 ml-8 min-h-[48px]"
                 title="Regenerate response"
               >
-                <RefreshCw size={12} />
-                <span className="text-[10px]">Regenerate</span>
+                <RefreshCw size={20} />
+                <span className="text-sm font-medium">Regenerate</span>
               </button>
             )}
           </div>
@@ -742,7 +754,7 @@ const Sidebar = ({
   )
 
   return (
-    <div className="h-full bg-gray-900/95 backdrop-blur-2xl border-r border-white/10 flex flex-col">
+    <div className="h-full bg-black backdrop-blur-2xl border-r border-white/10 flex flex-col">
       {/* Header */}
       <div className="p-4 border-b border-white/10">
         <div className="flex items-center justify-between mb-4">
@@ -1219,7 +1231,7 @@ export default function AIChat() {
   const [modelHoverPosition, setModelHoverPosition] = useState({ x: 0, y: 0 })
   const [isDesktop, setIsDesktop] = useState(false)
   const [isConnected, setIsConnected] = useState(true)
-  const [retryCount, setRetryCount] = useState(0)
+
   const [isLoadingModels, setIsLoadingModels] = useState(true)
   const [modelSearchQuery, setModelSearchQuery] = useState('')
   const [userScrolled, setUserScrolled] = useState(false)
@@ -1276,7 +1288,7 @@ export default function AIChat() {
   const abortControllerRef = useRef<AbortController | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const streamCacheRef = useRef<string>('')
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
   const modelDropdownRef = useRef<HTMLDivElement>(null)
 
   //--- Tooltip positioning state ---
@@ -1796,174 +1808,112 @@ useEffect(() => {
   // Replace the streamResponse function with a version that updates the same message on retry
   const streamResponse = async (
     userMessage: string,
-    currentMessages: Message[],
-    isRetry = false,
-    retryMessageId?: string
+    currentMessages: Message[]
   ) => {
-    // Use the same message ID for retries
-    const messageId = retryMessageId || `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const messageId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
     const assistantMessage: Message = {
       id: messageId,
       role: 'assistant',
-      content: '', // Always start fresh on retry
+      content: '',
       timestamp: new Date(),
       isStreaming: true,
       model: selectedModel
     };
 
-    if (!isRetry) {
-      // New message - append it
-      streamCacheRef.current = '';
-      setMessages(prev => [...prev, assistantMessage]);
-    } else {
-      // Retry - update the existing message
-      streamCacheRef.current = '';
-      setMessages(prev => prev.map(msg =>
-        msg.id === messageId
-          ? { ...msg, content: '', isStreaming: true, error: false }
-          : msg
-      ));
-    }
-
+    streamCacheRef.current = '';
+    setMessages(prev => [...prev, assistantMessage]);
     setIsStreaming(true);
-    setRetryCount(0);
 
-    const attemptStream = async (attempt = 0): Promise<void> => {
-      try {
-        if (reconnectTimeoutRef.current) {
-          clearTimeout(reconnectTimeoutRef.current);
-        }
-        abortControllerRef.current = new AbortController();
-        const timeoutId = setTimeout(() => {
-          abortControllerRef.current?.abort();
-        }, 60000);
-        const response = await fetch('/api/ai', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Keep-Alive': 'timeout=60, max=1000'
-          },
-          body: JSON.stringify({
-            messages: currentMessages.map(m => ({
-              role: m.role,
-              content: m.content
-            })),
-            stream: true,
-            model: selectedModel
-          }),
-          signal: abortControllerRef.current.signal
-        });
-        clearTimeout(timeoutId);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const reader = response.body?.getReader();
-        if (!reader) {
-          throw new Error('No reader available');
-        }
-        const decoder = new TextDecoder();
-        let buffer = '';
-        let lastActivity = Date.now();
-        const activityCheckInterval = setInterval(() => {
-          if (Date.now() - lastActivity > 15000) {
-            console.warn('Connection stalled, attempting reconnection');
-            reader.cancel();
-            clearInterval(activityCheckInterval);
-            if (attempt < 3) {
-              setRetryCount(attempt + 1);
-              attemptStream(attempt + 1);
-            }
-          }
-        }, 1000);
-        while (true) {
-          try {
-            const { done, value } = await reader.read();
-            lastActivity = Date.now();
-            if (done) {
-              clearInterval(activityCheckInterval);
-              break;
-            }
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split('\n');
-            buffer = lines.pop() || '';
-            for (const line of lines) {
-              if (line.trim() === '') continue;
-              if (line.startsWith('data: ')) {
-                const data = line.slice(6).trim();
-                if (data === '[DONE]') {
-                  clearInterval(activityCheckInterval);
-                  setIsStreaming(false);
-                  setMessages(prev => prev.map(msg =>
-                    msg.id === messageId
-                      ? { ...msg, isStreaming: false }
-                      : msg
-                  ));
-                  streamCacheRef.current = '';
-                  return;
-                }
-                try {
-                  const parsed = JSON.parse(data);
-                  const content = parsed.choices?.[0]?.delta?.content ||
-                    parsed.choices?.[0]?.message?.content || '';
-                  if (content) {
-                    streamCacheRef.current += content;
-                    setMessages(prev => prev.map(msg =>
-                      msg.id === messageId
-                        ? { ...msg, content: streamCacheRef.current }
-                        : msg
-                    ));
-                  }
-                } catch (e) {
-                  console.error('JSON parsing error:', e);
-                }
-              }
-            }
-          } catch (readError) {
-            clearInterval(activityCheckInterval);
-            console.error('Read error:', readError);
-            if (attempt < 3 && (readError as any).name !== 'AbortError') {
-              setRetryCount(attempt + 1);
-              console.log(`Retrying... (${attempt + 1}/3)`);
-              await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
-              return attemptStream(attempt + 1);
-            }
-            throw readError;
-          }
-        }
-      } catch (error: any) {
-        if (error.name === 'AbortError') {
-          console.log('Request aborted');
-        } else {
-          console.error('Streaming error:', error);
-          const errorMessage = !navigator.onLine
-            ? 'You are offline. Please check your internet connection.'
-            : error.message.includes('network')
-              ? 'Network error. Attempting to reconnect...'
-              : 'Sorry, there was an error. Please try again.';
-          setMessages(prev => prev.map(msg =>
-            msg.id === messageId
-              ? {
-                ...msg,
-                content: streamCacheRef.current || errorMessage,
-                isStreaming: false,
-                error: true
-              }
-              : msg
-          ));
-          // Auto-retry with the SAME message ID
-          if (error.message.includes('network') && attempt < 3) {
-            reconnectTimeoutRef.current = setTimeout(() => {
-              console.log('Auto-retrying after network error...');
-              streamResponse(userMessage, currentMessages, true, messageId); // Pass the messageId!
-            }, 3000);
-          }
-        }
-        setIsStreaming(false);
+    try {
+      abortControllerRef.current = new AbortController();
+      
+      const response = await fetch('/api/ai', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: currentMessages.map(m => ({
+            role: m.role,
+            content: m.content
+          })),
+          stream: true,
+          model: selectedModel
+        }),
+        signal: abortControllerRef.current.signal
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-    };
 
-    await attemptStream();
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('No reader available');
+      }
+
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.trim() === '') continue;
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6).trim();
+            if (data === '[DONE]') {
+              setIsStreaming(false);
+              setMessages(prev => prev.map(msg =>
+                msg.id === messageId
+                  ? { ...msg, isStreaming: false }
+                  : msg
+              ));
+              streamCacheRef.current = '';
+              return;
+            }
+            try {
+              const parsed = JSON.parse(data);
+              const content = parsed.choices?.[0]?.delta?.content ||
+                parsed.choices?.[0]?.message?.content || '';
+              if (content) {
+                streamCacheRef.current += content;
+                setMessages(prev => prev.map(msg =>
+                  msg.id === messageId
+                    ? { ...msg, content: streamCacheRef.current }
+                    : msg
+                ));
+              }
+            } catch (e) {
+              console.error('JSON parsing error:', e);
+            }
+          }
+        }
+      }
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        console.log('Request aborted');
+      } else {
+        console.error('Streaming error:', error);
+        setMessages(prev => prev.map(msg =>
+          msg.id === messageId
+            ? {
+              ...msg,
+              content: streamCacheRef.current || 'Error: Failed to get response',
+              isStreaming: false,
+              error: true
+            }
+            : msg
+        ));
+      }
+      setIsStreaming(false);
+    }
   };
 
   useEffect(() => {
@@ -1973,7 +1923,7 @@ useEffect(() => {
   }, [messages, userScrolled]);
 
   return (
-    <div className={`flex ${isAndroid ? 'android-height' : 'h-screen'} bg-gray-950 overflow-hidden ${isAndroid ? 'fixed inset-0' : ''}`}>
+    <div className={`flex ${isAndroid ? 'android-height' : 'h-screen'} bg-black overflow-hidden ${isAndroid ? 'fixed inset-0' : ''}`}>
       {/* Connection status indicator */}
       {!isConnected && <ConnectionStatus isConnected={isConnected} />}
 
@@ -2030,7 +1980,7 @@ useEffect(() => {
       <div className={`flex-1 flex flex-col min-w-0 ${isAndroid ? 'h-full' : ''}`}>
         {/* Header - HIDE ON ANDROID */}
         {!isAndroid && (
-          <header className="bg-gray-900/50 backdrop-blur-xl border-b border-white/10 px-4 py-3 sticky top-0 z-40">
+          <header className="bg-black/80 backdrop-blur-xl border-b border-white/10 px-4 py-3 sticky top-0 z-40">
           <div className="flex items-center justify-between max-w-5xl mx-auto">
             <div className="flex items-center gap-3">
               {!isDesktop && (
@@ -2193,14 +2143,7 @@ useEffect(() => {
                     isLastMessage={index === messages.length - 1}
                   />
                 ))}
-                {retryCount > 0 && isStreaming && (
-                  <div className="text-center py-2">
-                    <div className="inline-flex items-center gap-2 text-sm text-yellow-400 bg-yellow-400/10 px-3 py-1.5 rounded-full">
-                      <Loader2 size={14} className="animate-spin" />
-                      Retrying connection... (Attempt {retryCount}/3)
-                    </div>
-                  </div>
-                )}
+
               </>
             )}
             <div ref={messagesEndRef} className="h-4" />
@@ -2208,86 +2151,78 @@ useEffect(() => {
         </div>
 
         {/* Input Area */}
-        <div className={`border-t border-white/10 bg-gray-900/50 backdrop-blur-xl p-4 ${isAndroid ? 'fixed bottom-0 left-0 right-0 android-safe-area' : 'sticky bottom-0'}`}>
-          <div className="max-w-4xl mx-auto">
-            <div className={`relative ${isAndroid ? 'pb-4' : ''}`}>
-              {/* Gradient background */}
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-2xl blur-xl pointer-events-none" />
-
-              <div className={`relative flex items-center gap-2 ${isAndroid ? 'pr-0' : ''}`}>
-                {/* Hamburger button for Android - NOW OUTSIDE */}
+        <div className={`bg-black ${isAndroid ? 'fixed bottom-0 left-0 right-0 android-safe-area' : 'sticky bottom-0'}`}>
+          <div className="max-w-4xl mx-auto p-6">
+            {/* Input container */}
+            <div className="relative">
+              <div className="flex items-center gap-3">
+                {/* Hamburger button for Android */}
                 {isAndroid && (
                   <button
                     onClick={() => setSidebarOpen(true)}
-                    className="flex-shrink-0 text-white/60 hover:text-white p-3 hover:bg-white/10 bg-gray-800/50 backdrop-blur-sm border border-white/10 rounded-2xl transition-all"
+                    className="flex-shrink-0 text-white/60 hover:text-white p-3 hover:bg-white/10 bg-black/50 border border-white/10 rounded-xl transition-all"
                     type="button"
                   >
-                    <Menu size={20} />
+                    <Menu size={24} />
                   </button>
                 )}
                 
-                {/* Input container - NOW SEPARATE */}
-                <div className="flex-1 bg-gray-800/50 backdrop-blur-sm border border-white/10 rounded-2xl overflow-hidden shadow-2xl focus-within:ring-0 focus-within:outline-none animated-glow-border conic">
-                  <div className="flex items-start gap-2">
-                    <textarea
-                      ref={textareaRef}
-                      value={input}
-                      onChange={(e) => setInput(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      placeholder={isConnected ? "Type your message..." : "You're offline. Check your connection..."}
-                      disabled={!isConnected}
-                      className={`w-full px-4 py-4 ${isAndroid ? 'pr-16' : 'pr-24'} bg-transparent text-white placeholder-white/40 resize-none focus:outline-none text-base`}
-                      rows={1}
-                      style={{ minHeight: '56px' }}
-                    />
+                {/* Input container */}
+                <div className="flex-1 relative">
+                  <textarea
+                    ref={textareaRef}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder={isConnected ? "Type your message..." : "You're offline. Check your connection..."}
+                    disabled={!isConnected}
+                    className="w-full bg-black/50 border-2 border-white/10 rounded-2xl px-5 py-4 pr-24 text-white placeholder-white/40 resize-none focus:outline-none focus:border-blue-500/50 transition-all text-base leading-relaxed"
+                    rows={2}
+                    style={{ minHeight: '80px' }}
+                  />
 
-                    {/* Actions - with higher z-index and pointer-events */}
-                    <div className={`absolute ${isAndroid ? 'bottom-2 right-2' : 'bottom-3 right-3'} flex items-center gap-2 z-20`}>
-                      {input.trim() && !isAndroid && (
-                        <span className="text-xs text-white/40 mr-2">
-                          {input.length} chars
-                        </span>
-                      )}
+                  {/* Action buttons */}
+                  <div className="absolute top-1/2 right-3 transform -translate-y-1/2 flex items-center gap-2">
+                    {input.trim() && !isAndroid && (
+                      <span className="text-xs text-white/40 mr-2">
+                        {input.length} chars
+                      </span>
+                    )}
 
-                      {isStreaming ? (
-                        <button
-                          onClick={handleStop}
-                          className={`${isAndroid ? 'text-red-500 hover:text-red-600' : 'bg-red-500/20 hover:bg-red-500/30 text-red-400'} p-2.5 rounded-xl transition-all flex items-center gap-2 group relative z-30`}
-                          type="button"
-                        >
-                          <Square size={16} />
-                          {!isAndroid && <span className="text-xs hidden group-hover:inline">Stop</span>}
-                        </button>
-                      ) : (
-                        <button
-                          onClick={handleSend}
-                          disabled={!input.trim() || !isConnected}
-                          className={`${isAndroid ? 'text-blue-500 hover:text-blue-600' : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl'} disabled:opacity-50 disabled:cursor-not-allowed p-2.5 rounded-xl transition-all transform hover:-translate-y-0.5 disabled:transform-none flex items-center gap-2 group relative z-30`}
-                          type="button"
-                        >
-                          <Send size={16} />
-                          {!isAndroid && <span className="text-xs hidden group-hover:inline">Send</span>}
-                        </button>
-                      )}
-                    </div>
+                    {isStreaming ? (
+                      <button
+                        onClick={handleStop}
+                        className="bg-red-500/20 hover:bg-red-500/30 text-red-400 p-3 rounded-xl transition-all flex items-center gap-2 min-w-[56px] min-h-[44px]"
+                        type="button"
+                      >
+                        <Square size={20} />
+                        {!isAndroid && <span className="text-sm font-medium">Stop</span>}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleSend}
+                        disabled={!input.trim() || !isConnected}
+                        className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-xl hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed p-3 rounded-xl transition-all transform hover:-translate-y-0.5 disabled:transform-none flex items-center gap-2 min-w-[56px] min-h-[44px]"
+                        type="button"
+                      >
+                        <Send size={20} />
+                        {!isAndroid && <span className="text-sm font-medium">Send</span>}
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
 
-              {/* Keyboard shortcut hint - hide on Android */}
+              {/* Keyboard shortcuts - cleaner */}
               {!isAndroid && (
-                <div className="flex items-center justify-between mt-2 px-1">
-                  <div className="text-xs text-white/30">
-                    Press <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-white/50 font-mono">Enter</kbd> to send, 
-                    <kbd className="px-1.5 py-0.5 bg-white/10 rounded text-white/50 font-mono ml-1">Shift+Enter</kbd> for new line
-                  </div>
+                <div className="mt-3 text-xs text-white/30">
+                  Press <kbd className="px-2 py-1 bg-white/5 rounded text-white/40 font-mono">Enter</kbd> to send • 
+                  <kbd className="px-2 py-1 bg-white/5 rounded text-white/40 font-mono ml-1">Shift+Enter</kbd> for new line
                   {isDesktop && selectedModelInfo && (
-                    <div className="text-xs text-white/30 flex items-center gap-1">
+                    <span className="float-right">
                       Model: <span className="text-white/50">{selectedModelInfo.name}</span>
-                      {selectedModelInfo.premium_model && (
-                        <Crown size={10} className="text-yellow-400" />
-                      )}
-                    </div>
+                      {selectedModelInfo.premium_model && <Crown size={10} className="inline ml-1 text-yellow-400" />}
+                    </span>
                   )}
                 </div>
               )}
@@ -2306,6 +2241,59 @@ useEffect(() => {
       )}
 
       <style jsx global>{`
+        /* Enable text selection globally */
+        * {
+          -webkit-user-select: text !important;
+          -moz-user-select: text !important;
+          -ms-user-select: text !important;
+          user-select: text !important;
+        }
+
+        /* Except for buttons and controls */
+        button, .select-none {
+          -webkit-user-select: none !important;
+          -moz-user-select: none !important;
+          -ms-user-select: none !important;
+          user-select: none !important;
+        }
+
+        /* Ensure message content is selectable */
+        .prose, .prose * {
+          -webkit-user-select: text !important;
+          -moz-user-select: text !important;
+          -ms-user-select: text !important;
+          user-select: text !important;
+          cursor: text !important;
+        }
+
+        /* Smoother transitions */
+        * {
+          transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Better contrast for dark theme */
+        .text-white {
+          color: #f0f0f0;
+        }
+
+        .text-white\\/90 {
+          color: rgba(240, 240, 240, 0.9);
+        }
+
+        /* Remove harsh borders */
+        .border-white\\/10 {
+          border-color: rgba(255, 255, 255, 0.06);
+        }
+
+        /* Softer shadows */
+        .shadow-lg {
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+        }
+
+        .shadow-xl {
+          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9);
+        }
+
         @keyframes fadeIn {
           from { 
             opacity: 0; 
