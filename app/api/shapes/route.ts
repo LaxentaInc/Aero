@@ -84,6 +84,11 @@ async function fetchDiscordBotInfo(token: string) {
 
 // GET /api/shapes - Get shapes with search
 export async function GET(req: NextRequest) {
+  // Require authentication for all requests
+  if (!authenticate(req)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const db = await connectToDatabase();
   const shapes = db.collection<ShapeConfig>('shapes');
   
@@ -93,16 +98,10 @@ export async function GET(req: NextRequest) {
   const userId = searchParams.get('userId');
   const pending = searchParams.get('pending') === 'true';
   
-  const isAuthenticated = authenticate(req);
-  
   try {
     let query: any = {};
     
     if (pending) {
-      if (!isAuthenticated) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-      }
-      
       query = {
         $or: [
           { status: 'pending' },
@@ -136,12 +135,9 @@ export async function GET(req: NextRequest) {
       query.$or = [
         { 'discordInfo.username': { $regex: search, $options: 'i' } },
         { description: { $regex: search, $options: 'i' } },
-        { tags: { $in: [new RegExp(search, 'i')] } }
+        { tags: { $in: [new RegExp(search, 'i')] } },
+        { instruction: { $regex: search, $options: 'i' } }
       ];
-      
-      if (isAuthenticated) {
-        query.$or.push({ instruction: { $regex: search, $options: 'i' } });
-      }
     }
     
     const allShapes = await shapes
@@ -162,21 +158,18 @@ export async function GET(req: NextRequest) {
         createdAt: shape.createdAt,
         inviteUrl: shape.discordInfo?.id 
           ? `https://discord.com/api/oauth2/authorize?client_id=${shape.discordInfo.id}&permissions=8&scope=bot%20applications.commands`
-          : undefined
+          : undefined,
+        token: shape.token,
+        userId: shape.userId,
+        model: shape.model,
+        limit: shape.limit,
+        instruction: shape.instruction,
+        cooldown: shape.cooldown,
+        maxLength: shape.maxLength,
+        action: shape.action,
+        error: shape.error,
+        hostInfo: shape.hostInfo
       };
-      
-      if (isAuthenticated || shape.userId === userId) {
-        sanitized.token = shape.token;
-        sanitized.userId = shape.userId;
-        sanitized.model = shape.model;
-        sanitized.limit = shape.limit;
-        sanitized.instruction = shape.instruction;
-        sanitized.cooldown = shape.cooldown;
-        sanitized.maxLength = shape.maxLength;
-        sanitized.action = shape.action;
-        sanitized.error = shape.error;
-        sanitized.hostInfo = shape.hostInfo;
-      }
       
       return sanitized;
     });
