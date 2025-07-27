@@ -1288,6 +1288,7 @@ export default function AIChat() {
   const abortControllerRef = useRef<AbortController | null>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const streamCacheRef = useRef<string>('')
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const modelDropdownRef = useRef<HTMLDivElement>(null)
 
