@@ -1,7 +1,9 @@
 // /api/shapes/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from "next-auth/next"
+//wtf?
 import { authOptions } from "@/lib/auth"
+
 import { connectToDatabase } from '@/lib/db'
 
 export async function GET(
