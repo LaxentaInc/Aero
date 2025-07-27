@@ -1,7 +1,7 @@
 // /api/shapes/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/lib/auth"  // ← Change this!
+import { authOptions } from "@/lib/auth"  // ← Change this
 import { connectToDatabase } from '@/lib/db'
 import { v4 as uuidv4 } from 'uuid'
 
