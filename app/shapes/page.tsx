@@ -184,10 +184,8 @@ export default function ShapeManager() {
   // Add fetch functions
   const fetchShapes = async () => {
     try {
-      const res = await fetch(`/api/shapes?userId=${session?.user?.id}`, {
-        headers: {
-          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_BOT_API_AUTH}`
-        }
+      const res = await fetch('/api/shapes', {
+        credentials: 'include'
       })
       const data = await res.json()
       if (data.success) {
@@ -202,11 +200,7 @@ export default function ShapeManager() {
 
   const fetchPublicShapes = async () => {
     try {
-      const res = await fetch(`/api/shapes?public=true&search=${encodeURIComponent(searchQuery)}`, {
-        headers: {
-          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_BOT_API_AUTH}`
-        }
-      })
+      const res = await fetch(`/api/shapes?public=true&search=${encodeURIComponent(searchQuery)}`)
       const data = await res.json()
       if (data.success) {
         setPublicShapes(data.shapes)
@@ -253,15 +247,14 @@ export default function ShapeManager() {
       const res = await fetch('/api/shapes', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_BOT_API_AUTH}`
+          'Content-Type': 'application/json'
         },
+        credentials: 'include',
         body: JSON.stringify({
           token,
           instruction,
           limit,
           model,
-          userId: session?.user?.id,
           isPublic: false,
           description: '',
           tags: []
@@ -290,9 +283,7 @@ export default function ShapeManager() {
     try {
       await fetch(`/api/shapes/${shape.id}/${action}`, {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_BOT_API_AUTH}`
-        }
+        credentials: 'include'
       })
       await fetchShapes()
     } catch (error) {
@@ -306,9 +297,7 @@ export default function ShapeManager() {
     try {
       await fetch(`/api/shapes/${shapeId}`, {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_BOT_API_AUTH}`
-        }
+        credentials: 'include'
       })
       await fetchShapes()
       setSelectedShape(null)
@@ -963,14 +952,13 @@ export default function ShapeManager() {
                           type="checkbox"
                           checked={selectedShape.isPublic || false}
                           onChange={async (e) => {
-                            const res = await fetch('/api/shapes/toggle-public', {
+                            const res = await fetch(`/api/shapes/${selectedShape.id}`, {
                               method: 'PATCH',
                               headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${process.env.NEXT_PUBLIC_BOT_API_AUTH}`
+                                'Content-Type': 'application/json'
                               },
+                              credentials: 'include',
                               body: JSON.stringify({
-                                id: selectedShape.id,
                                 isPublic: e.target.checked,
                                 description: selectedShape.description,
                                 tags: selectedShape.tags
