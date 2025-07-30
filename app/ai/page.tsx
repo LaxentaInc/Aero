@@ -1598,39 +1598,11 @@ useEffect(() => {
     }
   }, [messages, isStreaming, currentConversationId, conversations, debouncedSave]);
 
-  // Create a new conversation via API
-  const createNewConversation = async () => {
-    const newConv: Conversation = {
-      id: `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      title: 'New Chat',
-      messages: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      model: selectedModel
-    };
-    // For guests, just update local state
-    if (!session?.user?.id) {
-      setConversations([newConv, ...conversations]);
-      setCurrentConversationId(newConv.id);
-      setMessages([]);
-      setSidebarOpen(false);
-      return;
-    }
-    // For logged-in users, save to database
-    try {
-      await fetch('/api/conversations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newConv)
-      });
-      const updatedConvs = [newConv, ...conversations];
-      setConversations(updatedConvs);
-      setCurrentConversationId(newConv.id);
-      setMessages([]);
-      setSidebarOpen(false);
-    } catch (error) {
-      console.error('Failed to create conversation:', error);
-    }
+  // Create a new conversation state (without API call)
+  const createNewConversation = () => {
+    setCurrentConversationId(null);
+    setMessages([]);
+    setSidebarOpen(false);
   };
 
   // Delete a conversation via API
@@ -1717,47 +1689,52 @@ useEffect(() => {
     }
 
     let convId = currentConversationId;
+    const initialMessages = [...messages, userMsg];
 
+    // Create conversation if needed (first message)
     if (!convId || messages.length === 0) {
       let title = userMsg.content.slice(0, 30);
       if (userMsg.content.length > 30) title += '...';
+      
       const newConv: Conversation = {
         id: `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         title,
-        messages: [],
+        messages: [userMsg], // Include first message
         createdAt: new Date(),
         updatedAt: new Date(),
         model: !session ? GUEST_MODEL_ID : selectedModel
       };
+
       // For guests, just update local state
       if (!session?.user?.id) {
-        const updatedConvs = [newConv, ...conversations];
-        setConversations(updatedConvs);
+        setConversations([newConv, ...conversations]);
         setCurrentConversationId(newConv.id);
         convId = newConv.id;
       } else {
         // For logged-in users, save to database
         try {
-          await fetch('/api/conversations', {
+          const response = await fetch('/api/conversations', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(newConv)
           });
-          const updatedConvs = [newConv, ...conversations];
-          setConversations(updatedConvs);
+          
+          if (!response.ok) throw new Error('Failed to create conversation');
+          
+          setConversations([newConv, ...conversations]);
           setCurrentConversationId(newConv.id);
           convId = newConv.id;
         } catch (error) {
           console.error('Failed to create conversation:', error);
+          // Continue with local state even if save fails
         }
       }
     }
 
-    const newMessages = [...messages, userMsg];
-    setMessages(newMessages);
+    setMessages(initialMessages);
     setInput('');
 
-    await streamResponse(userMsg.content, newMessages);
+    await streamResponse(userMsg.content, initialMessages);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
