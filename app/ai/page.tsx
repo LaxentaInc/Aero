@@ -1366,10 +1366,22 @@ const fetchModels = useCallback(async () => {
 
     setModels(chatModels)
 
-    if (!selectedModel && chatModels.length > 0) {
-      // Select first non-premium model
-      const firstFreeModel = chatModels.find((m: ModelInfo) => !m.premium_model) || chatModels[0]
-      setSelectedModel(firstFreeModel.id)
+    if (!selectedModel) {
+      if (session?.user?.id) {
+        // For logged in users, try to set llama-3.1-8b as default
+        const llamaModel = chatModels.find(m => m.id === 'llama-3.1-8b')
+        if (llamaModel) {
+          setSelectedModel(llamaModel.id)
+        } else {
+          // Fallback to first non-premium model if llama not found
+          const firstFreeModel = chatModels.find((m: ModelInfo) => !m.premium_model) || chatModels[0]
+          setSelectedModel(firstFreeModel.id)
+        }
+      } else {
+        // For guests, keep using first non-premium model
+        const firstFreeModel = chatModels.find((m: ModelInfo) => !m.premium_model) || chatModels[0]
+        setSelectedModel(firstFreeModel.id)
+      }
     }
   } catch (error) {
     console.error('Failed to fetch models:', error)
@@ -1440,7 +1452,7 @@ const fetchModels = useCallback(async () => {
 
   // Desktop detection
   useEffect(() => {
-    const checkDesktop = () => {
+    const checkDesktop = () => {    
       setIsDesktop(window.innerWidth >= 1024)
       setSidebarOpen(window.innerWidth >= 1024)
     }
