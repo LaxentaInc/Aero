@@ -413,7 +413,7 @@ const MessageComponent = ({
     }
 
     // Helper function to process markdown content (complete code blocks)
-    const processMarkdownContent = (text: string): React.ReactNode[] => {
+              const processMarkdownContent = (text: string): React.ReactNode[] => {
       const contentParts: React.ReactNode[] = []
       const codeBlockRegex = /```(\w*)\n([\s\S]*?)```/g
       const codeBlocks: { placeholder: string; element: React.ReactNode }[] = []
@@ -423,25 +423,26 @@ const MessageComponent = ({
         const placeholder = `__CODE_BLOCK_${blockIndex}__`
         codeBlocks.push({
           placeholder,
+          // Pass isCode=true to skip sanitization for code blocks
           element: <CodeBlock key={`code-${blockIndex}`} code={code.trim()} language={lang || 'text'} />
         })
         blockIndex++
         return placeholder
-      })
-
-      // Process markdown line by line to preserve structure
+      })      // Process markdown line by line to preserve structure
       const lines = text.split('\n')
       let currentParagraph: string[] = []
       let inList = false
       let listItems: string[] = []
 
       const processInlineMarkdown = (text: string): string => {
-        // Escape HTML first to prevent XSS
-        text = text.replace(/&/g, '&amp;')
-                  .replace(/</g, '&lt;')
-                  .replace(/>/g, '&gt;')
-                  .replace(/"/g, '&quot;')
-                  .replace(/'/g, '&#039;')
+        // Only escape HTML for user messages
+        if (isUser) {
+          text = text.replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;')
+        }
 
         // Apply markdown transformations
         // Links (do this first to avoid conflicts)
@@ -478,7 +479,7 @@ const MessageComponent = ({
             contentParts.push(
               <p key={`p-${contentParts.length}`} 
                  className="mb-3 leading-relaxed text-white/90" 
-                 dangerouslySetInnerHTML={{ __html: sanitizeHTML(processedText) }} />
+                 dangerouslySetInnerHTML={{ __html: isUser ? sanitizeHTML(processedText) : processedText }} />
             )
           }
           currentParagraph = []
@@ -1166,9 +1167,13 @@ function setGuestLimitInfo(info: { count: number; lastReset: number; fp: string 
 }
 
 // Add this function after your imports
-const sanitizeHTML = (html: string): string => {
+const sanitizeHTML = (html: string, isCode: boolean = false): string => {
   // Safety check for server-side rendering
   if (typeof window === 'undefined') return html;
+  
+  // Don't sanitize code content at all
+  if (isCode) return html;
+  
   return DOMPurify.sanitize(html, {
     ALLOWED_TAGS: [
       'p', 'br', 'strong', 'em', 'del', 'code', 'pre', 
@@ -1887,7 +1892,7 @@ useEffect(() => {
                 streamCacheRef.current += content;
                 setMessages(prev => prev.map(msg =>
                   msg.id === messageId
-                    ? { ...msg, content: streamCacheRef.current }
+                    ? { ...msg, content: streamCacheRef.current, isStreaming: true }
                     : msg
                 ));
               }
