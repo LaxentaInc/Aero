@@ -1313,23 +1313,11 @@ const fetchModels = useCallback(async () => {
       const { models: cachedModels, timestamp } = JSON.parse(cached)
       if (Date.now() - timestamp < MODEL_CACHE_DURATION) {
         setModels(cachedModels)
-        
-        // Always set llama-3.1-8b for logged-in users if available
-        if (session?.user?.id) {
-          const llamaModel = cachedModels.find((m: ModelInfo) => m.id === 'llama-3.1-8b')
-          if (llamaModel) {
-            setSelectedModel(llamaModel.id)
-          } else if (!selectedModel && cachedModels.length > 0) {
-            // Fallback to non-premium model only if no model selected
-            const firstFreeModel = cachedModels.find((m: ModelInfo) => !m.premium_model) || cachedModels[0]
-            setSelectedModel(firstFreeModel.id)
-          }
-        } else if (!selectedModel && cachedModels.length > 0) {
-          // For guests, use first non-premium model
+        if (!selectedModel && cachedModels.length > 0) {
+          // Select first non-premium model
           const firstFreeModel = cachedModels.find((m: ModelInfo) => !m.premium_model) || cachedModels[0]
           setSelectedModel(firstFreeModel.id)
         }
-        
         setIsLoadingModels(false)
         return
       }
@@ -1378,21 +1366,22 @@ const fetchModels = useCallback(async () => {
 
     setModels(chatModels)
 
-    if (session?.user?.id) {
-      // For logged in users, always try to set llama-3.1-8b as default
-      const llamaModel = chatModels.find(m => m.id === 'llama-3.1-8b')
-      if (llamaModel) {
-        setSelectedModel(llamaModel.id)
-      } else if (!selectedModel) {
-        // Only fallback if no model selected
+    if (!selectedModel) {
+      if (session?.user?.id) {
+        // For logged in users, try to set llama-3.1-8b as default
+        const llamaModel = chatModels.find(m => m.id === 'llama-3.1-8b')
+        if (llamaModel) {
+          setSelectedModel(llamaModel.id)
+        } else {
+          // Fallback to first non-premium model if llama not found
+          const firstFreeModel = chatModels.find((m: ModelInfo) => !m.premium_model) || chatModels[0]
+          setSelectedModel(firstFreeModel.id)
+        }
+      } else {
+        // For guests, keep using first non-premium model
         const firstFreeModel = chatModels.find((m: ModelInfo) => !m.premium_model) || chatModels[0]
         setSelectedModel(firstFreeModel.id)
       }
-    } else if (!selectedModel) {
-      // For guests, keep using first non-premium model 
-      const firstFreeModel = chatModels.find((m: ModelInfo) => !m.premium_model) || chatModels[0]
-      setSelectedModel(firstFreeModel.id)
-    }
     }
   } catch (error) {
     console.error('Failed to fetch models:', error)
@@ -1413,7 +1402,7 @@ const fetchModels = useCallback(async () => {
   } finally {
     setIsLoadingModels(false)
   }
-}, [selectedModel, session])
+}, [selectedModel])
 
   const [hoverTimeout, setHoverTimeout] = useState<NodeJS.Timeout | null>(null)
 
