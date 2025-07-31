@@ -1,3 +1,4 @@
+'use client'
 export default function DisabledPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-black to-gray-900 p-4 overflow-hidden">
