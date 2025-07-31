@@ -9,7 +9,7 @@ export default function DisabledPage() {
         </h1>
         
         <button
-          onClick={() => window.location.href = 'https://nextjs-errordumb.vercel.app/nsfw'}
+          onClick={() => window.location.href = 'https://nextjs-errordumb.vercel.app/hanime'}
           className="bg-white text-black px-6 py-3 hover:bg-gray-200 transition-colors"
         >
           CONTINUE TO NSFW CONTENT
