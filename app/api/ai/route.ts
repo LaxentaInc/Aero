@@ -30,6 +30,7 @@ interface ModelInfo {
 
 const modelCache = new Map<string, { data: ModelInfo; timestamp: number }>();
 const MODEL_CACHE_TTL = 60 * 60 * 1000; // 1 hour
+
 // Clean up old buffers, rate limit map, and model cache
 setInterval(() => {
   const now = Date.now();
@@ -94,8 +95,8 @@ async function getModelInfo(modelId: string): Promise<ModelInfo | null> {
     };
 
     // Cache the result
-modelCache.set(modelId, { data: info, timestamp: Date.now() });
-console.log(`[✅ Model info] ${modelId}: ${info.tokens} tokens`);    
+    modelCache.set(modelId, { data: info, timestamp: Date.now() });
+    console.log(`[✅ Model info] ${modelId}: ${info.tokens} tokens`);    
     return info;
   } catch (error) {
     console.error('[❌ Error fetching model info]', error);
@@ -372,10 +373,8 @@ export async function POST(req: NextRequest) {
     const transformStream = new TransformStream({
       start(controller) {
         // Send initial connection with debug info
-        // controller.enqueue(encoder.encode(': connected\n\n'));
-        // type":"connected","streamId":"${streamId}","_debug":${JSON.stringify(debugInfo)}}\n\n`));
-controller.enqueue(encoder.encode(': connected\n\n'));
-controller.enqueue(encoder.encode(`data: {"type":"connected","streamId":"${streamId}","_debug":${JSON.stringify(debugInfo)}}\n\n`));
+        controller.enqueue(encoder.encode(': connected\n\n'));
+        controller.enqueue(encoder.encode(`data: {"type":"connected","streamId":"${streamId}","_debug":${JSON.stringify(debugInfo)}}\n\n`));
       },
 
       async transform(chunk, controller) {
@@ -401,8 +400,9 @@ controller.enqueue(encoder.encode(`data: {"type":"connected","streamId":"${strea
             const errorData = {
               error: true,
               message: 'Buffer overflow',
-              _streamId: streamIdJSON.stringify(errorData)}\n\n`));
-            controllern'));
+              _streamId: streamId
+            };
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(errorData)}\n\n`));
             streamBuffers.delete(streamId);
             clearTimeout(timeoutId);
             controller.terminate();
@@ -427,7 +427,8 @@ controller.enqueue(encoder.encode(`data: {"type":"connected","streamId":"${strea
 
               if (data === '[DONE]') {
                 console.log('[✅ Stream Complete] Total content length:', totalContent.length);
-                controller.enqueue(encoder.encode('delete(streamId);
+                controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+                streamBuffers.delete(streamId);
                 clearTimeout(timeoutId);
                 controller.terminate();
                 return;
@@ -446,7 +447,10 @@ controller.enqueue(encoder.encode(`data: {"type":"connected","streamId":"${strea
                 const enrichedData = {
                   ...parsed,
                   _seq: chunkCount,
-                  _streamId: streamIdJSON.stringify(enrichedData)}\n\n`));
+                  _streamId: streamId
+                };
+                
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify(enrichedData)}\n\n`));
               } catch (e) {
                 console.error('[⚠️ Invalid JSON]', e);
               }
@@ -461,7 +465,7 @@ controller.enqueue(encoder.encode(`data: {"type":"connected","streamId":"${strea
             _streamId: streamId
           };
           
-          controller.enqueue(encoder.(errorData)}\n\nDONE]\n\n'));
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(errorData)}\n\ndata: [DONE]\n\n`));
           
           streamBuffers.delete(streamId);
           clearTimeout(timeoutId);
@@ -471,7 +475,8 @@ controller.enqueue(encoder.encode(`data: {"type":"connected","streamId":"${strea
 
       flush(controller) {
         console.log('[🏁 Flush called] Buffer:', buffer);
-        if (buffer.trim() && buffer.start data = buffer.slice(6);
+        if (buffer.trim() && buffer.startsWith('data: ')) {
+          const data = buffer.slice(6);
           if (data !== '[DONE]') {
             try {
               JSON.parse(data);
