@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import { Providers } from './components/Providers';
+import { Analytics } from '@vercel/analytics/next';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,7 +22,7 @@ const geistMono = Geist_Mono({
   adjustFontFallback: true
 });
 
-export const metadata: Metadata = {
+export
   metadataBase: new URL('https://www.laxenta.tech'),
   title: {
     default: "Laxenta Inc - Free AI Chat & Image Generation",
@@ -208,6 +209,7 @@ export default function RootLayout({
             {children}
           </main>
           <Footer />
+          <Analytics />
         </Providers>
       </body>
     </html>
