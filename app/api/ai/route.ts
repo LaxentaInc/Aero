@@ -372,8 +372,10 @@ export async function POST(req: NextRequest) {
     const transformStream = new TransformStream({
       start(controller) {
         // Send initial connection with debug info
-        controller.enqueue(encoder.encode(': connected\n\n'));
-        type":"connected","streamId":"${streamId}","_debug":${JSON.stringify(debugInfo)}}\n\n`));
+        // controller.enqueue(encoder.encode(': connected\n\n'));
+        // type":"connected","streamId":"${streamId}","_debug":${JSON.stringify(debugInfo)}}\n\n`));
+controller.enqueue(encoder.encode(': connected\n\n'));
+controller.enqueue(encoder.encode(`data: {"type":"connected","streamId":"${streamId}","_debug":${JSON.stringify(debugInfo)}}\n\n`));
       },
 
       async transform(chunk, controller) {
