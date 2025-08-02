@@ -722,7 +722,7 @@ const Sidebar = ({
   session,
   messageCount,
   isDev,
-  // ADD THESE NEW PROPS:
+//new
   models,
   selectedModel,
   onModelSelect,
@@ -1145,8 +1145,8 @@ function getGuestFingerprint() {
 
 // Guest message limit config
 const GUEST_LIMIT = 100;
-const GUEST_RESET_HOURS = 16;
-const GUEST_MODEL_ID = 'gpt-3.5-turbo';
+const GUEST_RESET_HOURS = 12;
+const GUEST_MODEL_ID = 'llama-guard-4-12b';
 const GUEST_LIMIT_KEY = 'guest_msg_limit_v2';
 
 function getGuestLimitInfo() {
@@ -1191,6 +1191,7 @@ const sanitizeHTML = (html: string, isCode: boolean = false): string => {
 const DEV_DISCORD_USERS = [
   'me_straight',
   'need_assworm',
+  'error404_x',
   // Discord username
   // You can also use Discord IDs if preferred:
   // '123456789012345678',  // Discord ID
