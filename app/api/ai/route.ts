@@ -28,7 +28,7 @@ interface ModelInfo {
   id: string;
 }
 
-const modelCache = new Map<string, { data: ModelInfo; timestamp: number }>();
+const modelCache timestamp: number }>();
 const MODEL_CACHE_TTL = 60 * 60 * 1000; // 1 hour
 
 // Clean up old buffers, rate limit map, and model cache
@@ -89,14 +89,13 @@ async function getModelInfo(modelId: string): Promise<ModelInfo | null> {
     }
 
     const info: ModelInfo = {
-      tokens: modelInfo.tokens || 1000, // Default to 4000 if not specified000000000000000000000000000000000000!!!
+      tokens: modelInfo.tokens || 128000, // Better default for modern models
       name: modelInfo.name,
       id: modelInfo.id,
     };
 
     // Cache the result
-    modelCache.set(modelId, { data: info, timestamp: Date.now() });
-    console.log(`[✅ Model info] ${modelId}: ${info.tokens} tokens`);
+    modelCache.set(modelconsole.log(`[✅ Model info] ${modelId}: ${info.tokens} tokens`);
     
     return info;
   } catch (error) {
@@ -105,55 +104,75 @@ async function getModelInfo(modelId: string): Promise<ModelInfo | null> {
   }
 }
 
-// Simple token estimation (roughly 4 chars per token)
+// Better token estimation
 function estimateTokens(text: string): number {
-  // More accurate estimation based on common patterns
-  // Average is ~4 chars per token for English text
-  // But we'll be conservative and use 3.5 to avoid cutting too much
-  return Math.ceil(text.length / 3.5);
+  // GPT tokenization rough estimates:
+  // - English: ~1 token per 4 characters
+  // - Code/special chars: ~1 token per 2-3 characters
+  // We'll use 4 chars per token as a reasonable estimate
+  return Math.ceil(text.length / 4);
 }
 
-// Truncate messages to fit within token limit
+// NEW: Proper bottom-to-top truncation
 function truncateMessages(messages: any[], maxTokens: number): any[] {
   if (!messages || messages.length === 0) return messages;
 
-  // Reserve some tokens for the response and system overhead
-  const availableTokens = Math.floor(maxTokens * 0.85); // Use 85% of limit for safety
+  // Use 80% of limit to leave room for response
+  const targetTokens = Math.floor(maxTokens * 0.8);
   
-  let totalTokens = 0;
-  const truncatedMessages = [];
+  console.log(`\n[🎯 Truncation] Model limit: ${maxTokens}, Using: ${targetTokens} tokens`);
   
-  // Always keep the most recent messages, work backwards
+  // Track what we're including
+  let includedTokens = 0;
+  const result: any[] = [];
+  
+  // Start from the newest message and work backwards
   for (let i = messages.length - 1; i >= 0; i--) {
     const message = messages[i];
-    const content = message.content || '';
-    const messageTokens = estimateTokens(JSON.stringify(message));
+    const messageContent = message.content || '';
+    const messageTokens = estimateTokens(messageContent);
     
-    if (totalTokens + messageTokens <= availableTokens) {
-      truncatedMessages.unshift(message);
-      totalTokens += messageTokens;
-    } else if (i === messages.length - 1) {
-      // Always keep at least the last message, but truncate it if needed
-      const remainingTokens = availableTokens - totalTokens;
-      const charLimit = Math.floor(remainingTokens * 3.5);
-      
-      if (charLimit > 100) { // Keep at least 100 chars
-        truncatedMessages.unshift({
-          ...message,
-          content: content.substring(content.length - charLimit),
-        });
-      } else {
-        truncatedMessages.unshift(message);
-      }
-      break;
+    console.log(`[📝 Message ${i}] ${message.role}: ${messageContent.length} chars (~${messageTokens} tokens)`);
+    
+    // Can we fit the entire message?
+    if (includedTokens + messageTokens <= targetTokens) {
+      // Yes! Include the whole message
+      result.unshift(message);
+      includedTokens += messageTokens;
+      console.log(`  ✅ Full message included. Total: ${includedTokens}/${targetTokens} tokens`);
     } else {
-      // Stop adding older messages
+      // Can't fit the whole message - truncate it
+      const remainingTokens = targetTokens - includedTokens;
+      
+      if (remainingTokens < 20) {
+        // Not enough space for meaningful truncation
+        console.log(`  ❌ Only ${remainingTokens} tokens left - skipping`);
+        break;
+      }
+      
+      // Calculate how many characters we can include
+      const charsToInclude = remainingTokens * 4; // Reverse of our estimation
+      
+      // Keep the END of the message (most recent part)
+      const truncatedContent = '... ' + messageContent.slice(-charsToInclude);
+      
+      console.log(`  ✂️ Truncating: keeping last ${charsToInclude} of ${messageContent.length} chars`);
+      
+      result.unshift({
+        ...message,
+        content: truncatedContent
+      });
+      
+      includedTokens = targetTokens; // We're at the limit now
       break;
     }
   }
   
-  console.log(`[✂️ Truncated] ${messages.length} → ${truncatedMessages.length} messages (${totalTokens} tokens)`);
-  return truncatedMessages;
+  // Log summary
+  console.log(`[📊 Summary] Input: ${messages.length} messages, Output: ${result.length} messages`);
+  console.log(`[📊 Tokens] Used ~${includedTokens} of ${targetTokens} available\n`);
+  
+  return result;
 }
 
 function checkRateLimit(ip: string): boolean {
@@ -176,7 +195,7 @@ function checkRateLimit(ip: string): boolean {
   return true;
 }
 
-// Simple fetch with retry - no individual timeouts
+// Simple fetch with retry
 async function fetchWithRetry(
   url: string, 
   options: RequestInit, 
@@ -238,9 +257,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const { messages, stream = false, model = 'gpt-4o' } = await req.json();
-    console.log('[📩 Messages]', messages.length, 'messages');
-    console.log('[🌊 Stream]', stream);
-    console.log('[🤖 Model]', model);
+    console.log('[📩 Request] Model:', model, '| Messages:', messages.length, '| Stream:', stream);
 
     if (!API_KEY) {
       console.error('[❌ ERROR] Missing API KEY');
@@ -252,18 +269,35 @@ export async function POST(req: NextRequest) {
 
     // Get model info and token limit
     const modelInfo = await getModelInfo(model);
-    const tokenLimit = modelInfo?.tokens || 1000; // Default to 4000 if fetch fails !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    console.log(`[🎯 Token Limit] ${tokenLimit} tokens for model ${model}`);
+    const tokenLimit = modelInfo?.tokens || 128000; // Better default
+    
+    // Log for browser console
+    const debugInfo = {
+      model: model,
+      tokenLimit: tokenLimit,
+      originalMessages: messages.length,
+      originalChars: messages.reduce((sum: number, msg: any) => sum + (msg.content?.length || 0), 0),
+      originalTokensEstimate: messages.reduce((sum: number, msg: any) => sum + estimateTokens(msg.content || ''), 0)
+    };
 
-    // Truncate messages based on token limit
+    console.log(`[🤖 Model: ${model}] Token limit: ${tokenLimit}`);
+
+    // Truncate messages from newest to oldest
     const truncatedMessages = truncateMessages(messages, tokenLimit);
+    
+    // Add truncation info to debug
+    debugInfo.truncatedMessages = truncatedMessages.length;
+    debugInfo.truncatedChars = truncatedMessages.reduce((sum: number, msg: any) => sum + (msg.content?.length || 0), 0);
+    debugInfo.truncatedTokensEstimate = truncatedMessages.reduce((sum: number, msg: any) => sum + estimateTokens(msg.content || ''), 0);
 
-    // ONE SIMPLE 5 MINUTE TIMEOUT - THAT'S IT
+    console.log(`[📤 Sending] ${truncatedMessages.length} messages (~${debugInfo.truncatedTokensEstimate} tokens)`);
+
+    // 5 minute timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
       console.log('[⏰ 5 minute timeout reached]');
       controller.abort();
-    }, 5 * 60 * 1000); // 5 minutes
+    }, 5 * 60 * 1000);
 
     // Handle client disconnect
     req.signal.addEventListener('abort', () => {
@@ -275,11 +309,10 @@ export async function POST(req: NextRequest) {
 
     const body = JSON.stringify({
       model,
-      messages: truncatedMessages, // Use truncated messages
+      messages: truncatedMessages,
       temperature: 0.9,
       presence_penalty: 0.6,
       frequency_penalty: 0.7,
-      limit: 10,
       stream,
     });
 
@@ -298,7 +331,13 @@ export async function POST(req: NextRequest) {
     if (!stream) {
       clearTimeout(timeoutId);
       const data = await response.json();
-      console.log('[✅ RESPONSE]', data);
+      
+      // Add debug info for browser
+      if (data.choices) {
+        data._debug = debugInfo;
+      }
+      
+      console.log('[✅ RESPONSE] Completion received');
       return new Response(JSON.stringify(data), {
         headers: { 'Content-Type': 'application/json' },
       });
@@ -309,7 +348,8 @@ export async function POST(req: NextRequest) {
       const errorText = await response.text();
       console.error('[❌ API Error]', errorText);
       return new Response(JSON.stringify({ 
-        error: response.status >= 500 ? 'Service error' : 'Request failed' 
+        error: response.status >= 500 ? 'Service error' : 'Request failed',
+        _debug: debugInfo
       }), {
         status: response.status,
         headers: { 'Content-Type': 'application/json' },
@@ -332,9 +372,9 @@ export async function POST(req: NextRequest) {
 
     const transformStream = new TransformStream({
       start(controller) {
-        // Send initial connection confirmation
+        // Send initial connection with debug info
         controller.enqueue(encoder.encode(': connected\n\n'));
-        controller.enqueue(encoder.encode(`data: {"type":"connected","streamId":"${streamId}"}\n\n`));
+        type":"connected","streamId":"${streamId}","_debug":${JSON.stringify(debugInfo)}}\n\n`));
       },
 
       async transform(chunk, controller) {
@@ -354,16 +394,14 @@ export async function POST(req: NextRequest) {
           buffer += text;
           
           // Buffer overflow protection
-          if (buffer.length > 3000000 ) { //3mb hard limit to prevent abuse
+          if (buffer.length > 3000000) {
             console.error('[⚠️ Buffer overflow]');
             buffer = '';
             const errorData = {
               error: true,
               message: 'Buffer overflow',
-              _streamId: streamId
-            };
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify(errorData)}\n\n`));
-            controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+              _streamId: streamIdJSON.stringify(errorData)}\n\n`));
+            controllern'));
             streamBuffers.delete(streamId);
             clearTimeout(timeoutId);
             controller.terminate();
@@ -388,8 +426,7 @@ export async function POST(req: NextRequest) {
 
               if (data === '[DONE]') {
                 console.log('[✅ Stream Complete] Total content length:', totalContent.length);
-                controller.enqueue(encoder.encode('data: [DONE]\n\n'));
-                streamBuffers.delete(streamId);
+                controller.enqueue(encoder.encode('delete(streamId);
                 clearTimeout(timeoutId);
                 controller.terminate();
                 return;
@@ -404,32 +441,26 @@ export async function POST(req: NextRequest) {
                   streamBuffer.chunks.push(data);
                 }
 
-                // Keep enriched data feature
+                // Keep enriched data
                 const enrichedData = {
                   ...parsed,
                   _seq: chunkCount,
-                  _streamId: streamId
-                };
-
-                controller.enqueue(encoder.encode(`data: ${JSON.stringify(enrichedData)}\n\n`));
+                  _streamId: streamIdJSON.stringify(enrichedData)}\n\n`));
               } catch (e) {
                 console.error('[⚠️ Invalid JSON]', e);
-                // Don't terminate on parse error, just skip
               }
             }
           }
         } catch (error) {
           console.error('[❌ Transform error]', error);
           
-          // Send error to client
           const errorData = {
             error: true,
             message: 'Stream interrupted',
             _streamId: streamId
           };
           
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify(errorData)}\n\n`));
-          controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+          controller.enqueue(encoder.(errorData)}\n\nDONE]\n\n'));
           
           streamBuffers.delete(streamId);
           clearTimeout(timeoutId);
@@ -439,8 +470,7 @@ export async function POST(req: NextRequest) {
 
       flush(controller) {
         console.log('[🏁 Flush called] Buffer:', buffer);
-        if (buffer.trim() && buffer.startsWith('data: ')) {
-          const data = buffer.slice(6);
+        if (buffer.trim() && buffer.start data = buffer.slice(6);
           if (data !== '[DONE]') {
             try {
               JSON.parse(data);
@@ -471,7 +501,6 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     console.error('[❌ CATCH ERROR]', error);
     
-    // Don't expose internal errors
     const message = error.name === 'AbortError' 
       ? 'Request timeout' 
       : error.message.includes('fetch')
@@ -485,7 +514,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// Keep your GET endpoint for chunk retrieval
+// GET endpoint for chunk retrieval
 export async function GET(req: NextRequest) {
   const streamId = req.nextUrl.searchParams.get('streamId');
   const fromChunk = parseInt(req.nextUrl.searchParams.get('fromChunk') || '0');
