@@ -272,7 +272,7 @@ export async function POST(req: NextRequest) {
     const tokenLimit = modelInfo?.tokens || 128000; // Better default
     
     // Log for browser console
-    const debugInfo = {
+    const debugInfo: any = {
       model: model,
       tokenLimit: tokenLimit,
       originalMessages: messages.length,
