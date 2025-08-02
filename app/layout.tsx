@@ -22,8 +22,7 @@ const geistMono = Geist_Mono({
   adjustFontFallback: true
 });
 
-export
-  metadataBase: new URL('https://www.laxenta.tech'),
+exportBase: new URL('https://www.laxenta.tech'),
   title: {
     default: "Laxenta Inc - Free AI Chat & Image Generation",
     template: "%s | Laxenta Inc"
