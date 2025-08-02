@@ -94,8 +94,8 @@ async function getModelInfo(modelId: string): Promise<ModelInfo | null> {
     };
 
     // Cache the result
-    modelCache.set(modelconsole.log(`[✅ Model info] ${modelId}: ${info.tokens} tokens`);
-    
+modelCache.set(modelId, { data: info, timestamp: Date.now() });
+console.log(`[✅ Model info] ${modelId}: ${info.tokens} tokens`);    
     return info;
   } catch (error) {
     console.error('[❌ Error fetching model info]', error);
