@@ -28,9 +28,8 @@ interface ModelInfo {
   id: string;
 }
 
-const modelCache timestamp: number }>();
+const modelCache = new Map<string, { data: ModelInfo; timestamp: number }>();
 const MODEL_CACHE_TTL = 60 * 60 * 1000; // 1 hour
-
 // Clean up old buffers, rate limit map, and model cache
 setInterval(() => {
   const now = Date.now();
