@@ -8,7 +8,7 @@ import { useTheme } from '../contexts/ThemeContext'
 import { Youtube, Twitter, Github, Instagram, Shield, FileText, Network, Globe } from 'lucide-react'
 
 // Routes where footer should be hidden
-const HIDE_FOOTER_ROUTES = ['/ai', '/image-generation']
+const HIDE_FOOTER_ROUTES = ['/ai', '/image-gen']
 
 const GlitchText = ({ children, className = "" }: { children: string, className?: string }) => {
   return (
