@@ -25,14 +25,16 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.laxenta.tech'),
   title: {
-    default: "Laxenta Inc - Free AI Chat & Image Generation",
-    template: "%s | Laxenta Inc"
+    default: "Laxenta Inc- AI API | 200+ AI Models, Discord Shapes, Dev Tools",
+    template: "%s | Laxenta"
   },
-  description: "Create customized shapes for Discord! Access 100+ AI models free. Chat with GPT-4, Claude, and reasoning models. Generate images with DALL-E 3, Midjourney, Flux Pro/Ultra, and more.",
+  description: "Access 200+ AI models through affordable APIs. NSFW/SFW image generation, chat models (GPT-5, Claude, Gemini), Discord shapes builder, voice synthesis, advanced dev tools, and code commissions. Free tier available.",
   keywords: [
+    // Primary
     "laxenta ai",
     "lax",
     "laxenta",
+    "free ai api",
     "AI chat",
     "Shapes for Discord",
     "image generation",
@@ -41,8 +43,7 @@ export const metadata: Metadata = {
     "AI assistant",
     "free AI models",
     "AI platform",
-    "DALL-E 3",
-    "GPT-4",
+    "GPT-5",
     "Claude",
     "Flux Pro",
     "Midjourney alternative",
@@ -53,10 +54,49 @@ export const metadata: Metadata = {
     "AI shapes",
     "AI reasoning",
     "AI chatbots",
+    "AI image generation",
+    "AI voice synthesis",
+    "AI API",
+    "AI developer tools",
+    "code commissions",
+    "AI API platform",
+    "cheap AI API",
+    "200+ AI models",
+    "Laxenta",
+    // Image Generation
+    "NSFW image generation",
+    "SFW image generation", 
+    "DALL-E 3 API",
+    "Flux Pro API",
+    "Midjourney alternative",
+    
+    // Chat Models
+    "GPT-5 API",
+    "Claude API",
+    "Gemini API",
+    "chat models API",
+    "ai api",
+    "shapes",    
+    // Discord Features
+    "Discord shapes",
+    "Discord shapes builder",
+    "custom Discord shapes",
+    
+    // Voice & Dev Tools
+    "voice synthesis API",
+    "TTS models",
+    "advanced dev tools",
+    "developer tools",
+    "code commissions",
+    
+    // Brand
+    "Laxenta AI",
+    "Laxenta API",
+    "free AI models"
   ],
   authors: [{ name: "Laxenta" }],
   creator: "@me_straight",
-  publisher: "Laxenta Inc",
+  publisher: "Laxenta",
   formatDetection: {
     email: false,
     address: false,
@@ -72,26 +112,26 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     url: 'https://www.laxenta.tech',
-    siteName: 'Laxenta Inc',
-    title: 'Laxenta Inc - Discord Shapes, AI & Images and code collaboration',
-    description: 'Create Discord shapes & chat with 100+ AI models including GPT-4, NousResearch, AIXONLabs, Inception Mercury etc. and more.  for free (included in free tier). Generate images with DALL-E 3, Flux, and more. No credit card required.',
+    siteName: 'Laxenta',
+    title: 'Laxenta - Affordable AI API Platform with 200+ Models',
+    description: '🚀 Access 200+ AI models via API • 🎨 NSFW/SFW Image Generation • 💬 Chat Models (GPT-5, Claude) • 🎮 Discord Shapes Builder • 🎤 Voice Synthesis • 💻 Advanced Dev Tools • 📝 Code Commissions • Free tier available!',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Laxenta Inc - Free AI, Images, Shapes & Coding Platform',
+        alt: 'Laxenta - AI API Platform',
         type: 'image/png',
       }
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Laxenta Inc - Free Discord bots creation (shapes), AI & Image Gen, with Free tier(100+ ai models on free)',
-    description: 'Under dev- Access 100+ AI models free. Chat with GPT-4, Claude & more. Generate images with DALL-E 3. Create Discord shapes.',
+    title: 'Laxenta - Free tier AI Models and API Platform with 200+ Models',
+    description: 'Affordable AI APIs: Image gen (NSFW/SFW), Chat models, Discord shapes, Voice synthesis, Advanced dev tools, Code commissions. Free tier with 200+ models access.',
     images: {
       url: '/og-image.png',
-      alt: 'Laxenta Inc Platform Preview'
+      alt: 'Laxenta AI Platform'
     }
   },
   robots: {
@@ -130,24 +170,53 @@ export default function RootLayout({
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'WebApplication',
-    name: 'Laxenta AI',
-    description: 'Free AI chat, Discord shapes and image generation platform with 100+ models',
+    name: 'Laxenta',
+    description: 'AI API platform providing access to 200+ models for image generation, chat, voice synthesis, Discord shapes, and advanced developer tools',
     url: 'https://www.laxenta.tech',
-    applicationCategory: 'Artificial Intelligence',
+    applicationCategory: 'DeveloperApplication',
     operatingSystem: 'Web',
     offers: {
-      '@type': 'Offer',
-      price: '0',
-      priceCurrency: 'USD'
+      '@type': 'AggregateOffer',
+      priceCurrency: 'USD',
+      lowPrice: '0',
+      highPrice: '99',
+      offerCount: '3',
+      offers: [
+        {
+          '@type': 'Offer',
+          name: 'Free Tier',
+          price: '0',
+          description: 'Limited access to 200+ AI models'
+        },
+        {
+          '@type': 'Offer', 
+          name: 'Pro',
+          price: '9.99',
+          description: 'Full access to all models with higher limits'
+        },
+        {
+          '@type': 'Offer',
+          name: 'Enterprise',
+          price: '99',
+          description: 'Custom limits and dedicated support'
+        }
+      ]
     },
+    featureList: [
+      '200+ AI Models Access',
+      'NSFW/SFW Image Generation',
+      'Chat Models (GPT-5, Claude, Gemini)',
+      'Discord Shapes Builder',
+      'Voice Synthesis/TTS',
+      'Advanced Developer Tools',
+      'Code Commissions',
+      'Developer API Access',
+      'Free Tier Available'
+    ],
     author: {
-      '@type': 'Person',
+      '@type': 'Organization',
       name: 'Laxenta',
-    },
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: '5',
-      ratingCount: '100'
+      url: 'https://www.laxenta.tech'
     }
   };
 
@@ -155,22 +224,22 @@ export default function RootLayout({
     <html lang="en">
       <head>
         {/* Essential Meta Tags for Discord/Social Media */}
-        <meta property="og:title" content="Laxenta Inc - Discord Shapes, AI Chat & Image Generation" />
-        <meta property="og:description" content="Create Discord shapes & chat with 100+ AI models including GPT-4, Claude, and Gemini for free. Generate images with DALL-E 3, Flux, and more." />
+        <meta property="og:title" content="Laxenta - AI API Platform | 200+ Models, Discord Shapes, Dev Tools" />
+        <meta property="og:description" content="🚀 Access 200+ AI models • 🎨 NSFW/SFW Image Gen • 💬 Chat APIs • 🎮 Discord Shapes • 🎤 Voice Synthesis • 💻 Advanced Dev Tools • 📝 Code Commissions • Free tier available!" />
         <meta property="og:image" content="https://www.laxenta.tech/og-image.png" />
         <meta property="og:url" content="https://www.laxenta.tech" />
         <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="Laxenta Inc" />
+        <meta property="og:site_name" content="Laxenta" />
         <meta property="og:locale" content="en_US" />
         
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Laxenta Inc - Discord Shapes Free AI Chat & Image Generation" />
-        <meta name="twitter:description" content="Access 100+ AI models free. Chat with GPT-4, Claude & more. Generate images with DALL-E 3. Create Discord shapes." />
-        <meta name="twitter:image" content="https://laxenta.tech/og-image.png" />
+        <meta name="twitter:title" content="Laxenta - 200+ AI Models API Platform" />
+        <meta name="twitter:description" content="Affordable AI APIs: Image gen (NSFW/SFW), Chat models, Discord shapes, Voice synthesis, Advanced dev tools, Code commissions. Free tier available." />
+        <meta name="twitter:image" content="https://www.laxenta.tech/og-image.png" />
         
         {/* Basic Meta Tags */}
-        <meta name="description" content="Create customized shapes for Discord (NSFW/SFW)! Access 100+ AI models free. Chat with GPT-4, Claude, and reasoning models. Generate images with DALL-E 3, Midjourney, Flux Pro/Ultra, and more." />
+        <meta name="description" content="Access 200+ AI models through affordable APIs. NSFW/SFW image generation, chat models (GPT-5, Claude), Discord shapes builder, voice synthesis, advanced dev tools, and code commissions. Free tier available." />
         <link rel="canonical" href="https://www.laxenta.tech" />
         
         {/* Favicon */}
