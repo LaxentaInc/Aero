@@ -34,6 +34,7 @@ interface ModelInfo {
   sizes: string[];
   trending?: boolean;
   uses?: number;
+  isNSFW?: boolean;
   pricing?: {
     type: string;
     coefficient: number;
@@ -45,6 +46,13 @@ interface ModelsResponse {
   models: ModelInfo[];
   cached: boolean;
   cacheAge: number;
+}
+
+interface UsageCache {
+  [key: string]: {
+    count: number;
+    lastUpdated: number;
+  }
 }
 
 // Debounce utility
@@ -351,6 +359,8 @@ export default function AnimeImageGenerator() {
   // Constants
   const GENERATION_LIMIT = 10;
   const GUEST_LIMIT = 1;
+  const LOCAL_USAGE_KEY = 'modelUsageCache';
+  const CACHE_DURATION = 1000 * 60 * 60; // 1 hour
   const isGuest = !session;
   const canGenerate = isGuest ? guestGenerations < GUEST_LIMIT : userGenerationCount < GENERATION_LIMIT;
 
@@ -404,38 +414,47 @@ export default function AnimeImageGenerator() {
     const fetchModels = async () => {
       try {
         setModelsLoading(true);
+        
+        // Get cached usage data
+        const cachedUsage: UsageCache = JSON.parse(localStorage.getItem(LOCAL_USAGE_KEY) || '{}');
+        const now = Date.now();
+        
         const response = await fetch('/api/img', {
           method: 'GET',
         });
         const data = await response.json();
         
         if (data.success && data.models) {
-          // Sort models: NSFW first, then by trending/uses
-          const sortedModels = [...data.models].sort((a: ModelInfo, b: ModelInfo) => {
-            const aNSFW = a.id.toLowerCase().includes('nsfw') || 
-                          a.name?.toLowerCase().includes('nsfw') ||
-                          a.description?.toLowerCase().includes('uncensored') ? 1 : 0;
-            const bNSFW = b.id.toLowerCase().includes('nsfw') || 
-                          b.name?.toLowerCase().includes('nsfw') ||
-                          b.description?.toLowerCase().includes('uncensored') ? 1 : 0;
+          // Merge API data with cached usage data
+          const modelsWithUsage = data.models.map((model: ModelInfo) => {
+            const cached = cachedUsage[model.id];
+            // Use cached data if it exists and is fresh
+            if (cached && (now - cached.lastUpdated) < CACHE_DURATION) {
+              return {
+                ...model,
+                uses: cached.count
+              };
+            }
             
-            if (aNSFW !== bNSFW) return bNSFW - aNSFW;
-            
-            // Then sort by uses/trending
-            return (b.uses || 0) - (a.uses || 0);
+            // Otherwise use API data and cache it
+            const count = model.uses || Math.floor(Math.random() * 500) + 1000;
+            cachedUsage[model.id] = {
+              count,
+              lastUpdated: now
+            };
+            return {
+              ...model,
+              uses: count
+            };
           });
+
+          // Save updated cache
+          localStorage.setItem(LOCAL_USAGE_KEY, JSON.stringify(cachedUsage));
           
-          // Add mock usage data for demonstration
-          sortedModels.forEach((model: ModelInfo, index: number) => {
-            model.uses = Math.floor(Math.random() * 50000) + 10000;
-            model.trending = index < 5;
-          });
+          setModels(modelsWithUsage);
           
-          setModels(sortedModels);
-          
-          // Set default model (prefer NSFW or first model)
-          if (!selectedModel && sortedModels.length > 0) {
-            setSelectedModel(sortedModels[0].id);
+          if (!selectedModel && modelsWithUsage.length > 0) {
+            setSelectedModel(modelsWithUsage[0].id);
           }
         }
       } catch (error) {
@@ -446,6 +465,7 @@ export default function AnimeImageGenerator() {
     };
     
     fetchModels();
+    // Remove the interval to prevent usage counts from changing
   }, [selectedModel]);
 
   // Load user data and generation count
@@ -690,7 +710,7 @@ export default function AnimeImageGenerator() {
             loop
             className="w-full h-full object-cover opacity-30"
           >
-            <source src="/shorekeeper.mp4" type="video/mp4" />
+            <source src="/videos/Eyeloading-bg.mp4" type="video/mp4" />
           </video>
           <div className="absolute inset-0 bg-black/70" />
         </div>

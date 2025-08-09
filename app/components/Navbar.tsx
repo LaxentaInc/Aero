@@ -9,7 +9,7 @@ import { Menu } from 'lucide-react' //unused
 import { useDiscord } from '../contexts/DiscordContext'
 
 //auto-hide
-const AUTO_HIDE_ROUTES = ['/ai', '/image-generation', '/login']
+const AUTO_HIDE_ROUTES = ['/ai', '/image-gen', '/login']
 //eeeeeeee
 const LoadingAnimation = ({ 
   theme, 
@@ -406,7 +406,7 @@ export default function Navbar() {
     toggleTheme()
   }
 // /AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-  const navItems = ['about-me','ai', 'shapes', 'image-generation', 'nsfw', 'contact']
+  const navItems = ['about-me','ai', 'shapes', 'image-gen', 'nsfw', 'contact']
 
   return (
     <AnimatePresence mode="wait">

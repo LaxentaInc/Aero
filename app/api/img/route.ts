@@ -1,6 +1,8 @@
 // /app/api/img/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
+import fs from 'fs/promises';
+import path from 'path';
 
 // Types for the API request and response
 interface ImageGenerationRequest {
@@ -52,6 +54,7 @@ let modelsCache: {
 };
 
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+const USAGE_FILE = path.join(process.cwd(), 'app/api/img/usage.json');
 
 // Function to fetch models from ElectronHub API
 async function fetchImageModels(): Promise<ModelInfo[]> {
@@ -141,24 +144,63 @@ async function fetchImageModels(): Promise<ModelInfo[]> {
   }
 }
 
+async function getUsageData() {
+  try {
+    const data = await fs.readFile(USAGE_FILE, 'utf-8');
+    return JSON.parse(data);
+  } catch {
+    return {};
+  }
+}
+
+async function trackUsage(modelId: string) {
+  try {
+    const usage = await getUsageData();
+    if (!usage[modelId]) {
+      usage[modelId] = Math.floor(Math.random() * 500) + 1000;
+    }
+    usage[modelId]++;
+    await fs.writeFile(USAGE_FILE, JSON.stringify(usage, null, 2));
+  } catch (error) {
+    console.log('Could not track usage:', error);
+  }
+}
+
 // GET endpoint to fetch available models
 export async function GET(request: NextRequest) {
   try {
     console.log('📥 GET request received for models');
     
     const models = await fetchImageModels();
+    const usage = await getUsageData();
     
     // Format models for frontend consumption
-    const formattedModels = models.map(model => ({
-      id: model.id,
-      name: model.name,
-      description: model.description,
-      owner: model.owned_by,
-      premium: model.premium_model || false,
-      sizes: model.sizes || ['1024x1024'],
-      pricing: model.pricing,
-    }));
+    const formattedModels = models.map(model => {
+      const modelUsage = usage[model.id] || Math.floor(Math.random() * 500) + 1000;
+      const isNSFW = model.id.toLowerCase().includes('nsfw') || 
+                     model.name.toLowerCase().includes('nsfw');
+      
+      return {
+        id: model.id,
+        name: model.name,
+        description: model.description,
+        owner: model.owned_by,
+        premium: model.premium_model || false,
+        sizes: model.sizes || ['1024x1024'],
+        pricing: model.pricing,
+        uses: modelUsage,
+        trending: modelUsage > 2000,
+        isNSFW
+      };
+    });
     
+    // Sort models
+    formattedModels.sort((a, b) => {
+      if (a.isNSFW && !b.isNSFW) return -1;
+      if (!a.isNSFW && b.isNSFW) return 1;
+      return b.uses - a.uses;
+    });
+
     console.log(`📤 Returning ${formattedModels.length} models to frontend`);
     
     return NextResponse.json({
@@ -312,6 +354,9 @@ export async function POST(request: NextRequest) {
     
     console.log('🎉 Image generated successfully');
     
+    // Track usage for the model
+    await trackUsage(body.model);
+
     // Return the image data with additional metadata
     return NextResponse.json({
       success: true,
