@@ -1,13 +1,51 @@
 "use client";
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession, signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Sparkles, Download, RotateCcw, User, 
   Grid3X3, Zap, Home, Volume2, VolumeX, 
-  Loader, X, Menu, CheckCircle, AlertCircle
+  Loader, X, Menu, CheckCircle, AlertCircle,
+  ChevronDown, Server, DollarSign, Cpu,
+  Info, Image as ImageIcon, Clock, TrendingUp,
+  Lock, MessageCircle, Flame, Crown, Heart
 } from 'lucide-react';
+
+// Types
+interface GeneratedImage {
+  id: string;
+  url: string;
+  prompt: string;
+  model: string;
+  modelName?: string;
+  generationTime: number;
+  timestamp: string;
+  userId: string;
+  username: string;
+}
+
+interface ModelInfo {
+  id: string;
+  name: string;
+  description: string;
+  owner: string;
+  premium: boolean;
+  sizes: string[];
+  trending?: boolean;
+  uses?: number;
+  pricing?: {
+    type: string;
+    coefficient: number;
+  };
+}
+
+interface ModelsResponse {
+  success: boolean;
+  models: ModelInfo[];
+  cached: boolean;
+  cacheAge: number;
+}
 
 // Debounce utility
 function debounce<T extends (...args: any[]) => void>(func: T, wait: number) {
@@ -24,14 +62,14 @@ const GalleryItem = React.memo(({ image, onDownload }: { image: GeneratedImage; 
   
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="bg-gray-800/50 rounded-xl overflow-hidden border border-gray-700 hover:border-pink-400/50 transition-all"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-2xl overflow-hidden hover:shadow-lg hover:shadow-purple-500/20 transition-all hover:border-purple-500/50"
     >
-      <div className="relative aspect-square bg-gray-700">
+      <div className="relative aspect-square bg-gray-900">
         {!isLoaded && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <Loader className="w-6 h-6 text-pink-400 animate-spin" />
+            <Loader className="w-6 h-6 text-gray-400 animate-spin" />
           </div>
         )}
         <img
@@ -43,15 +81,15 @@ const GalleryItem = React.memo(({ image, onDownload }: { image: GeneratedImage; 
         />
       </div>
       <div className="p-4">
-        <p className="text-xs text-gray-400 line-clamp-2 mb-3">{image.prompt}</p>
+        <p className="font-mono text-xs text-gray-300 line-clamp-2 mb-3">{image.prompt}</p>
         <div className="flex items-center justify-between">
-          <span className="text-xs text-gray-500">{image.model}</span>
+          <span className="font-mono text-xs text-gray-400">{image.modelName || image.model}</span>
           <button
             onClick={() => onDownload(image)}
-            className="p-1.5 rounded-lg bg-gray-700/50 hover:bg-gray-600/50 transition-colors"
+            className="p-1.5 bg-white text-black hover:bg-gray-200 transition-colors rounded-lg"
             aria-label="Download"
           >
-            <Download className="w-4 h-4 text-pink-400" />
+            <Download className="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -59,108 +97,356 @@ const GalleryItem = React.memo(({ image, onDownload }: { image: GeneratedImage; 
   );
 });
 
-// Loading animation component
-const GenerateLoadingAnimation = ({ status }: { status: string }) => (
-  <div className="mt-4 space-y-3">
-    <div className="flex items-center justify-center gap-2">
-      <motion.div
-        animate={{ rotate: 360 }}
-        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-      >
-        <Loader className="w-5 h-5 text-pink-400" />
-      </motion.div>
-      <span className="text-sm text-pink-300">{status}</span>
-    </div>
-    <div className="w-full bg-gray-700/30 rounded-full h-2 overflow-hidden">
-      <motion.div
-        className="h-full bg-gradient-to-r from-pink-500 to-purple-500"
-        initial={{ width: "0%" }}
-        animate={{ width: "100%" }}
-        transition={{ duration: 30, ease: "linear" }}
-      />
-    </div>
-  </div>
-);
+GalleryItem.displayName = 'GalleryItem';
 
-// Types
-interface GeneratedImage {
-  id: string;
-  url: string;
-  prompt: string;
-  model: string;
-  generationTime: number;
-  timestamp: string;
-  userId: string;
-  username: string;
-}
-
-// Model configuration with fallback order
-const MODEL_GROUPS = {
-  premium: ['flux-1.1-pro-ultra', 'flux-realism', 'flux-pro', 'dall-e-3', 'midjourney-v6.1'],
-  standard: ['flux-dev', 'stable-diffusion-3.5-turbo', 'sdxl', 'sana', 'stable-diffusion-3', 'playground-v3', 
-  'imagen-3', 'recraft-v3', 'ideogram-v2'],
-  fast: ['flux-schnell', 'sdxl-turbo', 'sdxl-lightning'],
-};
-
-const ALL_MODELS = [
-  ...MODEL_GROUPS.premium,
-  ...MODEL_GROUPS.standard,
-  ...MODEL_GROUPS.fast,
-];
-
-// Enhanced fetch with proper connection handling
-async function fetchWithKeepAlive(url: string, options: RequestInit): Promise<Response> {
-  const controller = new AbortController();
+// Custom Model Selector Component (Original)
+const ModelSelector = ({ 
+  models, 
+  selectedModel, 
+  onChange, 
+  disabled,
+  isLoading 
+}: {
+  models: ModelInfo[];
+  selectedModel: string;
+  onChange: (model: string) => void;
+  disabled: boolean;
+  isLoading: boolean;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   
-  // Set a very long timeout (5 minutes) to handle slow APIs
-  const timeoutId = setTimeout(() => controller.abort(), 300000);
+  const selectedModelInfo = models.find(m => m.id === selectedModel);
   
-  try {
-    const response = await fetch(url, {
-      ...options,
-      signal: controller.signal,
-      keepalive: true,
-      headers: {
-        ...options.headers,
-        'Connection': 'keep-alive',
-        'Keep-Alive': 'timeout=300, max=1000',
-      },
+  // Group models by category with NSFW first
+  const groupedModels = useMemo(() => {
+    const groups: { [key: string]: ModelInfo[] } = {
+      'NSFW': [],
+      'Trending': [],
+      'Premium': [],
+      'Fast': [],
+      'Standard': [],
+      'Other': []
+    };
+    
+    models.forEach(model => {
+      // Check for NSFW keywords
+      if (model.id.toLowerCase().includes('nsfw') || 
+          model.name.toLowerCase().includes('nsfw') ||
+          model.description?.toLowerCase().includes('nsfw') ||
+          model.description?.toLowerCase().includes('uncensored')) {
+        groups['NSFW'].push(model);
+      } else if (model.trending || model.uses && model.uses > 10000) {
+        groups['Trending'].push(model);
+      } else if (model.premium) {
+        groups['Premium'].push(model);
+      } else if (model.id.toLowerCase().includes('turbo') || 
+                 model.id.toLowerCase().includes('schnell') || 
+                 model.id.toLowerCase().includes('lightning')) {
+        groups['Fast'].push(model);
+      } else if (model.id.toLowerCase().includes('stable') || 
+                 model.id.toLowerCase().includes('sdxl') || 
+                 model.id.toLowerCase().includes('flux')) {
+        groups['Standard'].push(model);
+      } else {
+        groups['Other'].push(model);
+      }
     });
     
-    clearTimeout(timeoutId);
-    return response;
-  } catch (error) {
-    clearTimeout(timeoutId);
-    throw error;
+    // Remove empty groups
+    Object.keys(groups).forEach(key => {
+      if (groups[key].length === 0) delete groups[key];
+    });
+    
+    return groups;
+  }, [models]);
+  
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+  
+  if (isLoading) {
+    return (
+      <div className="w-full px-4 py-3 bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-xl font-mono text-sm flex items-center gap-2 text-gray-300">
+        <Loader className="w-4 h-4 animate-spin" />
+        <span className="text-gray-400">Loading models...</span>
+      </div>
+    );
   }
-}
 
+  if (models.length === 0) {
+    return (
+      <div className="w-full px-4 py-3 bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-xl font-mono text-sm flex items-center gap-2">
+        <AlertCircle className="w-4 h-4 text-red-500" />
+        <span className="text-red-400">Failed to load models</span>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        type="button"
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+        disabled={disabled}
+        className={`w-full px-4 py-3 bg-gray-900/50 backdrop-blur-sm border border-gray-800 rounded-xl font-mono text-sm text-left flex items-center justify-between hover:border-purple-500 transition-colors text-gray-200 ${
+          disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+        } ${isOpen ? 'border-purple-500' : ''}`}
+      >
+        <div className="flex items-center gap-2">
+          {selectedModelInfo?.id.toLowerCase().includes('nsfw') && (
+            <span className="px-2 py-0.5 bg-gradient-to-r from-pink-500 to-red-500 text-white text-xs rounded">NSFW</span>
+          )}
+          {selectedModelInfo?.premium && (
+            <span className="px-2 py-0.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs rounded">PRO</span>
+          )}
+          <span className="text-gray-200">{selectedModelInfo?.name || selectedModel}</span>
+        </div>
+        <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+      
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="absolute z-50 w-full mt-1 bg-gray-900 border border-gray-600 shadow-xl max-h-96 overflow-y-auto rounded-xl"
+          >
+            {Object.entries(groupedModels).map(([group, groupModels]) => (
+              <div key={group}>
+                <div className={`px-4 py-2 border-b border-gray-700 ${
+                  group === 'NSFW' ? 'bg-gradient-to-r from-pink-900/20 to-red-900/20' :
+                  group === 'Trending' ? 'bg-gradient-to-r from-purple-900/20 to-blue-900/20' :
+                  'bg-gray-800'
+                }`}>
+                  <span className="font-mono text-xs text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                    {group === 'NSFW' && <Heart className="w-3 h-3 text-pink-400" />}
+                    {group === 'Trending' && <TrendingUp className="w-3 h-3 text-purple-400" />}
+                    {group === 'Premium' && <Crown className="w-3 h-3 text-yellow-400" />}
+                    {group}
+                  </span>
+                </div>
+                {groupModels.map((model) => (
+                  <button
+                    key={model.id}
+                    onClick={() => {
+                      onChange(model.id);
+                      setIsOpen(false);
+                    }}
+                    className="w-full px-4 py-3 text-left hover:bg-gray-800 transition-colors flex items-center justify-between group text-gray-200"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        {model.id.toLowerCase().includes('nsfw') && (
+                          <span className="px-2 py-0.5 bg-gradient-to-r from-pink-500 to-red-500 text-white text-xs rounded">NSFW</span>
+                        )}
+                        {model.premium && (
+                          <span className="px-2 py-0.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs rounded">PRO</span>
+                        )}
+                        <span className="font-mono text-sm text-gray-200">{model.name}</span>
+                      </div>
+                      {model.description && (
+                        <p className="font-mono text-xs text-gray-400 mt-1">{model.description}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                      {model.pricing && (
+                        <span className="flex items-center gap-1">
+                          <DollarSign className="w-3 h-3" />
+                          {model.pricing.coefficient}
+                        </span>
+                      )}
+                      <span className="font-mono">{model.owner}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// Trending Model Card
+const TrendingModelCard = ({ 
+  model, 
+  isSelected,
+  onClick
+}: {
+  model: ModelInfo;
+  isSelected: boolean;
+  onClick: () => void;
+}) => {
+  const isNSFW = model.id.toLowerCase().includes('nsfw') || model.name.toLowerCase().includes('nsfw');
+  
+  return (
+    <motion.div
+      whileHover={{ scale: 1.02, y: -2 }}
+      onClick={onClick}
+      className={`relative cursor-pointer p-4 rounded-xl transition-all ${
+        isSelected 
+          ? 'bg-gradient-to-br from-purple-900/30 to-pink-900/30 border-purple-500' 
+          : 'bg-gray-900/50 border-gray-800 hover:border-purple-500/50'
+      } border backdrop-blur-sm`}
+    >
+      <div className="flex items-start justify-between mb-2">
+        <h4 className="font-medium text-sm text-white">{model.name}</h4>
+        <div className="flex gap-1">
+          {isNSFW && (
+            <span className="px-2 py-0.5 bg-gradient-to-r from-pink-500 to-red-500 text-white text-xs rounded-full">
+              NSFW
+            </span>
+          )}
+          {model.premium && (
+            <Crown className="w-4 h-4 text-yellow-400" />
+          )}
+        </div>
+      </div>
+      <p className="text-xs text-gray-400 line-clamp-2">{model.description}</p>
+      {model.uses && (
+        <div className="mt-2 flex items-center gap-1 text-xs text-gray-500">
+          <TrendingUp className="w-3 h-3" />
+          {model.uses.toLocaleString()} uses
+        </div>
+      )}
+    </motion.div>
+  );
+};
+
+// Main component
 export default function AnimeImageGenerator() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [prompt, setPrompt] = useState('');
-  const [selectedModel, setSelectedModel] = useState('flux-pro');
+  const [selectedModel, setSelectedModel] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentView, setCurrentView] = useState<'generate' | 'gallery'>('generate');
   const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
   const [currentImage, setCurrentImage] = useState<GeneratedImage | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [backgroundImage, setBackgroundImage] = useState('/bg.jpg');
   const [generationStatus, setGenerationStatus] = useState('');
   const [userGenerationCount, setUserGenerationCount] = useState(0);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [isMobileScreen, setIsMobileScreen] = useState(false);
-  // Add sidebar collapsed state
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const bgGeneratedRef = useRef(false);
+  const [models, setModels] = useState<ModelInfo[]>([]);
+  const [modelsLoading, setModelsLoading] = useState(true);
+  const [musicEnabled, setMusicEnabled] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false);
+  const [guestGenerations, setGuestGenerations] = useState(0);
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const activeRequestRef = useRef<AbortController | null>(null);
-  const isAndroid = typeof window !== 'undefined' && /android/i.test(navigator.userAgent);
-  const [bgRefreshed, setBgRefreshed] = useState(false);
-
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   // Constants
   const GENERATION_LIMIT = 10;
+  const GUEST_LIMIT = 1;
+  const isGuest = !session;
+  const canGenerate = isGuest ? guestGenerations < GUEST_LIMIT : userGenerationCount < GENERATION_LIMIT;
+
+  // Initialize audio and guest count
+  useEffect(() => {
+    audioRef.current = new Audio('/christmas.mp3');
+    audioRef.current.loop = true;
+    audioRef.current.volume = 0.3;
+    
+    // Load guest generation count
+    const savedGuestCount = localStorage.getItem('guestGenerations');
+    if (savedGuestCount) {
+      setGuestGenerations(parseInt(savedGuestCount));
+    }
+    
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  // Handle first interaction for audio
+  const handleFirstInteraction = useCallback(() => {
+    if (!hasInteracted) {
+      setHasInteracted(true);
+      if (audioRef.current && musicEnabled) {
+        audioRef.current.play().catch(console.error);
+      }
+    }
+  }, [hasInteracted, musicEnabled]);
+
+  // Toggle music
+  const toggleMusic = useCallback(() => {
+    setMusicEnabled(prev => {
+      const newState = !prev;
+      if (audioRef.current) {
+        if (newState && hasInteracted) {
+          audioRef.current.play().catch(console.error);
+        } else {
+          audioRef.current.pause();
+        }
+      }
+      return newState;
+    });
+  }, [hasInteracted]);
+
+  // Fetch models from API with NSFW prioritization
+  useEffect(() => {
+    const fetchModels = async () => {
+      try {
+        setModelsLoading(true);
+        const response = await fetch('/api/img', {
+          method: 'GET',
+        });
+        const data = await response.json();
+        
+        if (data.success && data.models) {
+          // Sort models: NSFW first, then by trending/uses
+          const sortedModels = [...data.models].sort((a: ModelInfo, b: ModelInfo) => {
+            const aNSFW = a.id.toLowerCase().includes('nsfw') || 
+                          a.name?.toLowerCase().includes('nsfw') ||
+                          a.description?.toLowerCase().includes('uncensored') ? 1 : 0;
+            const bNSFW = b.id.toLowerCase().includes('nsfw') || 
+                          b.name?.toLowerCase().includes('nsfw') ||
+                          b.description?.toLowerCase().includes('uncensored') ? 1 : 0;
+            
+            if (aNSFW !== bNSFW) return bNSFW - aNSFW;
+            
+            // Then sort by uses/trending
+            return (b.uses || 0) - (a.uses || 0);
+          });
+          
+          // Add mock usage data for demonstration
+          sortedModels.forEach((model: ModelInfo, index: number) => {
+            model.uses = Math.floor(Math.random() * 50000) + 10000;
+            model.trending = index < 5;
+          });
+          
+          setModels(sortedModels);
+          
+          // Set default model (prefer NSFW or first model)
+          if (!selectedModel && sortedModels.length > 0) {
+            setSelectedModel(sortedModels[0].id);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch models:', error);
+      } finally {
+        setModelsLoading(false);
+      }
+    };
+    
+    fetchModels();
+  }, [selectedModel]);
 
   // Load user data and generation count
   useEffect(() => {
@@ -174,38 +460,6 @@ export default function AnimeImageGenerator() {
     }
   }, [session]);
 
-  // Load or generate background
-  useEffect(() => {
-    const loadBackground = async () => {
-      if (!session?.user?.id) return;
-      const BG_KEY = `bg_image_${session.user.id}`;
-      const BG_TIMESTAMP_KEY = `bg_timestamp_${session.user.id}`;
-      const savedBg = localStorage.getItem(BG_KEY);
-      const savedTimestamp = localStorage.getItem(BG_TIMESTAMP_KEY);
-      // Check if background exists and is less than 7 days old
-      if (savedBg && savedTimestamp) {
-        const age = Date.now() - parseInt(savedTimestamp);
-        const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
-        if (age < SEVEN_DAYS) {
-          setBackgroundImage(savedBg);
-          setBgRefreshed(true);
-          return;
-        }
-      }
-      // Generate new background if needed
-      generateBackgroundImage();
-    };
-    loadBackground();
-  }, [session]);
-
-  // Auth check
-  useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) {
-      router.push('/login');
-    }
-  }, [session, status, router]);
-
   // Mobile detection
   useEffect(() => {
     const checkMobileScreen = debounce(() => {
@@ -217,182 +471,156 @@ export default function AnimeImageGenerator() {
     return () => window.removeEventListener('resize', checkMobileScreen);
   }, []);
 
-  
-const generateBackgroundImage = async () => {
-  setBgRefreshed(true); //always mark as refreshed
-  const bgPrompt = 'Beautiful anime landscape, cherry blossoms, warm sunset, peaceful atmosphere, studio ghibli style';
-  const models = ['flux-dev', 'stable-diffusion-3.5-turbo', 'sdxl'];
-  
-  for (const model of models) {
-    try {
-      const response = await fetchWithKeepAlive('/api/img', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: bgPrompt,
-          model,
-          n: 1,
-          response_format: 'url',
-        }),
-      });
-
-      const data = await response.json();
-      console.log(`Background generation response from ${model}:`, data); // Debug logging
-      
-      if (data.success && data.imageUrl) {
-        const img = new Image();
-        img.src = data.imageUrl;
-        img.onload = () => {
-          setBackgroundImage(data.imageUrl);
-          // Save to localStorage with user ID
-          if (session?.user?.id) {
-            localStorage.setItem(`bg_image_${session.user.id}`, data.imageUrl);
-            localStorage.setItem(`bg_timestamp_${session.user.id}`, Date.now().toString());
-          }
-        };
-        break;
-      }
-    } catch (error) {
-      console.error(`Background generation failed with ${model}:`, error);
-    }
-  }
-};
-
   // Get fallback models based on selected model
-  const getFallbackModels = (selectedModel: string): string[] => {
-    const modelGroup = Object.entries(MODEL_GROUPS).find(([_, models]) => 
-      models.includes(selectedModel)
-    );
+  const getFallbackModels = (selectedModelId: string): string[] => {
+    const selectedModelInfo = models.find(m => m.id === selectedModelId);
+    if (!selectedModelInfo) return models.map(m => m.id).filter(id => id !== selectedModelId);
     
-    if (modelGroup) {
-      const [groupName, models] = modelGroup;
-      const otherGroups = Object.entries(MODEL_GROUPS)
-        .filter(([name]) => name !== groupName)
-        .flatMap(([_, models]) => models);
-      return [...models.filter(m => m !== selectedModel), ...otherGroups];
-    }
+    const sortedModels = [...models]
+      .filter(m => m.id !== selectedModelId)
+      .sort((a, b) => {
+        if (a.owner === selectedModelInfo.owner && b.owner !== selectedModelInfo.owner) return -1;
+        if (b.owner === selectedModelInfo.owner && a.owner !== selectedModelInfo.owner) return 1;
+        if (a.premium === selectedModelInfo.premium && b.premium !== selectedModelInfo.premium) return -1;
+        if (b.premium === selectedModelInfo.premium && a.premium !== selectedModelInfo.premium) return 1;
+        return 0;
+      });
     
-    return ALL_MODELS.filter(m => m !== selectedModel);
+    return sortedModels.map(m => m.id);
   };
 
   // Image generation with smart fallback
-const generateImage = async () => {
-  if (!prompt.trim()) {
-    setGenerationStatus('Please enter a prompt');
-    setTimeout(() => setGenerationStatus(''), 3000);
-    return;
-  }
-
-  if (userGenerationCount >= GENERATION_LIMIT) {
-    setGenerationStatus(`Generation limit reached (${GENERATION_LIMIT} images)`);
-    setTimeout(() => setGenerationStatus(''), 3000);
-    return;
-  }
-
-  // Cancel any existing request
-  if (activeRequestRef.current) {
-    activeRequestRef.current.abort();
-  }
-
-  setIsGenerating(true);
-  setGenerationStatus('Initializing generation...');
-
-  const modelsToTry = [selectedModel, ...getFallbackModels(selectedModel)];
-  let successfulModel = null;
-  let imageUrl = null;
-  let generationTime = 0;
-  const startTime = Date.now();
-
-  // Try models in order
-  for (const model of modelsToTry) {
-    setGenerationStatus(`Generating with ${model}...`);
+  const generateImage = async () => {
+    handleFirstInteraction();
     
-    try {
-      activeRequestRef.current = new AbortController();
-      
-      // Use fetchWithKeepAlive instead of regular fetch
-      const response = await fetchWithKeepAlive('/api/img', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt: `${prompt}, beautiful anime/seductive style, high quality`,
-          model,
-          n: 1,
-          response_format: 'url',
-        }),
-        signal: activeRequestRef.current.signal,
-      });
-
-      const data = await response.json();
-      
-      console.log(`Response from ${model}:`, data); // Debug logging
-      
-      if (data.success && data.imageUrl) {
-        // Verify the image URL is valid
-        try {
-          const imgTest = new Image();
-          await new Promise((resolve, reject) => {
-            imgTest.onload = resolve;
-            imgTest.onerror = reject;
-            setTimeout(reject, 10000); // 10 second timeout for image loading
-            imgTest.src = data.imageUrl;
-          });
-          
-          successfulModel = model;
-          imageUrl = data.imageUrl;
-          generationTime = (Date.now() - startTime) / 1000;
-          break;
-        } catch (imgError) {
-          console.error(`Image validation failed for ${model}:`, imgError);
-        }
-      } else {
-        console.error(`Model ${model} response:`, data);
-        if (data.error) {
-          console.error(`API Error: ${data.error}`);
-        }
-      }
-    } catch (error: any) {
-      if (error.name === 'AbortError') {
-        console.log('Request was cancelled');
-        break;
-      }
-      console.error(`Failed with model ${model}:`, error);
+    if (!prompt.trim()) {
+      setGenerationStatus('Please enter a prompt');
+      setTimeout(() => setGenerationStatus(''), 3000);
+      return;
     }
-  }
 
-  activeRequestRef.current = null;
+    if (isGuest && guestGenerations >= GUEST_LIMIT) {
+      setShowAuthPrompt(true);
+      return;
+    }
 
-  if (successfulModel && imageUrl) {
-    const newImage: GeneratedImage = {
-      id: `${session?.user?.id}_${Date.now()}`,
-      url: imageUrl,
-      prompt,
-      model: successfulModel,
-      generationTime,
-      timestamp: new Date().toISOString(),
-      userId: session?.user?.id || '',
-      username: session?.user?.name || 'Anonymous',
-    };
+    if (!isGuest && userGenerationCount >= GENERATION_LIMIT) {
+      setGenerationStatus(`Generation limit reached (${GENERATION_LIMIT} images)`);
+      setTimeout(() => setGenerationStatus(''), 3000);
+      return;
+    }
 
-    setCurrentImage(newImage);
-    setGeneratedImages(prev => {
-      const updated = [newImage, ...prev];
-      if (session?.user?.id) {
-        localStorage.setItem(`images_${session.user.id}`, JSON.stringify(updated));
+    // Cancel any existing request
+    if (activeRequestRef.current) {
+      activeRequestRef.current.abort();
+    }
+
+    setIsGenerating(true);
+    setGenerationStatus('Initializing generation...');
+
+    const modelsToTry = [selectedModel, ...getFallbackModels(selectedModel)];
+    let successfulModel = null;
+    let successfulModelName = null;
+    let imageUrl = null;
+    let generationTime = 0;
+    const startTime = Date.now();
+
+    // Try models in order
+    for (const modelId of modelsToTry) {
+      const modelInfo = models.find(m => m.id === modelId);
+      setGenerationStatus(`Generating with ${modelInfo?.name || modelId}...`);
+      
+      try {
+        activeRequestRef.current = new AbortController();
+        
+        const response = await fetch('/api/img', {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            prompt: prompt,
+            model: modelId,
+            n: 1,
+            response_format: 'url',
+          }),
+          signal: activeRequestRef.current.signal,
+        });
+
+        const data = await response.json();
+        
+        console.log(`Response from ${modelId}:`, data);
+        
+        if (data.success && data.imageUrl) {
+          // Verify the image URL is valid
+          try {
+            const imgTest = new Image();
+            await new Promise((resolve, reject) => {
+              imgTest.onload = resolve;
+              imgTest.onerror = reject;
+              setTimeout(reject, 10000);
+              imgTest.src = data.imageUrl;
+            });
+            
+            successfulModel = modelId;
+            successfulModelName = modelInfo?.name || modelId;
+            imageUrl = data.imageUrl;
+            generationTime = (Date.now() - startTime) / 1000;
+            break;
+          } catch (imgError) {
+            console.error(`Image validation failed for ${modelId}:`, imgError);
+          }
+        }
+      } catch (error: any) {
+        if (error.name === 'AbortError') {
+          console.log('Request was cancelled');
+          break;
+        }
+        console.error(`Failed with model ${modelId}:`, error);
       }
-      return updated;
-    });
-    setUserGenerationCount(prev => prev + 1);
-    setGenerationStatus('');
-  } else {
-    setGenerationStatus('Generation failed with all models. Check console for details.');
-    setTimeout(() => setGenerationStatus(''), 5000);
-  }
+    }
 
-  setIsGenerating(false);
-};
+    activeRequestRef.current = null;
+
+    if (successfulModel && imageUrl) {
+      const newImage: GeneratedImage = {
+        id: `${session?.user?.id || 'guest'}_${Date.now()}`,
+        url: imageUrl,
+        prompt,
+        model: successfulModel,
+        modelName: successfulModelName || undefined,
+        generationTime,
+        timestamp: new Date().toISOString(),
+        userId: session?.user?.id || 'guest',
+        username: session?.user?.name || 'Guest',
+      };
+
+      setCurrentImage(newImage);
+      
+      if (isGuest) {
+        const newCount = guestGenerations + 1;
+        setGuestGenerations(newCount);
+        localStorage.setItem('guestGenerations', newCount.toString());
+      } else {
+        setGeneratedImages(prev => {
+          const updated = [newImage, ...prev];
+          if (session?.user?.id) {
+            localStorage.setItem(`images_${session.user.id}`, JSON.stringify(updated));
+          }
+          return updated;
+        });
+        setUserGenerationCount(prev => prev + 1);
+      }
+      
+      setGenerationStatus('');
+    } else {
+      setGenerationStatus('Generation failed. Please try again.');
+      setTimeout(() => setGenerationStatus(''), 5000);
+    }
+
+    setIsGenerating(false);
+  };
+
   // Cancel generation
   const cancelGeneration = () => {
     if (activeRequestRef.current) {
@@ -405,47 +633,12 @@ const generateImage = async () => {
 
   // Download image
   const downloadImage = useCallback((image: GeneratedImage) => {
+    handleFirstInteraction();
     const link = document.createElement('a');
     link.href = image.url;
-    link.download = `anime-art-${image.id}.jpg`;
+    link.download = `generated-${image.id}.jpg`;
     link.click();
-  }, []);
-
-  // Music control
-  const toggleMusic = useCallback(() => {
-    if (!audioRef.current) return;
-    
-    if (isPlaying) {
-      audioRef.current.pause();
-    } else {
-      audioRef.current.play().catch(() => {});
-    }
-    setIsPlaying(!isPlaying);
-  }, [isPlaying]);
-
-  // Start music on first interaction
-  useEffect(() => {
-    const startMusic = () => {
-      if (audioRef.current) {
-        audioRef.current.play().catch(() => {});
-        setIsPlaying(true);
-      }
-    };
-
-    const handler = () => {
-      startMusic();
-      window.removeEventListener('click', handler);
-      window.removeEventListener('touchstart', handler);
-    };
-    
-    window.addEventListener('click', handler, { once: true });
-    window.addEventListener('touchstart', handler, { once: true });
-    
-    return () => {
-      window.removeEventListener('click', handler);
-      window.removeEventListener('touchstart', handler);
-    };
-  }, []);
+  }, [handleFirstInteraction]);
 
   // Filter images for current user
   const userImages = useMemo(() => {
@@ -453,282 +646,214 @@ const generateImage = async () => {
     return generatedImages.filter(img => img.userId === session.user.id);
   }, [generatedImages, session]);
 
-  // Snow animation component
-const SnowAnimation = React.memo(() => {
-  const snowflakes = useMemo(() => {
-    return Array.from({ length: 50 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      delay: Math.random() * 10,
-      duration: 10 + Math.random() * 20,
-      size: Math.random() * 3 + 2,
-    }));
-  }, []);
-
-  return (
-    <div className="fixed inset-0 pointer-events-none z-50">
-      {snowflakes.map((flake) => (
-        <motion.div
-          key={flake.id}
-          className="absolute rounded-full bg-white/70"
-          style={{
-            left: `${flake.x}%`,
-            width: flake.size,
-            height: flake.size,
-          }}
-          initial={{ top: -10, opacity: 0 }}
-          animate={{
-            top: '110%',
-            opacity: [0, 1, 1, 0],
-            x: [0, 30, -30, 0],
-          }}
-          transition={{
-            duration: flake.duration,
-            delay: flake.delay,
-            repeat: Infinity,
-            ease: "linear",
-          }}
-        />
-      ))}
-    </div>
-  );
-});
-
-// Cursor trail component (desktop only)
-const CursorTrail = () => {
-  const [trails, setTrails] = useState<Array<{ id: number; x: number; y: number }>>([]);
-  const trailIdRef = useRef(0);
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      const newTrail = {
-        id: trailIdRef.current++,
-        x: e.clientX,
-        y: e.clientY,
-      };
-      setTrails(prev => [...prev.slice(-20), newTrail]);
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
-
-  return (
-    <div className="fixed inset-0 pointer-events-none z-40">
-      {trails.map((trail) => (
-        <motion.div
-          key={trail.id}
-          className="absolute w-2 h-2 rounded-full bg-pink-400/30"
-          style={{ left: trail.x, top: trail.y }}
-          initial={{ scale: 1, opacity: 0.6 }}
-          animate={{ scale: 0, opacity: 0 }}
-          transition={{ duration: 1, ease: "easeOut" }}
-        />
-      ))}
-    </div>
-  );
-};
-
-// Floating particles background
-const FloatingParticles = () => {
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePos({ x: e.clientX, y: e.clientY });
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
-  const particles = useMemo(() => {
-    return Array.from({ length: 20 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 4 + 1,
-    }));
-  }, []);
-  return (
-    <div className="fixed inset-0 pointer-events-none z-10">
-      {particles.map((particle) => (
-        <motion.div
-          key={particle.id}
-          className="absolute rounded-full bg-pink-400/20"
-          style={{
-            width: particle.size,
-            height: particle.size,
-          }}
-          animate={{
-            x: `calc(${particle.x}% + ${(mousePos.x - window.innerWidth / 2) * 0.02}px)`,
-            y: `calc(${particle.y}% + ${(mousePos.y - window.innerHeight / 2) * 0.02}px)`,
-          }}
-          transition={{
-            type: "spring",
-            damping: 50,
-            stiffness: 100,
-          }}
-        />
-      ))}
-    </div>
-  );
-};
-
-  if (status === 'loading') {
-    return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <Loader className="w-12 h-12 text-pink-400 animate-spin" />
-      </div>
-    );
-  }
+  // Get trending models (top 4)
+  const trendingModels = useMemo(() => {
+    return models.slice(0, 4);
+  }, [models]);
 
   return (
     <>
-      {/* Background */}
+      {/* Background with particles */}
       <div className="fixed inset-0 z-0">
-        <div 
-          className="absolute inset-0 bg-gray-900"
-          style={{
-            backgroundImage: backgroundImage !== '/bg.jpg' ? `url(${backgroundImage})` : undefined,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80" />
-        {/* Add floating particles */}
-        <FloatingParticles />
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/10 via-black to-pink-900/10" />
+        <div className="absolute inset-0">
+          {[...Array(30)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-1 h-1 bg-white/20 rounded-full"
+              initial={{
+                x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1920),
+                y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 1080),
+              }}
+              animate={{
+                y: [null, -30],
+                opacity: [0.2, 0]
+              }}
+              transition={{
+                duration: Math.random() * 10 + 10,
+                repeat: Infinity,
+                repeatType: 'loop',
+                ease: 'linear'
+              }}
+            />
+          ))}
+        </div>
       </div>
 
-      {/* Add snow animation */}
-      <SnowAnimation />
+      {/* Background Video during generation */}
+      {isGenerating && (
+        <div className="fixed inset-0 z-0">
+          <video
+            ref={videoRef}
+            autoPlay
+            muted
+            loop
+            className="w-full h-full object-cover opacity-30"
+          >
+            <source src="/shorekeeper.mp4" type="video/mp4" />
+          </video>
+          <div className="absolute inset-0 bg-black/70" />
+        </div>
+      )}
 
-      {/* Add cursor trail (desktop only) */}
-      {!isMobileScreen && <CursorTrail />}
-
-      <audio ref={audioRef} loop src="/christmas.mp3" />
-
-      {/* Desktop Sidebar - Always visible on PC */}
-      {/* Increased from 60px to 80px */}
+      {/* Desktop Sidebar */}
       {!isMobileScreen && (
         <motion.div
           initial={false}
           animate={{ width: sidebarCollapsed ? '80px' : '280px' }}
           transition={{ type: 'spring', damping: 25 }}
-          className="fixed left-0 top-0 h-full z-40 bg-gray-900/95 backdrop-blur-lg border-r border-gray-800"
+          className="fixed left-0 top-0 h-full z-40 bg-black/90 backdrop-blur-md text-white"
+          style={{
+            boxShadow: sidebarCollapsed ? '2px 0 20px rgba(255,255,255,0.1)' : '4px 0 30px rgba(255,255,255,0.15)',
+            borderRight: '1px solid rgba(255,255,255,0.1)'
+          }}
         >
           <div className="h-full flex flex-col">
             {/* Sidebar Header */}
             <div className="p-4 border-b border-gray-800">
               <div className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-between'}`}>
                 {!sidebarCollapsed && (
-                  <h2 className="text-xl font-bold text-pink-400">Menu</h2>
+                  <h2 className="font-mono text-xl bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">LAXENTA</h2>
                 )}
                 <button
-                  onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                  className="p-2.5 rounded-lg hover:bg-gray-800/50 transition-colors"
+                  onClick={() => {
+                    handleFirstInteraction();
+                    setSidebarCollapsed(!sidebarCollapsed);
+                  }}
+                  className="p-2 hover:bg-gray-900 transition-colors rounded"
                 >
-                  <Menu className="w-6 h-6 text-pink-400" />
+                  <Menu className="w-5 h-5" />
                 </button>
               </div>
             </div>
 
+            {/* Music Control */}
+            <div className="p-4 border-b border-gray-800">
+              <button
+                onClick={toggleMusic}
+                className={`w-full flex items-center ${
+                  sidebarCollapsed ? 'justify-center' : 'justify-center gap-2'
+                } p-2 rounded transition-colors ${
+                  musicEnabled ? 'bg-purple-600 hover:bg-purple-700' : 'bg-gray-800 hover:bg-gray-700'
+                }`}
+              >
+                {musicEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+                {!sidebarCollapsed && (
+                  <span className="font-mono text-sm">
+                    {musicEnabled ? 'Music On' : 'Music Off'}
+                  </span>
+                )}
+              </button>
+            </div>
+
             {/* User Info */}
-            {session?.user && (
+            {session?.user ? (
               <div className={`p-4 border-b border-gray-800 ${sidebarCollapsed ? 'text-center' : ''}`}>
                 <div className={`${sidebarCollapsed ? 'flex flex-col items-center' : 'flex items-center gap-3'}`}>
                   <img 
                     src={session.user.image || ''} 
                     alt="User"
-                    className={`rounded-full border-2 border-pink-400 ${sidebarCollapsed ? 'w-10 h-10' : 'w-12 h-12'}`}
+                    className={`rounded-full border-2 border-purple-400 ${sidebarCollapsed ? 'w-10 h-10' : 'w-12 h-12'}`}
                   />
                   {!sidebarCollapsed && (
                     <div>
-                      <p className="text-pink-300 font-medium">{session.user.name}</p>
-                      <p className="text-xs text-gray-500">
-                        {userGenerationCount}/{GENERATION_LIMIT} images
+                      <p className="font-mono text-sm text-gray-200">{session.user.name}</p>
+                      <p className="font-mono text-xs text-gray-400">
+                        {userGenerationCount}/{GENERATION_LIMIT} generated
                       </p>
                     </div>
                   )}
                 </div>
                 {!sidebarCollapsed && (
                   <div className="mt-3">
-                    <div className="w-full bg-gray-700/50 rounded-full h-2">
+                    <div className="w-full bg-gray-800 h-1 rounded overflow-hidden">
                       <div 
-                        className="h-full bg-gradient-to-r from-pink-500 to-purple-500 rounded-full"
+                        className="h-full bg-gradient-to-r from-purple-400 to-pink-400 transition-all"
                         style={{ width: `${(userGenerationCount / GENERATION_LIMIT) * 100}%` }}
                       />
                     </div>
                   </div>
                 )}
               </div>
+            ) : (
+              <div className={`p-4 border-b border-gray-800 ${sidebarCollapsed ? 'text-center' : ''}`}>
+                <div className={`${sidebarCollapsed ? 'flex flex-col items-center' : 'space-y-3'}`}>
+                  {!sidebarCollapsed && (
+                    <>
+                      <p className="font-mono text-sm text-gray-300">Guest Mode</p>
+                      <p className="font-mono text-xs text-gray-400">
+                        {guestGenerations}/{GUEST_LIMIT} free generation
+                      </p>
+                      <button
+                        onClick={() => signIn('discord')}
+                        className="w-full px-3 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg text-xs font-medium hover:from-purple-700 hover:to-pink-700 transition-all flex items-center justify-center gap-2"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        Login with Discord
+                      </button>
+                    </>
+                  )}
+                  {sidebarCollapsed && (
+                    <button
+                      onClick={() => signIn('discord')}
+                      className="p-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700"
+                    >
+                      <User className="w-5 h-5" />
+                    </button>
+                  )}
+                </div>
+              </div>
             )}
 
             {/* Navigation */}
             <nav className={`flex-1 ${sidebarCollapsed ? 'px-2 py-4' : 'p-4'} space-y-2`}>
               <button
-                onClick={() => setCurrentView('generate')}
-                className={`w-full rounded-xl flex items-center ${
-                  sidebarCollapsed ? 'p-4 justify-center' : 'p-3 gap-3'
-                } transition-colors ${
+                onClick={() => {
+                  handleFirstInteraction();
+                  setCurrentView('generate');
+                }}
+                className={`w-full flex items-center ${
+                  sidebarCollapsed ? 'p-3 justify-center' : 'p-3 gap-3'
+                } transition-all rounded ${
                   currentView === 'generate' 
-                    ? 'bg-pink-500/20 text-pink-300 border border-pink-500/30' 
-                    : 'hover:bg-gray-800/50 text-gray-400'
+                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg' 
+                    : 'hover:bg-gray-900 text-gray-400 hover:text-white'
                 }`}
-                title={sidebarCollapsed ? 'Generate' : ''}
               >
-                <Sparkles className={`${sidebarCollapsed ? 'w-6 h-6' : 'w-5 h-5'}`} />
-                {!sidebarCollapsed && <span>Generate</span>}
+                <Sparkles className="w-5 h-5" />
+                {!sidebarCollapsed && <span className="font-mono">Generate</span>}
               </button>
+              {!isGuest && (
+                <button
+                  onClick={() => {
+                    handleFirstInteraction();
+                    setCurrentView('gallery');
+                  }}
+                  className={`w-full flex items-center ${
+                    sidebarCollapsed ? 'p-3 justify-center' : 'p-3 gap-3'
+                  } transition-all rounded ${
+                    currentView === 'gallery' 
+                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg' 
+                      : 'hover:bg-gray-900 text-gray-400 hover:text-white'
+                  }`}
+                >
+                  <Grid3X3 className="w-5 h-5" />
+                  {!sidebarCollapsed && <span className="font-mono">Gallery</span>}
+                </button>
+              )}
               <button
-                onClick={() => setCurrentView('gallery')}
-                className={`w-full rounded-xl flex items-center ${
-                  sidebarCollapsed ? 'p-4 justify-center' : 'p-3 gap-3'
-                } transition-colors ${
-                  currentView === 'gallery' 
-                    ? 'bg-pink-500/20 text-pink-300 border border-pink-500/30' 
-                    : 'hover:bg-gray-800/50 text-gray-400'
-                }`}
-                title={sidebarCollapsed ? 'Gallery' : ''}
-              >
-                <Grid3X3 className={`${sidebarCollapsed ? 'w-6 h-6' : 'w-5 h-5'}`} />
-                {!sidebarCollapsed && <span>Gallery</span>}
-              </button>
-              <button
-                onClick={() => router.push('/')}
-                className={`w-full rounded-xl hover:bg-gray-800/50 text-gray-400 flex items-center ${
-                  sidebarCollapsed ? 'p-4 justify-center' : 'p-3 gap-3'
-                } transition-colors`}
-                title={sidebarCollapsed ? 'Home' : ''}
+                onClick={() => {
+                  handleFirstInteraction();
+                  router.push('/');
+                }}
+                className={`w-full hover:bg-gray-900 text-gray-400 hover:text-white flex items-center ${
+                  sidebarCollapsed ? 'p-3 justify-center' : 'p-3 gap-3'
+                } transition-all rounded`}
               >
                 <Home className="w-5 h-5" />
-                {!sidebarCollapsed && <span>Home</span>}
-              </button>
-              <button
-                onClick={() => router.push('/ai')}
-                className={`w-full rounded-xl hover:bg-gray-800/50 text-gray-400 flex items-center ${
-                  sidebarCollapsed ? 'p-4 justify-center' : 'p-3 gap-3'
-                } transition-colors`}
-                title={sidebarCollapsed ? 'AI' : ''}
-              >
-                <Zap className="w-5 h-5" />
-                {!sidebarCollapsed && <span>AI</span>}
+                {!sidebarCollapsed && <span className="font-mono">Home</span>}
               </button>
             </nav>
-
-            {/* Music Control */}
-            <div className={`${sidebarCollapsed ? 'px-2 py-4' : 'p-4'} border-t border-gray-800`}>
-              <button
-                onClick={toggleMusic}
-                className={`w-full rounded-xl ${
-                  sidebarCollapsed ? 'p-4 justify-center' : 'p-3 justify-between'
-                } hover:bg-gray-800/50 text-gray-400 flex items-center transition-colors`}
-                title={sidebarCollapsed ? (isPlaying ? 'Mute Music' : 'Play Music') : ''}
-              >
-                {!sidebarCollapsed && <span>Background Music</span>}
-                {isPlaying ? (
-                  <Volume2 className={`${sidebarCollapsed ? 'w-6 h-6' : 'w-5 h-5'}`} />
-                ) : (
-                  <VolumeX className={`${sidebarCollapsed ? 'w-6 h-6' : 'w-5 h-5'}`} />
-                )}
-              </button>
-            </div>
           </div>
         </motion.div>
       )}
@@ -741,7 +866,7 @@ const FloatingParticles = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+              className="fixed inset-0 z-40 bg-black/80"
               onClick={() => setMenuOpen(false)}
             />
             <motion.div
@@ -749,93 +874,118 @@ const FloatingParticles = () => {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25 }}
-              className="fixed right-0 top-0 h-full w-80 max-w-[85vw] z-50 bg-gray-900/95 backdrop-blur-lg border-l border-gray-800"
+              className="fixed right-0 top-0 h-full w-80 max-w-[85vw] z-50 bg-gray-900 border-l border-gray-700"
             >
               <div className="p-6">
                 <div className="flex items-center justify-between mb-8">
-                  <h2 className="text-xl font-bold text-pink-400">Menu</h2>
+                  <h2 className="font-mono text-xl text-white">MENU</h2>
                   <button
                     onClick={() => setMenuOpen(false)}
-                    className="p-2 rounded-lg hover:bg-gray-800/50 transition-colors"
+                    className="p-2 hover:bg-gray-800 transition-colors rounded text-white"
                   >
-                    <X className="w-5 h-5 text-gray-400" />
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
 
-                {session?.user && (
-                  <div className="mb-6 p-4 rounded-xl bg-gray-800/50 border border-gray-700">
+                {/* Mobile Music Control */}
+                <div className="mb-6">
+                  <button
+                    onClick={toggleMusic}
+                    className={`w-full flex items-center justify-center gap-2 p-3 rounded transition-colors ${
+                      musicEnabled ? 'bg-purple-600 hover:bg-purple-700' : 'bg-gray-800 hover:bg-gray-700'
+                    } text-white`}
+                  >
+                    {musicEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+                    <span className="font-mono text-sm">
+                      {musicEnabled ? 'Music On' : 'Music Off'}
+                    </span>
+                  </button>
+                </div>
+
+                {session?.user ? (
+                  <div className="mb-6 p-4 bg-gray-800 border border-gray-700 rounded">
                     <div className="flex items-center gap-3 mb-2">
                       <img 
                         src={session.user.image || ''} 
                         alt="User"
-                        className="w-12 h-12 rounded-full border-2 border-pink-400"
+                        className="w-12 h-12 rounded-full border-2 border-purple-400"
                       />
                       <div>
-                        <p className="text-pink-300 font-medium">{session.user.name}</p>
-                        <p className="text-xs text-gray-500">
-                          {userGenerationCount}/{GENERATION_LIMIT} images
+                        <p className="font-mono text-sm text-white">{session.user.name}</p>
+                        <p className="font-mono text-xs text-gray-400">
+                          {userGenerationCount}/{GENERATION_LIMIT} generated
                         </p>
                       </div>
                     </div>
                     <div className="mt-3">
-                      <div className="w-full bg-gray-700/50 rounded-full h-2">
+                      <div className="w-full bg-gray-700 h-1 rounded overflow-hidden">
                         <div 
-                          className="h-full bg-gradient-to-r from-pink-500 to-purple-500 rounded-full"
+                          className="h-full bg-gradient-to-r from-purple-400 to-pink-400 transition-all"
                           style={{ width: `${(userGenerationCount / GENERATION_LIMIT) * 100}%` }}
                         />
                       </div>
                     </div>
                   </div>
+                ) : (
+                  <div className="mb-6 p-4 bg-gray-800 border border-gray-700 rounded">
+                    <p className="font-mono text-sm text-white mb-2">Guest Mode</p>
+                    <p className="font-mono text-xs text-gray-400 mb-3">
+                      {guestGenerations}/{GUEST_LIMIT} free generation
+                    </p>
+                    <button
+                      onClick={() => signIn('discord')}
+                      className="w-full px-3 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg text-sm font-medium hover:from-purple-700 hover:to-pink-700 transition-all flex items-center justify-center gap-2"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      Login with Discord
+                    </button>
+                  </div>
                 )}
 
                 <nav className="space-y-2">
                   <button
-                    onClick={() => { setCurrentView('generate'); setMenuOpen(false); }}
-                    className={`w-full p-3 rounded-xl flex items-center gap-3 transition-colors ${
+                    onClick={() => { 
+                      handleFirstInteraction();
+                      setCurrentView('generate'); 
+                      setMenuOpen(false); 
+                    }}
+                    className={`w-full p-3 flex items-center gap-3 transition-all font-mono rounded ${
                       currentView === 'generate' 
-                        ? 'bg-pink-500/20 text-pink-300 border border-pink-500/30' 
-                        : 'hover:bg-gray-800/50 text-gray-400'
+                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' 
+                        : 'hover:bg-gray-800 text-gray-300'
                     }`}
                   >
                     <Sparkles className="w-5 h-5" />
                     <span>Generate</span>
                   </button>
+                  {!isGuest && (
+                    <button
+                      onClick={() => { 
+                        handleFirstInteraction();
+                        setCurrentView('gallery'); 
+                        setMenuOpen(false); 
+                      }}
+                      className={`w-full p-3 flex items-center gap-3 transition-all font-mono rounded ${
+                        currentView === 'gallery' 
+                          ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' 
+                          : 'hover:bg-gray-800 text-gray-300'
+                      }`}
+                    >
+                      <Grid3X3 className="w-5 h-5" />
+                      <span>Gallery</span>
+                    </button>
+                  )}
                   <button
-                    onClick={() => { setCurrentView('gallery'); setMenuOpen(false); }}
-                    className={`w-full p-3 rounded-xl flex items-center gap-3 transition-colors ${
-                      currentView === 'gallery' 
-                        ? 'bg-pink-500/20 text-pink-300 border border-pink-500/30' 
-                        : 'hover:bg-gray-800/50 text-gray-400'
-                    }`}
-                  >
-                    <Grid3X3 className="w-5 h-5" />
-                    <span>Gallery</span>
-                  </button>
-                  <button
-                    onClick={() => router.push('/')}
-                    className="w-full p-3 rounded-xl hover:bg-gray-800/50 text-gray-400 flex items-center gap-3 transition-colors"
+                    onClick={() => {
+                      handleFirstInteraction();
+                      router.push('/');
+                    }}
+                    className="w-full p-3 hover:bg-gray-800 flex items-center gap-3 transition-all font-mono text-gray-300 rounded"
                   >
                     <Home className="w-5 h-5" />
                     <span>Home</span>
                   </button>
-                  <button
-                    onClick={() => router.push('/ai')}
-                    className="w-full p-3 rounded-xl hover:bg-gray-800/50 text-gray-400 flex items-center gap-3 transition-colors"
-                  >
-                    <Zap className="w-5 h-5" />
-                    <span>AI</span>
-                  </button>
                 </nav>
-
-                <div className="mt-6 pt-6 border-t border-gray-800">
-                  <button
-                    onClick={toggleMusic}
-                    className="w-full p-3 rounded-xl hover:bg-gray-800/50 text-gray-400 flex items-center justify-between transition-colors"
-                  >
-                    <span>Background Music</span>
-                    {isPlaying ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
-                  </button>
-                </div>
               </div>
             </motion.div>
           </>
@@ -843,178 +993,151 @@ const FloatingParticles = () => {
       </AnimatePresence>
 
       {/* Main Content */}
-      <div className={`relative z-10 min-h-screen ${
+      <div className={`min-h-screen bg-transparent ${
         !isMobileScreen ? (sidebarCollapsed ? 'ml-[80px]' : 'ml-[280px]') : ''
-      } transition-all duration-300`}>
-        {/* Header */}
-        <header className="bg-gray-900/50 backdrop-blur-lg border-b border-gray-800">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <motion.div 
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="flex items-center gap-3"
-              >
-                <Sparkles className="w-8 h-8 text-pink-400" />
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
-                  Laxenta.inc
-                </h1>
-              </motion.div>
-
-              {/* Only show menu button on mobile */}
-              {isMobileScreen && (
+      } transition-all duration-300 relative z-10`}>
+        
+        {/* Mobile Header */}
+        {isMobileScreen && (
+          <header className="bg-black/80 backdrop-blur-md border-b border-gray-800">
+            <div className="container mx-auto px-4 py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <ImageIcon className="w-6 h-6 text-purple-400" />
+                  <h1 className="font-mono text-xl uppercase tracking-wider text-white">LAXENTA</h1>
+                </div>
                 <button
-                  onClick={() => setMenuOpen(true)}
-                  className="p-2 rounded-lg hover:bg-gray-800/50 transition-colors"
+                  onClick={() => {
+                    handleFirstInteraction();
+                    setMenuOpen(true);
+                  }}
+                  className="p-2 hover:bg-gray-800 transition-colors rounded text-white"
                 >
-                  <Menu className="w-6 h-6 text-pink-400" />
+                  <Menu className="w-6 h-6" />
                 </button>
-              )}
+              </div>
             </div>
-          </div>
-        </header>
-
-        {/* Remove desktop navigation bar here */}
+          </header>
+        )}
 
         {/* Main Content */}
         <main className="container mx-auto px-4 py-8">
           {currentView === 'generate' ? (
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-7xl mx-auto">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-gray-900/50 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-gray-800"
+                className="grid lg:grid-cols-2 gap-12"
               >
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-2xl font-bold text-pink-300 flex items-center gap-2">
-                    <Sparkles className="w-6 h-6" />
-                    Create Your Vision
-                  </h2>
-                  <div className="text-sm text-gray-500">
-                    {userGenerationCount}/{GENERATION_LIMIT} generated
-                  </div>
-                </div>
-
-                <div className="space-y-6">
+                {/* Left Side - Input */}
+                <div className="space-y-8">
+                  {/* Title */}
                   <div>
-                    <label className="block text-sm font-medium text-pink-300 mb-2">
-                      Describe your imagination
-                    </label>
-                    <textarea
-                      value={prompt}
-                      onChange={(e) => setPrompt(e.target.value)}
-                      placeholder="A magical girl with pink hair standing under cherry blossoms..."
-                      className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-gray-100 placeholder-gray-500 focus:border-pink-400 focus:outline-none resize-none"
-                      rows={4}
-                      disabled={isGenerating || userGenerationCount >= GENERATION_LIMIT}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-pink-300 mb-2">
-                      Preferred Model
-                    </label>
-                    <motion.div
-                      whileHover={{ scale: 1.01 }}
-                      whileTap={{ scale: 0.99 }}
-                      className="relative"
-                    >
-                      <select
-                        value={selectedModel}
-                        onChange={(e) => setSelectedModel(e.target.value)}
-                        className="w-full px-4 py-3 bg-gray-800/70 backdrop-blur-sm border border-gray-700 rounded-xl text-gray-100 focus:border-pink-400 focus:outline-none hover:bg-gray-800/90 transition-all cursor-pointer appearance-none"
-                        disabled={isGenerating}
-                        style={{
-                          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23ec4899' d='M6 9L1 4h10z'/%3E%3C/svg%3E")`,
-                          backgroundRepeat: 'no-repeat',
-                          backgroundPosition: 'right 1rem center',
-                          paddingRight: '3rem',
-                        }}
-                      >
-                        <optgroup label="Premium Models" className="bg-gray-800">
-                          {MODEL_GROUPS.premium.map(model => (
-                            <option key={model} value={model} className="py-2">{model}</option>
-                          ))}
-                        </optgroup>
-                        <optgroup label="Standard Models" className="bg-gray-800">
-                          {MODEL_GROUPS.standard.map(model => (
-                            <option key={model} value={model} className="py-2">{model}</option>
-                          ))}
-                        </optgroup>
-                        <optgroup label="Fast Models" className="bg-gray-800">
-                          {MODEL_GROUPS.fast.map(model => (
-                            <option key={model} value={model} className="py-2">{model}</option>
-                          ))}
-                        </optgroup>
-                      </select>
-                      {/* Animated gradient border */}
-                      <motion.div
-                        className="absolute inset-0 rounded-xl pointer-events-none"
-                        style={{
-                          background: 'linear-gradient(45deg, #ec4899, #a855f7, #ec4899)',
-                          padding: '1px',
-                          WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-                          WebkitMaskComposite: 'xor',
-                          maskComposite: 'exclude',
-                        }}
-                        animate={{
-                          backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'],
-                        }}
-                        transition={{
-                          duration: 3,
-                          repeat: Infinity,
-                          ease: "linear",
-                        }}
-                      />
-                    </motion.div>
-                    <p className="mt-2 text-xs text-gray-500">
-                      If your selected model fails, we'll automatically try alternatives
+                    <h2 className="text-5xl font-bold mb-4">
+                      <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-red-400 bg-clip-text text-transparent">
+                        Create Amazing Art
+                      </span>
+                    </h2>
+                    <p className="text-gray-400">
+                      {isGuest 
+                        ? `Try ${GUEST_LIMIT} free generation as a guest`
+                        : `${userGenerationCount}/${GENERATION_LIMIT} generations used`
+                      }
                     </p>
                   </div>
 
+                  {/* Prompt Input */}
+                  <div className="space-y-4">
+                    <label className="block font-mono text-sm text-gray-400 uppercase tracking-wider">
+                      PROMPT
+                    </label>
+                    <textarea
+                      value={prompt}
+                      onChange={(e) => {
+                        handleFirstInteraction();
+                        setPrompt(e.target.value);
+                      }}
+                      placeholder="Describe what you want to generate..."
+                      className="w-full px-6 py-4 bg-gray-900/50 backdrop-blur-sm border border-gray-800 font-mono text-sm placeholder-gray-500 focus:border-purple-500 focus:outline-none resize-none text-gray-200 rounded-xl"
+                      rows={4}
+                      disabled={isGenerating || (!isGuest && userGenerationCount >= GENERATION_LIMIT)}
+                    />
+                  </div>
+
+                  {/* Model Selector */}
+                  <div className="space-y-4">
+                    <label className="block font-mono text-sm text-gray-400 uppercase tracking-wider">
+                      MODEL
+                    </label>
+                    <ModelSelector
+                      models={models}
+                      selectedModel={selectedModel}
+                      onChange={(model) => {
+                        handleFirstInteraction();
+                        setSelectedModel(model);
+                      }}
+                      disabled={isGenerating || modelsLoading}
+                      isLoading={modelsLoading}
+                    />
+                  </div>
+
+                  {/* Trending Models */}
+                  {trendingModels.length > 0 && (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4 text-purple-400" />
+                        <label className="font-mono text-sm text-gray-400 uppercase tracking-wider">
+                          TRENDING MODELS
+                        </label>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        {trendingModels.map((model) => (
+                          <TrendingModelCard
+                            key={model.id}
+                            model={model}
+                            isSelected={selectedModel === model.id}
+                            onClick={() => {
+                              handleFirstInteraction();
+                              setSelectedModel(model.id);
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Generate Button */}
                   <div className="flex gap-2">
                     <motion.button
                       onClick={generateImage}
-                      disabled={isGenerating || userGenerationCount >= GENERATION_LIMIT}
-                      whileHover={{ 
-                        scale: 1.02,
-                        boxShadow: "0 0 30px rgba(236, 72, 153, 0.4)",
-                      }}
-                      whileTap={{ scale: 0.98 }}
-                      className={`relative flex-1 py-4 rounded-xl font-medium transition-all flex items-center justify-center gap-2 overflow-hidden ${
-                        isGenerating || userGenerationCount >= GENERATION_LIMIT
-                          ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
-                          : 'bg-gradient-to-r from-pink-500 to-purple-500 text-white'
+                      disabled={isGenerating || !canGenerate || modelsLoading}
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.99 }}
+                      className={`flex-1 py-4 font-mono text-sm font-medium transition-all flex items-center justify-center gap-2 rounded-xl ${
+                        isGenerating || !canGenerate || modelsLoading
+                          ? 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                          : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 shadow-lg shadow-purple-500/25'
                       }`}
                     >
-                      {/* Animated shine effect */}
-                      {!isGenerating && userGenerationCount < GENERATION_LIMIT && (
-                        <motion.div
-                          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                          initial={{ x: '-100%' }}
-                          animate={{ x: '100%' }}
-                          transition={{
-                            duration: 3,
-                            repeat: Infinity,
-                            repeatDelay: 1,
-                            ease: "easeInOut",
-                          }}
-                        />
-                      )}
-                      {userGenerationCount >= GENERATION_LIMIT ? (
+                      {!canGenerate ? (
                         <>
-                          <AlertCircle className="w-5 h-5" />
-                          Generation Limit Reached
+                          <Lock className="w-5 h-5" />
+                          {isGuest ? 'LOGIN REQUIRED' : 'LIMIT REACHED'}
                         </>
                       ) : isGenerating ? (
                         <>
                           <Loader className="w-5 h-5 animate-spin" />
-                          Generating...
+                          GENERATING...
                         </>
                       ) : (
                         <>
                           <Sparkles className="w-5 h-5" />
-                          Generate Artwork
+                          GENERATE
+                          {isGuest && (
+                            <span className="text-xs opacity-75">
+                              ({GUEST_LIMIT - guestGenerations} left)
+                            </span>
+                          )}
                         </>
                       )}
                     </motion.button>
@@ -1022,91 +1145,104 @@ const FloatingParticles = () => {
                     {isGenerating && (
                       <motion.button
                         onClick={cancelGeneration}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="px-4 py-4 rounded-xl font-medium bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 transition-all"
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.99 }}
+                        className="px-6 py-4 bg-gray-900/50 backdrop-blur-sm border border-gray-800 text-white hover:bg-gray-800 font-mono text-sm font-medium transition-all rounded-xl"
                       >
                         <X className="w-5 h-5" />
                       </motion.button>
                     )}
                   </div>
 
-                  {/* Professional loading animation */}
-                  {isGenerating && (
-                    <GenerateLoadingAnimation status={generationStatus} />
-                  )}
-
-                  {/* Error/Status message */}
-                  {!isGenerating && generationStatus && (
+                  {/* Status message */}
+                  {generationStatus && (
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm"
+                      className="p-4 bg-gray-900/50 backdrop-blur-sm border border-gray-800 font-mono text-sm text-gray-300 rounded-xl"
                     >
                       {generationStatus}
                     </motion.div>
                   )}
                 </div>
 
-                {/* Current image preview */}
-                {currentImage && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mt-8 p-6 bg-gray-800/30 rounded-xl border border-gray-700"
-                  >
-                    <h3 className="text-lg font-medium text-pink-300 mb-4">Latest Creation</h3>
-                    <div className="space-y-4">
-                      <img
-                        src={currentImage.url}
-                        alt="Generated artwork"
-                        className="w-full rounded-lg"
-                      />
-                      <div className="flex items-center justify-between text-sm text-gray-400">
-                        <span>Model: {currentImage.model}</span>
-                        <span>{currentImage.generationTime.toFixed(1)}s</span>
+                {/* Right Side - Output */}
+                <div className="relative">
+                  {currentImage ? (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="space-y-6"
+                    >
+                      <div className="relative rounded-2xl overflow-hidden border border-gray-800 bg-gray-900/50 backdrop-blur-sm">
+                        <img
+                          src={currentImage.url}
+                          alt="Generated"
+                          className="w-full"
+                        />
+                        <div className="absolute top-4 right-4 flex gap-2">
+                          <button
+                            onClick={() => downloadImage(currentImage)}
+                            className="p-3 bg-black/50 backdrop-blur-sm rounded-full hover:bg-black/70 transition-colors"
+                          >
+                            <Download className="w-5 h-5 text-white" />
+                          </button>
+                        </div>
                       </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => downloadImage(currentImage)}
-                          className="flex-1 py-2 bg-gray-700/50 hover:bg-gray-600/50 rounded-lg text-pink-300 font-medium transition-colors flex items-center justify-center gap-2"
-                        >
-                          <Download className="w-4 h-4" />
-                          Download
-                        </button>
-                        <button
-                          onClick={generateImage}
-                          disabled={isGenerating || userGenerationCount >= GENERATION_LIMIT}
-                          className="flex-1 py-2 bg-gray-700/50 hover:bg-gray-600/50 rounded-lg text-pink-300 font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <RotateCcw className="w-4 h-4" />
-                          Regenerate
-                        </button>
+                      
+                      <div className="p-6 bg-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-800">
+                        <div className="grid grid-cols-2 gap-4 font-mono text-sm">
+                          <div>
+                            <p className="text-gray-400 mb-1">Model</p>
+                            <p className="text-white">{currentImage.modelName || currentImage.model}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-400 mb-1">Time</p>
+                            <p className="text-white">{currentImage.generationTime.toFixed(1)}s</p>
+                          </div>
+                        </div>
+                        <div className="mt-4 pt-4 border-t border-gray-800">
+                          <p className="text-gray-400 mb-2 font-mono text-xs">PROMPT</p>
+                          <p className="text-gray-300 font-mono text-xs">{currentImage.prompt}</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <div className="h-full min-h-[600px] flex items-center justify-center">
+                      <div className="text-center space-y-6">
+                        <div className="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-purple-900/20 to-pink-900/20 backdrop-blur-sm flex items-center justify-center">
+                          <Sparkles className="w-16 h-16 text-purple-400" />
+                        </div>
+                        <div>
+                          <p className="text-gray-400 mb-2">Your masterpiece will appear here</p>
+                          <p className="text-gray-500 text-sm">Select a model and enter a prompt to begin</p>
+                        </div>
                       </div>
                     </div>
-                  </motion.div>
-                )}
+                  )}
+                </div>
               </motion.div>
             </div>
           ) : (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-gray-900/50 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-gray-800"
             >
-              <h2 className="text-2xl font-bold text-pink-300 mb-6">Your Gallery</h2>
+              <h2 className="font-mono text-3xl mb-8 text-white">YOUR GALLERY</h2>
               
               {userImages.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {userImages.map((image) => (
                     <GalleryItem key={image.id} image={image} onDownload={downloadImage} />
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-12 text-gray-500">
-                  <Grid3X3 className="w-16 h-16 mx-auto mb-4 text-pink-400/30" />
-                  <p className="text-lg">No images generated yet</p>
-                  <p className="text-sm mt-2">Start creating to fill your gallery!</p>
+                <div className="flex items-center justify-center min-h-[400px]">
+                  <div className="text-center">
+                    <Grid3X3 className="w-16 h-16 mx-auto mb-4 text-gray-600" />
+                    <p className="font-mono text-lg text-gray-400">NO IMAGES YET</p>
+                    <p className="font-mono text-sm mt-2 text-gray-500">Start generating to fill your gallery</p>
+                  </div>
                 </div>
               )}
             </motion.div>
@@ -1114,39 +1250,77 @@ const FloatingParticles = () => {
         </main>
       </div>
 
-      {/* Remove fixed home button on desktop, only show background refresh button */}
-      {!bgRefreshed && (
-        <motion.button
-          onClick={() => generateBackgroundImage()}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          className={`fixed bottom-6 ${
-            !isMobileScreen ? (sidebarCollapsed ? 'left-24' : 'left-72') : 'right-6'
-          } z-30 p-3 bg-gray-900/80 backdrop-blur-sm rounded-full hover:bg-gray-800/80 transition-colors border border-gray-700`}
-        >
-          <RotateCcw className="w-5 h-5 text-pink-400" />
-        </motion.button>
-      )}
+      {/* Auth Prompt Modal */}
+      <AnimatePresence>
+        {showAuthPrompt && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm"
+              onClick={() => setShowAuthPrompt(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-6"
+            >
+              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 max-w-md w-full">
+                <div className="text-center space-y-6">
+                  <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
+                    <Lock className="w-10 h-10 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-2xl font-bold text-white mb-2">Guest Limit Reached</h3>
+                    <p className="text-gray-400">
+                      You've used your free generation! Login with Discord to unlock unlimited generations and access to your personal gallery.
+                    </p>
+                  </div>
+                  <div className="space-y-3">
+                    <button
+                      onClick={() => signIn('discord')}
+                      className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-pink-700 transition-all flex items-center justify-center gap-2"
+                    >
+                      <MessageCircle className="w-5 h-5" />
+                      Login with Discord
+                    </button>
+                    <button
+                      onClick={() => setShowAuthPrompt(false)}
+                      className="w-full py-3 bg-gray-800 text-gray-400 rounded-lg font-medium hover:bg-gray-700 transition-all"
+                    >
+                      Maybe Later
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Global styles */}
       <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
         
         * {
           box-sizing: border-box;
         }
         
         html, body {
-          font-family: 'Inter', sans-serif;
-          background-color: #111827;
+          font-family: 'JetBrains Mono', monospace;
+          background-color: #000000;
           overflow-x: hidden;
           margin: 0;
           padding: 0;
+          color: #ffffff;
         }
         
         /* Custom scrollbar */
         ::-webkit-scrollbar {
           width: 8px;
+          height: 8px;
         }
         
         ::-webkit-scrollbar-track {
@@ -1154,23 +1328,19 @@ const FloatingParticles = () => {
         }
         
         ::-webkit-scrollbar-thumb {
-          background: #ec4899;
+          background: linear-gradient(to bottom, #8b5cf6, #ec4899);
           border-radius: 4px;
         }
         
-        /* Mobile optimizations */
-        @media (max-width: 768px) {
-          .container {
-            padding-left: 1rem;
-            padding-right: 1rem;
-          }
+        ::-webkit-scrollbar-thumb:hover {
+          background: linear-gradient(to bottom, #7c3aed, #db2777);
         }
         
-        /* Android specific fixes */
-        @supports (-webkit-touch-callout: none) {
-          body {
-            -webkit-text-size-adjust: 100%;
-          }
+        .line-clamp-2 {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
         }
       `}</style>
     </>
