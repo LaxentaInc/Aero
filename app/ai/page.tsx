@@ -127,7 +127,7 @@ const CodeBlock = ({ code, language = 'javascript' }: { code: string; language?:
   const normalizedLanguage = getLanguage(language)
 
   return (
-    <div className="my-4 px-4"> {/* Add horizontal padding to contain the glow */}
+    <div className="my-4 px-4">
       <div className="group relative w-full">
         {/* 3D effect shadow - enhanced visibility */}
         <div className="absolute -inset-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 \
@@ -236,7 +236,7 @@ const CodeBlock = ({ code, language = 'javascript' }: { code: string; language?:
                           bg-gradient-to-b from-blue-500/5 via-transparent to-purple-500/5 \
                           pointer-events-none transition-opacity duration-500" />
             <SyntaxHighlighter
-              language={language}
+              language={normalizedLanguage}
               style={vscDarkPlus}
               showLineNumbers={true}
               wrapLines={true}
@@ -259,6 +259,10 @@ const CodeBlock = ({ code, language = 'javascript' }: { code: string; language?:
                 userSelect: 'none',
                 fontSize: '0.7rem'
               }}
+              PreTag="div"
+              CodeTag={({ children, ...props }) => (
+                <code {...props}>{children}</code>
+              )}
             >
               {code}
             </SyntaxHighlighter>
@@ -277,23 +281,58 @@ const CodeBlock = ({ code, language = 'javascript' }: { code: string; language?:
   )
 }
 
-// Thinking Box Component
-const ThinkingBox = ({ content, isExpanded, onToggle }: { 
-  content: string; 
-  isExpanded: boolean; 
-  onToggle: () => void 
+// Replace ThinkingBox component with improved version
+const ThinkingBox = ({ 
+  content, 
+  isExpanded, 
+  onToggle,
+  isStreaming = false,
+  isComplete = false
+}: { 
+  content: string
+  isExpanded: boolean
+  onToggle: () => void
+  isStreaming?: boolean
+  isComplete?: boolean  
 }) => {
-  // Persist expanded state
   const [localExpanded, setLocalExpanded] = useState(isExpanded);
   
   useEffect(() => {
     setLocalExpanded(isExpanded);
   }, [isExpanded]);
 
+  const ThinkingIndicatorSVG = () => (
+    <div className="w-6 h-6">
+      <svg viewBox="0 0 200 200" className="w-full h-full">
+        {[0, 0.05, 0.1, 0.15, 0.2].map((delay, i) => (
+          <circle
+            key={i}
+            fill="#FF156D"
+            stroke="#FF156D"
+            strokeWidth="15"
+            r="15"
+            cy="100"
+            opacity={1 - (i * 0.2)}
+          >
+            <animate
+              attributeName="cx"
+              calcMode="spline"
+              dur="2"
+              values="35;165;165;35;35"
+              keySplines="0 .1 .5 1;0 .1 .5 1;0 .1 .5 1;0 .1 .5 1"
+              repeatCount="indefinite"
+              begin={`${delay}s`}
+            />
+          </circle>
+        ))}
+      </svg>
+    </div>
+  );
+
   return (
-    <div className="my-4 mx-4">
+    <div className="my-4 mx-2 sm:mx-4">
       <div
-        className="w-full bg-black border border-white/10 rounded-2xl p-4 shadow-2xl transition-all group cursor-pointer select-none hover:border-white/20"
+        className="w-full bg-gradient-to-r from-gray-900/50 to-gray-800/50 backdrop-blur-xl border border-white/5 rounded-2xl p-4 shadow-xl transition-all group cursor-pointer select-none hover:border-white/10 hover:shadow-2xl"
         onClick={() => {
           setLocalExpanded(!localExpanded);
           onToggle();
@@ -301,28 +340,23 @@ const ThinkingBox = ({ content, isExpanded, onToggle }: {
       >
         <div className="flex items-center gap-3 flex-1">
           <div className="relative flex items-center justify-center w-6 h-6">
-            {/* Custom thinking SVG */}
-            <svg viewBox="0 0 24 24" fill="none" width="24" height="24" className="animate-pulse">
-              <circle cx="12" cy="12" r="10" stroke="url(#thinkingGradient)" strokeWidth="2" strokeLinecap="round" strokeDasharray="4 2" className="animate-spin" style={{ animationDuration: '3s' }} />
-              <circle cx="12" cy="8" r="1.5" fill="url(#thinkingGradient)" className="animate-pulse" />
-              <circle cx="16" cy="12" r="1.5" fill="url(#thinkingGradient)" className="animate-pulse" style={{ animationDelay: '0.5s' }} />
-              <circle cx="12" cy="16" r="1.5" fill="url(#thinkingGradient)" className="animate-pulse" style={{ animationDelay: '1s' }} />
-              <circle cx="8" cy="12" r="1.5" fill="url(#thinkingGradient)" className="animate-pulse" style={{ animationDelay: '1.5s' }} />
-              <defs>
-                <linearGradient id="thinkingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#3b82f6" />
-                  <stop offset="100%" stopColor="#8b5cf6" />
-                </linearGradient>
-              </defs>
-            </svg>
+            {isStreaming && !isComplete ? (
+              <ThinkingIndicatorSVG />
+            ) : (
+              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center">
+                <Check size={14} className="text-white" />
+              </div>
+            )}
           </div>
-          <span className="text-white/80 font-medium text-base">AI is thinking...</span>
+          <span className="text-white/80 font-medium text-base">
+            {isStreaming && !isComplete ? 'AI is thinking...' : 'Finished reasoning'}
+          </span>
           <ChevronRight size={20} className={`text-white/60 transition-transform duration-300 ml-auto ${localExpanded ? 'rotate-90' : ''}`} />
         </div>
       </div>
       {localExpanded && content && (
-        <div className="mt-3 bg-black/50 border border-white/10 rounded-2xl p-5 animate-fadeIn shadow-inner">
-          <div className="text-white/70 text-sm font-mono whitespace-pre-wrap break-words leading-relaxed">
+        <div className="mt-3 bg-gradient-to-r from-gray-900/30 to-gray-800/30 backdrop-blur-md border border-white/5 rounded-2xl p-5 animate-fadeIn shadow-inner">
+          <div className="text-white/60 text-sm font-mono whitespace-pre-wrap break-words leading-relaxed">
             {content}
           </div>
         </div>
@@ -350,9 +384,11 @@ const MessageComponent = ({
   const [copied, setCopied] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
   const [isThinkingExpanded, setIsThinkingExpanded] = useState(false)
-  // Persist thinking content for the lifetime of the message
+  const [thinkingContent, setThinkingContent] = useState<string | null>(null)
+  const [isThinkingComplete, setIsThinkingComplete] = useState(false)
   const [persistedThinkingContent, setPersistedThinkingContent] = useState<string | null>(null)
 
+  // Move handleCopyMessage definition before its usage
   const handleCopyMessage = async () => {
     try {
       await navigator.clipboard.writeText(msg.content)
@@ -364,6 +400,28 @@ const MessageComponent = ({
     }
   }
 
+  // Handle thinking state changes
+  useEffect(() => {
+    if (!msg.content || isUser) return;
+
+    const fullThinkingMatch = msg.content.match(/^<think>([\s\S]*?)<\/think>([\s\S]*)$/);
+    if (fullThinkingMatch) {
+      const [, thinkContent] = fullThinkingMatch;
+      setThinkingContent(thinkContent.trim());
+      setIsThinkingComplete(true);
+      if (!persistedThinkingContent || persistedThinkingContent !== thinkContent.trim()) {
+        setPersistedThinkingContent(thinkContent.trim());
+      }
+    } else if (msg.isStreaming) {
+      const openThinkingMatch = msg.content.match(/^<think>([\s\S]*)$/);
+      if (openThinkingMatch) {
+        const [, thinkContent] = openThinkingMatch;
+        setThinkingContent(thinkContent.trim() || "Processing...");
+        setIsThinkingComplete(false);
+      }
+    }
+  }, [msg.content, msg.isStreaming, isUser, persistedThinkingContent]);
+
   const processContent = useMemo(() => {
     if (!msg.content || msg.content.trim() === '') {
       return [<p key="empty" className="text-white/50 italic">No content</p>]
@@ -372,35 +430,40 @@ const MessageComponent = ({
     const parts: React.ReactNode[] = []
     let content = msg.content
 
-    // Check for thinking tags at the beginning
-    const thinkingMatch = content.match(/^<think>([\s\S]*?)<\/think>([\s\S]*)$/)
-    if (thinkingMatch && !isUser) {
-      const [, thinkingContent, remainingContent] = thinkingMatch
-      // Store the thinking content persistently
-      if (!persistedThinkingContent || persistedThinkingContent !== thinkingContent.trim()) {
-        setPersistedThinkingContent(thinkingContent.trim())
-      }
-      // Process remaining content
-      content = remainingContent
-    }
-
-    // Handle streaming thinking tags
-    const openThinkingMatch = content.match(/^<think>([\s\S]*)$/)
-    if (openThinkingMatch && msg.isStreaming && !isUser) {
-      const [, thinkingContent] = openThinkingMatch
-      // Don't update persisted content while streaming
+    // Handle thinking box display
+    const fullThinkingMatch = content.match(/^<think>([\s\S]*?)<\/think>([\s\S]*)$/);
+    if (fullThinkingMatch && !isUser) {
+      const [, , remainingContent] = fullThinkingMatch;
+      
       parts.push(
         <ThinkingBox 
-          key="thinking-box-streaming"
-          content={thinkingContent.trim() || "Processing..."}
+          key="thinking-box-complete"
+          content={thinkingContent || ''}
           isExpanded={isThinkingExpanded}
           onToggle={() => setIsThinkingExpanded(!isThinkingExpanded)}
+          isStreaming={false}
+          isComplete={true}
         />
-      )
-      return parts
+      );
+      
+      content = remainingContent;
+    } else if (msg.isStreaming && !isUser) {
+      const openThinkingMatch = content.match(/^<think>([\s\S]*)$/);
+      if (openThinkingMatch) {
+        parts.push(
+          <ThinkingBox 
+            key="thinking-box-streaming"
+            content={thinkingContent || "Processing..."}
+            isExpanded={isThinkingExpanded}
+            onToggle={() => setIsThinkingExpanded(!isThinkingExpanded)}
+            isStreaming={true}
+            isComplete={false}
+          />
+        );
+        return parts;
+      }
     }
 
-    // Always render the thinking box if we have persisted content
     if (persistedThinkingContent && !isUser) {
       parts.push(
         <ThinkingBox 
@@ -408,28 +471,43 @@ const MessageComponent = ({
           content={persistedThinkingContent}
           isExpanded={isThinkingExpanded}
           onToggle={() => setIsThinkingExpanded(!isThinkingExpanded)}
+          isStreaming={false}
+          isComplete={true}
         />
-      )
+      );
     }
 
-    // Helper function to process markdown content (complete code blocks)
-              const processMarkdownContent = (text: string): React.ReactNode[] => {
+    // Process markdown content with code block handling
+    const processMarkdownContent = (text: string): React.ReactNode[] => {
       const contentParts: React.ReactNode[] = []
-      const codeBlockRegex = /```(\w*)\n([\s\S]*?)```/g
       const codeBlocks: { placeholder: string; element: React.ReactNode }[] = []
       let blockIndex = 0
 
-      text = text.replace(codeBlockRegex, (match, lang, code) => {
+      let processedText = text
+      const codeBlockMatches = Array.from(text.matchAll(/```(\w*)\n?([\s\S]*?)```/g))
+      
+      for (const match of codeBlockMatches) {
+        const [fullMatch, lang, code] = match
         const placeholder = `__CODE_BLOCK_${blockIndex}__`
+        
+        const safeCode = code.trim()
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;')
+        
         codeBlocks.push({
           placeholder,
-          // Pass isCode=true to skip sanitization for code blocks
-          element: <CodeBlock key={`code-${blockIndex}`} code={code.trim()} language={lang || 'text'} />
+          element: <CodeBlock key={`code-${blockIndex}`} code={safeCode} language={lang || 'text'} />
         })
+        
+        processedText = processedText.replace(fullMatch, placeholder)
         blockIndex++
-        return placeholder
-      })      // Process markdown line by line to preserve structure
-      const lines = text.split('\n')
+      }
+
+      // Process markdown line by line to preserve structure
+      const lines = processedText.split('\n')
       let currentParagraph: string[] = []
       let inList = false
       let listItems: string[] = []
@@ -630,10 +708,17 @@ const MessageComponent = ({
         parts.push(...processedBefore)
       }
       // Add the streaming code block
+      const safeCode = (codeContent || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;')
+      
       parts.push(
         <CodeBlock 
           key="streaming-code" 
-          code={codeContent} 
+          code={safeCode} 
           language={language} 
         />
       )
@@ -643,7 +728,14 @@ const MessageComponent = ({
     // Process the full content
     const processedContent = processMarkdownContent(content)
     return processedContent.length > 0 ? processedContent : [<p key="default" className="text-white/90">{content}</p>]
-  }, [msg.content, msg.isStreaming, isThinkingExpanded, persistedThinkingContent])
+  }, [
+    msg.content,
+    msg.isStreaming,
+    isThinkingExpanded,
+    persistedThinkingContent,
+    thinkingContent,
+    isUser
+  ])
 
   return (
     <div 
@@ -910,7 +1002,7 @@ Currently, only one LLM is available for <span className="text-green-500 font-se
             >
               <div
                 onClick={() => onSelectConversation(conv)}
-                className={`w-full text-left p-3 rounded-xl transition-all cursor-pointer shadow-sm border \
+                className={`w-full text-left p-3 rounded-xl transition-all cursor-pointer shadow \
                   ${currentConversationId === conv.id
                     ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 border-blue-400/30 shadow-lg'
                     : 'bg-gray-900/80 border-gray-700/60 hover:shadow-[0_4px_24px_0_rgba(59,130,246,0.10)] hover:border-blue-400/40 hover:bg-gray-900/90'} \
@@ -1807,6 +1899,8 @@ useEffect(() => {
     currentMessages: Message[]
   ) => {
     const messageId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    let streamTimeout: NodeJS.Timeout;
+    let lastDataTime = Date.now();
 
     const assistantMessage: Message = {
       id: messageId,
@@ -1820,6 +1914,30 @@ useEffect(() => {
     streamCacheRef.current = '';
     setMessages(prev => [...prev, assistantMessage]);
     setIsStreaming(true);
+
+    // Add timeout checker
+    const checkTimeout = () => {
+      if (Date.now() - lastDataTime > 10000) {
+        console.log('Stream timeout - no data for 10 seconds');
+        if (abortControllerRef.current) {
+          abortControllerRef.current.abort();
+        }
+        setIsStreaming(false);
+        setMessages(prev => prev.map(msg =>
+          msg.id === messageId
+            ? { 
+                ...msg, 
+                content: streamCacheRef.current || 'Response timeout - please try again',
+                isStreaming: false,
+                error: true
+              }
+            : msg
+        ));
+        clearInterval(streamTimeout);
+      }
+    };
+
+    streamTimeout = setInterval(checkTimeout, 1000);
 
     try {
       abortControllerRef.current = new AbortController();
@@ -1885,6 +2003,7 @@ useEffect(() => {
                     ? { ...msg, content: streamCacheRef.current, isStreaming: true }
                     : msg
                 ));
+                lastDataTime = Date.now(); // Update timestamp when data is received
               }
             } catch (e) {
               console.error('JSON parsing error:', e);
@@ -1893,6 +2012,7 @@ useEffect(() => {
         }
       }
     } catch (error: any) {
+      clearInterval(streamTimeout);
       if (error.name === 'AbortError') {
         console.log('Request aborted');
       } else {
@@ -1908,7 +2028,8 @@ useEffect(() => {
             : msg
         ));
       }
-      setIsStreaming(false);
+    } finally {
+      clearInterval(streamTimeout);
     }
   };
 
@@ -2321,119 +2442,19 @@ useEffect(() => {
           }
         }
 
+        @keyframes thinkingPulse {
+          0%, 100% { 
+            opacity: 0.4;
+            transform: scale(1);
+          }
+          50% { 
+            opacity: 1;
+            transform: scale(1.1);
+          }
+        }
+
         .animate-fadeIn {
-          animation: fadeIn 0.5s ease-out;
-        }
-
-        .animate-slideIn {
-          animation: slideIn 0.3s ease-out;
-        }
-
-        .animate-pulse {
-          animation: pulse 2s ease-in-out infinite;
-        }
-
-        /* Enhanced scrollbar */
-        ::-webkit-scrollbar {
-          width: 8px;
-          height: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-          background: rgba(0, 0, 0, 0.1);
-          border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-          background: linear-gradient(to bottom, #3b82f6, #8b5cf6);
-          border-radius: 4px;
-          transition: all 0.3s;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-          background: linear-gradient(to bottom, #2563eb, #7c3aed);
-        }
-
-        /* Code block enhancements */
-        .token.comment { color: #6A9955; }
-        .token.string { color: #CE9178; }
-        .token.number { color: #B5CEA8; }
-        .token.keyword { color: #569CD6; }
-        .token.function { color: #DCDCAA; }
-        .token.operator { color: #D4D4D4; }
-        .token.class-name { color: #4EC9B0; }
-
-        /* Line numbers styling */
-        .line-numbers-rows {
-          border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
-        }
-
-        /* Message animations */
-        .prose h1, .prose h2, .prose h3 {
-          position: relative;
-          padding-left: 1rem;
-        }
-
-        .prose h1::before,
-        .prose h2::before,
-        .prose h3::before {
-          content: '';
-          position: absolute;
-          left: 0;
-          top: 50%;
-          transform: translateY(-50%);
-          width: 3px;
-          height: 60%;
-          background: linear-gradient(to bottom, #3b82f6, #8b5cf6);
-          border-radius: 2px;
-        }
-
-        /* Mobile optimizations */
-        @media (max-width: 640px) {
-          .text-base {
-            font-size: 0.875rem;
-          }
-
-          .text-sm {
-            font-size: 0.8125rem;
-          }
-
-          .text-xs {
-            font-size: 0.75rem;
-          }
-
-          /* Improve touch targets */
-          button {
-            min-height: 44px;
-            min-width: 44px;
-          }
-        }
-
-        /* High contrast mode support */
-        @media (prefers-contrast: high) {
-          .border-white\\/10 {
-            border-color: rgba(255, 255, 255, 0.3);
-          }
-
-          .bg-white\\/5 {
-            background-color: rgba(255, 255, 255, 0.1);
-          }
-        }
-
-        /* Reduced motion support */
-        @media (prefers-reduced-motion: reduce) {
-          * {
-            animation-duration: 0.01ms !important;
-            animation-iteration-count: 1 !important;
-            transition-duration: 0.01ms !important;
-          }
-        }
-
-        /* Focus styles for accessibility */
-        *:focus-visible {
-          outline: 2px solid #3b82f6;
-          outline-offset: 2px;
-          border-radius: 4px;
+          animation: fadeIn 0.3s ease-out forwards;
         }
 
         /* Print styles */

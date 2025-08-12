@@ -116,9 +116,9 @@ function estimateTokens(text: string): number {
 // NEW: Proper bottom-to-top truncation
 function truncateMessages(messages: any[], maxTokens: number): any[] {
   if (!messages || messages.length === 0) return messages;
-
-  // Use 80% of limit to leave room for response
-  const targetTokens = Math.floor(maxTokens * 0.8);
+ // IMPORTANT ;3
+  // Use 90% of limit to leave room for MISTAKES
+  const targetTokens = Math.floor(maxTokens * 0.9);
   
   console.log(`\n[🎯 Truncation] Model limit: ${maxTokens}, Using: ${targetTokens} tokens`);
   
