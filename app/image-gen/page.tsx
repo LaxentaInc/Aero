@@ -55,6 +55,11 @@ interface UsageCache {
   }
 }
 
+interface UserLimits {
+  count: number;
+  lastReset: number;
+}
+
 // Debounce utility
 function debounce<T extends (...args: any[]) => void>(func: T, wait: number) {
   let timeout: ReturnType<typeof setTimeout>;
@@ -352,6 +357,7 @@ export default function AnimeImageGenerator() {
   const [hasInteracted, setHasInteracted] = useState(false);
   const [guestGenerations, setGuestGenerations] = useState(0);
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+  const [userLimits, setUserLimits] = useState<UserLimits>({ count: 0, lastReset: Date.now() });
   const activeRequestRef = useRef<AbortController | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -361,8 +367,28 @@ export default function AnimeImageGenerator() {
   const GUEST_LIMIT = 1;
   const LOCAL_USAGE_KEY = 'modelUsageCache';
   const CACHE_DURATION = 1000 * 60 * 60; // 1 hour
+  const UNLIMITED_USER_ID = '953527567808356404';
+  const DAILY_LIMIT = 10;
   const isGuest = !session;
-  const canGenerate = isGuest ? guestGenerations < GUEST_LIMIT : userGenerationCount < GENERATION_LIMIT;
+  const canGenerate = isGuest 
+    ? guestGenerations < GUEST_LIMIT 
+    : session?.user?.id === UNLIMITED_USER_ID 
+      ? true 
+      : userGenerationCount < DAILY_LIMIT;
+
+  // Check and reset daily limit
+  const checkAndResetDailyLimit = useCallback(() => {
+    const now = Date.now();
+    const lastMidnight = new Date().setHours(0, 0, 0, 0);
+    
+    if (userLimits.lastReset < lastMidnight) {
+      setUserLimits({ count: 0, lastReset: now });
+      setUserGenerationCount(0);
+      if (session?.user?.id) {
+        localStorage.setItem(`limits_${session.user.id}`, JSON.stringify({ count: 0, lastReset: now }));
+      }
+    }
+  }, [userLimits, session]);
 
   // Initialize audio and guest count
   useEffect(() => {
@@ -472,13 +498,20 @@ export default function AnimeImageGenerator() {
   useEffect(() => {
     if (session?.user?.id) {
       const savedImages = localStorage.getItem(`images_${session.user.id}`);
+      const savedLimits = localStorage.getItem(`limits_${session.user.id}`);
+      
       if (savedImages) {
         const images = JSON.parse(savedImages);
         setGeneratedImages(images);
-        setUserGenerationCount(images.length);
       }
+      
+      if (savedLimits) {
+        setUserLimits(JSON.parse(savedLimits));
+      }
+      
+      checkAndResetDailyLimit();
     }
-  }, [session]);
+  }, [session, checkAndResetDailyLimit]);
 
   // Mobile detection
   useEffect(() => {
@@ -524,8 +557,8 @@ export default function AnimeImageGenerator() {
       return;
     }
 
-    if (!isGuest && userGenerationCount >= GENERATION_LIMIT) {
-      setGenerationStatus(`Generation limit reached (${GENERATION_LIMIT} images)`);
+    if (!isGuest && session?.user?.id !== UNLIMITED_USER_ID && userGenerationCount >= DAILY_LIMIT) {
+      setGenerationStatus(`Daily generation limit reached (${DAILY_LIMIT} images)`);
       setTimeout(() => setGenerationStatus(''), 3000);
       return;
     }
@@ -630,6 +663,11 @@ export default function AnimeImageGenerator() {
           return updated;
         });
         setUserGenerationCount(prev => prev + 1);
+        setUserLimits(prev => {
+          const updated = { ...prev, count: prev.count + 1 };
+          localStorage.setItem(`limits_${session.user.id}`, JSON.stringify(updated));
+          return updated;
+        });
       }
       
       setGenerationStatus('');
@@ -1061,7 +1099,9 @@ export default function AnimeImageGenerator() {
                     <p className="text-gray-400">
                       {isGuest 
                         ? `Try ${GUEST_LIMIT} free generation as a guest`
-                        : `${userGenerationCount}/${GENERATION_LIMIT} generations used`
+                        : session?.user?.id === UNLIMITED_USER_ID
+                          ? 'Unlimited generations available'
+                          : `${userGenerationCount}/${DAILY_LIMIT} daily generations used`
                       }
                     </p>
                   </div>
