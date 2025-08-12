@@ -25,7 +25,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.laxenta.tech'),
   title: {
-    default: "Laxenta Inc- AI API | 200+ AI Models, Discord Shapes, Dev Tools",
+    default: "Laxenta Inc",
     template: "%s | Laxenta"
   },
   description: "Access 200+ AI models through affordable APIs. NSFW/SFW image generation, chat models (GPT-5, Claude, Gemini), Discord shapes builder, voice synthesis, advanced dev tools, and code commissions. Free tier available.",
@@ -113,7 +113,7 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: 'https://www.laxenta.tech',
     siteName: 'Laxenta',
-    title: 'Laxenta - Affordable AI API Platform with 200+ Models',
+    title: 'Laxenta - Affordable Ai Api and dev tools Platform with 200+ Models',
     description: '🚀 Access 200+ AI models via API • 🎨 NSFW/SFW Image Generation • 💬 Chat Models (GPT-5, Claude) • 🎮 Discord Shapes Builder • 🎤 Voice Synthesis • 💻 Advanced Dev Tools • 📝 Code Commissions • Free tier available!',
     images: [
       {
@@ -127,7 +127,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Laxenta - Free tier AI Models and API Platform with 200+ Models',
+    title: 'Laxenta - Free tier AI Models and API Platform with 200+ Models and dev tools',
     description: 'Affordable AI APIs: Image gen (NSFW/SFW), Chat models, Discord shapes, Voice synthesis, Advanced dev tools, Code commissions. Free tier with 200+ models access.',
     images: {
       url: '/og-image.png',
@@ -224,7 +224,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         {/* Essential Meta Tags for Discord/Social Media */}
-        <meta property="og:title" content="Laxenta - AI API Platform | 200+ Models, Discord Shapes, Dev Tools" />
+        <meta property="og:title" content="Laxenta Inc" />
         <meta property="og:description" content="🚀 Access 200+ AI models • 🎨 NSFW/SFW Image Gen • 💬 Chat APIs • 🎮 Discord Shapes • 🎤 Voice Synthesis • 💻 Advanced Dev Tools • 📝 Code Commissions • Free tier available!" />
         <meta property="og:image" content="https://www.laxenta.tech/og-image.png" />
         <meta property="og:url" content="https://www.laxenta.tech" />
@@ -234,7 +234,7 @@ export default function RootLayout({
         
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Laxenta - 200+ AI Models API Platform" />
+        <meta name="twitter:title" content="Laxenta Inc- 200+ AI Models API Platform" />
         <meta name="twitter:description" content="Affordable AI APIs: Image gen (NSFW/SFW), Chat models, Discord shapes, Voice synthesis, Advanced dev tools, Code commissions. Free tier available." />
         <meta name="twitter:image" content="https://www.laxenta.tech/og-image.png" />
         
