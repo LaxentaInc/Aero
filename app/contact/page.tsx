@@ -1,1265 +1,1007 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
-import { motion, useScroll, useTransform, AnimatePresence, useMotionValue, useSpring } from 'framer-motion'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { useTheme } from '../contexts/ThemeContext'
-import { FaDiscord, FaEnvelope, FaCopy, FaCheck, FaClock, FaBug, FaRocket, FaHeart, FaVolumeUp, FaVolumeMute } from 'react-icons/fa'
-import { SiGmail } from 'react-icons/si'
-import { Typewriter } from 'react-simple-typewriter'
 
-// SVG Icons to replace emojis
-const RocketSVG = ({ size = 24 }: { size?: number }) => (
-	<svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="inline-block">
-		<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 00-2.91-.09z" fill="#FF6B6B"/>
-		<path d="M12 15l-2 5 3-4 3-4-2 5-2-2z" fill="#FFA502"/>
-		<path d="M12 2s5 2 5 10-2 10-2 10-1-5-3-5-3 5-3 5-2-2-2-10S12 2 12 2z" fill="#4ECDC4"/>
-		<path d="M12 2c0 0-1 2-1 6s1 6 1 6 1-2 1-6-1-6-1-6z" fill="#45B7D1"/>
-	</svg>
-)
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { FaDiscord, FaEnvelope, FaCopy, FaCheck, FaPaperPlane, FaPlay, FaPause, FaVolumeUp, FaVolumeMute } from 'react-icons/fa';
+import { useTheme } from '@/app/contexts/ThemeContext';
 
-const GameControllerSVG = ({ size = 24 }: { size?: number }) => (
-	<svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="inline-block">
-		<path d="M16.5 9h-9C5.02 9 3 11.02 3 13.5S5.02 18 7.5 18h9c2.48 0 4.5-2.02 4.5-4.5S18.98 9 16.5 9z" fill="#667EEA"/>
-		<path d="M8 12h1v2H8v1H6v-1h1v-2H6v-1h2v1zm7.5.5a1 1 0 100 2 1 1 0 000-2zm-2-2a1 1 0 100 2 1 1 0 000-2z" fill="#FFFFFF"/>
-	</svg>
-)
-
-const CapSVG = ({ size = 24 }: { size?: number }) => (
-	<svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="inline-block">
-		<path d="M12 2C6.5 2 2 6.5 2 12v10h20V12c0-5.5-4.5-10-10-10z" fill="#764BA2"/>
-		<path d="M12 2C6.5 2 2 6.5 2 12h20c0-5.5-4.5-10-10-10z" fill="#667EEA"/>
-		<rect x="8" y="12" width="8" height="2" fill="#FFD93D"/>
-	</svg>
-)
-
-const MessageSVG = ({ size = 24 }: { size?: number }) => (
-	<svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="inline-block">
-		<path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" fill="#5865F2"/>
-		<path d="M6 9h12v2H6V9zm0 4h9v2H6v-2z" fill="#FFFFFF"/>
-	</svg>
-)
-
-const SwordSVG = ({ size = 24 }: { size?: number }) => (
-	<svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="inline-block">
-		<path d="M18.5 2l-13 13 3.5 3.5 13-13z" fill="#C0C0C0"/>
-		<path d="M5.5 16l-3.5 3.5 2 2L7.5 18z" fill="#8B4513"/>
-		<circle cx="6.5" cy="17" r="1" fill="#FFD700"/>
-	</svg>
-)
-
-const HourglassSVG = ({ size = 24 }: { size?: number }) => (
-	<svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="inline-block">
-		<path d="M6 2v6l6 6-6 6v2h12v-2l-6-6 6-6V2H6z" fill="#F59E0B"/>
-		<path d="M8 4h8v2l-4 4-4-4V4zm0 16v-2l4-4 4 4v2H8z" fill="#FCD34D"/>
-	</svg>
-)
-
-const LoveSVG = ({ size = 24 }: { size?: number }) => (
-	<svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="inline-block">
-		<path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#FF6B6B"/>
-	</svg>
-)
-
-const MailSVG = ({ size = 24 }: { size?: number }) => (
-	<svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="inline-block">
-		<path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2z" fill="#EA4335"/>
-		<path d="M20 6l-8 5-8-5v2l8 5 8-5V6z" fill="#FFFFFF"/>
-	</svg>
-)
-
-const SweatSVG = ({ size = 24 }: { size?: number }) => (
-	<svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="inline-block">
-		<circle cx="12" cy="12" r="10" fill="#FFD93D"/>
-		<path d="M8 14s1.5 2 4 2 4-2 4-2" stroke="#000" strokeWidth="1.5" strokeLinecap="round"/>
-		<circle cx="9" cy="10" r="1.5" fill="#000"/>
-		<circle cx="15" cy="10" r="1.5" fill="#000"/>
-		<path d="M16 6s1-2 3-2c0 0-1 3-3 3z" fill="#4FC3F7"/>
-	</svg>
-)
-
-const WinkSVG = ({ size = 24 }: { size?: number }) => (
-	<svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="inline-block">
-		<circle cx="12" cy="12" r="10" fill="#FFD93D"/>
-		<path d="M7 14s2 3 5 3 5-3 5-3" stroke="#000" strokeWidth="1.5" strokeLinecap="round"/>
-		<circle cx="9" cy="10" r="1.5" fill="#000"/>
-		<path d="M15 10c0 .5.5 1 1 1s1-.5 1-1" stroke="#000" strokeWidth="1.5" strokeLinecap="round"/>
-	</svg>
-)
-
-const MusicSVG = ({ size = 24 }: { size?: number }) => (
-	<svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="inline-block">
-		<path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" fill="#E91E63"/>
-		<circle cx="10" cy="17" r="3" fill="#F06292"/>
-	</svg>
-)
-
-// Snow Animation Component
-const SnowAnimation = () => {
-	return (
-		<div className="fixed inset-0 pointer-events-none z-[90]">
-			{[...Array(50)].map((_, i) => (
-				<motion.div
-					key={i}
-					className="absolute w-2 h-2 bg-white rounded-full opacity-80"
-					initial={{
-						x: Math.random() * window.innerWidth,
-						y: -20,
-					}}
-					animate={{
-						y: window.innerHeight + 20,
-						x: `+=${Math.random() * 200 - 100}`,
-					}}
-					transition={{
-						duration: Math.random() * 10 + 10,
-						repeat: Infinity,
-						delay: Math.random() * 10,
-						ease: "linear",
-					}}
-					style={{
-						filter: 'blur(1px)',
-					}}
-				/>
-			))}
-		</div>
-	)
+interface Message {
+  id: string;
+  text: string;
+  timestamp: string;
+  user: string;
 }
 
-// Audio Control Button
-const AudioControl = ({ theme }: { theme: 'dark' | 'light' }) => {
-	const [isMuted, setIsMuted] = useState(false)
-	const audioRef = useRef<HTMLAudioElement>(null)
-
-	useEffect(() => {
-		if (audioRef.current) {
-			audioRef.current.volume = 0.3
-			audioRef.current.play().catch(e => console.log('Audio autoplay blocked'))
-		}
-	}, [])
-
-	const toggleMute = () => {
-		if (audioRef.current) {
-			audioRef.current.muted = !isMuted
-			setIsMuted(!isMuted)
-		}
-	}
-
-	return (
-		<>
-			<audio ref={audioRef} loop>
-				<source src="/christmas.mp3" type="audio/mpeg" />
-			</audio>
-			<motion.button
-				onClick={toggleMute}
-				className={`fixed bottom-8 right-8 z-50 p-4 rounded-3xl backdrop-blur-xl ${
-					theme === 'dark' 
-						? 'bg-white/10 hover:bg-white/20 border border-white/20' 
-						: 'bg-black/10 hover:bg-black/20 border border-black/20'
-				} transition-all duration-300`}
-				whileHover={{ scale: 1.1 }}
-				whileTap={{ scale: 0.9 }}
-			>
-				<motion.svg
-					width="24"
-					height="24"
-					viewBox="0 0 24 24"
-					initial={{ opacity: 0 }}
-					animate={{ opacity: 1 }}
-				>
-					{isMuted ? (
-						<path
-							fill={theme === 'dark' ? '#fff' : '#000'}
-							d="M3.63 3.63a.996.996 0 000 1.41L7.29 8.7 7 9H4c-.55 0-1 .45-1 1v4c0 .55.45 1 1 1h3l3.29 3.29c.63.63 1.71.18 1.71-.71v-4.17l4.18 4.18c-.49.37-1.02.68-1.6.91-.36.15-.58.53-.58.92 0 .72.73 1.18 1.39.91.8-.33 1.55-.77 2.22-1.31l1.34 1.34a.996.996 0 101.41-1.41L5.05 3.63c-.39-.39-1.02-.39-1.42 0zM19 12c0 .82-.15 1.61-.41 2.34l1.53 1.53c.56-1.17.88-2.48.88-3.87 0-3.83-2.4-7.11-5.78-8.4-.59-.23-1.22.23-1.22.86v.19c0 .38.25.71.61.85C17.18 6.54 19 9.06 19 12zm-7-8l-1.88 1.88L12 7.76zm4.5 8A4.5 4.5 0 0014 7.97v1.79l2.48 2.48c.01-.08.02-.16.02-.24z"
-						/>
-					) : (
-						<>
-							<path
-								fill={theme === 'dark' ? '#fff' : '#000'}
-								d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0014 7.97v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"
-							/>
-							<motion.circle
-								cx="20"
-								cy="12"
-								r="2"
-								fill="none"
-								stroke={theme === 'dark' ? '#fff' : '#000'}
-								strokeWidth="1"
-								initial={{ scale: 0.8, opacity: 0 }}
-								animate={{ 
-									scale: [0.8, 1.2, 0.8], 
-									opacity: [0, 1, 0] 
-								}}
-								transition={{ 
-									duration: 2, 
-									repeat: Infinity,
-									ease: "easeInOut"
-								}}
-							/>
-						</>
-					)}
-				</motion.svg>
-			</motion.button>
-		</>
-	)
+interface ContactCardProps {
+  type: string;
+  value: string;
+  icon: React.ComponentType<any>;
 }
 
-// Enhanced Magnetic Cursor with Light Effect
-const MagneticCursor = ({ theme }: { theme: 'dark' | 'light' }) => {
-	const cursorRef = useRef<HTMLDivElement>(null)
-	const lightRef = useRef<HTMLDivElement>(null)
-	const [isMobile, setIsMobile] = useState(false)
-	const [isHovering, setIsHovering] = useState(false)
-	const mouseX = useMotionValue(0)
-	const mouseY = useMotionValue(0)
-	const springConfig = { damping: 25, stiffness: 700 }
-	const cursorX = useSpring(mouseX, springConfig)
-	const cursorY = useSpring(mouseY, springConfig)
+type TetrominoType = 'I' | 'O' | 'T' | 'S' | 'Z' | 'J' | 'L';
 
-	useEffect(() => {
-		const checkMobile = () => {
-			setIsMobile('ontouchstart' in window || navigator.maxTouchPoints > 0)
-		}
-		checkMobile()
-		
-		// Hide default cursor
-		if (!isMobile) {
-			document.body.style.cursor = 'none'
-		}
-		
-		window.addEventListener('resize', checkMobile)
-		return () => {
-			window.removeEventListener('resize', checkMobile)
-			document.body.style.cursor = 'auto'
-		}
-	}, [isMobile])
-
-	useEffect(() => {
-		if (isMobile) return
-
-		const handleMouseMove = (e: MouseEvent) => {
-			mouseX.set(e.clientX)
-			mouseY.set(e.clientY)
-			
-			const target = e.target as HTMLElement
-			const isInteractive = target.closest('button, a, input, textarea, [data-magnetic]')
-			setIsHovering(!!isInteractive)
-		}
-
-		window.addEventListener('mousemove', handleMouseMove)
-		return () => window.removeEventListener('mousemove', handleMouseMove)
-	}, [isMobile, mouseX, mouseY])
-
-	if (isMobile) return null
-
-	return (
-		<>
-			{/* Light effect under cursor */}
-			<motion.div
-				ref={lightRef}
-				className="fixed pointer-events-none z-[2]"
-				style={{
-					x: cursorX,
-					y: cursorY,
-					translateX: '-50%',
-					translateY: '-50%',
-				}}
-			>
-				<div 
-					className={`w-96 h-96 rounded-full blur-3xl ${
-						theme === 'dark' 
-							? 'bg-white/5' 
-							: 'bg-black/5'
-					}`}
-					style={{
-						background: theme === 'dark'
-							? 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%)'
-							: 'radial-gradient(circle, rgba(0,0,0,0.05) 0%, transparent 70%)'
-					}}
-				/>
-			</motion.div>
-
-			{/* Cursor */}
-			<motion.div
-				ref={cursorRef}
-				className={`fixed w-6 h-6 pointer-events-none z-[100]`}
-				style={{
-					x: cursorX,
-					y: cursorY,
-					translateX: '-50%',
-					translateY: '-50%',
-				}}
-			>
-				<motion.div
-					animate={{
-						scale: isHovering ? 2 : 1,
-					}}
-					transition={{ duration: 0.2 }}
-					className={`w-full h-full rounded-full border-2 ${
-						theme === 'dark' ? 'border-white' : 'border-black'
-					}`}
-				/>
-			</motion.div>
-			<motion.div
-				className={`fixed w-1 h-1 rounded-full pointer-events-none z-[101] ${
-					theme === 'dark' ? 'bg-white' : 'bg-black'
-				}`}
-				style={{
-					x: mouseX,
-					y: mouseY,
-					translateX: '-50%',
-					translateY: '-50%',
-				}}
-			/>
-		</>
-	)
+interface Tetromino {
+  type: TetrominoType;
+  shape: boolean[][];
+  x: number;
+  y: number;
+  color: string;
 }
 
-// Animated Background
-const AnimatedBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
-	return (
-		<div className="fixed inset-0 z-0 overflow-hidden">
-			<div className={`absolute inset-0 bg-gradient-to-br ${
-				theme === 'dark' 
-					? 'from-purple-900/20 via-black/50 to-blue-900/20' 
-					: 'from-purple-100/20 via-white/50 to-blue-100/20'
-			}`} />
-			
-			{/* Animated gradient orbs */}
-			<motion.div
-				className="absolute top-20 left-20 w-96 h-96 rounded-full bg-gradient-to-r from-purple-500/20 to-blue-500/20 blur-3xl"
-				animate={{
-					x: [0, 100, 0],
-					y: [0, -100, 0],
-				}}
-				transition={{ duration: 20, repeat: Infinity }}
-			/>
-			<motion.div
-				className="absolute bottom-20 right-20 w-96 h-96 rounded-full bg-gradient-to-r from-pink-500/20 to-orange-500/20 blur-3xl"
-				animate={{
-					x: [0, -100, 0],
-					y: [0, 100, 0],
-				}}
-				transition={{ duration: 25, repeat: Infinity }}
-			/>
-		</div>
-	)
-}
+// Optional Video Background Component
+const VideoBackground = () => {
+  const [hasVideo, setHasVideo] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const { theme } = useTheme();
+  const videoRef = useRef<HTMLVideoElement>(null);
 
-// Custom Discord SVG (no rotation)
-const CustomDiscordIcon = () => (
-	<svg width="120" height="120" viewBox="0 0 120 120" fill="none">
-		<defs>
-			<linearGradient id="discordGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-				<stop offset="0%" stopColor="#7289DA" />
-				<stop offset="100%" stopColor="#5865F2" />
-			</linearGradient>
-			<filter id="glow">
-				<feGaussianBlur stdDeviation="4" result="coloredBlur"/>
-				<feMerge>
-					<feMergeNode in="coloredBlur"/>
-					<feMergeNode in="SourceGraphic"/>
-				</feMerge>
-			</filter>
-		</defs>
-		<motion.path
-			d="M47.5 30C42.5 28.5 37.5 27.5 32.5 27.5C32 29 31.5 30.5 31 32C27.5 31.5 24 31.5 20.5 32C20 30.5 19.5 29 19 27.5C14 27.5 9 28.5 4 30C-4.5 42 -6.5 53.5 -5.5 65C2 70.5 9 73.5 16 75C17.5 73 18.5 70.5 19.5 68C16.5 67 13.5 65.5 11 63.5C11.5 63 12 62.5 12.5 62C22 66.5 32.5 66.5 42 62C42.5 62.5 43 63 43.5 63.5C41 65.5 38 67 35 68C36 70.5 37 73 38.5 75C45.5 73.5 52.5 70.5 60 65C61.5 51 57.5 39.5 47.5 30ZM21 52.5C17.5 52.5 14.5 49 14.5 45C14.5 41 17.5 37.5 21 37.5C24.5 37.5 27.5 41 27.5 45C27.5 49 24.5 52.5 21 52.5ZM39 52.5C35.5 52.5 32.5 49 32.5 45C32.5 41 35.5 37.5 39 37.5C42.5 37.5 45.5 41 45.5 45C45.5 49 42.5 52.5 39 52.5Z"
-			fill="url(#discordGradient)"
-			filter="url(#glow)"
-			initial={{ pathLength: 0, opacity: 0 }}
-			animate={{ pathLength: 1, opacity: 1 }}
-			transition={{ duration: 2, ease: "easeInOut" }}
-			style={{ transform: 'translate(30px, 25px)' }}
-		/>
-		<motion.circle
-			cx="51"
-			cy="70"
-			r="3"
-			fill="#7289DA"
-			animate={{ 
-				scale: [1, 1.5, 1],
-				opacity: [1, 0.5, 1]
-			}}
-			transition={{ duration: 2, repeat: Infinity }}
-		/>
-		<motion.circle
-			cx="69"
-			cy="70"
-			r="3"
-			fill="#7289DA"
-			animate={{ 
-				scale: [1, 1.5, 1],
-				opacity: [1, 0.5, 1]
-			}}
-			transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-		/>
-	</svg>
-)
+  useEffect(() => {
+    // Check if video exists - replace with your actual video path
+    const videoPath = '/videos/Eyeloading-bg.mp4'; // Change this to your video path
+    
+    const video = document.createElement('video');
+    video.src = videoPath;
+    
+    video.onloadeddata = () => {
+      setHasVideo(true);
+      setIsLoading(false);
+    };
+    
+    video.onerror = () => {
+      setHasVideo(false);
+      setIsLoading(false);
+    };
 
-// Custom Email SVG
-const CustomEmailIcon = () => (
-	<svg width="120" height="120" viewBox="0 0 120 120" fill="none">
-		<defs>
-			<linearGradient id="emailGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-				<stop offset="0%" stopColor="#FF6B6B" />
-				<stop offset="50%" stopColor="#4ECDC4" />
-				<stop offset="100%" stopColor="#45B7D1" />
-			</linearGradient>
-			<filter id="emailGlow">
-				<feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-				<feMerge>
-					<feMergeNode in="coloredBlur"/>
-					<feMergeNode in="SourceGraphic"/>
-				</feMerge>
-			</filter>
-		</defs>
-		<motion.rect
-			x="20"
-			y="35"
-			width="80"
-			height="60"
-			rx="10"
-			fill="none"
-			stroke="url(#emailGradient)"
-			strokeWidth="4"
-			filter="url(#emailGlow)"
-			initial={{ pathLength: 0 }}
-			animate={{ pathLength: 1 }}
-			transition={{ duration: 1.5, ease: "easeInOut" }}
-		/>
-		<motion.path
-			d="M20 45 L60 75 L100 45"
-			fill="none"
-			stroke="url(#emailGradient)"
-			strokeWidth="4"
-			strokeLinecap="round"
-			initial={{ pathLength: 0 }}
-			animate={{ pathLength: 1 }}
-			transition={{ duration: 1, delay: 0.5, ease: "easeInOut" }}
-		/>
-		<motion.circle
-			cx="85"
-			cy="80"
-			r="15"
-			fill="#4ECDC4"
-			initial={{ scale: 0 }}
-			animate={{ scale: 1 }}
-			transition={{ duration: 0.5, delay: 1, type: "spring" }}
-		/>
-		<motion.path
-			d="M78 80 L82 84 L92 74"
-			fill="none"
-			stroke="white"
-			strokeWidth="3"
-			strokeLinecap="round"
-			initial={{ pathLength: 0 }}
-			animate={{ pathLength: 1 }}
-			transition={{ duration: 0.5, delay: 1.3 }}
-		/>
-	</svg>
-)
+    return () => {
+      video.src = '';
+    };
+  }, []);
 
-// Enhanced Glass Contact Card (No background images, with SVG patterns)
-const GlassContactCard = ({ 
-	icon, 
-	title, 
-	value, 
-	color, 
-	theme,
-	delay = 0,
-}: { 
-	icon: React.ReactNode
-	title: string
-	value: string
-	color: string
-	theme: 'dark' | 'light'
-	delay?: number
-}) => {
-	const [copied, setCopied] = useState(false)
+  if (!hasVideo || isLoading) return null;
 
-	const handleCopy = () => {
-		navigator.clipboard.writeText(value)
-		setCopied(true)
-		setTimeout(() => setCopied(false), 2000)
-	}
+  return (
+    <div className="fixed inset-0 w-full h-full overflow-hidden -z-10">
+      <video
+        ref={videoRef}
+        autoPlay
+        loop
+        muted
+        playsInline
+        className={`absolute top-0 left-0 w-full h-full object-cover ${
+          theme === 'dark' ? 'opacity-20' : 'opacity-10'
+        }`}
+      >
+        <source src="/videos/Eyeloading-bg.mp4" type="video/mp4" />
+      </video>
+      <div className={`absolute inset-0 ${
+        theme === 'dark' ? 'bg-black/70' : 'bg-white/70'
+      }`} />
+    </div>
+  );
+};
 
-	return (
-		<motion.div
-			initial={{ opacity: 0, y: 100 }}
-			whileInView={{ opacity: 1, y: 0 }}
-			transition={{ delay, type: "spring", stiffness: 100 }}
-			whileHover={{ y: -10 }}
-			className={`relative overflow-hidden cursor-pointer group h-[600px] rounded-3xl ${
-				theme === 'dark' 
-					? 'bg-gradient-to-br from-white/10 to-white/5 border border-white/20' 
-					: 'bg-gradient-to-br from-black/10 to-black/5 border border-black/20'
-			} backdrop-blur-2xl`}
-			style={{
-				boxShadow: theme === 'dark' 
-					? '0 25px 50px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)' 
-					: '0 25px 50px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.5)'
-			}}
-			onClick={handleCopy}
-		>
-			{/* Custom SVG Pattern Background */}
-			<svg className="absolute inset-0 w-full h-full opacity-10 group-hover:opacity-20 transition-opacity duration-700">
-				<defs>
-					<pattern id={`pattern-${title}`} x="0" y="0" width="60" height="60" patternUnits="userSpaceOnUse">
-						<motion.circle
-							cx="30"
-							cy="30"
-							r="2"
-							fill={color}
-							animate={{
-								r: [2, 4, 2],
-								opacity: [0.3, 0.6, 0.3]
-							}}
-							transition={{
-								duration: 3,
-								repeat: Infinity,
-								ease: "easeInOut"
-							}}
-						/>
-						<motion.path
-							d="M0,30 Q15,15 30,30 T60,30"
-							stroke={color}
-							strokeWidth="0.5"
-							fill="none"
-							opacity="0.3"
-							animate={{
-								strokeWidth: [0.5, 1, 0.5],
-								opacity: [0.3, 0.5, 0.3]
-							}}
-							transition={{
-								duration: 4,
-								repeat: Infinity,
-								ease: "easeInOut"
-							}}
-						/>
-					</pattern>
-				</defs>
-				<rect width="100%" height="100%" fill={`url(#pattern-${title})`} />
-			</svg>
+// Optional Music Player Component
+const MusicPlayer = ({ shouldPlay }: { shouldPlay: boolean }) => {
+  const [hasAudio, setHasAudio] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
+  const [volume, setVolume] = useState(0.3);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const { theme } = useTheme();
 
-			<div className="relative z-10 flex flex-col items-center justify-center h-full p-12">
-				<motion.div 
-					className="mb-12"
-					whileHover={{ scale: 1.1 }}
-					transition={{ type: "spring", stiffness: 200 }}
-				>
-					{icon}
-				</motion.div>
-				
-				<h3 className={`text-5xl font-black mb-6 ${
-					theme === 'dark' ? 'text-white' : 'text-black'
-				}`}>
-					{title}
-				</h3>
-				
-				<p className={`text-3xl font-mono mb-12 text-center ${
-					theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-				}`}>
-					{value}
-				</p>
-				
-				<motion.div 
-					className={`flex items-center gap-4 px-10 py-5 rounded-full ${
-						theme === 'dark' ? 'bg-white/10' : 'bg-black/10'
-					} backdrop-blur-xl`}
-					animate={{ scale: copied ? [1, 1.2, 1] : 1 }}
-				>
-					{copied ? (
-						<>
-							<FaCheck className="text-green-500 text-3xl" />
-							<span className="font-mono text-2xl text-green-500">Copied!</span>
-						</>
-					) : (
-						<>
-							<FaCopy className={`text-2xl ${theme === 'dark' ? 'text-white/70' : 'text-black/70'}`} />
-							<span className={`font-mono text-2xl ${
-								theme === 'dark' ? 'text-white/70' : 'text-black/70'
-							}`}>
-								Click to copy
-							</span>
-						</>
-					)}
-				</motion.div>
-			</div>
-		</motion.div>
-	)
-}
+  useEffect(() => {
+    if (!audioRef.current) {
+      const audioPath = '/crypto-dreams.mp3';
+      const audio = new Audio(audioPath);
+      audio.volume = volume;
+      audio.loop = true;
+      audioRef.current = audio;
+      
+      if (shouldPlay) {
+        audio.play().catch(err => console.log('Audio play failed:', err));
+        setIsPlaying(true);
+      }
+    }
+    
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+    };
+  }, [shouldPlay]);
 
-// Enhanced Feature Card with SVG backgrounds
-const AnimatedFeatureCard = ({ 
-	icon, 
-	title, 
-	description, 
-	gradient,
-	theme,
-	delay = 0,
-}: { 
-	icon: React.ReactNode
-	title: string
-	description: string
-	gradient: string
-	theme: 'dark' | 'light'
-	delay?: number
-}) => {
-	return (
-		<motion.div
-			initial={{ opacity: 0, scale: 0.9 }}
-			whileInView={{ opacity: 1, scale: 1 }}
-			transition={{ delay, duration: 0.8 }}
-			whileHover={{ scale: 1.05 }}
-			className={`relative p-16 h-[400px] overflow-hidden rounded-3xl ${
-				theme === 'dark' 
-					? 'bg-gradient-to-br from-gray-900/90 to-black/90 border border-white/20' 
-					: 'bg-gradient-to-br from-white/90 to-gray-100/90 border border-black/20'
-			} backdrop-blur-xl group`}
-			style={{ 
-				transformStyle: 'preserve-3d',
-				boxShadow: theme === 'dark'
-					? '0 15px 35px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.1)'
-					: '0 15px 35px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.7)'
-			}}
-		>
-			{/* SVG and animation implementations */}
-			<svg className="absolute inset-0 w-full h-full">
-				<defs>
-					<linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
-						<stop offset="0%" stopColor="#FF6B6B" />
-						<stop offset="50%" stopColor="#4ECDC4" />
-						<stop offset="100%" stopColor="#45B7D1" />
-					</linearGradient>
-					<linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
-						<stop offset="0%" stopColor="#7289DA" />
-						<stop offset="100%" stopColor="#5865F2" />
-					</linearGradient>
-				</defs>
+  const togglePlay = () => {
+    if (!audioRef.current) return;
+    
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play().catch(err => {
+        console.log('Audio play failed:', err);
+      });
+    }
+    setIsPlaying(!isPlaying);
+  };
 
-				<motion.rect
-					x="0"
-					y="0"
-					width="100%"
-					height="100%"
-					fill="url(#gradient1)"
-					initial={{ opacity: 0 }}
-					animate={{ opacity: 1 }}
-					transition={{ duration: 1 }}
-				/>
-				<motion.rect
-					x="0"
-					y="0"
-					width="100%"
-					height="100%"
-					fill="url(#gradient2)"
-					initial={{ opacity: 0 }}
-					animate={{ opacity: 1 }}
-					transition={{ duration: 1, delay: 0.5 }}
-				/>
-			</svg>
+  const toggleMute = () => {
+    if (!audioRef.current) return;
+    audioRef.current.muted = !isMuted;
+    setIsMuted(!isMuted);
+  };
 
-			<div className="relative z-10 flex flex-col h-full">
-				<motion.div 
-					className={`text-7xl mb-8 ${theme === 'dark' ? 'text-white' : 'text-black'}`}
-				>
-					{icon}
-				</motion.div>
-				<h4 className={`text-3xl font-black mb-6 ${
-					theme === 'dark' ? 'text-white' : 'text-black'
-				}`}>
-					{title}
-				</h4>
-				<p className={`text-xl leading-relaxed ${
-					theme === 'dark' ? 'text-white/70' : 'text-black/70'
-				}`}>
-					{description}
-				</p>
-			</div>
-		</motion.div>
-	)
-}
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVolume = parseFloat(e.target.value);
+    setVolume(newVolume);
+    if (audioRef.current) {
+      audioRef.current.volume = newVolume;
+    }
+  };
 
-// Black themed server rack SVG - twice as big
-const BlackServerSVG = () => (
-	<motion.svg 
-		width="1600" 
-		height="1200" 
-		viewBox="0 0 1600 1200" 
-		className="w-full h-full"
-		initial={{ opacity: 0 }}
-		animate={{ opacity: 1 }}
-		transition={{ duration: 1 }}
-	>
-		<defs>
-			<linearGradient id="serverGradBlack" x1="0%" y1="0%" x2="100%" y2="100%">
-				<stop offset="0%" stopColor="#2a2a2a" />
-				<stop offset="100%" stopColor="#1a1a1a" />
-			</linearGradient>
-			<linearGradient id="ledGreen" x1="0%" y1="0%" x2="100%" y2="100%">
-				<stop offset="0%" stopColor="#00ff00" />
-				<stop offset="100%" stopColor="#00cc00" />
-			</linearGradient>
-			<filter id="serverGlow">
-				<feGaussianBlur stdDeviation="8" result="coloredBlur"/>
-				<feMerge>
-					<feMergeNode in="coloredBlur"/>
-					<feMergeNode in="SourceGraphic"/>
-				</feMerge>
-			</filter>
-		</defs>
+  if (!hasAudio) return null;
 
-		{/* Main Server Rack */}
-		<motion.g
-			initial={{ scale: 0 }}
-			animate={{ scale: 1 }}
-			transition={{ duration: 0.8, type: "spring" }}
-		>
-			{/* Server Frame */}
-			<rect x="400" y="200" width="800" height="800" rx="20" fill="url(#serverGradBlack)" stroke="#333" strokeWidth="4" />
-			
-			{/* Server Units */}
-			{[0, 1, 2, 3, 4, 5].map((i) => (
-				<g key={i}>
-					{/* Server unit */}
-					<rect 
-						x="450" 
-						y={250 + i * 120} 
-						width="700" 
-						height="100" 
-						rx="10" 
-						fill="#1a1a1a" 
-						stroke="#444" 
-						strokeWidth="2"
-					/>
-					
-					{/* Server face plate */}
-					<rect 
-						x="470" 
-						y={260 + i * 120} 
-						width="660" 
-						height="80" 
-						rx="5" 
-						fill="#222"
-					/>
-					
-					{/* Ventilation slots */}
-					{[0, 1, 2, 3, 4].map((j) => (
-						<rect
-							key={j}
-							x={490 + j * 130}
-							y={275 + i * 120}
-							width="100"
-							height="3"
-							fill="#111"
-						/>
-					))}
-					{[0, 1, 2, 3, 4].map((j) => (
-						<rect
-							key={`v2-${j}`}
-							x={490 + j * 130}
-							y={285 + i * 120}
-							width="100"
-							height="3"
-							fill="#111"
-						/>
-					))}
-					
-					{/* Power button */}
-					<circle cx="500" cy={310 + i * 120} r="8" fill="#333" stroke="#555" strokeWidth="1" />
-					
-					{/* LED indicators */}
-					<circle cx="530" cy={310 + i * 120} r="5" fill="url(#ledGreen)">
-						<animate attributeName="opacity" values="1;0.3;1" dur={`${1.5 + i * 0.2}s`} repeatCount="indefinite" />
-					</circle>
-					<circle cx="550" cy={310 + i * 120} r="5" fill="#ff9900">
-						<animate attributeName="opacity" values="1;0.3;1" dur={`${2 + i * 0.3}s`} repeatCount="indefinite" />
-					</circle>
-					<circle cx="570" cy={310 + i * 120} r="5" fill="#ff0000">
-						<animate attributeName="opacity" values="0.3;0.3;1;0.3" dur="4s" repeatCount="indefinite" />
-					</circle>
-					
-					{/* Drive bays */}
-					{[0, 1, 2].map((k) => (
-						<rect
-							key={k}
-							x={900 + k * 70}
-							y={275 + i * 120}
-							width="50"
-							height="50"
-							rx="3"
-							fill="#333"
-							stroke="#555"
-							strokeWidth="1"
-						/>
-					))}
-				</g>
-			))}
-			
-			{/* Rack handles */}
-			<rect x="380" y="200" width="20" height="800" rx="10" fill="#333" />
-			<rect x="1200" y="200" width="20" height="800" rx="10" fill="#333" />
-		</motion.g>
+  return (
+    <div className={`fixed bottom-4 right-4 z-50 ${
+      theme === 'dark' ? 'bg-black/90' : 'bg-white/90'
+    } border-2 ${
+      theme === 'dark' ? 'border-white' : 'border-black'
+    } p-4 rounded-lg backdrop-blur-sm`}>
+      <div className="flex items-center gap-3">
+        <button
+          onClick={togglePlay}
+          className={`p-2 ${
+            theme === 'dark' ? 'text-white hover:text-gray-300' : 'text-black hover:text-gray-700'
+          } transition-colors`}
+          aria-label={isPlaying ? 'Pause' : 'Play'}
+        >
+          {isPlaying ? <FaPause /> : <FaPlay />}
+        </button>
+        
+        <button
+          onClick={toggleMute}
+          className={`p-2 ${
+            theme === 'dark' ? 'text-white hover:text-gray-300' : 'text-black hover:text-gray-700'
+          } transition-colors`}
+          aria-label={isMuted ? 'Unmute' : 'Mute'}
+        >
+          {isMuted ? <FaVolumeMute /> : <FaVolumeUp />}
+        </button>
+        
+        <input
+          type="range"
+          min="0"
+          max="1"
+          step="0.01"
+          value={volume}
+          onChange={handleVolumeChange}
+          className="w-24"
+          disabled={isMuted}
+        />
+      </div>
+      <div className={`text-xs mt-2 font-mono ${
+        theme === 'dark' ? 'text-white/60' : 'text-black/60'
+      }`}>
+        BACKGROUND MUSIC
+      </div>
+    </div>
+  );
+};
 
-		{/* Floating data particles */}
-		{[...Array(15)].map((_, i) => (
-			<motion.circle
-				key={`data-${i}`}
-				r="4"
-				fill="#00ff00"
-				filter="url(#serverGlow)"
-				initial={{ 
-					opacity: 0, 
-					x: 800,
-					y: 600 
-				}}
-				animate={{
-					opacity: [0, 1, 1, 0],
-					x: [800, 800 + (Math.random() - 0.5) * 600],
-					y: [600, 300 + Math.random() * 400],
-				}}
-				transition={{
-					duration: 3 + Math.random() * 2,
-					repeat: Infinity,
-					delay: i * 0.3,
-					ease: "easeOut"
-				}}
-			/>
-		))}
-		
-		{/* Connection lines */}
-		{[0, 1, 2].map((i) => (
-			<motion.path
-				key={`line-${i}`}
-				d={`M ${1150} ${350 + i * 200} Q ${1300} ${350 + i * 200} ${1400} ${200 + i * 150}`}
-				stroke="#00ff00"
-				strokeWidth="2"
-				fill="none"
-				opacity="0.5"
-				strokeDasharray="10 5"
-				initial={{ pathLength: 0 }}
-				animate={{ pathLength: 1 }}
-				transition={{
-					duration: 2,
-					repeat: Infinity,
-					delay: i * 0.5,
-					ease: "linear"
-				}}
-			/>
-		))}
-	</motion.svg>
-)
+// Enhanced Complex Animated SVG with Theme Support
+const ComplexAnimatedSVG = () => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
-// Minimal 3D Monospace Contact Form
-const Minimal3DContactForm = ({ theme, formStatus, setFormStatus, error, setError }: {
-	theme: 'dark' | 'light'
-	formStatus: 'idle' | 'sending' | 'sent' | 'error'
-	setFormStatus: (status: 'idle' | 'sending' | 'sent' | 'error') => void
-	error: string
-	setError: (error: string) => void
-}) => {
-	const [contactName, setContactName] = useState('')
-	const [contactEmail, setContactEmail] = useState('')
-	const [contactMessage, setContactMessage] = useState('')
+  return (
+    <div className="fixed inset-0 w-full h-full pointer-events-none z-0 overflow-hidden">
+      <svg className={`w-full h-full ${isDark ? 'opacity-30' : 'opacity-20'}`} viewBox="0 0 1400 800">
+        <defs>
+          <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style={{ 
+              stopColor: isDark ? '#00ffff' : '#0066ff', 
+              stopOpacity: 0.8 
+            }}>
+              <animate attributeName="stop-opacity" values="0.8;0.3;0.8" dur="4s" repeatCount="indefinite" />
+            </stop>
+            <stop offset="100%" style={{ 
+              stopColor: isDark ? '#ff00ff' : '#ff0066', 
+              stopOpacity: 0.3 
+            }}>
+              <animate attributeName="stop-opacity" values="0.3;0.8;0.3" dur="4s" repeatCount="indefinite" />
+            </stop>
+          </linearGradient>
+          
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+            <feMerge>
+              <feMergeNode in="coloredBlur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
 
-	const handleSubmit = async (e: React.FormEvent) => {
-		e.preventDefault()
-		setError('')
-		if (!contactName.trim()) {
-			setError('Please enter your name')
-			setFormStatus('error')
-			return
-		}
-		if (!contactEmail.trim()) {
-			setError('Please enter your Discord or Email')
-			setFormStatus('error')
-			return
-		}
-		if (!contactMessage.trim()) {
-			setError('Please enter your message')
-			setFormStatus('error')
-			return
-		}
-		setFormStatus('sending')
-		try {
-			const webhookUrl = 'https://discord.com/api/webhooks/1393096151963533363/8Bp1M49dTQmlWSNUv0KcJmewTYh-kTUkN-ap1dEmGFV-W1bPdnGK5y1MqPLAutseQOhH'
-			await fetch(webhookUrl, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					content: `New submission from laxenta.info c:`,
-					embeds: [{
-						color: theme === 'dark' ? 0xffffff : 0x000000,
-						fields: [
-							{ name: 'Name', value: contactName },
-							{ name: 'Discord/Email', value: contactEmail },
-							{ name: 'Message', value: contactMessage },
-							{ name: 'Timestamp', value: new Date().toISOString() }
-						]
-					}]
-				})
-			})
-			setFormStatus('sent')
-			setContactName('')
-			setContactEmail('')
-			setContactMessage('')
-			setTimeout(() => setFormStatus('idle'), 3000)
-		} catch (err) {
-			setError('Failed to send message. Please try again.')
-			setFormStatus('error')
-		}
-	}
+        {/* Complex Geometric Pattern 1 */}
+        <g transform="translate(200, 200)">
+          <rect 
+            x="-50" 
+            y="-50" 
+            width="100" 
+            height="100" 
+            fill="url(#gradient1)" 
+            filter="url(#glow)"
+          >
+            <animateTransform
+              attributeName="transform"
+              type="rotate"
+              from="0"
+              to="360"
+              dur="20s"
+              repeatCount="indefinite"
+            />
+          </rect>
+          <circle 
+            cx="0" 
+            cy="0" 
+            r="30" 
+            fill="none" 
+            stroke={isDark ? '#ffffff' : '#000000'} 
+            strokeWidth="2" 
+            opacity="0.5"
+          >
+            <animate attributeName="r" values="30;60;30" dur="3s" repeatCount="indefinite" />
+          </circle>
+        </g>
 
-	return (
-		<div
-			className={`relative max-w-2xl mx-auto px-8 py-12 rounded-2xl border-2 shadow-[0_8px_0_#222] ${
-				theme === 'dark'
-					? 'bg-black border-white/20 text-white'
-					: 'bg-white border-black/20 text-black'
-			}`}
-			style={{
-				fontFamily: 'monospace',
-				boxShadow: theme === 'dark'
-					? '0 8px 0 #222, 0 2px 24px rgba(0,0,0,0.5)'
-					: '0 8px 0 #bbb, 0 2px 24px rgba(0,0,0,0.08)'
-			}}
-		>
-			<h3 className="text-3xl font-bold mb-8 text-center tracking-tight" style={{ fontFamily: 'monospace' }}>
-				Send a Message
-			</h3>
-			<form onSubmit={handleSubmit} className="space-y-6">
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-					<input
-						type="text"
-						required
-						className={`w-full px-5 py-4 rounded-lg border-2 outline-none text-lg transition-all duration-150 shadow-[0_2px_0_#222] ${
-							theme === 'dark'
-								? 'bg-black border-white/20 text-white focus:bg-white/10'
-								: 'bg-white border-black/20 text-black focus:bg-black/5'
-						}`}
-						style={{
-							fontFamily: 'monospace',
-						}}
-						placeholder="Your Name"
-						value={contactName}
-						onChange={e => setContactName(e.target.value)}
-					/>
-					<input
-						type="text"
-						required
-						className={`w-full px-5 py-4 rounded-lg border-2 outline-none text-lg transition-all duration-150 shadow-[0_2px_0_#222] ${
-							theme === 'dark'
-								? 'bg-black border-white/20 text-white focus:bg-white/10'
-								: 'bg-white border-black/20 text-black focus:bg-black/5'
-						}`}
-						style={{
-							fontFamily: 'monospace',
-						}}
-						placeholder="Discord or Email"
-						value={contactEmail}
-						onChange={e => setContactEmail(e.target.value)}
-					/>
-				</div>
-				<textarea
-					required
-					rows={7}
-					className={`w-full px-5 py-4 rounded-lg border-2 outline-none text-lg transition-all duration-150 shadow-[0_2px_0_#222] resize-none ${
-						theme === 'dark'
-							? 'bg-black border-white/20 text-white focus:bg-white/10'
-							: 'bg-white border-black/20 text-black focus:bg-black/5'
-					}`}
-					style={{
-						fontFamily: 'monospace',
-					}}
-					placeholder="Tell me about your project..."
-					value={contactMessage}
-					onChange={e => setContactMessage(e.target.value)}
-				/>
-				{error && (
-					<p className={`text-center text-base font-bold ${theme === 'dark' ? 'text-red-400' : 'text-red-600'}`}>
-						{error}
-					</p>
-				)}
-				<button
-					type="submit"
-					disabled={formStatus === 'sending'}
-					className={`w-full py-4 rounded-lg border-2 font-bold text-lg tracking-wider transition-all duration-150 shadow-[0_2px_0_#222] active:translate-y-1 active:shadow-none ${
-						theme === 'dark'
-							? 'bg-black border-white/20 text-white hover:bg-white/10'
-							: 'bg-white border-black/20 text-black hover:bg-black/5'
-					} disabled:opacity-60`}
-					style={{
-						fontFamily: 'monospace',
-					}}
-				>
-					{formStatus === 'idle' && 'SEND'}
-					{formStatus === 'sending' && 'SENDING...'}
-					{formStatus === 'sent' && 'SENT!'}
-					{formStatus === 'error' && 'TRY AGAIN'}
-				</button>
-			</form>
-			<p className={`text-center mt-8 text-base ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-				Discord DMs are usually fastest.
-			</p>
-		</div>
-	)
-}
+        {/* Complex Geometric Pattern 2 */}
+        <g transform="translate(600, 400)">
+          <polygon 
+            points="0,-60 52,-30 52,30 0,60 -52,30 -52,-30" 
+            fill="url(#gradient1)" 
+            filter="url(#glow)"
+            opacity="0.6"
+          >
+            <animateTransform
+              attributeName="transform"
+              type="rotate"
+              from="0"
+              to="-360"
+              dur="15s"
+              repeatCount="indefinite"
+            />
+          </polygon>
+        </g>
+
+        {/* Floating Particles */}
+        {[...Array(15)].map((_, i) => (
+          <circle
+            key={i}
+            cx={100 + (i * 80)}
+            cy={100 + (i * 30)}
+            r="3"
+            fill={isDark ? '#ffffff' : '#000000'}
+            opacity="0.3"
+          >
+            <animate 
+              attributeName="cy" 
+              values={`${100 + (i * 30)};${150 + (i * 30)};${100 + (i * 30)}`} 
+              dur={`${3 + i * 0.5}s`} 
+              repeatCount="indefinite" 
+            />
+            <animate 
+              attributeName="opacity" 
+              values="0.3;0.8;0.3" 
+              dur={`${2 + i * 0.3}s`} 
+              repeatCount="indefinite" 
+            />
+          </circle>
+        ))}
+
+        {/* Wave Pattern */}
+        <path
+          d="M0,400 Q350,300 700,400 T1400,400"
+          stroke={isDark ? '#00ffff' : '#0066ff'}
+          strokeWidth="2"
+          fill="none"
+          opacity="0.4"
+        >
+          <animate 
+            attributeName="d" 
+            values="M0,400 Q350,300 700,400 T1400,400;M0,400 Q350,500 700,400 T1400,400;M0,400 Q350,300 700,400 T1400,400"
+            dur="8s"
+            repeatCount="indefinite"
+          />
+        </path>
+      </svg>
+    </div>
+  );
+};
+
+// Enhanced Tetris Game with Theme Support
+const TetrisGame = () => {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const gameLoopRef = useRef<NodeJS.Timeout | null>(null);
+  const dropTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const [score, setScore] = useState<number>(0);
+  const [level, setLevel] = useState<number>(1);
+  const [lines, setLines] = useState<number>(0);
+  const [gameOver, setGameOver] = useState<boolean>(false);
+  const [gameStarted, setGameStarted] = useState<boolean>(false);
+  const [isPaused, setIsPaused] = useState<boolean>(false);
+  const [highScore, setHighScore] = useState<number>(0);
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+
+  const boardRef = useRef<(string | null)[][]>(Array(20).fill(null).map(() => Array(10).fill(null)));
+  const currentPieceRef = useRef<Tetromino | null>(null);
+  const nextPieceRef = useRef<Tetromino | null>(null);
+
+  const tetrominoes: Record<TetrominoType, { shape: boolean[][], color: string }> = {
+    'I': { shape: [[true, true, true, true]], color: '#00ffff' },
+    'O': { shape: [[true, true], [true, true]], color: '#ffff00' },
+    'T': { shape: [[false, true, false], [true, true, true]], color: '#800080' },
+    'S': { shape: [[false, true, true], [true, true, false]], color: '#00ff00' },
+    'Z': { shape: [[true, true, false], [false, true, true]], color: '#ff0000' },
+    'J': { shape: [[true, false, false], [true, true, true]], color: '#0000ff' },
+    'L': { shape: [[false, false, true], [true, true, true]], color: '#ffa500' }
+  };
+
+  useEffect(() => {
+    setIsMobile(window.innerWidth < 768);
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    const savedHighScore = parseInt(localStorage.getItem('tetrisHighScore') || '0');
+    setHighScore(savedHighScore);
+  }, []);
+
+  const createRandomPiece = useCallback((): Tetromino => {
+    const types: TetrominoType[] = ['I', 'O', 'T', 'S', 'Z', 'J', 'L'];
+    const type = types[Math.floor(Math.random() * types.length)];
+    const template = tetrominoes[type];
+
+    return {
+      type,
+      shape: template.shape.map(row => [...row]),
+      x: Math.floor((10 - template.shape[0].length) / 2),
+      y: 0,
+      color: template.color
+    };
+  }, []);
+
+  const drawGame = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const blockSize = isMobile ? 20 : 25;
+    const boardWidth = 10 * blockSize;
+    const boardHeight = 20 * blockSize;
+
+    // Clear canvas with theme-appropriate background
+    ctx.fillStyle = isDark ? '#000000' : '#f0f0f0';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw board grid with theme colors
+    ctx.strokeStyle = isDark ? '#333333' : '#cccccc';
+    ctx.lineWidth = 1;
+    for (let x = 0; x <= 10; x++) {
+      ctx.beginPath();
+      ctx.moveTo(x * blockSize, 0);
+      ctx.lineTo(x * blockSize, boardHeight);
+      ctx.stroke();
+    }
+    for (let y = 0; y <= 20; y++) {
+      ctx.beginPath();
+      ctx.moveTo(0, y * blockSize);
+      ctx.lineTo(boardWidth, y * blockSize);
+      ctx.stroke();
+    }
+
+    // Draw placed blocks
+    for (let y = 0; y < 20; y++) {
+      for (let x = 0; x < 10; x++) {
+        if (boardRef.current[y][x]) {
+          ctx.fillStyle = boardRef.current[y][x]!;
+          ctx.fillRect(x * blockSize + 1, y * blockSize + 1, blockSize - 2, blockSize - 2);
+
+          // Add highlight
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+          ctx.fillRect(x * blockSize + 1, y * blockSize + 1, blockSize - 2, 3);
+        }
+      }
+    }
+
+    // Draw current piece
+    if (currentPieceRef.current) {
+      const piece = currentPieceRef.current;
+      ctx.fillStyle = piece.color;
+
+      for (let y = 0; y < piece.shape.length; y++) {
+        for (let x = 0; x < piece.shape[y].length; x++) {
+          if (piece.shape[y][x]) {
+            const drawX = (piece.x + x) * blockSize + 1;
+            const drawY = (piece.y + y) * blockSize + 1;
+            ctx.fillRect(drawX, drawY, blockSize - 2, blockSize - 2);
+
+            // Add highlight
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.fillRect(drawX, drawY, blockSize - 2, 3);
+            ctx.fillStyle = piece.color;
+          }
+        }
+      }
+    }
+  }, [isMobile, isDark]);
+
+  const isValidPosition = useCallback((piece: Tetromino, newX: number, newY: number, newShape?: boolean[][]): boolean => {
+    const shape = newShape || piece.shape;
+
+    for (let y = 0; y < shape.length; y++) {
+      for (let x = 0; x < shape[y].length; x++) {
+        if (shape[y][x]) {
+          const boardX = newX + x;
+          const boardY = newY + y;
+
+          if (boardX < 0 || boardX >= 10 || boardY >= 20) return false;
+          if (boardY >= 0 && boardRef.current[boardY][boardX]) return false;
+        }
+      }
+    }
+    return true;
+  }, []);
+
+  const rotatePiece = useCallback((piece: Tetromino): boolean[][] => {
+    const rotated = piece.shape[0].map((_, i) =>
+      piece.shape.map(row => row[i]).reverse()
+    );
+    return rotated;
+  }, []);
+
+  const clearLines = useCallback(() => {
+    let linesCleared = 0;
+    const newBoard = [...boardRef.current];
+
+    for (let y = 19; y >= 0; y--) {
+      if (newBoard[y].every(cell => cell !== null)) {
+        newBoard.splice(y, 1);
+        newBoard.unshift(Array(10).fill(null));
+        linesCleared++;
+        y++;
+      }
+    }
+
+    if (linesCleared > 0) {
+      boardRef.current = newBoard;
+      setLines(prev => prev + linesCleared);
+      setScore(prev => prev + (linesCleared * 100 * level));
+      setLevel(Math.floor((lines + linesCleared) / 10) + 1);
+    }
+  }, [level, lines]);
+
+  const placePiece = useCallback(() => {
+    if (!currentPieceRef.current) return;
+
+    const piece = currentPieceRef.current;
+    const newBoard = [...boardRef.current];
+
+    for (let y = 0; y < piece.shape.length; y++) {
+      for (let x = 0; x < piece.shape[y].length; x++) {
+        if (piece.shape[y][x]) {
+          const boardY = piece.y + y;
+          const boardX = piece.x + x;
+          if (boardY >= 0) {
+            newBoard[boardY][boardX] = piece.color;
+          }
+        }
+      }
+    }
+
+    boardRef.current = newBoard;
+    clearLines();
+
+    if (piece.y <= 0) {
+      setGameOver(true);
+      if (score > highScore) {
+        setHighScore(score);
+        localStorage.setItem('tetrisHighScore', score.toString());
+      }
+      return;
+    }
+
+    currentPieceRef.current = nextPieceRef.current;
+    nextPieceRef.current = createRandomPiece();
+  }, [clearLines, createRandomPiece, highScore, score]);
+
+  const dropPiece = useCallback(() => {
+    if (!currentPieceRef.current || gameOver || isPaused) return;
+
+    const piece = currentPieceRef.current;
+
+    if (isValidPosition(piece, piece.x, piece.y + 1)) {
+      currentPieceRef.current = { ...piece, y: piece.y + 1 };
+    } else {
+      placePiece();
+    }
+  }, [gameOver, isPaused, isValidPosition, placePiece]);
+
+  const movePiece = useCallback((direction: 'left' | 'right' | 'down' | 'rotate') => {
+    if (!currentPieceRef.current || gameOver || isPaused) return;
+
+    const piece = currentPieceRef.current;
+
+    switch (direction) {
+      case 'left':
+        if (isValidPosition(piece, piece.x - 1, piece.y)) {
+          currentPieceRef.current = { ...piece, x: piece.x - 1 };
+        }
+        break;
+      case 'right':
+        if (isValidPosition(piece, piece.x + 1, piece.y)) {
+          currentPieceRef.current = { ...piece, x: piece.x + 1 };
+        }
+        break;
+      case 'down':
+        dropPiece();
+        break;
+      case 'rotate':
+        const rotatedShape = rotatePiece(piece);
+        if (isValidPosition(piece, piece.x, piece.y, rotatedShape)) {
+          currentPieceRef.current = { ...piece, shape: rotatedShape };
+        }
+        break;
+    }
+  }, [dropPiece, gameOver, isPaused, isValidPosition, rotatePiece]);
+
+  useEffect(() => {
+    if (gameStarted && !gameOver && !isPaused) {
+      gameLoopRef.current = setInterval(() => {
+        drawGame();
+      }, 16);
+
+      dropTimerRef.current = setInterval(() => {
+        dropPiece();
+      }, Math.max(50, 500 - (level * 50)));
+    }
+
+    return () => {
+      if (gameLoopRef.current) clearInterval(gameLoopRef.current);
+      if (dropTimerRef.current) clearInterval(dropTimerRef.current);
+    };
+  }, [gameStarted, gameOver, isPaused, drawGame, dropPiece, level]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const blockSize = isMobile ? 20 : 25;
+      canvas.width = 10 * blockSize;
+      canvas.height = 20 * blockSize;
+      drawGame();
+    }
+  }, [drawGame, isMobile]);
+
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (!gameStarted || gameOver) return;
+
+      switch (e.key.toLowerCase()) {
+        case 'a':
+        case 'arrowleft':
+          e.preventDefault();
+          movePiece('left');
+          break;
+        case 'd':
+        case 'arrowright':
+          e.preventDefault();
+          movePiece('right');
+          break;
+        case 's':
+        case 'arrowdown':
+          e.preventDefault();
+          movePiece('down');
+          break;
+        case 'w':
+        case 'arrowup':
+        case ' ':
+          e.preventDefault();
+          movePiece('rotate');
+          break;
+        case 'p':
+          e.preventDefault();
+          setIsPaused(!isPaused);
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [gameStarted, gameOver, isPaused, movePiece]);
+
+  const startGame = () => {
+    boardRef.current = Array(20).fill(null).map(() => Array(10).fill(null));
+    currentPieceRef.current = createRandomPiece();
+    nextPieceRef.current = createRandomPiece();
+    setScore(0);
+    setLevel(1);
+    setLines(0);
+    setGameOver(false);
+    setIsPaused(false);
+    setGameStarted(true);
+  };
+
+  const resetGame = () => {
+    setGameStarted(false);
+    setGameOver(false);
+    setIsPaused(false);
+  };
+
+  return (
+    <div className="w-full max-w-4xl mx-auto">
+      <div className={`${isDark ? 'bg-black border-white' : 'bg-white border-black'} border-4 p-8`}>
+        <div className="flex justify-between items-center mb-6 font-mono text-xl font-bold">
+          <div className={isDark ? 'text-white' : 'text-black'}>T E T R I S</div>
+          <div className={`flex gap-6 text-base ${isDark ? 'text-white' : 'text-black'}`}>
+            <div>SCORE: {score.toString().padStart(6, '0')}</div>
+            <div>LEVEL: {level.toString().padStart(2, '0')}</div>
+            <div>LINES: {lines.toString().padStart(3, '0')}</div>
+            <div>BEST: {highScore.toString().padStart(6, '0')}</div>
+          </div>
+        </div>
+
+        <div className="flex justify-center">
+          <div className={`relative border-4 ${isDark ? 'border-white bg-black' : 'border-black bg-white'}`}>
+            <canvas 
+              ref={canvasRef}
+              className="block"
+            />
+
+            {!gameStarted && (
+              <div className={`absolute inset-0 ${isDark ? 'bg-black/95' : 'bg-white/95'} flex flex-col items-center justify-center`}>
+                <div className={`text-4xl font-mono mb-6 font-bold ${isDark ? 'text-white' : 'text-black'}`}>TETRIS</div>
+                <button
+                  onClick={startGame}
+                  className={`px-8 py-4 ${isDark ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800'} font-mono text-lg font-bold transition-colors`}
+                >
+                  START GAME
+                </button>
+                <div className={`mt-4 text-sm font-mono ${isDark ? 'text-white/60' : 'text-black/60'} text-center`}>
+                  {isMobile ? 'USE BUTTONS BELOW' : 'WASD / ARROWS TO PLAY • SPACE/W TO ROTATE • P TO PAUSE'}
+                </div>
+              </div>
+            )}
+
+            {gameOver && (
+              <div className={`absolute inset-0 ${isDark ? 'bg-black/95' : 'bg-white/95'} flex flex-col items-center justify-center`}>
+                <div className={`text-3xl font-mono mb-3 font-bold ${isDark ? 'text-white' : 'text-black'}`}>GAME OVER</div>
+                <div className={`text-lg font-mono mb-2 ${isDark ? 'text-white' : 'text-black'}`}>FINAL SCORE: {score}</div>
+                <div className={`text-sm font-mono mb-6 ${isDark ? 'text-white/60' : 'text-black/60'}`}>LINES CLEARED: {lines}</div>
+                <button
+                  onClick={resetGame}
+                  className={`px-8 py-4 ${isDark ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800'} font-mono text-lg font-bold transition-colors`}
+                >
+                  PLAY AGAIN
+                </button>
+              </div>
+            )}
+
+            {isPaused && gameStarted && !gameOver && (
+              <div className={`absolute inset-0 ${isDark ? 'bg-black/95' : 'bg-white/95'} flex flex-col items-center justify-center`}>
+                <div className={`text-3xl font-mono mb-6 font-bold ${isDark ? 'text-white' : 'text-black'}`}>PAUSED</div>
+                <button
+                  onClick={() => setIsPaused(false)}
+                  className={`px-8 py-4 ${isDark ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800'} font-mono text-lg font-bold transition-colors`}
+                >
+                  RESUME
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {isMobile && gameStarted && !gameOver && (
+          <div className="mt-6 flex justify-center">
+            <div className="grid grid-cols-4 gap-3 max-w-64">
+              <button 
+                onClick={() => movePiece('left')}
+                className={`${isDark ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800'} p-4 font-mono text-lg font-bold transition-colors`}
+              >
+                ←
+              </button>
+              <button 
+                onClick={() => movePiece('rotate')}
+                className={`${isDark ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800'} p-4 font-mono text-lg font-bold transition-colors`}
+              >
+                ↻
+              </button>
+              <button 
+                onClick={() => movePiece('right')}
+                className={`${isDark ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800'} p-4 font-mono text-lg font-bold transition-colors`}
+              >
+                →
+              </button>
+              <button 
+                onClick={() => setIsPaused(!isPaused)}
+                className={`${isDark ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800'} p-4 font-mono text-lg font-bold transition-colors`}
+              >
+                {isPaused ? '▶' : '⏸'}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Enhanced Contact Card with Theme Support
+const ContactCard: React.FC<ContactCardProps> = ({ type, value, icon: Icon }) => {
+  const [copied, setCopied] = useState<boolean>(false);
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(value);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div
+      onClick={handleCopy}
+      className={`${isDark ? 'bg-black border-white hover:bg-white hover:text-black' : 'bg-white border-black hover:bg-black hover:text-white'} border-4 p-8 cursor-pointer transition-all duration-200 group`}
+    >
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-6">
+          <Icon className="text-4xl group-hover:scale-110 transition-transform duration-200" />
+          <div>
+            <div className="text-sm font-mono font-bold opacity-60 mb-2">{type}</div>
+            <div className="text-2xl font-mono font-bold">{value}</div>
+          </div>
+        </div>
+        <div className="text-3xl">
+          {copied ? <FaCheck className="text-green-600" /> : <FaCopy className="group-hover:scale-110 transition-transform duration-200" />}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Enhanced Live Chat with Theme Support
+const LiveChat = () => {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [newMessage, setNewMessage] = useState<string>('');
+  const [username] = useState<string>(`user_${Math.random().toString(36).substring(2, 6)}`);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const chatEndRef = useRef<HTMLDivElement | null>(null);
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
+  const fetchMessages = async () => {
+    try {
+      const res = await fetch('/api/chat');
+      if (res.ok) {
+        const data = await res.json();
+        setMessages(data.messages || []);
+      }
+    } catch (error) {
+      console.log('No API available - using local mode');
+    }
+  };
+
+  const sendMessage = async (message: Message): Promise<boolean> => {
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(message)
+      });
+      if (res.ok) {
+        fetchMessages();
+        return true;
+      }
+    } catch (error) {
+      console.log('API not available - adding locally');
+      setMessages(prev => [...prev, message]);
+      return true;
+    }
+    return false;
+  };
+
+  useEffect(() => {
+    fetchMessages();
+    const interval = setInterval(fetchMessages, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || isLoading) return;
+
+    setIsLoading(true);
+    const message: Message = {
+      id: Date.now().toString(),
+      text: newMessage.trim(),
+      timestamp: new Date().toLocaleTimeString('en-US', { hour12: false }),
+      user: username
+    };
+
+    const success = await sendMessage(message);
+    if (success) {
+      setNewMessage('');
+    }
+    setIsLoading(false);
+
+    setTimeout(() => {
+      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  return (
+    <div className={`${isDark ? 'bg-black border-white' : 'bg-white border-black'} border-4`}>
+      <div className={`${isDark ? 'border-white' : 'border-black'} border-b-4 p-6`}>
+        <div className="flex justify-between items-center">
+          <div className={`font-mono text-xl font-bold ${isDark ? 'text-white' : 'text-black'}`}>DROP A MESSAGE HERE</div>
+          <div className={`font-mono text-base ${isDark ? 'text-white/80' : 'text-black/80'}`}>say hi or whatever</div>
+        </div>
+        <div className={`font-mono text-sm ${isDark ? 'text-white/80' : 'text-black/80'} mt-2`}>
+          chatting as: {username}
+        </div>
+      </div>
+
+      <div className={`h-64 overflow-y-auto p-6 space-y-3 ${isDark ? 'bg-black' : 'bg-white'}`}>
+        {messages.length === 0 ? (
+          <div className={`${isDark ? 'text-white/40' : 'text-black/40'} font-mono text-base text-center py-8`}>
+            NO MESSAGES YET...<br/>
+            <span className="text-sm">BE THE FIRST TO SAY SOMETHING</span>
+          </div>
+        ) : (
+          messages.map((msg) => (
+            <div key={msg.id} className="font-mono text-sm">
+              <span className={`${isDark ? 'text-white/40' : 'text-black/40'}`}>[{msg.timestamp}]</span>{' '}
+              <span className={`font-bold ${msg.user === username ? 'text-blue-500' : (isDark ? 'text-white' : 'text-black')}`}>
+                {msg.user}:
+              </span>{' '}
+              <span className={`${isDark ? 'text-white/90' : 'text-black/90'} text-base`}>{msg.text}</span>
+            </div>
+          ))
+        )}
+        <div ref={chatEndRef} />
+      </div>
+
+      <div className={`${isDark ? 'border-white' : 'border-black'} border-t-4 p-6`}>
+        <div className="flex gap-4">
+          <input
+            type="text"
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            onKeyPress={handleKeyPress}
+            placeholder="type something nice... or not, i don't judge"
+            className={`flex-1 ${isDark ? 'bg-black border-white text-white placeholder-white/40 focus:bg-white/5' : 'bg-white border-black text-black placeholder-black/40 focus:bg-black/5'} border-2 px-4 py-3 font-mono text-base focus:outline-none transition-colors`}
+            maxLength={200}
+            disabled={isLoading}
+          />
+          <button
+            onClick={handleSendMessage}
+            disabled={isLoading || !newMessage.trim()}
+            className={`${isDark ? 'bg-white text-black hover:bg-gray-200' : 'bg-black text-white hover:bg-gray-800'} px-6 py-3 font-mono text-base font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2`}
+          >
+            {isLoading ? (
+              <span>SENDING...</span>
+            ) : (
+              <>
+                <FaPaperPlane />
+                SEND
+              </>
+            )}
+          </button>
+        </div>
+        <div className={`mt-3 text-xs font-mono ${isDark ? 'text-white/30' : 'text-black/30'}`}>
+          {newMessage.length}/200 CHARACTERS
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // Main Contact Page Component
 export default function ContactPage() {
-	const { theme } = useTheme()
-	const router = useRouter()
-	const [formStatus, setFormStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
-	const [error, setError] = useState('')
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+  const [hasInteracted, setHasInteracted] = useState(false);
 
-	const features = [
-		{
-			icon: <FaClock />,
-			title: 'Quicckkkk Response',
-			description: '1-2 hours response time, Like your cute gf- jk no :3',
-			gradient: 'from-blue-500 to-cyan-500',
-		},
-		{
-			icon: <FaBug />,
-			title: 'Bug Support',
-			description: 'Free Bug fixes for over a year after project completion',
-			gradient: 'from-green-500 to-emerald-500',
-		},
-		{
-			icon: <FaRocket />,
-			title: 'Fast Deployment',
-			description: 'From code to production in 1-2 weeks, not months',
-			gradient: 'from-purple-500 to-pink-500',
-		},
-		{
-			icon: <FaHeart />,
-			title: 'Built Different',
-			description: 'I try to make all code efficient and easy to maintain',
-			gradient: 'from-red-500 to-orange-500',
-		}
-	]
+  const handleEnterClick = () => {
+    setHasInteracted(true);
+    // Try to play both hidden audio and MusicPlayer audio
+    const bgAudio = document.getElementById('bgMusic') as HTMLAudioElement;
+    if (bgAudio) {
+      bgAudio.volume = 0.3;
+      bgAudio.play().catch(err => console.log('Play failed:', err));
+    }
+  };
 
-	return (
-		<motion.div 
-			initial={{ opacity: 0 }}
-			animate={{ opacity: 1 }}
-			exit={{ opacity: 0 }}
-			className={`min-h-screen flex flex-col ${
-				theme === 'dark' ? 'bg-black' : 'bg-white'
-			}`}
-		>
-			{/* Hide default cursor globally */}
-			<style jsx global>{`
-				* {
-					cursor: none !important;
-				}
-			`}</style>
+  const contacts = [
+    { type: 'DISCORD', value: '@me_straight', icon: FaDiscord },
+    { type: 'EMAIL', value: 'gk5598507@gmail.com', icon: FaEnvelope }
+  ];
 
-			{/* Animated Background */}
-			<AnimatedBackground theme={theme} />
-			
-			{/* Snow Animation */}
-			<SnowAnimation />
-			
-			{/* Magnetic Cursor with Light Effect */}
-			<MagneticCursor theme={theme} />
-			
-			{/* Audio Control */}
-			<AudioControl theme={theme} />
-			
-			{/* Hero Section with Split Screen */}
-			<section className="relative min-h-screen flex">
-				{/* Left Side - Content */}
-				<div className="relative w-full lg:w-1/2 flex items-center justify-center px-8 py-20 z-10">
-					<div className="max-w-2xl">
-						<motion.h1
-							initial={{ opacity: 0, x: -50, scale: 0.5 }}
-							animate={{ opacity: 1, x: 0, scale: 1 }}
-							transition={{ duration: 0.8, type: "spring" }}
-							className={`text-6xl md:text-7xl font-black leading-tight mb-8 ${
-								theme === 'dark' ? 'text-white' : 'text-black'
-							}`}
-						>
-							<span className="bg-gradient-to-r from-purple-500 via-pink-500 to-blue-500 bg-clip-text text-transparent">
-								Let's Create
-							</span>
-							<br />
-							<span className="text-5xl md:text-6xl">
-								Something Epic
-							</span>
-						</motion.h1>
-						
-						<motion.div
-							initial={{ opacity: 0, y: 40 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ delay: 0.3 }}
-							className={`text-xl md:text-2xl font-mono mb-12 ${
-								theme === 'dark' ? 'text-white/70' : 'text-black/70'
-							}`}
-						>
-							<Typewriter
-								words={[
-									'Ready to build your next project? I\'m just a message away! ',
-									'Contact my dumbass throught Discord (@me_straight) or Email(hope i see it gk559850@gmail.com)! ',
-									'Let\'s turn your ideas into reality, one commit at a time! '
-								]}
-								loop={true}
-								cursor
-								typeSpeed={40}
-								deleteSpeed={30}
-								delaySpeed={2000}
-							/>
-							<MessageSVG size={28} />
-							<SwordSVG size={28} />
-							<RocketSVG size={28} />
-						</motion.div>
+  return (
+    <div className={`min-h-screen ${isDark ? 'bg-black text-white' : 'bg-white text-black'} font-mono transition-colors duration-300`}>
+      {/* Hidden backup audio element */}
+      <audio
+        id="bgMusic"
+        src="/crypto-dreams.mp3"
+        loop
+        style={{ display: 'none' }}
+      />
 
-						<motion.div
-							initial={{ opacity: 0, y: 20 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ delay: 0.5 }}
-							className="flex flex-wrap gap-4"
-						>
-							<motion.button
-								onClick={() => window.open('https://discord.com/users/@me_straight', '_blank')}
+      {/* Click to Enter Overlay */}
+      {!hasInteracted && (
+        <div 
+          className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center cursor-pointer backdrop-blur-sm"
+          onClick={handleEnterClick}
+        >
+          <div className="text-center animate-pulse">
+            <h2 className="text-4xl font-bold text-white mb-4">CLICK TO ENTER</h2>
+            <p className="text-white/60">Enable sound and animations</p>
+          </div>
+        </div>
+      )}
+      
+      {/* Optional Video Background */}
+      <VideoBackground />
+      
+      {/* Complex Animated SVG */}
+      <ComplexAnimatedSVG />
+      
+      {/* Optional Music Player with shouldPlay prop */}
+      <MusicPlayer shouldPlay={hasInteracted} />
+      
+      {/* Content with navbar spacing */}
+      <div className="pt-24 pb-12 px-6 relative z-10">
+        <div className="max-w-7xl mx-auto">
+          {/* Header Section */}
+          <div className="mb-12">
+            <h1 className={`text-7xl md:text-9xl font-black mb-6 leading-none ${isDark ? 'text-white' : 'text-black'}`}>
+              Talk to me :3
+            </h1>
+            <h2 className={`text-3xl md:text-5xl font-bold mb-8 ${isDark ? 'text-white/80' : 'text-black/80'}`}>
+              wanna work together? let's make something sick
+            </h2>
+            <p className={`text-lg font-mono leading-relaxed max-w-2xl ${isDark ? 'text-white/70' : 'text-black/70'}`}>
+              yo! i'm down to work on cool projects that actually matter<br/>
+              whether it's web dev, design, or just brainstorming wild ideas<br/>
+              i promise i'll bring the energy and make it worth your time fr
+            </p>
+          </div>
 
-								className={`px-8 py-4 text-lg font-mono font-bold rounded-2xl ${
-									theme === 'dark' 
-										? 'bg-[#5865F2] text-white hover:bg-[#4752C4]' 
-										: 'bg-[#5865F2] text-white hover:bg-[#4752C4]'
-								} transition-all duration-300`}
-								whileHover={{ scale: 1.05 }}
-								whileTap={{ scale: 0.95 }}
-								style={{
-									boxShadow: '0 10px 20px rgba(88, 101, 242, 0.3)'
-								}}
-							>
-								DISCORD NOW
-							</motion.button>
-							<motion.button
-								onClick={() => document.getElementById('contact-form')?.scrollIntoView({ behavior: 'smooth' })}
-								className={`px-8 py-4 text-lg font-mono font-bold rounded-2xl border-2 ${
-									theme === 'dark' 
-										? 'border-white text-white hover:bg-white hover:text-black' 
-										: 'border-black text-black hover:bg-black hover:text-white'
-								} transition-all duration-300`}
-								whileHover={{ scale: 1.05 }}
-								whileTap={{ scale: 0.95 }}
-							>
-								DRAFT MESSAGE
-							</motion.button>
-						</motion.div>
-					</div>
-				</div>
+          {/* Contact Cards */}
+          <div className="grid md:grid-cols-2 gap-8 mb-12">
+            {contacts.map((contact) => (
+              <ContactCard key={contact.type} {...contact} />
+            ))}
+          </div>
 
-				{/* Right Side - Black Server SVG */}
-				<div className="absolute lg:relative top-0 right-0 w-full lg:w-1/2 h-full flex items-center justify-center p-8">
-					<BlackServerSVG />
-				</div>
-			</section>
+          {/* Chat Section */}
+          <div className="mb-12">
+            <LiveChat />
+          </div>
 
-			{/* Contact Cards Grid */}
-			<section className="relative py-32 px-8 z-10">
-				<div className="max-w-7xl mx-auto">
-					<motion.div
-						initial={{ opacity: 0 }}
-						whileInView={{ opacity: 1 }}
-						className="text-center mb-20"
-					>
-						<h2 className={`text-5xl md:text-6xl font-black mb-6 ${
-							theme === 'dark' ? 'text-white' : 'text-black'
-						}`}>
-							Hit Me Up
-						</h2>
-						<p className={`text-2xl font-mono ${
-							theme === 'dark' ? 'text-purple-400' : 'text-purple-600'
-						}`}>
-							Choose your way :3 <GameControllerSVG size={32} />
-						</p>
-					</motion.div>
-
-					<div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-						<GlassContactCard
-							icon={<CustomDiscordIcon />}
-							title="Discord"
-							value="@me_straight"
-							color="#5865F2"
-							theme={theme}
-							delay={0.1}
-						/>
-						<GlassContactCard
-							icon={<CustomEmailIcon />}
-							title="Email"
-							value="gk5598507@gmail.com"
-							color="#EA4335"
-							theme={theme}
-							delay={0.2}
-						/>
-					</div>
-				</div>
-			</section>
-
-			{/* Features Section - Split Screen */}
-			<section className="relative py-32 z-10">
-				<div className="max-w-[1600px] mx-auto">
-					<div className="flex flex-col lg:flex-row items-center gap-20">
-						{/* Left Side - Text */}
-						<div className="w-full lg:w-1/2 px-8 lg:px-16">
-							<motion.div
-								initial={{ opacity: 0, x: -50 }}
-								whileInView={{ opacity: 1, x: 0 }}
-								transition={{ duration: 0.8 }}
-							>
-								<h2 className={`text-6xl md:text-7xl font-black mb-8 ${
-									theme === 'dark' ? 'text-white' : 'text-black'
-								}`}>
-									Why Choose
-									<br />
-									<span className="bg-gradient-to-r from-green-400 to-emerald-600 bg-clip-text text-transparent">
-										Me?
-									</span>
-								</h2>
-								<p className={`text-3xl font-mono mb-8 ${
-									theme === 'dark' ? 'text-green-400' : 'text-green-600'
-								}`}>
-									Built different, no cap <CapSVG size={32} />
-								</p>
-								<p className={`text-xl leading-relaxed ${
-									theme === 'dark' ? 'text-white/70' : 'text-black/70'
-								}`}>
-									I don't just write code, I craft experiences. Every project is treated with the same passion and dedication as if it were my own. When you work with me, you're not just getting a developer - you're getting a partner who's invested in your success.
-								</p>
-							</motion.div>
-						</div>
-
-						{/* Right Side - Feature Cards */}
-						<div className="w-full lg:w-1/2 px-8">
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-								{features.map((feature, index) => (
-									<AnimatedFeatureCard
-										key={index}
-										{...feature}
-										theme={theme}
-										delay={index * 0.1}
-									/>
-								))}
-							</div>
-						</div>
-					</div>
-				</div>
-			</section>
-
-			{/* Enhanced 3D Contact Form */}
-			<section id="contact-form" className="relative py-32 px-8 z-10">
-				<div className="max-w-5xl mx-auto">
-					<Minimal3DContactForm 
-						theme={theme}
-						formStatus={formStatus}
-						setFormStatus={setFormStatus}
-						error={error}
-						setError={setError}
-					/>
-				</div>
-			</section>
-		</motion.div>
-	)
+          {/* Tetris Game Bar at Bottom */}
+          <div className="w-full">
+            <TetrisGame />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
