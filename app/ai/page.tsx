@@ -126,6 +126,9 @@ const CodeBlock = ({ code, language = 'javascript' }: { code: string; language?:
 
   const normalizedLanguage = getLanguage(language)
 
+  // Don't escape code, let SyntaxHighlighter handle it
+  const safeCode = code.trim()
+
   return (
     <div className="my-4 px-4">
       <div className="group relative w-full">
@@ -264,7 +267,7 @@ const CodeBlock = ({ code, language = 'javascript' }: { code: string; language?:
                 <code {...props}>{children}</code>
               )}
             >
-              {code}
+              {safeCode}
             </SyntaxHighlighter>
             {!expanded && needsExpansion && (
               <div className="absolute bottom-0 left-0 right-0 h-16 sm:h-20 \
@@ -301,30 +304,32 @@ const ThinkingBox = ({
     setLocalExpanded(isExpanded);
   }, [isExpanded]);
 
+  // Improved SVG animation (single circle, smooth)
   const ThinkingIndicatorSVG = () => (
-    <div className="w-6 h-6">
+    <div className="w-6 h-6" key="thinking-svg">
       <svg viewBox="0 0 200 200" className="w-full h-full">
-        {[0, 0.05, 0.1, 0.15, 0.2].map((delay, i) => (
-          <circle
-            key={i}
-            fill="#FF156D"
-            stroke="#FF156D"
-            strokeWidth="15"
-            r="15"
-            cy="100"
-            opacity={1 - (i * 0.2)}
-          >
-            <animate
-              attributeName="cx"
-              calcMode="spline"
-              dur="2"
-              values="35;165;165;35;35"
-              keySplines="0 .1 .5 1;0 .1 .5 1;0 .1 .5 1;0 .1 .5 1"
-              repeatCount="indefinite"
-              begin={`${delay}s`}
-            />
-          </circle>
-        ))}
+        <circle
+          fill="#FF156D"
+          stroke="#FF156D"
+          strokeWidth="15"
+          r="15"
+          cy="100"
+        >
+          <animate
+            attributeName="cx"
+            calcMode="spline"
+            dur="2s"
+            values="35;165;165;35;35"
+            keySplines="0 .1 .5 1;0 .1 .5 1;0 .1 .5 1;0 .1 .5 1"
+            repeatCount="indefinite"
+          />
+          <animate
+            attributeName="opacity"
+            dur="2s"
+            values="1;0.3;0.3;1;1"
+            repeatCount="indefinite"
+          />
+        </circle>
       </svg>
     </div>
   );
@@ -430,14 +435,15 @@ const MessageComponent = ({
     const parts: React.ReactNode[] = []
     let content = msg.content
 
-    // Handle thinking box display
+    // --- Fix: Only add one ThinkingBox ---
+    let thinkingBoxAdded = false;
+
     const fullThinkingMatch = content.match(/^<think>([\s\S]*?)<\/think>([\s\S]*)$/);
-    if (fullThinkingMatch && !isUser) {
+    if (fullThinkingMatch && !isUser && !thinkingBoxAdded) {
       const [, , remainingContent] = fullThinkingMatch;
-      
       parts.push(
         <ThinkingBox 
-          key="thinking-box-complete"
+          key="thinking-box"
           content={thinkingContent || ''}
           isExpanded={isThinkingExpanded}
           onToggle={() => setIsThinkingExpanded(!isThinkingExpanded)}
@@ -445,14 +451,14 @@ const MessageComponent = ({
           isComplete={true}
         />
       );
-      
+      thinkingBoxAdded = true;
       content = remainingContent;
-    } else if (msg.isStreaming && !isUser) {
+    } else if (msg.isStreaming && !isUser && !thinkingBoxAdded) {
       const openThinkingMatch = content.match(/^<think>([\s\S]*)$/);
       if (openThinkingMatch) {
         parts.push(
           <ThinkingBox 
-            key="thinking-box-streaming"
+            key="thinking-box"
             content={thinkingContent || "Processing..."}
             isExpanded={isThinkingExpanded}
             onToggle={() => setIsThinkingExpanded(!isThinkingExpanded)}
@@ -460,14 +466,13 @@ const MessageComponent = ({
             isComplete={false}
           />
         );
+        thinkingBoxAdded = true;
         return parts;
       }
-    }
-
-    if (persistedThinkingContent && !isUser) {
+    } else if (persistedThinkingContent && !isUser && !thinkingBoxAdded) {
       parts.push(
         <ThinkingBox 
-          key="thinking-box-persistent"
+          key="thinking-box"
           content={persistedThinkingContent}
           isExpanded={isThinkingExpanded}
           onToggle={() => setIsThinkingExpanded(!isThinkingExpanded)}
@@ -475,6 +480,7 @@ const MessageComponent = ({
           isComplete={true}
         />
       );
+      thinkingBoxAdded = true;
     }
 
     // Process markdown content with code block handling
@@ -490,12 +496,8 @@ const MessageComponent = ({
         const [fullMatch, lang, code] = match
         const placeholder = `__CODE_BLOCK_${blockIndex}__`
         
+        // Don't escape for code blocks
         const safeCode = code.trim()
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;')
-          .replace(/'/g, '&#039;')
         
         codeBlocks.push({
           placeholder,
@@ -707,13 +709,8 @@ const MessageComponent = ({
         const processedBefore = processMarkdownContent(beforeCode)
         parts.push(...processedBefore)
       }
-      // Add the streaming code block
-      const safeCode = (codeContent || '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;')
+      // Don't escape for streaming code blocks either
+      const safeCode = codeContent || ''
       
       parts.push(
         <CodeBlock 
