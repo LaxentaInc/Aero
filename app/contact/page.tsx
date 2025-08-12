@@ -978,9 +978,9 @@ export default function ContactPage() {
               wanna work together? let's make something sick
             </h2>
             <p className={`text-lg font-mono leading-relaxed max-w-2xl ${isDark ? 'text-white/70' : 'text-black/70'}`}>
-              yo! i'm down to work on cool projects that actually matter<br/>
-              whether it's web dev, design, or just brainstorming wild ideas<br/>
-              i promise i'll bring the energy and make it worth your time fr
+              yo! im a collage student and this my hobby- i'm down to work on cool projects that actually matter<br/>
+              whether it's web dev, backend, hosting, UI/Ux, or just your wild ideas<br/>
+              i'll bring the energy and make it worth your time fr + its gonna be cheap for you and i will get some moni too :3
             </p>
           </div>
 
