@@ -1732,7 +1732,7 @@ const ImageGenCard: React.FC<ImageGenCardProps> = ({ theme = 'dark' }) => {
     
     // Check generation limit
     if (generationsToday >= MAX_GENERATIONS_PER_DAY) {
-      setError(`Daily limit reached! You can generate ${MAX_GENERATIONS_PER_DAY} images per day.`);
+      setError(`Daily trial limit reached! You can generate ${MAX_GENERATIONS_PER_DAY} images per day.`);
       return;
     }
     
@@ -1832,12 +1832,12 @@ const ImageGenCard: React.FC<ImageGenCardProps> = ({ theme = 'dark' }) => {
           <h2 className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter mb-4 ${
             theme === 'dark' ? 'text-white' : 'text-black'
           }`}>
-            IMAGE GENERATION :3
+           DEMO- IMAGE GENERATION :3
           </h2>
           <p className={`text-lg sm:text-xl md:text-2xl font-mono px-4 ${
             theme === 'dark' ? 'text-white/60' : 'text-black/60'
           }`}>
-            {'</'} Creativity Unleashed - Generate stunning visuals with AI :3 {'>'}
+            {'</'} Creativity Unleashed {'>'}
           </p>
         </motion.div>
 
@@ -1963,7 +1963,7 @@ const ImageGenCard: React.FC<ImageGenCardProps> = ({ theme = 'dark' }) => {
             >
               <span className="relative z-10">
                 {generationsToday >= MAX_GENERATIONS_PER_DAY 
-                  ? 'DAILY LIMIT REACHED' 
+                  ? 'DAILY TRIAL LIMIT REACHED' 
                   : isGenerating ? 'GENERATING...' : 'GENERATE IMAGE'}
               </span>
               
@@ -2078,7 +2078,7 @@ const ImageGenCard: React.FC<ImageGenCardProps> = ({ theme = 'dark' }) => {
               transition={{ delay: 0.2 }}
               className="relative"
             >
-              <a href="/image-generation" className="block">
+              <a href="/image-gen" className="block">
                 <button
                   className={`relative px-8 py-3 font-mono text-sm font-bold uppercase tracking-wide transition-all duration-300 overflow-hidden group ${
                     theme === 'dark' 
