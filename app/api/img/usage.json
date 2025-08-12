@@ -1,5 +1,6 @@
 {
   "stable-diffusion-3.5-large": 1421,
   "flux-half-illustration": 1335,
-  "flux-1-kontext-dev": 1309
+  "flux-1-kontext-dev": 1309,
+  "nsfw-master-flux": 1050
 }

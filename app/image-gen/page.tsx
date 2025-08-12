@@ -11,6 +11,15 @@ import {
   Info, Image as ImageIcon, Clock, TrendingUp,
   Lock, MessageCircle, Flame, Crown, Heart
 } from 'lucide-react';
+import { useDiscord } from '../contexts/DiscordContext';  // Add this import at the top
+
+// Constants
+const UNLIMITED_USER_ID = '953527567808356404';
+const DAILY_LIMIT = 10;
+const GUEST_LIMIT = 1;
+const GENERATION_LIMIT = 10;
+const LOCAL_USAGE_KEY = 'modelUsageCache';
+const CACHE_DURATION = 1000 * 60 * 60; // 1 hour
 
 // Types
 interface GeneratedImage {
@@ -59,6 +68,21 @@ interface UserLimits {
   count: number;
   lastReset: number;
 }
+
+// Function to check and reset daily limit
+const checkAndResetDailyLimit = (limits: UserLimits) => {
+  const now = Date.now();
+  const dayInMs = 24 * 60 * 60 * 1000;
+  
+  if (now - limits.lastReset > dayInMs) {
+    return {
+      count: 0,
+      lastReset: now
+    };
+  }
+  
+  return limits;
+};
 
 // Debounce utility
 function debounce<T extends (...args: any[]) => void>(func: T, wait: number) {
@@ -339,6 +363,7 @@ const TrendingModelCard = ({
 // Main component
 export default function AnimeImageGenerator() {
   const { data: session, status } = useSession();
+  const { user } = useDiscord(); // Add Discord context
   const router = useRouter();
   const [prompt, setPrompt] = useState('');
   const [selectedModel, setSelectedModel] = useState('');
@@ -363,32 +388,26 @@ export default function AnimeImageGenerator() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   // Constants
-  const GENERATION_LIMIT = 10;
-  const GUEST_LIMIT = 1;
-  const LOCAL_USAGE_KEY = 'modelUsageCache';
-  const CACHE_DURATION = 1000 * 60 * 60; // 1 hour
-  const UNLIMITED_USER_ID = '953527567808356404';
-  const DAILY_LIMIT = 10;
   const isGuest = !session;
+  const isUnlimitedUser = user?.id === UNLIMITED_USER_ID;
   const canGenerate = isGuest 
     ? guestGenerations < GUEST_LIMIT 
-    : session?.user?.id === UNLIMITED_USER_ID 
-      ? true 
-      : userGenerationCount < DAILY_LIMIT;
+    : isUnlimitedUser || userGenerationCount < DAILY_LIMIT;
 
-  // Check and reset daily limit
-  const checkAndResetDailyLimit = useCallback(() => {
-    const now = Date.now();
-    const lastMidnight = new Date().setHours(0, 0, 0, 0);
-    
-    if (userLimits.lastReset < lastMidnight) {
-      setUserLimits({ count: 0, lastReset: now });
-      setUserGenerationCount(0);
-      if (session?.user?.id) {
-        localStorage.setItem(`limits_${session.user.id}`, JSON.stringify({ count: 0, lastReset: now }));
-      }
+  // Update the status text display
+  const getStatusText = () => {
+    if (isGuest) return `Try ${GUEST_LIMIT} free generation as a guest`;
+    if (isUnlimitedUser) return 'Unlimited generations available';
+    return `${userGenerationCount}/${DAILY_LIMIT} daily generations used`;
+  };
+
+  // Add console logging
+  useEffect(() => {
+    if (user) {
+      console.log('Discord User:', user);
+      console.log('Is Unlimited User:', user.id === UNLIMITED_USER_ID);
     }
-  }, [userLimits, session]);
+  }, [user]);
 
   // Initialize audio and guest count
   useEffect(() => {
@@ -506,12 +525,13 @@ export default function AnimeImageGenerator() {
       }
       
       if (savedLimits) {
-        setUserLimits(JSON.parse(savedLimits));
+        const limits = JSON.parse(savedLimits);
+        const updatedLimits = checkAndResetDailyLimit(limits);
+        setUserLimits(updatedLimits);
+        setUserGenerationCount(updatedLimits.count);
       }
-      
-      checkAndResetDailyLimit();
     }
-  }, [session, checkAndResetDailyLimit]);
+  }, [session]);
 
   // Mobile detection
   useEffect(() => {
@@ -557,7 +577,8 @@ export default function AnimeImageGenerator() {
       return;
     }
 
-    if (!isGuest && session?.user?.id !== UNLIMITED_USER_ID && userGenerationCount >= DAILY_LIMIT) {
+    // Skip limit check if dev mode or unlimited user
+    if (!isGuest && !isUnlimitedUser && userGenerationCount >= DAILY_LIMIT) {
       setGenerationStatus(`Daily generation limit reached (${DAILY_LIMIT} images)`);
       setTimeout(() => setGenerationStatus(''), 3000);
       return;
@@ -809,15 +830,15 @@ export default function AnimeImageGenerator() {
               <div className={`p-4 border-b border-gray-800 ${sidebarCollapsed ? 'text-center' : ''}`}>
                 <div className={`${sidebarCollapsed ? 'flex flex-col items-center' : 'flex items-center gap-3'}`}>
                   <img 
-                    src={session.user.image || ''} 
-                    alt="User"
+                    src={user?.avatar || session.user.image || ''}
+                    alt={user?.username || session.user.name || 'User'}
                     className={`rounded-full border-2 border-purple-400 ${sidebarCollapsed ? 'w-10 h-10' : 'w-12 h-12'}`}
                   />
                   {!sidebarCollapsed && (
                     <div>
-                      <p className="font-mono text-sm text-gray-200">{session.user.name}</p>
+                      <p className="font-mono text-sm text-gray-200">{user?.username || session.user.name}</p>
                       <p className="font-mono text-xs text-gray-400">
-                        {userGenerationCount}/{GENERATION_LIMIT} generated
+                        {isUnlimitedUser ? 'Unlimited Access' : `${userGenerationCount}/${DAILY_LIMIT} daily`}
                       </p>
                     </div>
                   )}
@@ -1097,12 +1118,7 @@ export default function AnimeImageGenerator() {
                       </span>
                     </h2>
                     <p className="text-gray-400">
-                      {isGuest 
-                        ? `Try ${GUEST_LIMIT} free generation as a guest`
-                        : session?.user?.id === UNLIMITED_USER_ID
-                          ? 'Unlimited generations available'
-                          : `${userGenerationCount}/${DAILY_LIMIT} daily generations used`
-                      }
+                      {getStatusText()}
                     </p>
                   </div>
 
