@@ -153,7 +153,7 @@ const HomePage = () => {
           transition={{ duration: 0.8, delay: 0.2 }}
         >
           <img
-            src="https://via.placeholder.com/200x200/6b7280/ffffff?text=KN"
+            src="https://avatars.githubusercontent.com/u/107134739?v=4"
             alt="Koi Natsuko"
             className="w-full h-full rounded-full object-cover border-4 border-white shadow-lg"
           />
