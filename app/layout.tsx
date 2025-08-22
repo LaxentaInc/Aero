@@ -5,6 +5,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import { Providers } from './components/Providers';
 import { Analytics } from '@vercel/analytics/next';
+import { ThemeProvider } from './contexts/ThemeContext'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -237,12 +238,14 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <Providers>
-          <Navbar />
-          <main>
-            {children}
-          </main>
-          <Footer />
-          <Analytics />
+          <ThemeProvider>
+            <Navbar />
+            <main>
+              {children}
+            </main>
+            <Footer />
+            <Analytics />
+          </ThemeProvider>
         </Providers>
       </body>
     </html>
