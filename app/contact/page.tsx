@@ -640,11 +640,11 @@ const TetrisGame = () => {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto">
-      <div className={`${isDark ? 'bg-black border-white' : 'bg-white border-black'} border-4 p-8`}>
-        <div className="flex justify-between items-center mb-6 font-mono text-xl font-bold">
+    <div className="w-full max-w-4xl mx-auto overflow-hidden"> {/* added overflow-hidden */}
+      <div className={`${isDark ? 'bg-black border-white' : 'bg-white border-black'} border-4 p-3 sm:p-8`}>
+        <div className="flex justify-between items-center mb-4 sm:mb-6 font-mono text-base sm:text-xl font-bold flex-wrap gap-2">
           <div className={isDark ? 'text-white' : 'text-black'}>T E T R I S</div>
-          <div className={`flex gap-6 text-base ${isDark ? 'text-white' : 'text-black'}`}>
+          <div className={`flex gap-3 sm:gap-6 text-sm sm:text-base ${isDark ? 'text-white' : 'text-black'} flex-wrap`}>
             <div>SCORE: {score.toString().padStart(6, '0')}</div>
             <div>LEVEL: {level.toString().padStart(2, '0')}</div>
             <div>LINES: {lines.toString().padStart(3, '0')}</div>
@@ -752,17 +752,17 @@ const ContactCard: React.FC<ContactCardProps> = ({ type, value, icon: Icon }) =>
   return (
     <div
       onClick={handleCopy}
-      className={`${isDark ? 'bg-black border-white hover:bg-white hover:text-black' : 'bg-white border-black hover:bg-black hover:text-white'} border-4 p-8 cursor-pointer transition-all duration-200 group`}
+      className={`${isDark ? 'bg-black border-white hover:bg-white hover:text-black' : 'bg-white border-black hover:bg-black hover:text-white'} border-4 p-4 sm:p-8 cursor-pointer transition-all duration-200 group`}
     >
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-6">
-          <Icon className="text-4xl group-hover:scale-110 transition-transform duration-200" />
+        <div className="flex items-center gap-3 sm:gap-6">
+          <Icon className="text-2xl sm:text-4xl group-hover:scale-110 transition-transform duration-200" />
           <div>
-            <div className="text-sm font-mono font-bold opacity-60 mb-2">{type}</div>
-            <div className="text-2xl font-mono font-bold">{value}</div>
+            <div className="text-xs sm:text-sm font-mono font-bold opacity-60 mb-1 sm:mb-2">{type}</div>
+            <div className="text-base sm:text-2xl font-mono font-bold break-all">{value}</div>
           </div>
         </div>
-        <div className="text-3xl">
+        <div className="text-xl sm:text-3xl">
           {copied ? <FaCheck className="text-green-600" /> : <FaCopy className="group-hover:scale-110 transition-transform duration-200" />}
         </div>
       </div>
@@ -848,17 +848,17 @@ const LiveChat = () => {
 
   return (
     <div className={`${isDark ? 'bg-black border-white' : 'bg-white border-black'} border-4`}>
-      <div className={`${isDark ? 'border-white' : 'border-black'} border-b-4 p-6`}>
-        <div className="flex justify-between items-center">
-          <div className={`font-mono text-xl font-bold ${isDark ? 'text-white' : 'text-black'}`}>DROP A MESSAGE HERE</div>
-          <div className={`font-mono text-base ${isDark ? 'text-white/80' : 'text-black/80'}`}>say hi or whatever</div>
+      <div className={`${isDark ? 'border-white' : 'border-black'} border-b-4 p-3 sm:p-6`}>
+        <div className="flex justify-between items-center flex-wrap gap-2">
+          <div className={`font-mono text-lg sm:text-xl font-bold ${isDark ? 'text-white' : 'text-black'}`}>DROP A MESSAGE HERE</div>
+          <div className={`font-mono text-sm sm:text-base ${isDark ? 'text-white/80' : 'text-black/80'}`}>say hi or whatever</div>
         </div>
         <div className={`font-mono text-sm ${isDark ? 'text-white/80' : 'text-black/80'} mt-2`}>
           chatting as: {username}
         </div>
       </div>
 
-      <div className={`h-64 overflow-y-auto p-6 space-y-3 ${isDark ? 'bg-black' : 'bg-white'}`}>
+      <div className={`h-48 sm:h-64 overflow-y-auto p-3 sm:p-6 space-y-3 ${isDark ? 'bg-black' : 'bg-white'}`}>
         {messages.length === 0 ? (
           <div className={`${isDark ? 'text-white/40' : 'text-black/40'} font-mono text-base text-center py-8`}>
             NO MESSAGES YET...<br/>
@@ -878,8 +878,8 @@ const LiveChat = () => {
         <div ref={chatEndRef} />
       </div>
 
-      <div className={`${isDark ? 'border-white' : 'border-black'} border-t-4 p-6`}>
-        <div className="flex gap-4">
+      <div className={`${isDark ? 'border-white' : 'border-black'} border-t-4 p-3 sm:p-6`}>
+        <div className="flex gap-2 sm:gap-4">
           <input
             type="text"
             value={newMessage}
@@ -967,25 +967,25 @@ export default function ContactPage() {
       <MusicPlayer shouldPlay={hasInteracted} />
       
       {/* Content with navbar spacing */}
-      <div className="pt-24 pb-12 px-6 relative z-10">
+      <div className="pt-24 pb-12 px-4 sm:px-6 relative z-10"> {/* adjusted padding */}
         <div className="max-w-7xl mx-auto">
-          {/* Header Section */}
+          {/* Header Section with responsive text sizes */}
           <div className="mb-12">
-            <h1 className={`text-7xl md:text-9xl font-black mb-6 leading-none ${isDark ? 'text-white' : 'text-black'}`}>
+            <h1 className={`text-4xl sm:text-7xl md:text-9xl font-black mb-4 sm:mb-6 leading-none ${isDark ? 'text-white' : 'text-black'}`}>
               Talk to me :3
             </h1>
-            <h2 className={`text-3xl md:text-5xl font-bold mb-8 ${isDark ? 'text-white/80' : 'text-black/80'}`}>
+            <h2 className={`text-xl sm:text-3xl md:text-5xl font-bold mb-6 sm:mb-8 ${isDark ? 'text-white/80' : 'text-black/80'}`}>
               wanna work together? let's make something sick
             </h2>
-            <p className={`text-lg font-mono leading-relaxed max-w-2xl ${isDark ? 'text-white/70' : 'text-black/70'}`}>
-              yo! im a collage student and this my hobby- i'm down to work on cool projects that actually matter<br/>
-              whether it's web dev, backend, hosting, UI/Ux, or just your wild ideas<br/>
+            <p className={`text-base sm:text-lg font-mono leading-relaxed max-w-2xl ${isDark ? 'text-white/70' : 'text-black/70'}`}>
+              yo! im a collage student and this my hobby- i'm down to work on cool projects that actually matter<br className="hidden sm:block" />
+              whether it's web dev, backend, hosting, UI/Ux, or just your wild ideas<br className="hidden sm:block" />
               i'll bring the energy and make it worth your time fr + its gonna be cheap for you and i will get some moni too :3
             </p>
           </div>
 
-          {/* Contact Cards */}
-          <div className="grid md:grid-cols-2 gap-8 mb-12">
+          {/* Contact Cards with better mobile padding */}
+          <div className="grid md:grid-cols-2 gap-4 sm:gap-8 mb-8 sm:mb-12">
             {contacts.map((contact) => (
               <ContactCard key={contact.type} {...contact} />
             ))}
