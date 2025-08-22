@@ -406,7 +406,7 @@ export default function Navbar() {
     toggleTheme()
   }
 // /AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-  const navItems = ['about-me','ai', 'shapes', 'image-gen', 'nsfw', 'contact']
+  const navItems = ['koi','image-gen','nsfw', 'contact', 'privacy']
 
   return (
     <AnimatePresence mode="wait">

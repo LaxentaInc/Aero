@@ -11,7 +11,7 @@ import {
   Info, Image as ImageIcon, Clock, TrendingUp,
   Lock, MessageCircle, Flame, Crown, Heart
 } from 'lucide-react';
-import { useDiscord } from '../contexts/DiscordContext';  // Add this import at the top
+import { useDiscord } from '../contexts/DiscordContext'; 
 
 // Constants
 const UNLIMITED_USER_ID = '953527567808356404';
@@ -19,7 +19,7 @@ const DAILY_LIMIT = 10;
 const GUEST_LIMIT = 1;
 const GENERATION_LIMIT = 10;
 const LOCAL_USAGE_KEY = 'modelUsageCache';
-const CACHE_DURATION = 1000 * 60 * 60; // 1 hour
+const CACHE_DURATION = 1000 * 60 * 60;
 
 // Types
 interface GeneratedImage {

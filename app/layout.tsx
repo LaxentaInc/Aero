@@ -25,77 +25,60 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.laxenta.tech'),
   title: {
-    default: "Laxenta Inc",
+    default: "Laxenta - Fullstack Developer & System Engineer",
     template: "%s | Laxenta"
   },
-  description: "Access 200+ AI models through affordable APIs. NSFW/SFW image generation, chat models (GPT-5, Claude, Gemini), Discord shapes builder, voice synthesis, advanced dev tools, and code commissions. Free tier available.",
+  description: "Hi there! I'm a fullstack developer and system engineer who loves building useless things and collaborating on any code I can get my hands on. Always eager to dive into new knowledge and experiences.",
   keywords: [
-    // Primary
-    "laxenta ai",
-    "lax",
+    // Personal Brand
     "laxenta",
-    "free ai api",
-    "AI chat",
-    "Shapes for Discord",
-    "image generation",
-    "chatbots",
-    "laxenta",
-    "AI assistant",
-    "free AI models",
-    "AI platform",
-    "GPT-5",
-    "Claude",
-    "Flux Pro",
-    "Midjourney alternative",
-    "free AI",
-    "nsfw",
-    "sfw",
-    "AI coding",
-    "AI shapes",
-    "AI reasoning",
-    "AI chatbots",
-    "AI image generation",
-    "AI voice synthesis",
-    "AI API",
-    "AI developer tools",
+    "fullstack developer",
+    "system engineer", 
+    "web developer",
+    "software engineer",
+    "me_straight",
+    "developer portfolio",
+    "indie developer",
+    
+    // Skills & Technologies  
+    "React developer",
+    "Next.js developer",
+    "TypeScript developer",
+    "Node.js developer",
+    "JavaScript developer",
+    "fullstack engineer",
+    "system administration",
+    "web development",
+    "software development",
+    "code collaboration",
+    "open source developer",
+    
+    // Services
     "code commissions",
-    "AI API platform",
-    "cheap AI API",
-    "200+ AI models",
-    "Laxenta",
-    // Image Generation
-    "NSFW image generation",
-    "SFW image generation", 
-    "DALL-E 3 API",
-    "Flux Pro API",
-    "Midjourney alternative",
-    
-    // Chat Models
-    "GPT-5 API",
-    "Claude API",
-    "Gemini API",
-    "chat models API",
-    "ai api",
-    "shapes",    
-    // Discord Features
-    "Discord shapes",
-    "Discord shapes builder",
-    "custom Discord shapes",
-    
-    // Voice & Dev Tools
-    "voice synthesis API",
-    "TTS models",
-    "advanced dev tools",
+    "freelance developer",
+    "custom development",
+    "web applications",
+    "system solutions",
     "developer tools",
-    "code commissions",
+    "code editor online",
+    "development tools",
     
-    // Brand
-    "Laxenta AI",
-    "Laxenta API",
-    "free AI models"
+    // Personal Interests
+    "building useless things",
+    "hobby projects",
+    "experimental code",
+    "creative coding",
+    "dev tools creator",
+    "standalone developer",
+    
+    // Location/Availability
+    "remote developer",
+    "freelance programmer",
+    "hire developer",
+    "collaborative coding"
   ],
-  authors: [{ name: "Laxenta" }],
-  creator: "@me_straight",
+  authors: [{ name: "Laxenta", url: "https://github.com/me_straight" }],
+  creator: "@me_straight", 
   publisher: "Laxenta",
   formatDetection: {
     email: false,
@@ -113,25 +96,25 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: 'https://www.laxenta.tech',
     siteName: 'Laxenta',
-    title: 'Laxenta - Affordable Ai Api and dev tools Platform with 200+ Models',
-    description: '🚀 Access 200+ AI models via API • 🎨 NSFW/SFW Image Generation • 💬 Chat Models (GPT-5, Claude) • 🎮 Discord Shapes Builder • 🎤 Voice Synthesis • 💻 Advanced Dev Tools • 📝 Code Commissions • Free tier available!',
+    title: 'Laxenta - Fullstack Developer & System Engineer Portfolio',
+    description: '👋 Fullstack Developer & System Engineer • 💻 Love building useless things & collaborating on code • 🚀 Always diving into new knowledge • 🛠️ Custom dev tools & code commissions • ✨ Experimental projects',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Laxenta - AI API Platform',
+        alt: 'Laxenta - Developer Portfolio',
         type: 'image/png',
       }
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Laxenta - Free tier AI Models and API Platform with 200+ Models and dev tools',
-    description: 'Affordable AI APIs: Image gen (NSFW/SFW), Chat models, Discord shapes, Voice synthesis, Advanced dev tools, Code commissions. Free tier with 200+ models access.',
+    title: 'Laxenta - Fullstack Developer & System Engineer',
+    description: 'Fullstack developer who loves building experimental projects and collaborating on code. Always eager to explore new technologies and create custom solutions.',
     images: {
       url: '/og-image.png',
-      alt: 'Laxenta AI Platform'
+      alt: 'Laxenta Developer Portfolio'
     }
   },
   robots: {
@@ -169,54 +152,35 @@ export default function RootLayout({
 }) {
   const structuredData = {
     '@context': 'https://schema.org',
-    '@type': 'WebApplication',
+    '@type': 'Person',
     name: 'Laxenta',
-    description: 'AI API platform providing access to 200+ models for image generation, chat, voice synthesis, Discord shapes, and advanced developer tools',
+    jobTitle: 'Fullstack Developer & System Engineer',
+    description: 'Fullstack developer and system engineer who loves building experimental projects, creating developer tools, and collaborating on open source code.',
     url: 'https://www.laxenta.tech',
-    applicationCategory: 'DeveloperApplication',
-    operatingSystem: 'Web',
-    offers: {
-      '@type': 'AggregateOffer',
-      priceCurrency: 'USD',
-      lowPrice: '0',
-      highPrice: '99',
-      offerCount: '3',
-      offers: [
-        {
-          '@type': 'Offer',
-          name: 'Free Tier',
-          price: '0',
-          description: 'Limited access to 200+ AI models'
-        },
-        {
-          '@type': 'Offer', 
-          name: 'Pro',
-          price: '9.99',
-          description: 'Full access to all models with higher limits'
-        },
-        {
-          '@type': 'Offer',
-          name: 'Enterprise',
-          price: '99',
-          description: 'Custom limits and dedicated support'
-        }
-      ]
-    },
-    featureList: [
-      '200+ AI Models Access',
-      'NSFW/SFW Image Generation',
-      'Chat Models (GPT-5, Claude, Gemini)',
-      'Discord Shapes Builder',
-      'Voice Synthesis/TTS',
-      'Advanced Developer Tools',
-      'Code Commissions',
-      'Developer API Access',
-      'Free Tier Available'
+    sameAs: [
+      'https://github.com/me_straight',
+      // Add other social profiles here
     ],
-    author: {
+    knowsAbout: [
+      'Fullstack Development',
+      'System Engineering', 
+      'Web Development',
+      'JavaScript',
+      'TypeScript',
+      'React',
+      'Next.js',
+      'Node.js',
+      'Developer Tools',
+      'Code Collaboration'
+    ],
+    offers: {
+      '@type': 'Service',
+      name: 'Development Services',
+      description: 'Custom web development, code commissions, and developer tools creation'
+    },
+    alumniOf: {
       '@type': 'Organization',
-      name: 'Laxenta',
-      url: 'https://www.laxenta.tech'
+      name: 'Self-taught Developer'
     }
   };
 
@@ -224,8 +188,8 @@ export default function RootLayout({
     <html lang="en">
       <head>
         {/* Essential Meta Tags for Discord/Social Media */}
-        <meta property="og:title" content="Laxenta Inc" />
-        <meta property="og:description" content="🚀 Access 200+ AI models • 🎨 NSFW/SFW Image Gen • 💬 Chat APIs • 🎮 Discord Shapes • 🎤 Voice Synthesis • 💻 Advanced Dev Tools • 📝 Code Commissions • Free tier available!" />
+        <meta property="og:title" content="Laxenta - Fullstack Developer Portfolio" />
+        <meta property="og:description" content="👋 Fullstack Developer & System Engineer • 💻 Love building useless things & collaborating • 🚀 Always diving into new knowledge • 🛠️ Custom dev tools & commissions" />
         <meta property="og:image" content="https://www.laxenta.tech/og-image.png" />
         <meta property="og:url" content="https://www.laxenta.tech" />
         <meta property="og:type" content="website" />
@@ -234,12 +198,12 @@ export default function RootLayout({
         
         {/* Twitter Card */}
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Laxenta Inc- 200+ AI Models API Platform" />
-        <meta name="twitter:description" content="Affordable AI APIs: Image gen (NSFW/SFW), Chat models, Discord shapes, Voice synthesis, Advanced dev tools, Code commissions. Free tier available." />
+        <meta name="twitter:title" content="Laxenta - Fullstack Developer & System Engineer" />
+        <meta name="twitter:description" content="Fullstack developer who loves building experimental projects and collaborating on code. Always eager to explore new technologies." />
         <meta name="twitter:image" content="https://www.laxenta.tech/og-image.png" />
         
         {/* Basic Meta Tags */}
-        <meta name="description" content="Access 200+ AI models through affordable APIs. NSFW/SFW image generation, chat models (GPT-5, Claude), Discord shapes builder, voice synthesis, advanced dev tools, and code commissions. Free tier available." />
+        <meta name="description" content="Hi there! I'm a fullstack developer and system engineer who loves building useless things and collaborating on any code I can get my hands on. Always eager to dive into new knowledge and experiences." />
         <link rel="canonical" href="https://www.laxenta.tech" />
         
         {/* Favicon */}
@@ -253,7 +217,7 @@ export default function RootLayout({
         {/* Apple specific */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Laxenta AI" />
+        <meta name="apple-mobile-web-app-title" content="Laxenta Portfolio" />
         
         {/* PWA */}
         <link rel="manifest" href="/manifest.json" />
