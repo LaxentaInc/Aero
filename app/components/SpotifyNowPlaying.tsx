@@ -34,10 +34,10 @@ export const SpotifyNowPlaying = () => {
             <div 
                 className="
                     w-full 
-                    h-[10vh]           /* fill 60% of viewport height */
+                    h-[50vh]           /* fill 60% of viewport height */
                     sm:h-[55vh] 
                     md:h-[65vh] 
-                    lg:h-[50vh] 
+                    lg:h-[40vh] 
                 "
             >
                 <iframe

@@ -1118,30 +1118,34 @@ $ Currently exploring Rust & Python for system programming and AI/ML`
 
 			{/* Spotify Now Playing */}
 			<section className="py-8">
-	<div className="max-w-3xl mx-auto px-8 flex flex-col md:flex-row items-center gap-8">
-		{/*left text with SVG quotes */}
-		<div className="flex-1 flex flex-col items-start justify-center">
-			<div className="flex items-start gap-2 mb-2">
-				{/*opening quote SVG */}
-				<svg width="32" height="32" viewBox="0 0 32 32" className="text-purple-400" fill="none">
-					<path d="M12 6C7.58 6 4 9.58 4 14c0 3.31 2.69 6 6 6v2c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2h2v-4c-2.21 0-4-1.79-4-4 0-2.21 1.79-4 4-4V6z" fill="currentColor"/>
-				</svg>
-				<h2 className="text-2xl md:text-3xl font-extrabold font-mono text-left text-purple-500 dark:text-purple-300 leading-tight">
-					Who doesn't like music? <br />
-					<span className="text-xl md:text-2xl font-bold text-black dark:text-white">
-						Check out my favorite tracks, we might be similar in music taste out of many things
-					</span>
-				</h2>
-				{/* Closing quote SVG */}
-				<svg width="32" height="32" viewBox="0 0 32 32" className="text-purple-400 rotate-180" fill="none">
-					<path d="M20 6c4.42 0 8 3.58 8 8 0 3.31-2.69 6-6 6v2c2.21 0 4 1.79 4 4h-2c0-1.1-.9-2-2-2h-2v-4c2.21 0 4-1.79 4-4 0-2.21-1.79-4-4-4V6z" fill="currentColor"/>
-				</svg>
-			</div>
-		</div>
-		<div className="flex-1 w-full">
-			<SpotifyNowPlaying />
-		</div>
-	</div>
+<div className="max-w-6xl mx-auto px-8 flex flex-col md:flex-row items-center gap-8">
+  {/* Left text */}
+  <div className="flex-[0.8] flex flex-col items-start justify-center">
+    <div className="flex items-start gap-2 mb-2">
+      {/* opening quote SVG */}
+      <svg width="32" height="32" viewBox="0 0 32 32" className="text-purple-400" fill="none">
+        <path d="M12 6C7.58 6 4 9.58 4 14c0 3.31 2.69 6 6 6v2c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2h2v-4c-2.21 0-4-1.79-4-4 0-2.21 1.79-4 4-4V6z" fill="currentColor"/>
+      </svg>
+      <h2 className="text-2xl md:text-3xl font-extrabold font-mono text-left text-purple-500 dark:text-purple-300 leading-tight">
+        Who doesn't like music? <br />
+        <span className="text-xl md:text-2xl font-bold text-black dark:text-white">
+          Check out my favorite tracks, we might be similar in music taste out of many things
+        </span>
+      </h2>
+      {/* closing quote SVG */}
+      <svg width="32" height="32" viewBox="0 0 32 32" className="text-purple-400 rotate-180" fill="none">
+        <path d="M20 6c4.42 0 8 3.58 8 8 0 3.31-2.69 6-6 6v2c2.21 0 4 1.79 4 4h-2c0-1.1-.9-2-2-2h-2v-4c2.21 0 4-1.79 4-4 0-2.21-1.79-4-4-4V6z" fill="currentColor"/>
+      </svg>
+    </div>
+  </div>
+
+  {/* Right Spotify */}
+  <div className="flex-[1.2] w-full">
+    <SpotifyNowPlaying />
+  </div>
+</div>
+
+
 </section>
 
 			{/* About Section - IMPROVED */}
