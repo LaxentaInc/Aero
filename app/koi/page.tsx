@@ -545,7 +545,7 @@ const ProjectsPage = () => {
                                                     Forked
                                                 </span>
                                             )}
-                                            {project.stars > 0 && (
+                                            {project.stars && project.stars > 0 && (
                                                 <span className={`flex items-center gap-1 text-xs px-3 py-1 rounded-full border ${
                                                     theme === 'dark' 
                                                         ? 'bg-yellow-900/30 text-yellow-300 border-yellow-700' 
