@@ -133,6 +133,15 @@ export const metadata: Metadata = {
     canonical: 'https://www.laxenta.tech',
   },
   category: 'technology',
+  other: {
+    // Apple specific
+    'apple-mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-status-bar-style': 'default',
+    'apple-mobile-web-app-title': 'Laxenta Portfolio',
+    // Theme colors
+    'theme-color': '#5865F2',
+    'msapplication-TileColor': '#5865F2',
+  }
 };
 
 export const viewport: Viewport = {
@@ -188,42 +197,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Essential Meta Tags for Discord/Social Media */}
-        <meta property="og:title" content="Laxenta - Fullstack Developer Portfolio" />
-        <meta property="og:description" content="👋 Fullstack Developer & System Engineer • 💻 Love building useless things & collaborating • 🚀 Always diving into new knowledge • 🛠️ Custom dev tools & commissions" />
-        <meta property="og:image" content="https://www.laxenta.tech/og-image.png" />
-        <meta property="og:url" content="https://www.laxenta.tech" />
-        <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="Laxenta" />
-        <meta property="og:locale" content="en_US" />
-        
-        {/* Twitter Card */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Laxenta - Fullstack Developer & System Engineer" />
-        <meta name="twitter:description" content="Fullstack developer who loves building experimental projects and collaborating on code. Always eager to explore new technologies." />
-        <meta name="twitter:image" content="https://www.laxenta.tech/og-image.png" />
-        
-        {/* Basic Meta Tags */}
-        <meta name="description" content="Hi there! I'm a fullstack developer and system engineer who loves building useless things and collaborating on any code I can get my hands on. Always eager to dive into new knowledge and experiences." />
-        <link rel="canonical" href="https://www.laxenta.tech" />
-        
-        {/* Favicon */}
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="apple-touch-icon" href="/favicon.ico" />
-        
-        {/* Theme colors */}
-        <meta name="theme-color" content="#5865F2" />
-        <meta name="msapplication-TileColor" content="#5865F2" />
-        
-        {/* Apple specific */}
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Laxenta Portfolio" />
-        
-        {/* PWA */}
-        <link rel="manifest" href="/manifest.json" />
-        
-        {/* Preconnect */}
+        {/* Preconnect for performance */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         

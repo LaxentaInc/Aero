@@ -7,9 +7,7 @@ import { Home, Briefcase, Code, Sun, Moon, ExternalLink, Star, GitFork, Calendar
 // Page Types
 type PageType = 'home' | 'projects' | 'skills';
 
-
 // Project data
-
 const projectsData = [
     {
         name: "ProCommit",
@@ -167,7 +165,6 @@ const projectsData = [
     }
 ];
 
-
 const useProtection = () => {
   useEffect(() => {
     const preventDefaultKeys = (e: KeyboardEvent) => {
@@ -209,6 +206,7 @@ const useProtection = () => {
     };
   }, [])
 }
+
 const Navigation = ({ currentPage, setCurrentPage }: { currentPage: PageType; setCurrentPage: (page: PageType) => void }) => {
     const { theme, toggleTheme } = useTheme();
     const navItems = [
@@ -300,6 +298,7 @@ const HomePage = () => {
                 ? 'bg-gradient-to-br from-gray-900 via-gray-900 to-purple-900/20' 
                 : 'bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50'
         } transition-all duration-500`}>
+            
             <div className="text-center max-w-4xl">
                 <motion.div
                     className="relative w-40 h-40 sm:w-48 sm:h-48 mx-auto mb-8 sm:mb-12 group"
@@ -332,11 +331,12 @@ const HomePage = () => {
                         className={`text-5xl sm:text-7xl font-black mb-4 ${
                             theme === 'dark' ? 'text-white' : 'text-gray-900'
                         }`}
+                        style={{ fontFamily: '"Mochiy Pop One", serif' }}
                         initial={{ opacity: 0, scale: 0.5 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.8, delay: 0.6 }}
                     >
-                        Koi Natsuko
+                      Koi Natsuko!
                     </motion.h1>
                     <motion.p 
                         className={`text-xl sm:text-2xl font-medium mb-3 ${
@@ -444,6 +444,7 @@ const HomePage = () => {
     );
 };
 
+// Rest of your components remain the same...
 const ProjectsPage = () => {
     const { theme } = useTheme();
     const [filter, setFilter] = useState('all');
@@ -469,7 +470,7 @@ const ProjectsPage = () => {
                     <h1 className={`text-6xl font-black mb-6 ${
                         theme === 'dark' ? 'text-white' : 'text-gray-900'
                     }`}>
-                        My Projects
+                        Her goofy Projects
                     </h1>
                     <p className={`text-xl mb-8 max-w-2xl mx-auto ${
                         theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
@@ -624,7 +625,7 @@ const SkillsPage = () => {
                 { 
                     name: "Overthinking", 
                     level: 95, 
-                    description: "Will analyze a simple 'hi' text for 10 mins straight" 
+                    description: "Will analyze a simple 'hi' text for 5 mins" 
                 },
                 { 
                     name: "Coffee Dependency", 
@@ -641,10 +642,10 @@ const SkillsPage = () => {
         },
         {
             category: "Social Skills",
-            description: "total goofyness",
+            description: "Total goofyness",
             items: [
                 { 
-                    name: "Hobbies?", 
+                    name: "Hobby", 
                     level: 100, 
                     description: "OH you thought sutdying? NAHH she Likes to jump off cliffs for no reason at all" 
                 },
@@ -655,8 +656,8 @@ const SkillsPage = () => {
                 },
                 { 
                     name: "Adorable", 
-                    level: 15, 
-                    description: "Can never take a single complement without denying it" 
+                    level: 100, 
+                    description: "Can never take a single complement, and always acts bored" 
                 }
             ],
             color: "from-blue-400 to-purple-500"
@@ -666,14 +667,14 @@ const SkillsPage = () => {
             description: "Essential survival competencies",
             items: [
                 { 
-                    name: "Sleeping Schedule Chaos", 
-                    level: 97, 
+                    name: "Rest Schedule?", 
+                    level: 26, 
                     description: "What is a consistent bedtime? We don't know her" 
                 },
                 { 
                     name: "Snack Discovery", 
                     level: 91, 
-                    description: "Can find the perfect midnight snack in any kitchen" 
+                    description: "Can find the perfect midnight snack in her kitchen" 
                 },
                 { 
                     name: "Playlist Curation", 
@@ -695,10 +696,10 @@ const SkillsPage = () => {
                     transition={{ duration: 0.8 }}
                 >
                     <h1 className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 mb-6">
-                        My Skills
+                        Her Skills
                     </h1>
                     <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-                        A comprehensive breakdown of my unique professional competencies
+                        A comprehensive breakdown of some.. ahem unique professional competencies
                     </p>
                 </motion.div>
 
@@ -741,7 +742,7 @@ const SkillsPage = () => {
                                         </div>
                                         <div className="relative w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 overflow-hidden">
                                             <motion.div
-                                                className={`h-full rounded-full bg-gradient-to-r ${category.color} relative`}
+                                                className={`h-full rounded-full bg-gradient-to-r ${category.color}`}
                                                 initial={{ width: 0 }}
                                                 animate={{ width: `${skill.level}%` }}
                                                 transition={{ 
@@ -749,13 +750,7 @@ const SkillsPage = () => {
                                                     delay: (index * 0.2) + (skillIndex * 0.1) + 0.5,
                                                     ease: "easeOut"
                                                 }}
-                                            >
-                                                <motion.div
-                                                    className="absolute inset-0 bg-white/20 rounded-full"
-                                                    animate={{ x: ["0%", "100%", "0%"] }}
-                                                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                                                />
-                                            </motion.div>
+                                            />
                                         </div>
                                         <p className="text-base text-gray-600 dark:text-gray-300 font-medium leading-relaxed">
                                             {skill.description}
@@ -774,6 +769,26 @@ const SkillsPage = () => {
 const KoiPortfolio = () => {
     const [currentPage, setCurrentPage] = useState<PageType>('home');
     const { theme } = useTheme();
+
+    // Initialize protection hooks
+    useProtection();
+
+    // Add global font style
+    useEffect(() => {
+        // Load Mochiy Pop One font
+        const link = document.createElement('link');
+        link.href = 'https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&display=swap';
+        link.rel = 'stylesheet';
+        document.head.appendChild(link);
+
+        // Apply font globally
+        document.body.style.fontFamily = '"Mochiy Pop One", serif';
+
+        return () => {
+            document.head.removeChild(link);
+            document.body.style.fontFamily = '';
+        };
+    }, []);
 
     const pageVariants = {
         initial: { opacity: 0, x: -50 },
