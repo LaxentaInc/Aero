@@ -207,6 +207,121 @@ const useProtection = () => {
   }, [])
 }
 
+const API_URL = "https://api.lanyard.rest/v1/users/886971572668219392";
+
+type DiscordStatus = 'online' | 'dnd' | 'idle' | 'offline';
+type DiscordData = {
+    discord_status: DiscordStatus;
+    discord_user: {
+        username: string;
+        global_name: string;
+        avatar: string;
+        id: string;
+    };
+    activities: Array<{
+        name: string;
+        type: number;
+        timestamps?: {
+            start: number;
+        };
+        assets?: {
+            large_image: string;
+        };
+        platform?: string;
+    }>;
+    active_on_discord_desktop?: boolean;
+    active_on_discord_mobile?: boolean;
+    active_on_discord_web?: boolean;
+};
+
+// Add Discord Status Component
+const DiscordStatus = () => {
+    const { theme } = useTheme();
+    const [discordData, setDiscordData] = useState<DiscordData | null>(null);
+    const [statusText, setStatusText] = useState("");
+
+    useEffect(() => {
+        const fetchDiscordData = async () => {
+            try {
+                const response = await fetch(API_URL);
+                const { data } = await response.json();
+                setDiscordData(data);
+
+                let status = "Unknown";
+                if (data.discord_status === "online") {
+                    status = "Online";
+                } else if (data.discord_status === "dnd") {
+                    status = "Do Not Disturb";
+                } else if (data.discord_status === "idle") {
+                    status = "Idle";
+                } else if (data.discord_status === "offline") {
+                    status = "Offline";
+                }
+
+                let platform = "";
+                if (data.active_on_discord_web) {
+                    platform = "on Web";
+                } else if (data.active_on_discord_mobile) {
+                    platform = "on Mobile";
+                } else if (data.active_on_discord_desktop) {
+                    platform = "on Desktop";
+                }
+
+                setStatusText(`${status} ${platform}`);
+            } catch (error) {
+                console.error("Failed to fetch Discord data:", error);
+            }
+        };
+
+        fetchDiscordData();
+        const interval = setInterval(fetchDiscordData, 10000); // Update every 10 seconds
+
+        return () => clearInterval(interval);
+    }, []);
+
+    if (!discordData) return null;
+
+    const statusColors = {
+        online: 'bg-green-500',
+        dnd: 'bg-red-500',
+        idle: 'bg-yellow-500',
+        offline: 'bg-gray-500'
+    };
+
+    const avatarUrl = `https://cdn.discordapp.com/avatars/${discordData.discord_user.id}/${discordData.discord_user.avatar}.png?size=128`;
+
+    return (
+        <motion.div
+            className={`fixed top-6 right-6 px-4 py-2 rounded-xl ${
+                theme === 'dark' ? 'bg-gray-800/80' : 'bg-white/80'
+            } backdrop-blur-xl border ${
+                theme === 'dark' ? 'border-gray-700/30' : 'border-gray-200/30'
+            } shadow-lg`}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+        >
+            <div className="flex items-center gap-3">
+                <div className="relative">
+                    <img 
+                        src={avatarUrl}
+                        alt={discordData.discord_user.global_name || discordData.discord_user.username}
+                        className="w-8 h-8 rounded-full"
+                    />
+                    <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 ${
+                        theme === 'dark' ? 'border-gray-800' : 'border-white'
+                    } ${statusColors[discordData.discord_status]}`} />
+                </div>
+                <span className={`text-sm font-medium ${
+                    theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                }`}>
+                    {statusText}
+                </span>
+            </div>
+        </motion.div>
+    );
+};
+
 const Navigation = ({ currentPage, setCurrentPage }: { currentPage: PageType; setCurrentPage: (page: PageType) => void }) => {
     const { theme, toggleTheme } = useTheme();
     const navItems = [
@@ -216,81 +331,78 @@ const Navigation = ({ currentPage, setCurrentPage }: { currentPage: PageType; se
     ];
 
     return (
-        <motion.nav
-            className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 ${
-                theme === 'dark' ? 'bg-gray-900/80' : 'bg-white/80'
-            } backdrop-blur-xl rounded-2xl px-6 sm:px-8 py-4 shadow-2xl ${
-                theme === 'dark' ? 'border border-gray-700/30' : 'border border-gray-200/30'
-            }`}
-            initial={{ y: -100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, type: "spring", bounce: 0.3 }}
-        >
-            <div className="flex items-center space-x-2 sm:space-x-4">
-                {navItems.map((item, index) => (
-                    <motion.button
-                        key={item.id}
-                        onClick={() => setCurrentPage(item.id)}
-                        className={`relative px-4 py-2.5 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 text-sm sm:text-base ${
-                            currentPage === item.id
-                                ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
-                                : theme === 'dark' 
-                                    ? 'text-gray-300 hover:text-white hover:bg-gray-800/50' 
-                                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/50'
-                        }`}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                    >
-                        <item.icon size={18} />
-                        <span className="hidden sm:inline">{item.label}</span>
-                        {currentPage === item.id && (
-                            <motion.div
-                                className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 -z-10"
-                                layoutId="activeTab"
-                                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                            />
-                        )}
-                    </motion.button>
-                ))}
-                <motion.button
-                    onClick={toggleTheme}
-                    className={`p-3 rounded-xl transition-all duration-300 ${
-                        theme === 'dark' 
-                            ? 'text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400' 
-                            : 'text-gray-600 hover:bg-gray-100/50 hover:text-yellow-500'
-                    }`}
-                    whileTap={{ scale: 0.9 }}
-                    whileHover={{ scale: 1.1, rotate: 180 }}
-                    transition={{ duration: 0.3 }}
-                >
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={theme}
-                            initial={{ opacity: 0, rotate: -180 }}
-                            animate={{ opacity: 1, rotate: 0 }}
-                            exit={{ opacity: 0, rotate: 180 }}
-                            transition={{ duration: 0.3 }}
+        <>
+            <motion.nav
+                className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 ${
+                    theme === 'dark' ? 'bg-gray-900/80' : 'bg-white/80'
+                } backdrop-blur-xl rounded-2xl px-6 sm:px-8 py-4 shadow-2xl ${
+                    theme === 'dark' ? 'border border-gray-700/30' : 'border border-gray-200/30'
+                }`}
+                initial={{ y: -100, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.6, type: "spring", bounce: 0.3 }}
+            >
+                <div className="flex items-center space-x-2 sm:space-x-4">
+                    {navItems.map((item, index) => (
+                        <motion.button
+                            key={item.id}
+                            onClick={() => setCurrentPage(item.id)}
+                            className={`relative px-4 py-2.5 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 text-sm sm:text-base ${
+                                currentPage === item.id
+                                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
+                                    : theme === 'dark' 
+                                        ? 'text-gray-300 hover:text-white hover:bg-gray-800/50' 
+                                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/50'
+                            }`}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.1 }}
                         >
-                            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-                        </motion.div>
-                    </AnimatePresence>
-                </motion.button>
-            </div>
-        </motion.nav>
+                            <item.icon size={18} />
+                            <span className="hidden sm:inline">{item.label}</span>
+                            {currentPage === item.id && (
+                                <motion.div
+                                    className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 -z-10"
+                                    layoutId="activeTab"
+                                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                />
+                            )}
+                        </motion.button>
+                    ))}
+                    <motion.button
+                        onClick={toggleTheme}
+                        className={`p-3 rounded-xl transition-all duration-300 ${
+                            theme === 'dark' 
+                                ? 'text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400' 
+                                : 'text-gray-600 hover:bg-gray-100/50 hover:text-yellow-500'
+                        }`}
+                        whileTap={{ scale: 0.9 }}
+                        whileHover={{ scale: 1.1, rotate: 180 }}
+                        transition={{ duration: 0.3 }}
+                    >
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={theme}
+                                initial={{ opacity: 0, rotate: -180 }}
+                                animate={{ opacity: 1, rotate: 0 }}
+                                exit={{ opacity: 0, rotate: 180 }}
+                                transition={{ duration: 0.3 }}
+                            >
+                                {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+                            </motion.div>
+                        </AnimatePresence>
+                    </motion.button>
+                </div>
+            </motion.nav>
+            <DiscordStatus />
+        </>
     );
 };
 
 const HomePage = () => {
     const { theme } = useTheme();
-    const [currentTime, setCurrentTime] = useState(new Date());
-
-    useEffect(() => {
-        const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-        return () => clearInterval(timer);
-    }, []);
 
     return (
         <div className={`min-h-screen flex items-center justify-center p-6 ${
@@ -421,24 +533,6 @@ const HomePage = () => {
                         <ExternalLink size={20} className="group-hover:translate-x-1 transition-transform" />
                     </motion.a>
                 </motion.div>
-
-                <motion.div
-                    className={`inline-flex items-center space-x-3 px-6 py-3 rounded-full border ${
-                        theme === 'dark' 
-                            ? 'bg-green-900/20 text-green-300 border-green-700/50' 
-                            : 'bg-green-50 text-green-700 border-green-200'
-                    }`}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 2, duration: 0.5 }}
-                >
-                    <motion.div 
-                        className="w-3 h-3 bg-green-500 rounded-full"
-                        animate={{ scale: [1, 1.2, 1] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                    />
-                    <span className="font-semibold">Online • {currentTime.toLocaleTimeString('ja-JP', { timeZone: 'Asia/Tokyo' })} JST</span>
-                </motion.div>
             </div>
         </div>
     );
@@ -475,7 +569,7 @@ const ProjectsPage = () => {
                     <p className={`text-xl mb-8 max-w-2xl mx-auto ${
                         theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
                     }`}>
-                        A collection of open source projects and contributions that showcase my passion for development
+                        A collection of open source projects and contributions that showcase her luv for development :3
                     </p>
                 </motion.div>
 
