@@ -7,6 +7,7 @@ import { Home, Briefcase, Code, Sun, Moon, ExternalLink, Star, GitFork, Calendar
 // Page Types
 type PageType = 'home' | 'projects' | 'skills';
 
+// Project data - PASTE YOUR PROJECT DATA HERE
 // Project data
 const projectsData = [
     {
@@ -165,6 +166,7 @@ const projectsData = [
     }
 ];
 
+
 const useProtection = () => {
   useEffect(() => {
     const preventDefaultKeys = (e: KeyboardEvent) => {
@@ -217,6 +219,18 @@ type DiscordData = {
         global_name: string;
         avatar: string;
         id: string;
+        clan?: string;
+        avatar_decoration_data?: {
+            sku_id: string;
+            asset: string;
+            expires_at: string | null;
+        };
+        primary_guild?: {
+            tag: string;
+            identity_guild_id: string;
+            badge: string;
+            identity_enabled: boolean;
+        };
     };
     activities: Array<{
         name: string;
@@ -232,54 +246,41 @@ type DiscordData = {
     active_on_discord_desktop?: boolean;
     active_on_discord_mobile?: boolean;
     active_on_discord_web?: boolean;
+    active_on_discord_embedded?: boolean;
+    listening_to_spotify?: boolean;
+    spotify?: {
+        song: string;
+        artist: string;
+    };
 };
 
-// Add Discord Status Component
-const DiscordStatus = () => {
+const DiscordStatus = ({ currentPage }: { currentPage: PageType }) => {
     const { theme } = useTheme();
     const [discordData, setDiscordData] = useState<DiscordData | null>(null);
-    const [statusText, setStatusText] = useState("");
+    const [loading, setLoading] = useState(true);
+    const [showPopup, setShowPopup] = useState(false);
 
     useEffect(() => {
         const fetchDiscordData = async () => {
+            setLoading(true);
             try {
                 const response = await fetch(API_URL);
                 const { data } = await response.json();
                 setDiscordData(data);
-
-                let status = "Unknown";
-                if (data.discord_status === "online") {
-                    status = "Online";
-                } else if (data.discord_status === "dnd") {
-                    status = "Do Not Disturb";
-                } else if (data.discord_status === "idle") {
-                    status = "Idle";
-                } else if (data.discord_status === "offline") {
-                    status = "Offline";
-                }
-
-                let platform = "";
-                if (data.active_on_discord_web) {
-                    platform = "on Web";
-                } else if (data.active_on_discord_mobile) {
-                    platform = "on Mobile";
-                } else if (data.active_on_discord_desktop) {
-                    platform = "on Desktop";
-                }
-
-                setStatusText(`${status} ${platform}`);
             } catch (error) {
                 console.error("Failed to fetch Discord data:", error);
             }
+            setLoading(false);
         };
 
-        fetchDiscordData();
-        const interval = setInterval(fetchDiscordData, 10000); // Update every 10 seconds
+        if (currentPage === 'home') {
+            fetchDiscordData();
+            const interval = setInterval(fetchDiscordData, 10000);
+            return () => clearInterval(interval);
+        }
+    }, [currentPage]);
 
-        return () => clearInterval(interval);
-    }, []);
-
-    if (!discordData) return null;
+    if (currentPage !== 'home') return null;
 
     const statusColors = {
         online: 'bg-green-500',
@@ -288,37 +289,218 @@ const DiscordStatus = () => {
         offline: 'bg-gray-500'
     };
 
-    const avatarUrl = `https://cdn.discordapp.com/avatars/${discordData.discord_user.id}/${discordData.discord_user.avatar}.png?size=128`;
+    const avatarUrl = discordData?.discord_user?.avatar 
+        ? `https://cdn.discordapp.com/avatars/${discordData.discord_user.id}/${discordData.discord_user.avatar}.png?size=128`
+        : '';
+
+    const getStatusMessage = (status: DiscordStatus) => {
+        switch (status) {
+            case 'online':
+                return "She's online!!!!";
+            case 'dnd':
+                return "Do not disturb";
+            case 'idle':
+                return "Away from keyboard, maybe getting snacks?";
+            case 'offline':
+                return "Might be trying to jump off a cliff to cure her depression 🏔️";
+            default:
+                return "Unknown status";
+        }
+    };
+
+    const SoundWaveAnimation = () => (
+        <svg 
+            className="absolute inset-0 w-full h-full opacity-30" 
+            viewBox="0 0 100 100" 
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <defs>
+                <linearGradient id="waveGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor={theme === 'dark' ? '#3B82F6' : '#6366F1'} stopOpacity="0.4" />
+                    <stop offset="50%" stopColor={theme === 'dark' ? '#8B5CF6' : '#A855F7'} stopOpacity="0.3" />
+                    <stop offset="100%" stopColor={theme === 'dark' ? '#EC4899' : '#EC4899'} stopOpacity="0.2" />
+                </linearGradient>
+            </defs>
+            
+            {[...Array(3)].map((_, i) => (
+                <motion.circle
+                    key={i}
+                    cx="50"
+                    cy="50"
+                    r={15 + i * 10}
+                    fill="none"
+                    stroke="url(#waveGradient)"
+                    strokeWidth="1"
+                    initial={{ r: 15, opacity: 0.6 }}
+                    animate={{ 
+                        r: [15 + i * 10, 40 + i * 10, 15 + i * 10],
+                        opacity: [0.6, 0.1, 0.6]
+                    }}
+                    transition={{
+                        duration: 2.5 + i * 0.5,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: i * 0.4
+                    }}
+                />
+            ))}
+        </svg>
+    );
 
     return (
-        <motion.div
-            className={`fixed top-6 right-6 px-4 py-2 rounded-xl ${
-                theme === 'dark' ? 'bg-gray-800/80' : 'bg-white/80'
-            } backdrop-blur-xl border ${
-                theme === 'dark' ? 'border-gray-700/30' : 'border-gray-200/30'
-            } shadow-lg`}
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-        >
-            <div className="flex items-center gap-3">
-                <div className="relative">
-                    <img 
-                        src={avatarUrl}
-                        alt={discordData.discord_user.global_name || discordData.discord_user.username}
-                        className="w-8 h-8 rounded-full"
-                    />
-                    <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 ${
-                        theme === 'dark' ? 'border-gray-800' : 'border-white'
-                    } ${statusColors[discordData.discord_status]}`} />
+        <>
+            {/* Discord Status Icon */}
+            <motion.div
+                className={`fixed top-80 right-6 cursor-pointer w-16 h-16 rounded-xl ${
+                    theme === 'dark' ? 'bg-gray-800/90' : 'bg-white/90'
+                } backdrop-blur-xl border ${
+                    theme === 'dark' ? 'border-gray-700/50' : 'border-gray-200/50'
+                } shadow-lg overflow-hidden z-40`}
+                initial={{ opacity: 0, scale: 0.8, x: 50 }}
+                animate={{ opacity: 1, scale: 1, x: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowPopup(!showPopup)}
+            >
+                <div className="relative w-full h-full">
+                    {loading ? (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-8 h-8 border-3 border-t-transparent border-blue-500 rounded-full animate-spin"></div>
+                        </div>
+                    ) : (
+                        <>
+                            <img 
+                                src={avatarUrl}
+                                alt={discordData?.discord_user?.global_name || discordData?.discord_user?.username || 'Discord Avatar'}
+                                className="w-full h-full rounded-xl object-cover"
+                            />
+                            <div className={`absolute bottom-0 right-0 w-5 h-5 rounded-full border-3 ${
+                                theme === 'dark' ? 'border-gray-800' : 'border-white'
+                            } ${statusColors[discordData?.discord_status || 'offline']}`} />
+                            <SoundWaveAnimation />
+                        </>
+                    )}
                 </div>
-                <span className={`text-sm font-medium ${
-                    theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-                }`}>
-                    {statusText}
-                </span>
-            </div>
-        </motion.div>
+            </motion.div>
+
+            {/* Status Message Popup - Under Profile Pic */}
+            <AnimatePresence>
+                {showPopup && discordData && (
+                    <motion.div
+                        className={`fixed top-96 right-6 w-80 rounded-xl p-4 ${
+                            theme === 'dark' ? 'bg-gray-800/95' : 'bg-white/95'
+                        } backdrop-blur-xl border ${
+                            theme === 'dark' ? 'border-gray-700/50' : 'border-gray-200/50'
+                        } shadow-xl z-50`}
+                        initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                        transition={{ duration: 0.3 }}
+                    >
+                        {/* Arrow pointing up */}
+                        <div className={`absolute -top-2 right-8 w-4 h-4 rotate-45 ${
+                            theme === 'dark' ? 'bg-gray-800' : 'bg-white'
+                        } border-l border-t ${
+                            theme === 'dark' ? 'border-gray-700/50' : 'border-gray-200/50'
+                        }`}></div>
+                        
+                        <div className="flex items-center gap-3 mb-3">
+                            <img 
+                                src={avatarUrl}
+                                alt="Discord Avatar"
+                                className="w-10 h-10 rounded-full object-cover"
+                            />
+                            <div className="flex-1">
+                                <p className={`font-semibold text-sm ${
+                                    theme === 'dark' ? 'text-white' : 'text-gray-900'
+                                }`}>
+                                    {discordData.discord_user.global_name || discordData.discord_user.username}
+                                </p>
+                                <div className="flex items-center gap-2">
+                                    <div className={`w-2 h-2 rounded-full ${statusColors[discordData.discord_status]}`}></div>
+                                    <span className={`text-xs capitalize ${
+                                        theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                                    }`}>
+                                        {discordData.discord_status}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p className={`text-sm mb-4 ${
+                            theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                        }`}>
+                            {getStatusMessage(discordData.discord_status)}
+                        </p>
+
+                        {discordData.activities.length > 0 && (
+                            <div className={`mb-4 p-3 rounded-lg ${
+                                theme === 'dark' ? 'bg-gray-700/50' : 'bg-gray-100/70'
+                            }`}>
+                                <p className={`text-xs font-medium mb-1 ${
+                                    theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                                }`}>
+                                    Current Activity
+                                </p>
+                                <p className={`text-sm font-semibold ${
+                                    theme === 'dark' ? 'text-white' : 'text-gray-900'
+                                }`}>
+                                    {discordData.activities[0].name}
+                                </p>
+                            </div>
+                        )}
+
+                        {discordData.spotify && (
+                            <div className={`mb-4 p-3 rounded-lg ${
+                                theme === 'dark' ? 'bg-green-900/30' : 'bg-green-100/70'
+                            }`}>
+                                <p className={`text-xs font-medium mb-1 ${
+                                    theme === 'dark' ? 'text-green-400' : 'text-green-600'
+                                }`}>
+                                    Listening to Spotify
+                                </p>
+                                <p className={`text-sm font-semibold ${
+                                    theme === 'dark' ? 'text-white' : 'text-gray-900'
+                                }`}>
+                                    {discordData.spotify.song}
+                                </p>
+                                <p className={`text-xs ${
+                                    theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                                }`}>
+                                    by {discordData.spotify.artist}
+                                </p>
+                            </div>
+                        )}
+
+                        <div className="flex gap-2">
+                            <a
+                                href={`https://discord.com/users/${discordData.discord_user.id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={`flex-1 px-3 py-2 rounded-lg text-center text-sm font-semibold transition-all duration-200 ${
+                                    theme === 'dark' 
+                                        ? 'bg-blue-600 text-white hover:bg-blue-500' 
+                                        : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                                }`}
+                            >
+                                View Profile
+                            </a>
+                            <button
+                                onClick={() => setShowPopup(false)}
+                                className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                                    theme === 'dark' 
+                                        ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
+                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                }`}
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </>
     );
 };
 
@@ -396,7 +578,7 @@ const Navigation = ({ currentPage, setCurrentPage }: { currentPage: PageType; se
                     </motion.button>
                 </div>
             </motion.nav>
-            <DiscordStatus />
+            <DiscordStatus currentPage={currentPage} />
         </>
     );
 };
@@ -405,7 +587,7 @@ const HomePage = () => {
     const { theme } = useTheme();
 
     return (
-        <div className={`min-h-screen flex items-center justify-center p-6 ${
+        <div className={`min-h-screen flex items-center justify-center p-6 pt-32 ${
             theme === 'dark' 
                 ? 'bg-gradient-to-br from-gray-900 via-gray-900 to-purple-900/20' 
                 : 'bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50'
@@ -538,7 +720,6 @@ const HomePage = () => {
     );
 };
 
-// Rest of your components remain the same...
 const ProjectsPage = () => {
     const { theme } = useTheme();
     const [filter, setFilter] = useState('all');
@@ -573,7 +754,6 @@ const ProjectsPage = () => {
                     </p>
                 </motion.div>
 
-                {/* Language Filter */}
                 <motion.div
                     className="flex flex-wrap justify-center gap-3 mb-12"
                     initial={{ opacity: 0, y: 20 }}
@@ -602,7 +782,6 @@ const ProjectsPage = () => {
                     ))}
                 </motion.div>
 
-                {/* Projects Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     <AnimatePresence>
                         {filteredProjects.map((project, i) => (
@@ -864,18 +1043,14 @@ const KoiPortfolio = () => {
     const [currentPage, setCurrentPage] = useState<PageType>('home');
     const { theme } = useTheme();
 
-    // Initialize protection hooks
     useProtection();
 
-    // Add global font style
     useEffect(() => {
-        // Load Mochiy Pop One font
         const link = document.createElement('link');
         link.href = 'https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&display=swap';
         link.rel = 'stylesheet';
         document.head.appendChild(link);
 
-        // Apply font globally
         document.body.style.fontFamily = '"Mochiy Pop One", serif';
 
         return () => {
