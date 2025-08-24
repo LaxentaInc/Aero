@@ -435,6 +435,25 @@ const SmoothCursor = ({ theme }: { theme: 'dark' | 'light' }) => {
 	const cursorOutlineRef = useRef<HTMLDivElement>(null)
 	const [isMobile, setIsMobile] = useState(false)
 
+	// Add useEffect for global cursor style
+	useEffect(() => {
+		// Add cursor:none to body
+		document.body.style.cursor = 'none'
+		// Add cursor:none to all clickable elements
+		const clickableElements = document.querySelectorAll('a, button, input, select, textarea, [role="button"]')
+		clickableElements.forEach(el => {
+			(el as HTMLElement).style.cursor = 'none'
+		})
+
+		return () => {
+			// Cleanup
+			document.body.style.cursor = ''
+			clickableElements.forEach(el => {
+				(el as HTMLElement).style.cursor = ''
+			})
+		}
+	}, [])
+
 	useEffect(() => {
 		const checkMobile = () => {
 			setIsMobile('ontouchstart' in window || navigator.maxTouchPoints > 0)
@@ -481,6 +500,11 @@ const SmoothCursor = ({ theme }: { theme: 'dark' | 'light' }) => {
 
 	return (
 		<>
+			<style jsx global>{`
+				* {
+					cursor: none !important;
+				}
+			`}</style>
 			<div
 				ref={cursorRef}
 				className={`fixed w-4 h-4 rounded-full pointer-events-none z-[100] hidden md:block ${
