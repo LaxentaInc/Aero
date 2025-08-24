@@ -9,7 +9,7 @@ import { SiNextdotjs, SiTypescript, SiVuedotjs, SiDiscord } from 'react-icons/si
 import { SpotifyNowPlaying } from './components/SpotifyNowPlaying'
 import { Typewriter } from 'react-simple-typewriter';
 
-// Custom SVG Icons
+//svg
 const BookIcon = ({ className = "w-4 h-4", color = "currentColor" }) => (
   <svg 
     className={className} 
@@ -613,6 +613,48 @@ const ScrollLockSection = ({ children, isLocked }: { children: React.ReactNode, 
 	return <>{children}</>
 }
 
+const useProtection = () => {
+  useEffect(() => {
+    const preventDefaultKeys = (e: KeyboardEvent) => {
+      if (
+        (e.ctrlKey && (e.key === 'c' || e.key === 'C' || e.key === 'u' || e.key === 'U')) ||
+        e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && e.key === 'i') ||
+        (e.ctrlKey && e.shiftKey && e.key === 'I')
+      ) {
+        e.preventDefault();
+        return false;
+      }
+    };
+
+    const preventContextMenu = (e: Event) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.closest('.allow-select')) {
+        return;
+      }
+      e.preventDefault();
+      return false;
+    };
+
+    document.addEventListener('contextmenu', preventContextMenu);
+    document.addEventListener('keydown', preventDefaultKeys);
+
+    const images = document.getElementsByTagName('img');
+    Array.from(images).forEach(img => {
+      img.addEventListener('dragstart', (e) => e.preventDefault());
+      img.setAttribute('draggable', 'false');
+    });
+
+    return () => {
+      document.removeEventListener('contextmenu', preventContextMenu);
+      document.removeEventListener('keydown', preventDefaultKeys);
+      Array.from(images).forEach(img => {
+        img.removeEventListener('dragstart', (e) => e.preventDefault());
+      });
+    };
+  }, [])
+}
+
 const TechStackCard = ({ tech, isActive, theme }: { 
   tech: typeof techStacks[0], 
   isActive: boolean,
@@ -1117,6 +1159,7 @@ const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
 export default function HomePage() {
 	const { theme } = useTheme()
 	const router = useRouter()
+	    useProtection(); //we use dis here too uwu
 //depretated :3
 	const skillsText = `// My Skills
 • JavaScript - Experienced in building interactive web apps
