@@ -985,7 +985,7 @@ const TechStackViewer = ({ theme = 'dark' }: { theme?: 'dark' | 'light' }) => {
   )
 }
 
-export const ImprovedTechStack = ({ theme = 'dark' }: { theme?: 'dark' | 'light' }) => {
+ const ImprovedTechStack = ({ theme = 'dark' }: { theme?: 'dark' | 'light' }) => {
   return (
     <section className={`relative py-20 min-h-screen flex items-center justify-center overflow-visible ${
       theme === 'dark' ? 'bg-gradient-to-b from-gray-900 to-black' : 'bg-gradient-to-b from-gray-100 to-white'
