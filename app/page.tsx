@@ -9,71 +9,147 @@ import { SiNextdotjs, SiTypescript, SiVuedotjs, SiDiscord } from 'react-icons/si
 import { SpotifyNowPlaying } from './components/SpotifyNowPlaying'
 import { Typewriter } from 'react-simple-typewriter';
 
+// Custom SVG Icons
+const BookIcon = ({ className = "w-4 h-4", color = "currentColor" }) => (
+  <svg 
+    className={className} 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path 
+      d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" 
+      stroke={color} 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+    />
+    <path 
+      d="M6.5 2H20V22H6.5A2.5 2.5 0 0 1 4 19.5V4.5A2.5 2.5 0 0 1 6.5 2Z" 
+      stroke={color} 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+    />
+  </svg>
+)
+
+const ShieldCheckIcon = ({ className = "w-4 h-4", color = "currentColor" }) => (
+  <svg 
+    className={className} 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path 
+      d="M12 22S2 18 2 12V7L12 3L22 7V12C22 18 12 22 12 22Z" 
+      stroke={color} 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+    />
+    <path 
+      d="M9 12L11 14L15 10" 
+      stroke={color} 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+    />
+  </svg>
+)
+
 // import { useInView } from 'react-intersection-observer';
 
 const techStacks = [
 	{
 		name: 'JavaScript',
-		icon: (theme: 'dark' | 'light') => <FaJs size={48} color="#F7DF1E" />,
+		icon: (theme: 'dark' | 'light') => <FaJs size={64} color="#F7DF1E" />,
 		color: '#F7DF1E',
 		description: 'Dynamic programming language for web development.',
-		bgImage: 'radial-gradient(circle at 50% 50%, rgba(247, 223, 30, 0.3) 0%, transparent 50%)',
+		bgGradient: 'from-yellow-400 to-yellow-600',
+		experience: 'Advanced',
+		projects: '22+ projects',
+		yearsUsing: '3+ years'
 	},
 	{
 		name: 'React',
-		icon: (theme: 'dark' | 'light') => <FaReact size={48} color="#61DAFB" />,
+		icon: (theme: 'dark' | 'light') => <FaReact size={64} color="#61DAFB" />,
 		color: '#61DAFB',
 		description: 'Component-based UI library for building interactive interfaces.',
-		bgImage: 'radial-gradient(circle at 20% 80%, rgba(97, 218, 251, 0.3) 0%, transparent 50%)',
+		bgGradient: 'from-blue-400 to-cyan-400',
+		experience: 'Advanced',
+		projects: '20+ projects',
+		yearsUsing: '2+ years'
 	},
 	{
 		name: 'Next.js',
-		icon: (theme: 'dark' | 'light') => <SiNextdotjs size={48} color={theme === 'dark' ? '#fff' : '#000'} />,
+		icon: (theme: 'dark' | 'light') => <SiNextdotjs size={64} color={theme === 'dark' ? '#fff' : '#000'} />,
 		color: (theme: 'dark' | 'light') => theme === 'dark' ? '#ffffff' : '#000000',
 		description: 'React framework for production, SSR, and static sites.',
-		bgImage: 'radial-gradient(circle at 80% 20%, rgba(0, 0, 0, 0.3) 0%, transparent 50%)',
+		bgGradient: 'from-gray-700 to-gray-900',
+		experience: 'Advanced',
+		projects: '20+ projects',
+		yearsUsing: '2+ years'
 	},
 	{
 		name: 'TypeScript',
-		icon: (theme: 'dark' | 'light') => <SiTypescript size={48} color="#3178C6" />,
+		icon: (theme: 'dark' | 'light') => <SiTypescript size={64} color="#3178C6" />,
 		color: '#3178C6',
 		description: 'Typed superset of JavaScript for safer code.',
-		bgImage: 'radial-gradient(circle at 50% 50%, rgba(49, 120, 198, 0.3) 0%, transparent 50%)',
+		bgGradient: 'from-blue-500 to-blue-700',
+		experience: 'Advanced',
+		projects: '3+ projects',
+		yearsUsing: '2+ years'
 	},
 	{
 		name: 'Vue.js',
-		icon: (theme: 'dark' | 'light') => <SiVuedotjs size={48} color="#4FC08D" />,
+		icon: (theme: 'dark' | 'light') => <SiVuedotjs size={64} color="#4FC08D" />,
 		color: '#4FC08D',
 		description: 'Progressive framework for building user interfaces.',
-		bgImage: 'radial-gradient(circle at 30% 70%, rgba(79, 192, 141, 0.3) 0%, transparent 50%)',
+		bgGradient: 'from-green-400 to-green-600',
+		experience: 'Intermediate',
+		projects: '1 project',
+		yearsUsing: '1+ years'
 	},
 	{
 		name: 'Discord.js',
-		icon: (theme: 'dark' | 'light') => <SiDiscord size={48} color="#5865F2" />,
+		icon: (theme: 'dark' | 'light') => <SiDiscord size={64} color="#5865F2" />,
 		color: '#5865F2',
 		description: 'Powerful library for interacting with the Discord API.',
-		bgImage: 'radial-gradient(circle at 70% 30%, rgba(88, 101, 242, 0.3) 0%, transparent 50%)',
+		bgGradient: 'from-indigo-500 to-purple-600',
+		experience: 'Expert',
+		projects: '7 bots',
+		yearsUsing: '3+ years'
 	},
 	{
 		name: 'Rust',
-		icon: (theme: 'dark' | 'light') => <FaRust size={48} color="#CE422B" />,
+		icon: (theme: 'dark' | 'light') => <FaRust size={64} color="#CE422B" />,
 		color: '#CE422B',
 		description: 'Blazingly fast systems programming language.',
-		bgImage: 'radial-gradient(circle at 40% 60%, rgba(206, 66, 43, 0.3) 0%, transparent 50%)',
+		bgGradient: 'from-orange-600 to-red-600',
+		experience: 'Learning',
+		projects: '5+ projects',
+		yearsUsing: '6 months'
 	},
 	{
 		name: 'Node.js',
-		icon: (theme: 'dark' | 'light') => <FaNodeJs size={48} color="#339933" />,
+		icon: (theme: 'dark' | 'light') => <FaNodeJs size={64} color="#339933" />,
 		color: '#339933',
 		description: 'JavaScript runtime for server-side applications.',
-		bgImage: 'radial-gradient(circle at 60% 40%, rgba(51, 153, 51, 0.3) 0%, transparent 50%)',
+		bgGradient: 'from-green-500 to-green-700',
+		experience: 'Expert',
+		projects: '35+ projects',
+		yearsUsing: '3+ years'
 	},
 	{
 		name: 'Python',
-		icon: (theme: 'dark' | 'light') => <FaPython size={48} color="#3776AB" />,
+		icon: (theme: 'dark' | 'light') => <FaPython size={64} color="#3776AB" />,
 		color: '#3776AB',
 		description: 'Versatile language for scripting, automation, and AI.',
-		bgImage: 'radial-gradient(circle at 25% 25%, rgba(55, 118, 171, 0.3) 0%, transparent 50%)',
+		bgGradient: 'from-blue-600 to-yellow-500',
+		experience: 'Learning',
+		projects: '8+ projects',
+		yearsUsing: '8 months'
 	},
 ]
 
@@ -83,7 +159,7 @@ const services = [
 		title: 'Custom Discord Bots',
 		description: 'Fully customized Discord bots with advanced features, moderation tools, and unique commands tailored to your server needs',
 		features: ['Custom Commands', 'Music Player', 'Dashboard Panel'],
-		price: 'Starting at $10',
+		price: 'Just dm and ask brh',
 		icon: (
 			<motion.svg 
 				width="80" 
@@ -522,8 +598,7 @@ const SmoothCursor = ({ theme }: { theme: 'dark' | 'light' }) => {
 		</>
 	)
 }
-
-// Scroll lock helper
+//unused
 const ScrollLockSection = ({ children, isLocked }: { children: React.ReactNode, isLocked: boolean }) => {
 	useEffect(() => {
 		if (isLocked) {
@@ -538,326 +613,355 @@ const ScrollLockSection = ({ children, isLocked }: { children: React.ReactNode, 
 	return <>{children}</>
 }
 
-// Bitten card tech stack scroll section
-const ScrollingTechStack = ({ theme }: { theme: 'dark' | 'light' }) => {
-	const containerRef = useRef<HTMLDivElement>(null)
-	const [currentIndex, setCurrentIndex] = useState(0)
-	const [scrollProgress, setScrollProgress] = useState(0)
-	const [isLocked, setIsLocked] = useState(false)
-	const [lockScrollY, setLockScrollY] = useState(0)
-	const [hasCompleted, setHasCompleted] = useState(false)
+const TechStackCard = ({ tech, isActive, theme }: { 
+  tech: typeof techStacks[0], 
+  isActive: boolean,
+  theme: 'dark' | 'light' 
+}) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.8, rotateY: 15 }}
+      animate={isActive ? { 
+        opacity: 1, 
+        scale: 1, 
+        rotateY: 0 
+      } : { opacity: 0.3, scale: 0.8, rotateY: 15 }}
+      transition={{ 
+        duration: 0.5,
+        type: "spring",
+        stiffness: 100
+      }}
+      className={`
+        relative w-full h-full 
+        rounded-3xl overflow-hidden 
+        bg-gradient-to-br ${tech.bgGradient}
+        shadow-2xl
+        border-2 border-white/20
+        backdrop-blur-sm
+      `}
+      style={{
+        transformStyle: 'preserve-3d',
+        perspective: '1000px'
+      }}
+    >
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_80%,_transparent_20%,_rgba(255,255,255,0.3)_21%,_rgba(255,255,255,0.3)_25%,_transparent_26%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,_transparent_20%,_rgba(255,255,255,0.2)_21%,_rgba(255,255,255,0.2)_25%,_transparent_26%)]" />
+      </div>
 
-	// Languages being learned
-	const learningLanguages = ['Rust', 'Python']
+      {/* Content */}
+      <div className="relative z-10 p-6 md:p-8 h-full flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <motion.div
+            animate={isActive ? { 
+              scale: 1.1, 
+              rotate: [0, -5, 5, 0],
+            } : { scale: 1, rotate: 0 }}
+            transition={{ duration: 2, repeat: isActive ? Infinity : 0 }}
+            className="relative"
+          >
+            <div className="absolute inset-0 blur-xl opacity-50 bg-white rounded-full" />
+            <div className="relative bg-white/20 p-3 md:p-4 rounded-2xl backdrop-blur-sm text-2xl md:text-3xl">
+			  {tech.icon(theme)}
+            </div>
+          </motion.div>
+          
+          <div className="text-right">
+            <div className="text-white/90 text-xs md:text-sm font-mono mb-1">{tech.yearsUsing}</div>
+            <div className={`
+              text-xs font-bold px-2 md:px-3 py-1 rounded-full
+              ${tech.experience === 'Expert' ? 'bg-green-500/30 text-green-100' : 
+                tech.experience === 'Advanced' ? 'bg-blue-500/30 text-blue-100' :
+                tech.experience === 'Intermediate' ? 'bg-yellow-500/30 text-yellow-100' :
+                'bg-purple-500/30 text-purple-100'}
+            `}>
+              {tech.experience}
+            </div>
+          </div>
+        </div>
 
-	useEffect(() => {
-		const handleScroll = () => {
-			const container = containerRef.current
-			if (!container) return
+        {/* Title */}
+        <h3 className="text-2xl md:text-4xl font-black text-white mb-4">
+          {tech.name}
+        </h3>
 
-			const rect = container.getBoundingClientRect()
-			const windowHeight = window.innerHeight
-			const containerCenter = rect.top + rect.height / 2
-			const windowCenter = windowHeight / 2
+        {/* Description */}
+        <p className="text-white/80 text-sm md:text-lg leading-relaxed mb-6 flex-grow">
+          {tech.description}
+        </p>
 
-			const isCentered = Math.abs(containerCenter - windowCenter) < 50
+        {/* Stats */}
+        <div className="space-y-3 mt-auto">
+          <div className="flex justify-between items-center text-white/90">
+            <span className="text-xs md:text-sm font-mono">Projects</span>
+            <span className="font-bold text-sm md:text-base">{tech.projects}</span>
+          </div>
+          <div className="flex justify-between items-center text-white/90">
+            <span className="text-xs md:text-sm font-mono">Experience</span>
+            <span className="font-bold text-sm md:text-base">{tech.experience}</span>
+          </div>
+          
+          {/* Experience Bar */}
+          <div className="w-full h-2 bg-white/20 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-white/80 rounded-full"
+              initial={{ width: 0 }}
+              animate={isActive ? { 
+                width: tech.experience === 'Expert' ? '95%' : 
+                       tech.experience === 'Advanced' ? '80%' :
+                       tech.experience === 'Intermediate' ? '60%' : '40%'
+              } : { width: 0 }}
+              transition={{ delay: 0.5, duration: 1 }}
+            />
+          </div>
+        </div>
+      </div>
 
-			if (isCentered && !isLocked && !hasCompleted) {
-				setIsLocked(true)
-				setLockScrollY(window.scrollY)
-			}
-
-			if (isLocked && !hasCompleted) {
-				const scrolledAfterLock = window.scrollY - lockScrollY
-				const maxScroll = windowHeight * 1.5
-				if (scrolledAfterLock < 0) {
-					setIsLocked(false)
-					setScrollProgress(0)
-					setCurrentIndex(0)
-				} else {
-					const progress = Math.max(0, Math.min(100, (scrolledAfterLock / maxScroll) * 100))
-					setScrollProgress(progress)
-					if (progress >= 100 && !hasCompleted) {
-						setHasCompleted(true)
-						setTimeout(() => {
-							setIsLocked(false)
-							setTimeout(() => setHasCompleted(false), 1000)
-						}, 800)
-					}
-				}
-			}
-		}
-
-		window.addEventListener('scroll', handleScroll)
-		handleScroll()
-		return () => window.removeEventListener('scroll', handleScroll)
-	}, [isLocked, lockScrollY, hasCompleted])
-
-	useEffect(() => {
-		if (isLocked && scrollProgress > 0) {
-			const totalCards = techStacks.length
-			const cardIndex = Math.floor((scrollProgress / 100) * totalCards)
-			setCurrentIndex(Math.min(cardIndex, totalCards - 1))
-		}
-	}, [scrollProgress, isLocked])
-
-	return (
-		<section
-			ref={containerRef}
-			className={`relative ${isLocked ? '' : 'py-20'} ${isLocked ? 'h-screen' : 'min-h-screen'} overflow-visible ${theme === 'dark' ? 'bg-black' : 'bg-white'}`}
-			style={{
-				marginBottom: isLocked ? '150vh' : '0'
-			}}
-		>
-			<div className={`${isLocked ? 'fixed inset-0' : 'relative'} h-screen flex items-center justify-center z-10`} style={{ top: isLocked ? '0' : 'auto' }}>
-				<motion.div
-					className={`relative w-[95%] md:w-[90%] max-w-6xl h-[700px] md:h-[600px] ${
-						theme === 'dark'
-							? 'bg-gradient-to-b from-purple-900/10 via-black/50 to-blue-900/10'
-							: 'bg-gradient-to-b from-purple-100/50 via-white/50 to-blue-100/50'
-					}`}
-					initial={{ scale: 0.9, opacity: 0 }}
-					animate={{
-						scale: isLocked ? 1 : 0.95,
-						opacity: 1
-					}}
-					transition={{ duration: 0.5 }}
-				>
-					<motion.div
-						className={`relative h-full rounded-3xl overflow-hidden border flex flex-col md:flex-row ${
-							theme === 'dark'
-								? 'bg-gradient-to-br from-gray-900/90 to-black/90 border-white/20'
-								: 'bg-gradient-to-br from-white/90 to-gray-100/90 border-black/20'
-						} backdrop-blur-xl`}
-					>
-						{/* Left Section - Content */}
-						<div className="w-full md:w-[60%] p-8 md:p-12 flex flex-col justify-center">
-							<motion.h2
-								initial={{ y: 20, opacity: 0 }}
-								animate={{ y: 0, opacity: 1 }}
-								className={`text-3xl md:text-5xl font-black mb-6 ${theme === 'dark' ? 'text-white' : 'text-black'}`}
-							>
-								Tech Stack
-							</motion.h2>
-							{!isLocked ? (
-								<p className={`text-base md:text-lg mb-8 ${theme === 'dark' ? 'text-white/70' : 'text-black/70'}`}>
-									uwu pez scroll down to know what i know :3
-								</p>
-							) : (
-								<div className="space-y-6">
-									<div className={`w-full h-3 rounded-full overflow-hidden ${theme === 'dark' ? 'bg-white/10' : 'bg-black/10'}`}>
-										<motion.div
-											className="h-full bg-gradient-to-r from-purple-500 via-blue-500 to-purple-500 bg-[length:200%_100%]"
-											style={{
-												width: `${scrollProgress}%`,
-												backgroundPosition: `${scrollProgress}% 0`
-											}}
-											transition={{ duration: 0.3 }}
-										/>
-									</div>
-									<AnimatePresence mode="wait">
-										<motion.div
-											key={currentIndex}
-											initial={{ opacity: 0, x: -20 }}
-											animate={{ opacity: 1, x: 0 }}
-											exit={{ opacity: 0, x: 20 }}
-											transition={{ duration: 0.2 }}
-											className="flex items-center gap-4"
-										>
-											<div className={`text-4xl md:text-5xl font-bold ${theme === 'dark' ? 'text-white/20' : 'text-black/20'}`}>
-												{String(currentIndex + 1).padStart(2, '0')}
-											</div>
-											<div>
-												<h3 className={`text-xl md:text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-													{techStacks[currentIndex]?.name}
-												</h3>
-												<p className={`text-xs md:text-sm font-mono ${theme === 'dark' ? 'text-white/50' : 'text-black/50'}`}>
-													{techStacks[currentIndex]?.description}
-												</p>
-											</div>
-										</motion.div>
-									</AnimatePresence>
-								</div>
-							)}
-						</div>
-						<div className="relative w-full md:w-[40%] h-full bg-gradient-to-r from-transparent to-purple-500/5">
-							<div className="absolute inset-0 flex items-center justify-center p-4 md:p-8">
-								{!isLocked ? (
-									<motion.div
-										className={`text-center ${theme === 'dark' ? 'text-white/20' : 'text-black/20'}`}
-										animate={{ scale: [1, 1.1, 1] }}
-										transition={{ duration: 2, repeat: Infinity }}
-									>
-										<div className="text-5xl md:text-7xl mb-4">⚡</div>
-										<p className="text-xs md:text-sm font-mono">Check it out!</p>
-									</motion.div>
-								) : (
-									<AnimatePresence mode="wait">
-										{techStacks[currentIndex] && (
-											<motion.div
-												key={currentIndex}
-												initial={{
-													opacity: 0,
-													x: 50,
-													scale: 0.8
-												}}
-												animate={{
-													opacity: 1,
-													x: 0,
-													scale: 1
-												}}
-												exit={{
-													opacity: 0,
-													x: -50,
-													scale: 0.8
-												}}
-												transition={{
-													duration: 0.3,
-													ease: "easeOut"
-												}}
-												className="flex flex-col items-center gap-4 md:gap-6"
-											>
-												<motion.div className="relative" whileHover={{ scale: 1.1 }}>
-													<div
-														className="absolute inset-0 blur-xl opacity-50"
-														style={{
-															background: typeof techStacks[currentIndex].color === 'function'
-																? techStacks[currentIndex].color(theme)
-																: techStacks[currentIndex].color
-														}}
-													/>
-													<div className="relative">
-														{typeof techStacks[currentIndex].icon === 'function'
-															? techStacks[currentIndex].icon(theme)
-															: techStacks[currentIndex].icon}
-													</div>
-												</motion.div>
-												{/* Tech Details with colored badges */}
-												<div className="text-center">
-													<h4 className={`text-lg md:text-xl font-bold mb-3 ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-														{techStacks[currentIndex].name}
-													</h4>
-													<div className="flex flex-wrap gap-2 justify-center">
-														<span
-															className="text-xs px-3 py-1 rounded-full transition-all"
-															style={{
-																backgroundColor: learningLanguages.includes(techStacks[currentIndex].name)
-																	? `${typeof techStacks[currentIndex].color === 'function'
-																			? techStacks[currentIndex].color(theme)
-																			: techStacks[currentIndex].color}20`
-																	: 'rgba(168, 85, 247, 0.2)',
-																color: learningLanguages.includes(techStacks[currentIndex].name)
-																	? typeof techStacks[currentIndex].color === 'function'
-																		? techStacks[currentIndex].color(theme)
-																		: techStacks[currentIndex].color
-																	: theme === 'dark' ? '#a855f7' : '#7c3aed'
-															}}
-														>
-															{learningLanguages.includes(techStacks[currentIndex].name) ? 'Learning' : 'i know this one properly :3'}
-														</span>
-														<span
-															className="text-xs px-3 py-1 rounded-full"
-															style={{
-																backgroundColor: `${typeof techStacks[currentIndex].color === 'function'
-																	? techStacks[currentIndex].color(theme)
-																	: techStacks[currentIndex].color}15`,
-																color: typeof techStacks[currentIndex].color === 'function'
-																	? techStacks[currentIndex].color(theme)
-																	: techStacks[currentIndex].color
-															}}
-														>
-															{techStacks[currentIndex].name}
-														</span>
-													</div>
-												</div>
-											</motion.div>
-										)}
-									</AnimatePresence>
-								)}
-							</div>
-						</div>
-					</motion.div>
-					{/* Completion Animation */}
-					<AnimatePresence>
-						{hasCompleted && (
-							<motion.div
-								initial={{ scale: 0, opacity: 0 }}
-								animate={{ scale: 1, opacity: 1 }}
-								exit={{ scale: 0, opacity: 0 }}
-								className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm rounded-3xl"
-							>
-								<motion.div
-									initial={{ y: 20 }}
-									animate={{ y: 0 }}
-									className="text-center"
-								>
-									<motion.svg
-										width="80"
-										height="80"
-										viewBox="0 0 80 80"
-										className="mx-auto mb-4"
-										animate={{
-											scale: [1, 1.2, 1],
-											rotate: [0, 10, -10, 0]
-										}}
-										transition={{ duration: 0.6 }}
-									>
-										<defs>
-											<linearGradient id="checkGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-												<stop offset="0%" stopColor="#a855f7" />
-												<stop offset="100%" stopColor="#3b82f6" />
-											</linearGradient>
-										</defs>
-										<circle cx="40" cy="40" r="35" fill="url(#checkGradient)" />
-										<motion.path
-											d="M25 40 L35 50 L55 30"
-											stroke="white"
-											strokeWidth="4"
-											fill="none"
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											initial={{ pathLength: 0 }}
-											animate={{ pathLength: 1 }}
-											transition={{ duration: 0.5, delay: 0.2 }}
-										/>
-									</motion.svg>
-									<h3 className="text-2xl font-mono font-black text-white mb-2">
-										LEARNING MORE!
-									</h3>
-									<p className="text-white/70 font-mono text-sm">
-										Unlocking next section...
-									</p>
-								</motion.div>
-							</motion.div>
-						)}
-					</AnimatePresence>
-					{/* Lock indicator badge */}
-					{isLocked && !hasCompleted && (
-						<motion.div
-							initial={{ scale: 0, opacity: 0 }}
-							animate={{ scale: 1, opacity: 1 }}
-							className="absolute top-4 right-4"
-						>
-							<div className={`px-3 py-1 rounded-full text-xs font-mono flex items-center gap-2 ${
-								theme === 'dark'
-									? 'bg-green-500/20 text-green-400 border border-green-500/30'
-									: 'bg-green-500/20 text-green-600 border border-green-500/30'
-							}`}>
-								<motion.div
-									animate={{ scale: [1, 1.2, 1] }}
-									transition={{ duration: 1, repeat: Infinity }}
-									className="w-2 h-2 bg-green-500 rounded-full"
-								/>
-								EXPLORING
-							</div>
-						</motion.div>
-					)}
-				</motion.div>
-			</div>
-		</section>
-	)
+      {/* Active Glow Effect */}
+      <motion.div 
+        className="absolute inset-0 opacity-0 bg-gradient-to-br from-white/10 to-transparent rounded-3xl"
+        animate={isActive ? { opacity: 1 } : { opacity: 0 }}
+        transition={{ duration: 0.3 }}
+      />
+    </motion.div>
+  )
 }
 
+const TechStackViewer = ({ theme = 'dark' }: { theme?: 'dark' | 'light' }) => {
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [progress, setProgress] = useState(0)
+  const touchStartX = useRef<number>(0)
+  const touchStartY = useRef<number>(0)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  // Languages being learned
+  const learningLanguages = ['Rust', 'Python']
+
+  // Auto-progress through items
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex(prev => {
+        const next = (prev + 1) % techStacks.length
+        setProgress(0) // Reset progress for new item
+        return next
+      })
+    }, 4000) // 4 seconds per item
+
+    return () => clearInterval(interval)
+  }, [])
+
+  // Progress bar animation
+  useEffect(() => {
+    const startTime = Date.now()
+    const duration = 4000
+
+    const updateProgress = () => {
+      const elapsed = Date.now() - startTime
+      const newProgress = Math.min((elapsed / duration) * 100, 100)
+      setProgress(newProgress)
+
+      if (newProgress < 100) {
+        requestAnimationFrame(updateProgress)
+      }
+    }
+
+    updateProgress()
+  }, [currentIndex])
+
+  // Touch/swipe handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX
+    touchStartY.current = e.touches[0].clientY
+  }
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const touchEndX = e.changedTouches[0].clientX
+    const touchEndY = e.changedTouches[0].clientY
+    const deltaX = touchStartX.current - touchEndX
+    const deltaY = touchStartY.current - touchEndY
+
+    // Only trigger swipe if horizontal movement is greater than vertical
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+      if (deltaX > 0) {
+        // Swipe left - next item
+        setCurrentIndex(prev => (prev + 1) % techStacks.length)
+      } else {
+        // Swipe right - previous item
+        setCurrentIndex(prev => (prev - 1 + techStacks.length) % techStacks.length)
+      }
+      setProgress(0)
+    }
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowLeft') {
+      setCurrentIndex(prev => (prev - 1 + techStacks.length) % techStacks.length)
+      setProgress(0)
+    } else if (e.key === 'ArrowRight') {
+      setCurrentIndex(prev => (prev + 1) % techStacks.length)
+      setProgress(0)
+    }
+  }
+
+  return (
+    <div 
+      ref={containerRef}
+      className={`w-[90%] max-w-7xl mx-auto rounded-3xl overflow-hidden border shadow-2xl backdrop-blur-xl ${
+        theme === 'dark'
+          ? 'bg-gradient-to-br from-gray-900/95 to-black/95 border-white/10'
+          : 'bg-gradient-to-br from-white/95 to-gray-100/95 border-black/10'
+      }`}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
+      style={{ height: '500px' }}
+    >
+      <div className="h-full flex flex-col md:flex-row">
+        {/* Left Section - Content */}
+        <div className="w-full md:w-[45%] p-6 md:p-12 flex flex-col justify-center">
+          <motion.h2
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            className={`text-3xl md:text-5xl font-black mb-6 ${theme === 'dark' ? 'text-white' : 'text-black'}`}
+          >
+            Tech Stack
+          </motion.h2>
+
+          <div className="space-y-6">
+            {/* Progress Bar */}
+            <div className={`w-full h-3 rounded-full overflow-hidden ${theme === 'dark' ? 'bg-white/10' : 'bg-black/10'}`}>
+              <motion.div
+                className="h-full bg-gradient-to-r from-purple-500 via-blue-500 to-purple-500 bg-[length:200%_100%]"
+                style={{
+                  width: `${progress}%`,
+                  backgroundPosition: `${progress}% 0`
+                }}
+                transition={{ duration: 0.1 }}
+              />
+            </div>
+
+            {/* Current Tech Info */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentIndex}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.3 }}
+                className="flex items-center gap-4"
+              >
+                <div className={`text-3xl md:text-4xl font-bold ${theme === 'dark' ? 'text-white/20' : 'text-black/20'}`}>
+                  {String(currentIndex + 1).padStart(2, '0')}
+                </div>
+                <div>
+                  <h3 className={`text-xl md:text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+                    {techStacks[currentIndex]?.name}
+                  </h3>
+                  <p className={`text-xs md:text-sm font-mono ${theme === 'dark' ? 'text-white/50' : 'text-black/50'} mb-2`}>
+                    {techStacks[currentIndex]?.description}
+                  </p>
+                  <div className="flex gap-2">
+                    <span
+                      className="text-xs px-2 py-1 rounded-full flex items-center gap-1.5"
+                      style={{
+                        backgroundColor: learningLanguages.includes(techStacks[currentIndex]?.name || '')
+                          ? '#a855f720'
+                          : '#10b98120',
+                        color: learningLanguages.includes(techStacks[currentIndex]?.name || '')
+                          ? theme === 'dark' ? '#a855f7' : '#7c3aed'
+                          : theme === 'dark' ? '#10b981' : '#059669'
+                      }}
+                    >
+                      {learningLanguages.includes(techStacks[currentIndex]?.name || '') ? (
+                        <>
+                          <BookIcon 
+                            className="w-3 h-3" 
+                            color={theme === 'dark' ? '#a855f7' : '#7c3aed'} 
+                          />
+                          Learning
+                        </>
+                      ) : (
+                        <>
+                          <ShieldCheckIcon 
+                            className="w-3 h-3" 
+                            color={theme === 'dark' ? '#10b981' : '#059669'} 
+                          />
+                          Proficient
+                        </>
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Navigation Dots */}
+            <div className="flex gap-2 justify-center md:justify-start">
+              {techStacks.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => {
+                    setCurrentIndex(index)
+                    setProgress(0)
+                  }}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    index === currentIndex
+                      ? 'bg-purple-500 w-6'
+                      : theme === 'dark' ? 'bg-white/20 hover:bg-white/40' : 'bg-black/20 hover:bg-black/40'
+                  }`}
+                />
+              ))}
+            </div>
+
+            {/* Controls Hint */}
+            <p className={`text-xs font-mono ${theme === 'dark' ? 'text-white/30' : 'text-black/30'}`}>
+              Swipe, use arrow keys, or click dots to navigate
+            </p>
+          </div>
+        </div>
+        
+        {/* Right Section - Tech Cards */}
+        <div className="relative w-full md:w-[55%] h-full p-4 md:p-8">
+          <div className="h-full">
+            <AnimatePresence mode="wait">
+              {techStacks[currentIndex] && (
+                <TechStackCard 
+                  key={currentIndex}
+                  tech={techStacks[currentIndex]} 
+                  isActive={true}
+                  theme={theme}
+                />
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export const ImprovedTechStack = ({ theme = 'dark' }: { theme?: 'dark' | 'light' }) => {
+  return (
+    <section className={`relative py-20 min-h-screen flex items-center justify-center overflow-visible ${
+      theme === 'dark' ? 'bg-gradient-to-b from-gray-900 to-black' : 'bg-gradient-to-b from-gray-100 to-white'
+    }`}>
+      {/* Background Elements */}
+      <div className="absolute inset-0">
+        <div className={`absolute top-20 left-10 w-32 h-32 rounded-full ${
+          theme === 'dark' ? 'bg-purple-600/10' : 'bg-purple-600/5'
+        } blur-3xl`} />
+        <div className={`absolute bottom-20 right-10 w-40 h-40 rounded-full ${
+          theme === 'dark' ? 'bg-blue-600/10' : 'bg-blue-600/5'
+        } blur-3xl`} />
+      </div>
+
+      <TechStackViewer theme={theme} />
+    </section>
+  )
+}
 
 // Typing Animation Component
 const TypingAnimation = ({ text, delay = 0, theme }: { text: string, delay?: number, theme: 'dark' | 'light' }) => {
@@ -1250,7 +1354,7 @@ $ Currently exploring Rust & Python for system programming and AI/ML`
 			</section>
 
 			{/* Tech Stack Section */}
-			<ScrollingTechStack theme={theme} />
+			<ImprovedTechStack theme={theme} />
 
 			{/* Services Section */}
 			<section className="py-20">
