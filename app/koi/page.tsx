@@ -888,7 +888,7 @@ const SkillsPage = () => {
     const skillCategories = [
         {
             category: "Her Professional Talents",
-            description: "Core life competencies that define excellence",
+            description: "Core life competencies that define her excellence!",
             items: [
                 { 
                     name: "Procrastination", 
@@ -915,12 +915,12 @@ const SkillsPage = () => {
         },
         {
             category: "Social Skills",
-            description: "Total goofyness",
+            description: "Totally normal and not awkward at all",
             items: [
                 { 
                     name: "Hobby", 
                     level: 100, 
-                    description: "OH you thought sutdying? NAHH she Likes to jump off cliffs for no reason at all" 
+                    description: "OH you thought sutdying or coding? NAHH she Likes to jump off cliffs for no reason at all" 
                 },
                 { 
                     name: "Meme Knowledge", 
@@ -947,7 +947,7 @@ const SkillsPage = () => {
                 { 
                     name: "Snack Discovery", 
                     level: 91, 
-                    description: "Can find the perfect midnight snack in her kitchen" 
+                    description: "Can't find the perfect midnight snack in her kitchen (want me to help?)" 
                 },
                 { 
                     name: "Playlist Curation", 
@@ -972,7 +972,7 @@ const SkillsPage = () => {
                         Her Skills
                     </h1>
                     <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-                        A comprehensive breakdown of some.. ahem unique professional competencies
+                        A comprehensive breakdown of her.. ahem unique professional competencies (defnitely real)
                     </p>
                 </motion.div>
 
