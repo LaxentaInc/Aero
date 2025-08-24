@@ -5,10 +5,37 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useTheme } from '../contexts/ThemeContext'
-import { Youtube, Twitter, Github, Instagram, Shield, FileText, Network, Globe } from 'lucide-react'
+import { Youtube, Twitter, Github, Instagram, Shield, FileText, Network, Globe, Palette } from 'lucide-react'
 
 // Routes where footer should be hidden
 const HIDE_FOOTER_ROUTES = ['/ai', '/image-gen']
+
+// Koi's Discord API
+const DISCORD_API_URL = "https://api.lanyard.rest/v1/users/886971572668219392";
+const ME_DISCORD_API_URL = "https://api.lanyard.rest/v1/users/953527567808356404";
+
+type DiscordData = {
+  discord_status: 'online' | 'dnd' | 'idle' | 'offline';
+  discord_user: {
+    username: string;
+    global_name: string;
+    avatar: string;
+    id: string;
+  };
+  activities: Array<{
+    name: string;
+    type: number;
+  }>;
+  me_straight?: {
+    discord_status: 'online' | 'dnd' | 'idle' | 'offline';
+    discord_user: {
+      username: string;
+      global_name: string;
+      avatar: string;
+      id: string;
+    };
+  };
+};
 
 const GlitchText = ({ children, className = "" }: { children: string, className?: string }) => {
   return (
@@ -65,6 +92,33 @@ export default function Footer() {
   const { theme } = useTheme()
   const pathname = usePathname()
   const [shouldRender, setShouldRender] = useState(true)
+  const [koiData, setKoiData] = useState<DiscordData | null>(null)
+
+  // Fetch both Discord data
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [koiResponse, meResponse] = await Promise.all([
+          fetch(DISCORD_API_URL),
+          fetch(ME_DISCORD_API_URL)
+        ]);
+        
+        const koiJson = await koiResponse.json();
+        const meJson = await meResponse.json();
+        
+        setKoiData({
+          ...koiJson.data,
+          me_straight: meJson.data
+        });
+      } catch (error) {
+        console.error("Failed to fetch Discord data:", error);
+      }
+    };
+
+    fetchData();
+    const interval = setInterval(fetchData, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (HIDE_FOOTER_ROUTES.includes(pathname)) {
@@ -107,25 +161,40 @@ export default function Footer() {
       href: 'https://x.com/awedaxel',
       color: '#1DA1F2'
     },
-        {
+    {
       name: 'GitHub',
       icon: Github,
       href: 'https://github.com/tuhinsarkar-in',
       color: theme === 'dark' ? '#fff' : '#000'
     },
-            {
+    {
       name: 'Instagram',
       icon: Instagram,
       href: 'https://instagram.com/tuhinsarkar.in',
       color: theme === 'dark' ? '#fff' : '#000'
     },
-                {
+    {
       name: 'Website',
       icon: Globe,
       href: 'https://tuhinsarkar.in',
       color: theme === 'dark' ? '#fff' : '#000'
     }
   ]
+
+  const statusColors = {
+    online: 'bg-green-500',
+    dnd: 'bg-red-500',
+    idle: 'bg-yellow-500',
+    offline: 'bg-gray-500'
+  };
+
+  const koiAvatar = koiData?.discord_user?.avatar 
+    ? `https://cdn.discordapp.com/avatars/${koiData.discord_user.id}/${koiData.discord_user.avatar}.png?size=128`
+    : 'https://avatars.githubusercontent.com/u/107134739?v=4';
+
+  const meStraightAvatar = koiData?.me_straight?.discord_user?.avatar 
+    ? `https://cdn.discordapp.com/avatars/953527567808356404/${koiData.me_straight.discord_user.avatar}.png?size=128`
+    : 'https://avatars.githubusercontent.com/u/default'; // Add a default avatar URL here
 
   return (
     <AnimatePresence mode="wait">
@@ -160,8 +229,8 @@ export default function Footer() {
           </div>
 
           <div className="relative max-w-7xl mx-auto px-6 py-12">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* Brand Section (Left) */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 md:grid-cols-2 gap-8">
+              {/* Brand Section */}
               <motion.div 
                 className="flex flex-col items-center md:items-start justify-center space-y-4"
                 initial={{ opacity: 0, y: 20 }}
@@ -221,7 +290,7 @@ export default function Footer() {
                 </div>
               </motion.div>
 
-              {/* Main Developer Section (Center) */}
+              {/* Main Developer Section */}
               <motion.div 
                 className="flex flex-col items-center justify-center space-y-4"
                 initial={{ opacity: 0, y: 20 }}
@@ -231,7 +300,7 @@ export default function Footer() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-center space-x-3">
                     <motion.img
-                      src="https://cdn.discordapp.com/avatars/953527567808356404/a_eef37ef293b1c5e0539ed3f382faa3f2.gif?size=4096"
+                      src={meStraightAvatar}
                       alt="@me_straight"
                       className="w-10 h-10 rounded-full border-2 border-[#5865F2]"
                       whileHover={{ scale: 1.1 }}
@@ -246,8 +315,7 @@ export default function Footer() {
                     Lead Developer
                   </p>
                 </div>
-                
-                {/* Your Social Links */}
+                social
                 <div className="flex space-x-4 pt-2">
                   {myLinks.map((social, index) => (
                     <motion.a
@@ -274,7 +342,124 @@ export default function Footer() {
                 </div>
               </motion.div>
 
-              {/* Team Section (Right) */}
+              {/* Koi-san Section */}
+              <motion.div 
+                className="flex flex-col items-center justify-center space-y-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25 }}
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-center space-x-3">
+                    <div className="relative">
+                      <motion.img
+                        src={koiAvatar}
+                        alt="Koi Natsuko"
+                        className="w-10 h-10 rounded-full border-2 border-pink-500"
+                        whileHover={{ scale: 1.1 }}
+                      />
+                      {koiData && (
+                        <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 ${
+                          theme === 'dark' ? 'border-black' : 'border-white'
+                        } ${statusColors[koiData.discord_status]}`} />
+                      )}
+                      {/* Cute sparkle animation around Koi's avatar */}
+                      <motion.div
+                        className="absolute inset-0 -m-1"
+                        animate={{
+                          rotate: [0, 360]
+                        }}
+                        transition={{
+                          duration: 8,
+                          repeat: Infinity,
+                          ease: "linear"
+                        }}
+                      >
+                        <motion.div
+                          className="absolute top-0 left-1/2 w-1 h-1 bg-pink-400 rounded-full"
+                          animate={{
+                            opacity: [0, 1, 0],
+                            scale: [0, 1, 0]
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            delay: 0
+                          }}
+                        />
+                        <motion.div
+                          className="absolute top-1/2 right-0 w-1 h-1 bg-purple-400 rounded-full"
+                          animate={{
+                            opacity: [0, 1, 0],
+                            scale: [0, 1, 0]
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            delay: 0.5
+                          }}
+                        />
+                        <motion.div
+                          className="absolute bottom-0 left-1/2 w-1 h-1 bg-blue-400 rounded-full"
+                          animate={{
+                            opacity: [0, 1, 0],
+                            scale: [0, 1, 0]
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            delay: 1
+                          }}
+                        />
+                        <motion.div
+                          className="absolute top-1/2 left-0 w-1 h-1 bg-cyan-400 rounded-full"
+                          animate={{
+                            opacity: [0, 1, 0],
+                            scale: [0, 1, 0]
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            delay: 1.5
+                          }}
+                        />
+                      </motion.div>
+                    </div>
+                    <motion.span 
+                      className={`font-mono font-bold text-lg ${theme === 'dark' ? 'text-white' : 'text-black'} underline decoration-pink-500 decoration-2 underline-offset-4`}
+                    >
+                      {koiData?.discord_user?.global_name || "Koi Natsuko"}
+                    </motion.span>
+                  </div>
+                  <p className={`font-mono text-xs text-center ${theme === 'dark' ? 'text-pink-300' : 'text-pink-600'}`}>
+                    Art & Design ✨
+                  </p>
+                  {koiData?.activities && koiData.activities.length > 0 && (
+                    <p className={`font-mono text-xs text-center italic ${theme === 'dark' ? 'text-white/40' : 'text-black/40'}`}>
+                      Currently: {koiData.activities[0].name}
+                    </p>
+                  )}
+                </div>
+                
+                {/* Art Credits */}
+                <div className="flex items-center justify-center space-x-2 pt-2">
+                  <motion.div
+                    className={`flex items-center space-x-2 px-3 py-2 rounded-full ${
+                      theme === 'dark' 
+                        ? 'bg-pink-900/30 text-pink-300 border border-pink-700/50' 
+                        : 'bg-pink-100 text-pink-700 border border-pink-200'
+                    }`}
+                    whileHover={{ scale: 1.05 }}
+                  >
+                    <Palette className="w-4 h-4" />
+                    <span className="font-mono text-xs font-semibold">
+                      All art rights @KoiNatsuko :3
+                    </span>
+                  </motion.div>
+                </div>
+              </motion.div>
+
+              {/* Team Section */}
               <motion.div 
                 className="space-y-4 text-center md:text-right"
                 initial={{ opacity: 0, y: 20 }}
