@@ -7,10 +7,9 @@ import { usePathname } from 'next/navigation'
 import { useTheme } from '../contexts/ThemeContext'
 import { Youtube, Twitter, Github, Instagram, Shield, FileText, Network, Globe, Palette } from 'lucide-react'
 
-// Routes where footer should be hidden
+//Routes where footer should be hidden
 const HIDE_FOOTER_ROUTES = ['/ai', '/image-gen']
 
-// Koi's Discord API
 const DISCORD_API_URL = "https://api.lanyard.rest/v1/users/886971572668219392";
 const ME_DISCORD_API_URL = "https://api.lanyard.rest/v1/users/953527567808356404";
 
@@ -144,6 +143,12 @@ export default function Footer() {
       icon: Github,
       href: 'https://github.com/shelleyloosespatience?tab=repositories',
       color: theme === 'dark' ? '#fff' : '#000'
+    },
+    {
+      name: 'gmail',
+      icon: Globe,
+      href: 'hello@laxenta.tech',
+      color: theme === 'dark' ? '#fff' : '#000'
     }
   ]
 
@@ -194,7 +199,7 @@ export default function Footer() {
 
   const meStraightAvatar = koiData?.me_straight?.discord_user?.avatar 
     ? `https://cdn.discordapp.com/avatars/953527567808356404/${koiData.me_straight.discord_user.avatar}.png?size=128`
-    : 'https://avatars.githubusercontent.com/u/default'; // Add a default avatar URL here
+    : 'https://avatars.githubusercontent.com/u/default'; 
 
   return (
     <AnimatePresence mode="wait">
@@ -290,32 +295,68 @@ export default function Footer() {
                 </div>
               </motion.div>
 
-              {/* Main Developer Section */}
-              <motion.div 
-                className="flex flex-col items-center justify-center space-y-4"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <div className="space-y-3">
-                  <div className="flex items-center justify-center space-x-3">
-                    <motion.img
-                      src={meStraightAvatar}
-                      alt="@me_straight"
-                      className="w-10 h-10 rounded-full border-2 border-[#5865F2]"
-                      whileHover={{ scale: 1.1 }}
-                    />
-                    <motion.span 
-                      className={`font-mono font-bold text-lg ${theme === 'dark' ? 'text-white' : 'text-black'} underline decoration-[#5865F2] decoration-2 underline-offset-4`}
-                    >
-                      @me_straight
-                    </motion.span>
-                  </div>
-                  <p className={`font-mono text-xs text-center ${theme === 'dark' ? 'text-white/60' : 'text-black/60'}`}>
-                    Lead Developer
-                  </p>
-                </div>
-                social
+   {/* Main Developer Section */}
+<motion.div 
+  className="flex flex-col items-center justify-center space-y-4"
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ delay: 0.2 }}
+>
+  <div className="space-y-3">
+    <div className="flex items-center justify-center space-x-3">
+      <div className="relative">
+        <motion.img
+          src={meStraightAvatar}
+          alt="@me_straight"
+          className="w-10 h-10 rounded-full border-2 border-[#5865F2]"
+          whileHover={{ scale: 1.1 }}
+        />
+        {koiData?.me_straight && (
+          <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-2 ${
+            theme === 'dark' ? 'border-black' : 'border-white'
+          } ${statusColors[koiData.me_straight.discord_status]}`} />
+        )}
+        {/* Sparkles around lead dev too */}
+        <motion.div
+          className="absolute inset-0 -m-1"
+          animate={{ rotate: [0, 360] }}
+          transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+        >
+          <motion.div
+            className="absolute top-0 left-1/2 w-1 h-1 bg-indigo-400 rounded-full"
+            animate={{ opacity: [0, 1, 0], scale: [0, 1, 0] }}
+            transition={{ duration: 2, repeat: Infinity, delay: 0 }}
+          />
+          <motion.div
+            className="absolute top-1/2 right-0 w-1 h-1 bg-blue-400 rounded-full"
+            animate={{ opacity: [0, 1, 0], scale: [0, 1, 0] }}
+            transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+          />
+          <motion.div
+            className="absolute bottom-0 left-1/2 w-1 h-1 bg-purple-400 rounded-full"
+            animate={{ opacity: [0, 1, 0], scale: [0, 1, 0] }}
+            transition={{ duration: 2, repeat: Infinity, delay: 1 }}
+          />
+          <motion.div
+            className="absolute top-1/2 left-0 w-1 h-1 bg-cyan-400 rounded-full"
+            animate={{ opacity: [0, 1, 0], scale: [0, 1, 0] }}
+            transition={{ duration: 2, repeat: Infinity, delay: 1.5 }}
+          />
+        </motion.div>
+      </div>
+      <motion.span 
+        className={`font-mono font-bold text-lg ${theme === 'dark' ? 'text-white' : 'text-black'} underline decoration-[#5865F2] decoration-2 underline-offset-4`}
+      >
+        @me_straight
+      </motion.span>
+    </div>
+    <p className={`font-mono text-xs text-center ${theme === 'dark' ? 'text-white/60' : 'text-black/60'}`}>
+      Lead Developer
+    </p>
+  </div>
+            hello@laxenta.tech
+
+
                 <div className="flex space-x-4 pt-2">
                   {myLinks.map((social, index) => (
                     <motion.a
@@ -453,7 +494,7 @@ export default function Footer() {
                   >
                     <Palette className="w-4 h-4" />
                     <span className="font-mono text-xs font-semibold">
-                      All art rights @KoiNatsuko :3
+                      MainPage's Art rights reserved to @KoiNatsuko
                     </span>
                   </motion.div>
                 </div>

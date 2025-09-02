@@ -497,11 +497,24 @@ export default function Navbar() {
                         }}
                         transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
                       >
-                        L
+                        
+                          {/* Replace goofy L with custom logo image */}
+  <motion.img
+    src="/bg.jpg" // ✅ put file inside /public/logo.png
+    alt="Laxenta Logo"
+    className="w-8 h-8 rounded-md object-cover"
+    whileHover={{ scale: 1.1, rotate: 2 }}
+    whileTap={{ scale: 0.95 }}
+  />
+
+
+
+
+
                       </motion.span>
                     </motion.div>
                     <GlitchText className={`text-xl font-black font-mono ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-                      Laxenta.inc
+                      Laxenta Inc
                     </GlitchText>
                   </button>
 
