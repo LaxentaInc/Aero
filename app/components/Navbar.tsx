@@ -497,18 +497,14 @@ export default function Navbar() {
                         }}
                         transition={{ duration: 2, repeat: Infinity, repeatType: "reverse" }}
                       >
-                        
-                          {/* Replace goofy L with custom logo image */}
-  <motion.img
-    src="/bg.jpg" // ✅ put file inside /public/logo.png
-    alt="Laxenta Logo"
-    className="w-8 h-8 rounded-md object-cover"
-    whileHover={{ scale: 1.1, rotate: 2 }}
-    whileTap={{ scale: 0.95 }}
-  />
-
-
-
+                        {/* // logo on navbar */}
+                        <motion.img
+                          src="/bg.jpg"
+                          alt="Laxenta Logo"
+                          className="w-8 h-8 rounded-md object-cover"
+                          whileHover={{ scale: 1.1, rotate: 2 }}
+                          whileTap={{ scale: 0.95 }}
+                        />
 
 
                       </motion.span>
@@ -546,7 +542,7 @@ export default function Navbar() {
                         </button>
                       </motion.div>
                     ))}
-      {/*discord Auth desktop */}
+            {/*discord Auth desktop */}
                     <div className="flex items-center gap-3 ml-4">
                       {user ? (
                         <>

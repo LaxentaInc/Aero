@@ -61,96 +61,108 @@ const ShieldCheckIcon = ({ className = "w-4 h-4", color = "currentColor" }) => (
 // import { useInView } from 'react-intersection-observer';
 
 const techStacks = [
-	{
-		name: 'JavaScript',
-		icon: (theme: 'dark' | 'light') => <FaJs size={64} color="#F7DF1E" />,
-		color: '#F7DF1E',
-		description: 'Dynamic programming language for web development.',
-		bgGradient: 'from-yellow-400 to-yellow-600',
-		experience: 'Advanced',
-		projects: '22+ projects',
-		yearsUsing: '3+ years'
-	},
-	{
-		name: 'React',
-		icon: (theme: 'dark' | 'light') => <FaReact size={64} color="#61DAFB" />,
-		color: '#61DAFB',
-		description: 'Component-based UI library for building interactive interfaces.',
-		bgGradient: 'from-blue-400 to-cyan-400',
-		experience: 'Advanced',
-		projects: '20+ projects',
-		yearsUsing: '2+ years'
-	},
-	{
-		name: 'Next.js',
-		icon: (theme: 'dark' | 'light') => <SiNextdotjs size={64} color={theme === 'dark' ? '#fff' : '#000'} />,
-		color: (theme: 'dark' | 'light') => theme === 'dark' ? '#ffffff' : '#000000',
-		description: 'React framework for production, SSR, and static sites.',
-		bgGradient: 'from-gray-700 to-gray-900',
-		experience: 'Advanced',
-		projects: '20+ projects',
-		yearsUsing: '2+ years'
-	},
-	{
-		name: 'TypeScript',
-		icon: (theme: 'dark' | 'light') => <SiTypescript size={64} color="#3178C6" />,
-		color: '#3178C6',
-		description: 'Typed superset of JavaScript for safer code.',
-		bgGradient: 'from-blue-500 to-blue-700',
-		experience: 'Advanced',
-		projects: '3+ projects',
-		yearsUsing: '2+ years'
-	},
-	{
-		name: 'Vue.js',
-		icon: (theme: 'dark' | 'light') => <SiVuedotjs size={64} color="#4FC08D" />,
-		color: '#4FC08D',
-		description: 'Progressive framework for building user interfaces.',
-		bgGradient: 'from-green-400 to-green-600',
-		experience: 'Intermediate',
-		projects: '1 project',
-		yearsUsing: '1+ years'
-	},
-	{
-		name: 'Discord.js',
-		icon: (theme: 'dark' | 'light') => <SiDiscord size={64} color="#5865F2" />,
-		color: '#5865F2',
-		description: 'Powerful library for interacting with the Discord API.',
-		bgGradient: 'from-indigo-500 to-purple-600',
-		experience: 'Expert',
-		projects: '7 bots',
-		yearsUsing: '3+ years'
-	},
-	{
-		name: 'Rust',
-		icon: (theme: 'dark' | 'light') => <FaRust size={64} color="#CE422B" />,
-		color: '#CE422B',
-		description: 'Blazingly fast systems programming language.',
-		bgGradient: 'from-orange-600 to-red-600',
-		experience: 'Learning',
-		projects: '5+ projects',
-		yearsUsing: '6 months'
-	},
-	{
-		name: 'Node.js',
-		icon: (theme: 'dark' | 'light') => <FaNodeJs size={64} color="#339933" />,
-		color: '#339933',
-		description: 'JavaScript runtime for server-side applications.',
-		bgGradient: 'from-green-500 to-green-700',
-		experience: 'Expert',
-		projects: '35+ projects',
-		yearsUsing: '3+ years'
-	},
-	{
-		name: 'Python',
-		icon: (theme: 'dark' | 'light') => <FaPython size={64} color="#3776AB" />,
-		color: '#3776AB',
-		description: 'Versatile language for scripting, automation, and AI.',
-		bgGradient: 'from-blue-600 to-yellow-500',
-		experience: 'Learning',
-		projects: '8+ projects',
-		yearsUsing: '8 months'
-	},
+  {
+    name: 'JavaScript',
+    icon: (theme: 'dark' | 'light') => <FaJs size={64} color="#F7DF1E" />,
+    color: '#F7DF1E',
+    description:
+      "Started this one cz why not lmao — vanilla JS usually and Built some fun projects, got comfy. It’s like the first lanuage i went with",
+    bgGradient: 'from-yellow-400 to-yellow-600',
+    experience: 'Advanced',
+    projects: '22+ projects',
+    yearsUsing: '3+ years',
+  },
+  {
+    name: 'React',
+    icon: (theme: 'dark' | 'light') => <FaReact size={64} color="#61DAFB" />,
+    color: '#61DAFB',
+    description:
+      "React is well react. THE Best frameowork i ever learned, shi is lovely to make stuff with, i mean i use next mostly lmao but still same thingm it might be component based yea... but i lowkey cram everything in one file unless its some kind of theme or global component lmao",
+    bgGradient: 'from-blue-400 to-cyan-400',
+    experience: 'Advanced',
+    projects: '20+ total projects i finished',
+    yearsUsing: '2+ years',
+  },
+  {
+    name: 'Next.js',
+    icon: (theme: 'dark' | 'light') => (
+      <SiNextdotjs size={64} color={theme === 'dark' ? '#fff' : '#000'} />
+    ),
+    color: (theme: 'dark' | 'light') =>
+      theme === 'dark' ? '#ffffff' : '#000000',
+    description:
+      "Next.js is a W Pages, APIs, server-side stuff. ONE WORD to describe it= BEST, ngl man, my own site is carried with this framework",
+    bgGradient: 'from-gray-700 to-gray-900',
+    experience: 'Advanced',
+    projects: '20+ projects i finished',
+    yearsUsing: '2+ years',
+  },
+  {
+    name: 'TypeScript',
+    icon: (theme: 'dark' | 'light') => <SiTypescript size={64} color="#3178C6" />,
+    color: '#3178C6',
+    description:
+      "At first, TS was like that strict teacher who keeps yelling 'wrong type!!'. Less bugs kindaaa ehh idk what to say",
+    bgGradient: 'from-blue-500 to-blue-700',
+    experience: 'Advanced',
+    projects: 'i use it mostly whenever needed',
+    yearsUsing: '2+ years',
+  },
+  {
+    name: 'Vue.js',
+    icon: (theme: 'dark' | 'light') => <SiVuedotjs size={64} color="#4FC08D" />,
+    color: '#4FC08D',
+    description:
+      "I used vue once, and it made me wanna ragequit, so i never used it again, and it was easy to learn idk i didnt even learn it properly lmao, copied code and hoped it works ;=;",
+    bgGradient: 'from-green-400 to-green-600',
+    experience: 'Intermediate',
+    projects: '1 project',
+    yearsUsing: '1+ years',
+  },
+  {
+    name: 'Discord.js',
+    icon: (theme: 'dark' | 'light') => <SiDiscord size={64} color="#5865F2" />,
+    color: '#5865F2',
+    description:
+      "LOwkey learned js because i wanted to make a discord bot lmao, this thing made me come into programming literallyy",
+    bgGradient: 'from-indigo-500 to-purple-600',
+    experience: 'Expert',
+    projects: '3 bots yea, one is mine own, go to /dashboard',
+    yearsUsing: '3+ years',
+  },
+  {
+    name: 'Rust',
+    icon: (theme: 'dark' | 'light') => <FaRust size={64} color="#CE422B" />,
+    color: '#CE422B',
+    description:
+      "Rust like alws makes me feel like an idiot 💀 yea learning it beacause idk i wanna get some kind of skill in life, which cant be taken easily by ai lmao",
+    bgGradient: 'from-orange-600 to-red-600',
+    experience: 'Learning (aka suffering)',
+    projects: 'many half-broken attempts',
+    yearsUsing: '6 months',
+  },
+  {
+    name: 'Node.js',
+    icon: (theme: 'dark' | 'light') => <FaNodeJs size={64} color="#339933" />,
+    color: '#339933',
+    description:
+      "Node.js with pnpm goes brr, obv all it need for backend, this thing is used almost everywhere, what dev will not learn it lmao? ",
+    bgGradient: 'from-green-500 to-green-700',
+    experience: 'Expert',
+    projects: 'Cant count, i lowkey use it everywhere ;-;',
+    yearsUsing: '3+ years',
+  },
+  {
+    name: 'Python',
+    icon: (theme: 'dark' | 'light') => <FaPython size={64} color="#3776AB" />,
+    color: '#3776AB',
+    description:
+      "Python is lowkey useless to me idk why i even tried learning it, i will rather just learn rust than waste time on this one anymore ngl, i just wanted to learn this one cz of scripts and even thats useless for me",
+    bgGradient: 'from-blue-600 to-yellow-500',
+    experience: 'Learning',
+    projects: '8+ random experiments',
+    yearsUsing: '8 months',
+  },
 ]
 
 const services = [
@@ -859,7 +871,7 @@ const TechStackViewer = ({ theme = 'dark' }: { theme?: 'dark' | 'light' }) => {
       onTouchEnd={handleTouchEnd}
       onKeyDown={handleKeyDown}
       tabIndex={0}
-      style={{ height: '500px' }}
+      style={{ height: '650px' }} //gotta do for android XD
     >
       <div className="h-full flex flex-col md:flex-row">
         {/* Left Section - Content */}
@@ -869,7 +881,7 @@ const TechStackViewer = ({ theme = 'dark' }: { theme?: 'dark' | 'light' }) => {
             animate={{ y: 0, opacity: 1 }}
             className={`text-3xl md:text-5xl font-black mb-6 ${theme === 'dark' ? 'text-white' : 'text-black'}`}
           >
-            Tech Stack
+            languages i know :p
           </motion.h2>
 
           <div className="space-y-6">
@@ -923,7 +935,7 @@ const TechStackViewer = ({ theme = 'dark' }: { theme?: 'dark' | 'light' }) => {
                             className="w-3 h-3" 
                             color={theme === 'dark' ? '#a855f7' : '#7c3aed'} 
                           />
-                          Learning
+                          Learning :3
                         </>
                       ) : (
                         <>
@@ -931,7 +943,7 @@ const TechStackViewer = ({ theme = 'dark' }: { theme?: 'dark' | 'light' }) => {
                             className="w-3 h-3" 
                             color={theme === 'dark' ? '#10b981' : '#059669'} 
                           />
-                          Proficient
+                          Proficient :)
                         </>
                       )}
                     </span>
