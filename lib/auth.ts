@@ -11,6 +11,7 @@ declare module 'next-auth' {
       id: string
       name?: string | null
       image?: string | null
+      guilds?: Guild[]
     }
   }
 }
@@ -21,6 +22,7 @@ declare module 'next-auth/jwt' {
     id: string
     username: string
     avatar: string
+    accessToken: string
   }
 }
 
@@ -31,6 +33,16 @@ interface DiscordProfile {
   avatar: string
 }
 
+// Discord Guild type
+interface Guild {
+  id: string
+  name: string
+  icon: string | null
+  owner: boolean
+  permissions: string
+  features: string[]
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
     DiscordProvider({
@@ -38,7 +50,7 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.DISCORD_CLIENT_SECRET!,
       authorization: {
         params: {
-          scope: 'identify',
+          scope: 'identify guilds',
         },
       },
     }),
@@ -51,6 +63,7 @@ export const authOptions: NextAuthOptions = {
         token.id = discordProfile.id
         token.username = discordProfile.username
         token.avatar = discordProfile.avatar
+        token.accessToken = account.access_token!
       }
       return token
     },
@@ -59,6 +72,24 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string
         session.user.name = token.username
         session.user.image = `https://cdn.discordapp.com/avatars/${token.id}/${token.avatar}.png`
+
+        // Fetch guilds
+        if (token.accessToken) {
+          try {
+            const res = await fetch('https://discord.com/api/users/@me/guilds', {
+              headers: {
+                Authorization: `Bearer ${token.accessToken}`,
+              },
+            })
+
+            if (res.ok) {
+              const guilds: Guild[] = await res.json()
+              session.user.guilds = guilds
+            }
+          } catch (err) {
+            console.error('Error fetching guilds:', err)
+          }
+        }
       }
       return session
     },
@@ -74,7 +105,7 @@ export function authenticate(req: NextRequest) {
   if (!authHeader?.startsWith('Bearer ')) {
     return false
   }
-  
+
   const token = authHeader.split(' ')[1]
   return token === process.env.BOT_API_AUTH
 }
