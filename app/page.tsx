@@ -742,9 +742,25 @@ const TechStackCard = ({ tech, isActive, theme }: {
         </h3>
 
         {/* Description */}
-        <p className="text-white/80 text-sm md:text-lg leading-relaxed mb-6 flex-grow">
+        {/* <p className="text-white/80 text-sm md:text-lg leading-relaxed mb-6 flex-grow">
           {tech.description}
-        </p>
+        </p> */}
+<p className="text-white/80 text-sm md:text-lg leading-relaxed mb-6 flex-grow font-mono">
+  {{
+    "JavaScript": "Lightweight, versatile scripting language of the web.",
+    "React": "Component-based library for building dynamic UIs.",
+    "Next.js": "Full-stack React framework for SSR, SSG & APIs.",
+    "TypeScript": "Typed superset of JavaScript for safer, scalable code.",
+    "Vue.js": "Progressive framework for building interactive UIs.",
+    "Discord.js": "Library for building Discord bots with JavaScript.",
+    "Rust": "Systems programming language focused on safety & speed.",
+    "Node.js": "JavaScript runtime for scalable backend development.",
+    "Python": "High-level language for scripting, data, and automation."
+  }[tech.name] || "Technology description unavailable."}
+</p>
+
+
+
 
         {/* Stats */}
         <div className="space-y-3 mt-auto">
