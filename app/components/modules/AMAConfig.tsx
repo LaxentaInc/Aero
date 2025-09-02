@@ -32,7 +32,7 @@ interface ModuleConfigProps {
   onSave?: (success: boolean, message: string) => void;
 }
 
-// Export module info for auto-loader
+// Export module info for auto-loader (index.ts file)
 export const moduleInfo = {
   id: 'anti-mass-action',
   name: 'Anti Mass Action Protection',
