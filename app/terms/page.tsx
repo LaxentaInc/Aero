@@ -792,9 +792,9 @@ export default function TermsOfUsage() {
                     📧 Email Support
                   </h4>
                   <p className={theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}>
-                    General inquiries: <Highlight color="purple">support@laxenta.app</Highlight><br />
-                    Legal matters: <Highlight color="purple">legal@laxenta.app</Highlight><br />
-                    Privacy concerns: <Highlight color="purple">privacy@laxenta.app</Highlight>
+                    General inquiries: <Highlight color="purple">hello@laxenta.tech</Highlight><br />
+                    Legal matters: <Highlight color="purple">hello@laxenta.tech</Highlight><br />
+                    Privacy concerns: <Highlight color="purple">hello@laxenta.tech</Highlight>
                   </p>
                 </motion.div>
 
