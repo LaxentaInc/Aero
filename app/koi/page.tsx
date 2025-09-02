@@ -901,15 +901,21 @@ const SkillsPage = () => {
                     description: "Will analyze a simple 'hi' text for 5 mins" 
                 },
                 { 
-                    name: "Coffee Dependency", 
-                    level: 98, 
-                    description: "Cannot function without at least 5 cups per day" 
+                    name: "Caffeine Dependence", 
+                    level: 69, 
+                    description: "Cannot function without at least 5 mouthful spoons of raw coffee per day" 
                 },
                 { 
                     name: "Tab Hoarding", 
-                    level: 92, 
+                    level: 47, 
                     description: "Currently has 47 browser tabs open and refuses to close any" 
+                },
+                {
+                    name: "Bored"
+                    , level: 69,
+                    description: "thats her whole personality lol, i aint even gotta explain, if she sees this, she will be mad at me XD"
                 }
+                    
             ],
             color: "from-red-400 to-pink-500"
         },
@@ -931,18 +937,33 @@ const SkillsPage = () => {
                     name: "Adorable", 
                     level: 100, 
                     description: "Can never take a single complement, and always acts bored" 
+                },
+                           { 
+                    name: "Annoying", 
+                    level: 100, 
+                    description: "Unitentionally annoys you, and you can't even be mad at her, bcz she is clueless about everything lol" 
+                },
+                {
+                    name: "Crazy",
+                    level: 85,  
+                    description: "I tell her that i will go and meet her in a year or so, and she acts like she will be lonely, like bruh XD i mean im lonely too until we meet, sadly lmao"
                 }
             ],
             color: "from-blue-400 to-purple-500"
         },
         {
             category: "Her Life Skills!",
-            description: "Essential survival competencies",
+            description: "survival capablities",
             items: [
+                { 
+                    name: "Mood swings", 
+                    level: 50, 
+                    description: "50-50 chance she will get mad at you for no reason at all or act cute asf, cant even get mad at her, she is so innocent for that XD" 
+                },
                 { 
                     name: "Rest Schedule?", 
                     level: 26, 
-                    description: "What is a consistent bedtime? We don't know her" 
+                    description: "What is a consistent bedtime? We don't know her, absolutely questionable sleeping habits, and says her ghost uses pc all night ;-;" 
                 },
                 { 
                     name: "Snack Discovery", 
@@ -952,7 +973,12 @@ const SkillsPage = () => {
                 { 
                     name: "Playlist Curation", 
                     level: 99, 
-                    description: "Has 73 different mood playlists for very specific situations" 
+                    description: "Has 26 different mood playlists and all kind of subscriptions lmao" 
+                },
+                              { 
+                    name: "Mafia girl", 
+                    level: 100, 
+                    description: "Is rich af and acts like she got some kind of secret business going lmao" 
                 }
             ],
             color: "from-green-400 to-teal-500"
@@ -972,8 +998,11 @@ const SkillsPage = () => {
                         Her Skills
                     </h1>
                     <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-                        A comprehensive breakdown of her.. ahem unique professional competencies (defnitely real)
+                        A breakdown of her.. ahem unique professional competencies (defnitely real)
                     </p>
+                    <p className="text-lg text-gray-500 dark:text-gray-400 italic mt-2">
+                        these will keep on stacking the more i know about her personality, because why not lmao?
+                        </p>
                 </motion.div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
