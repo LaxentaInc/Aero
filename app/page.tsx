@@ -1364,8 +1364,8 @@ $ Currently exploring Rust & Python for system programming and AI/ML`
 						<p className={`text-lg md:text-xl leading-relaxed max-w-3xl mx-auto font-mono ${
 							theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
 						}`}>
-							I'm a cute developer with experience in building dynamic and responsive web applications. 
-							My journey in tech started with a curiosity to understand how things work under the hood. 
+							I'm a 18.9yo hobbyist developer and a collage student in science majors, i have enough experience in building dynamic Web Applications or backend services or both lol. 
+							My journey in tech started with a lil curiosity and basically bcz i wanted to make a discord music bot lmao, simple as that.  
 							I enjoy turning complex problems into dumb, beautiful, and intuitive designs.
 						</p>
 					</motion.div>
@@ -1443,8 +1443,8 @@ $ Currently exploring Rust & Python for system programming and AI/ML`
 						</h2>
 						<p className="text-lg md:text-xl leading-relaxed max-w-3xl mx-auto">
 							I provide a range of services to help bring your ideas to life. 
-							Whether you need a custom Discord bot, a responsive website, or a robust API, 
-							I've got you covered.
+							Whether you need Backend services, Hosting panels or plugin integrations, custom Discord bot, a responsive website, or a robust API with proper xss/exploit protections, 
+							I've got you covered lowkey i will do my best:D
 						</p>
 					</motion.div>
 					
