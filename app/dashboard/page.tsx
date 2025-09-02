@@ -1,25 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useSession } from 'next-auth/react';
-
-// Types
-interface AMAConfig {
-  enabled: boolean;
-  antiRaidEnabled: boolean;
-  kickThreshold: number;
-  banThreshold: number;
-  timeWindow: number;
-  trustedUsers: string[];
-  trustedRoles: string[];
-  bypassTrusted: boolean;
-  punishmentActions: string[];
-  timeoutDuration: number;
-  notifyOwner: boolean;
-  logChannelId: string | null;
-  logActions: boolean;
-  debug: boolean;
-}
+import { modules, getAllCategories } from '../components/modules';
 
 interface Guild {
   id: string;
@@ -29,143 +12,24 @@ interface Guild {
   permissions: string;
 }
 
-interface AMADocument {
-  guildId: string;
-  config: AMAConfig;
-  lastUpdated: string;
-  createdAt: string;
-}
-
-const defaultConfig: AMAConfig = {
-  enabled: true,
-  antiRaidEnabled: true,
-  kickThreshold: 5,
-  banThreshold: 5,
-  timeWindow: 300,
-  trustedUsers: [],
-  trustedRoles: [],
-  bypassTrusted: true,
-  punishmentActions: ['remove_roles', 'timeout'],
-  timeoutDuration: 600,
-  notifyOwner: true,
-  logChannelId: null,
-  logActions: true,
-  debug: false
-};
-
-const punishmentOptions = [
-  { value: 'remove_roles', label: 'Remove Roles' },
-  { value: 'timeout', label: 'Timeout Member' },
-  { value: 'kick', label: 'Kick Member' },
-  { value: 'ban', label: 'Ban Member' },
-  { value: 'notify', label: 'Notify Owner' }
-];
-
-export default function AMADashboard() {
+export default function DashboardPage() {
   const { data: session, status } = useSession();
   const [selectedGuild, setSelectedGuild] = useState<string>('');
-  const [config, setConfig] = useState<AMAConfig>(defaultConfig);
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const [activeModule, setActiveModule] = useState<string>('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // Load config when guild is selected
-  useEffect(() => {
-    if (selectedGuild) {
-      loadConfig();
-    }
-  }, [selectedGuild]);
-
-  const loadConfig = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(`/api/ama-config?guildId=${selectedGuild}`);
-      
-      if (response.ok) {
-        const data: AMADocument = await response.json();
-        setConfig(data.config);
-      } else if (response.status === 404) {
-        // No config exists, use defaults
-        setConfig(defaultConfig);
-      } else {
-        throw new Error('Failed to load configuration');
-      }
-    } catch (error) {
-      console.error('Failed to load config:', error);
-      showMessage('error', 'Failed to load configuration');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const saveConfig = async () => {
-    if (!selectedGuild) return;
-    
-    setSaving(true);
-    try {
-      const response = await fetch('/api/ama-config', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          guildId: selectedGuild,
-          config: config,
-        }),
-      });
-
-      if (response.ok) {
-        showMessage('success', 'Configuration saved successfully!');
-      } else {
-        throw new Error('Failed to save configuration');
-      }
-    } catch (error) {
-      console.error('Failed to save config:', error);
-      showMessage('error', 'Failed to save configuration');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const showMessage = (type: 'success' | 'error', text: string) => {
-    setMessage({ type, text });
+  const handleSave = (success: boolean, text: string) => {
+    setMessage({ type: success ? 'success' : 'error', text });
     setTimeout(() => setMessage(null), 5000);
   };
 
-  const updateConfig = (key: keyof AMAConfig, value: any) => {
-    setConfig(prev => ({ ...prev, [key]: value }));
-  };
-
-  const addTrustedUser = () => {
-    const userId = prompt('Enter Discord User ID:');
-    if (userId && !config.trustedUsers.includes(userId)) {
-      updateConfig('trustedUsers', [...config.trustedUsers, userId]);
-    }
-  };
-
-  const removeTrustedUser = (userId: string) => {
-    updateConfig('trustedUsers', config.trustedUsers.filter(id => id !== userId));
-  };
-
-  const addTrustedRole = () => {
-    const roleId = prompt('Enter Discord Role ID:');
-    if (roleId && !config.trustedRoles.includes(roleId)) {
-      updateConfig('trustedRoles', [...config.trustedRoles, roleId]);
-    }
-  };
-
-  const removeTrustedRole = (roleId: string) => {
-    updateConfig('trustedRoles', config.trustedRoles.filter(id => id !== roleId));
-  };
-
-  const togglePunishmentAction = (action: string) => {
-    const current = config.punishmentActions;
-    if (current.includes(action)) {
-      updateConfig('punishmentActions', current.filter(a => a !== action));
-    } else {
-      updateConfig('punishmentActions', [...current, action]);
-    }
-  };
+  const ActiveComponent = modules.find(m => m.info.id === activeModule)?.component;
+  const categories = getAllCategories();
+  
+  const filteredModules = selectedCategory === 'all' 
+    ? modules 
+    : modules.filter(m => m.info.category === selectedCategory);
 
   if (status === 'loading') {
     return (
@@ -188,11 +52,16 @@ export default function AMADashboard() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-6">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Anti Mass Action Protection</h1>
-          <p className="text-gray-400">Configure protection against mass kicks, bans, and raids</p>
+          <h1 className="text-3xl font-bold mb-2">Bot Configuration Dashboard</h1>
+          <p className="text-gray-400">Manage your bot modules and settings across all servers</p>
+          <div className="mt-4 flex items-center gap-4 text-sm text-gray-500">
+            <span>Total Modules: {modules.length}</span>
+            <span>•</span>
+            <span>Categories: {categories.length}</span>
+          </div>
         </div>
 
         {/* Messages */}
@@ -211,11 +80,14 @@ export default function AMADashboard() {
           <label className="block text-sm font-medium mb-2">Select Server</label>
           <select
             value={selectedGuild}
-            onChange={(e) => setSelectedGuild(e.target.value)}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onChange={(e) => {
+              setSelectedGuild(e.target.value);
+              setActiveModule(''); // Reset active module when changing guilds
+            }}
+            className="w-full max-w-md bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">Choose a server...</option>
-            {session?.user?.guilds?.map((guild) => (
+            {session?.user?.guilds?.map((guild: Guild) => (
               <option key={guild.id} value={guild.id}>
                 {guild.name}
               </option>
@@ -223,275 +95,148 @@ export default function AMADashboard() {
           </select>
         </div>
 
-        {/* Configuration Panel */}
         {selectedGuild && (
-          <div className="bg-gray-800 rounded-lg p-6">
-            {loading ? (
-              <div className="text-center py-8">
-                <div className="text-gray-400">Loading configuration...</div>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {/* Basic Settings */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-blue-400">Basic Settings</h3>
-                    
-                    <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium">Module Enabled</label>
-                      <input
-                        type="checkbox"
-                        checked={config.enabled}
-                        onChange={(e) => updateConfig('enabled', e.target.checked)}
-                        className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
-                      />
-                    </div>
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            {/* Module Sidebar */}
+            <div className="lg:col-span-1">
+              <div className="bg-gray-800 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">Modules</h3>
+                  <span className="text-xs bg-gray-700 px-2 py-1 rounded">
+                    {filteredModules.length}
+                  </span>
+                </div>
 
-                    <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium">Anti-Raid Protection</label>
-                      <input
-                        type="checkbox"
-                        checked={config.antiRaidEnabled}
-                        onChange={(e) => updateConfig('antiRaidEnabled', e.target.checked)}
-                        className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Kick Threshold</label>
-                      <input
-                        type="number"
-                        min="1"
-                        max="50"
-                        value={config.kickThreshold}
-                        onChange={(e) => updateConfig('kickThreshold', parseInt(e.target.value) || 1)}
-                        className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Ban Threshold</label>
-                      <input
-                        type="number"
-                        min="1"
-                        max="50"
-                        value={config.banThreshold}
-                        onChange={(e) => updateConfig('banThreshold', parseInt(e.target.value) || 1)}
-                        className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Time Window (seconds)</label>
-                      <input
-                        type="number"
-                        min="60"
-                        max="3600"
-                        value={config.timeWindow}
-                        onChange={(e) => updateConfig('timeWindow', parseInt(e.target.value) || 60)}
-                        className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
+                {/* Category Filter */}
+                {categories.length > 0 && (
+                  <div className="mb-4">
+                    <select
+                      value={selectedCategory}
+                      onChange={(e) => {
+                        setSelectedCategory(e.target.value);
+                        setActiveModule(''); // Reset active module when changing category
+                      }}
+                      className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="all">All Categories</option>
+                      {categories.map((category) => (
+                        <option key={category} value={category}>
+                          {category.charAt(0).toUpperCase() + category.slice(1)}
+                        </option>
+                      ))}
+                    </select>
                   </div>
+                )}
 
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-green-400">Protection Settings</h3>
-                    
-                    <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium">Bypass Trusted Users/Roles</label>
-                      <input
-                        type="checkbox"
-                        checked={config.bypassTrusted}
-                        onChange={(e) => updateConfig('bypassTrusted', e.target.checked)}
-                        className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
-                      />
+                {/* Module List */}
+                <div className="space-y-2">
+                  {filteredModules.length === 0 ? (
+                    <div className="text-gray-500 text-sm text-center py-4">
+                      No modules in this category
                     </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-1">Timeout Duration (seconds)</label>
-                      <input
-                        type="number"
-                        min="60"
-                        max="2419200"
-                        value={config.timeoutDuration}
-                        onChange={(e) => updateConfig('timeoutDuration', parseInt(e.target.value) || 60)}
-                        className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Punishment Actions</label>
-                      <div className="space-y-2">
-                        {punishmentOptions.map((option) => (
-                          <div key={option.value} className="flex items-center">
-                            <input
-                              type="checkbox"
-                              id={option.value}
-                              checked={config.punishmentActions.includes(option.value)}
-                              onChange={() => togglePunishmentAction(option.value)}
-                              className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 mr-2"
-                            />
-                            <label htmlFor={option.value} className="text-sm">
-                              {option.label}
-                            </label>
+                  ) : (
+                    filteredModules.map((module) => (
+                      <button
+                        key={module.info.id}
+                        onClick={() => setActiveModule(module.info.id)}
+                        className={`w-full text-left p-3 rounded-lg transition-all duration-200 ${
+                          activeModule === module.info.id
+                            ? 'bg-blue-600 text-white shadow-lg scale-105'
+                            : 'bg-gray-700 hover:bg-gray-600 text-gray-300 hover:scale-102'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          {module.info.icon && (
+                            <span className="text-lg">{module.info.icon}</span>
+                          )}
+                          <div className="flex-1">
+                            <div className="font-medium text-sm">{module.info.name}</div>
+                            <div className="text-xs text-gray-400 mt-1 line-clamp-2">
+                              {module.info.description}
+                            </div>
                           </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Logging Settings */}
-                <div className="border-t border-gray-700 pt-6">
-                  <h3 className="text-lg font-semibold text-purple-400 mb-4">Logging & Notifications</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium">Notify Owner</label>
-                      <input
-                        type="checkbox"
-                        checked={config.notifyOwner}
-                        onChange={(e) => updateConfig('notifyOwner', e.target.checked)}
-                        className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium">Log Actions</label>
-                      <input
-                        type="checkbox"
-                        checked={config.logActions}
-                        onChange={(e) => updateConfig('logActions', e.target.checked)}
-                        className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium">Debug Mode</label>
-                      <input
-                        type="checkbox"
-                        checked={config.debug}
-                        onChange={(e) => updateConfig('debug', e.target.checked)}
-                        className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium mb-1">Log Channel ID (optional)</label>
-                    <input
-                      type="text"
-                      placeholder="Enter Discord Channel ID"
-                      value={config.logChannelId || ''}
-                      onChange={(e) => updateConfig('logChannelId', e.target.value || null)}
-                      className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-
-                {/* Trusted Users & Roles */}
-                <div className="border-t border-gray-700 pt-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Trusted Users */}
-                    <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-lg font-semibold text-yellow-400">Trusted Users</h3>
-                        <button
-                          onClick={addTrustedUser}
-                          className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm transition-colors"
-                        >
-                          Add User
-                        </button>
-                      </div>
-                      <div className="space-y-2 max-h-32 overflow-y-auto">
-                        {config.trustedUsers.length === 0 ? (
-                          <p className="text-gray-500 text-sm">No trusted users configured</p>
-                        ) : (
-                          config.trustedUsers.map((userId) => (
-                            <div key={userId} className="flex items-center justify-between bg-gray-700 rounded px-3 py-2">
-                              <span className="text-sm font-mono">{userId}</span>
-                              <button
-                                onClick={() => removeTrustedUser(userId)}
-                                className="text-red-400 hover:text-red-300 text-sm"
-                              >
-                                Remove
-                              </button>
-                            </div>
-                          ))
+                        </div>
+                        {module.info.category && (
+                          <div className="mt-2">
+                            <span className="text-xs bg-gray-600 px-2 py-1 rounded capitalize">
+                              {module.info.category}
+                            </span>
+                          </div>
                         )}
-                      </div>
-                    </div>
-
-                    {/* Trusted Roles */}
-                    <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-lg font-semibold text-yellow-400">Trusted Roles</h3>
-                        <button
-                          onClick={addTrustedRole}
-                          className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm transition-colors"
-                        >
-                          Add Role
-                        </button>
-                      </div>
-                      <div className="space-y-2 max-h-32 overflow-y-auto">
-                        {config.trustedRoles.length === 0 ? (
-                          <p className="text-gray-500 text-sm">No trusted roles configured</p>
-                        ) : (
-                          config.trustedRoles.map((roleId) => (
-                            <div key={roleId} className="flex items-center justify-between bg-gray-700 rounded px-3 py-2">
-                              <span className="text-sm font-mono">{roleId}</span>
-                              <button
-                                onClick={() => removeTrustedRole(roleId)}
-                                className="text-red-400 hover:text-red-300 text-sm"
-                              >
-                                Remove
-                              </button>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Save Button */}
-                <div className="border-t border-gray-700 pt-6">
-                  <button
-                    onClick={saveConfig}
-                    disabled={saving || !selectedGuild}
-                    className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed px-6 py-3 rounded-lg font-medium transition-colors"
-                  >
-                    {saving ? 'Saving...' : 'Save Configuration'}
-                  </button>
-                </div>
-
-                {/* Configuration Preview */}
-                <div className="border-t border-gray-700 pt-6">
-                  <h3 className="text-lg font-semibold text-gray-400 mb-3">Current Configuration</h3>
-                  <div className="bg-gray-900 rounded-lg p-4 text-sm">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
-                      <div>
-                        <span className="text-gray-400">Status:</span>
-                        <span className={`ml-2 ${config.enabled ? 'text-green-400' : 'text-red-400'}`}>
-                          {config.enabled ? 'Enabled' : 'Disabled'}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-gray-400">Kick Limit:</span>
-                        <span className="ml-2 text-yellow-400">{config.kickThreshold}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-400">Ban Limit:</span>
-                        <span className="ml-2 text-yellow-400">{config.banThreshold}</span>
-                      </div>
-                      <div>
-                        <span className="text-gray-400">Time Window:</span>
-                        <span className="ml-2 text-yellow-400">{config.timeWindow}s</span>
-                      </div>
-                    </div>
-                  </div>
+                      </button>
+                    ))
+                  )}
                 </div>
               </div>
-            )}
+            </div>
+
+            {/* Module Configuration */}
+            <div className="lg:col-span-3">
+              {ActiveComponent ? (
+                <div className="bg-gray-800 rounded-lg overflow-hidden">
+                  {/* Module Header */}
+                  <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6">
+                    <div className="flex items-center gap-3">
+                      {modules.find(m => m.info.id === activeModule)?.info.icon && (
+                        <span className="text-2xl">
+                          {modules.find(m => m.info.id === activeModule)?.info.icon}
+                        </span>
+                      )}
+                      <div>
+                        <h2 className="text-xl font-bold text-white">
+                          {modules.find(m => m.info.id === activeModule)?.info.name}
+                        </h2>
+                        <p className="text-blue-100 mt-1">
+                          {modules.find(m => m.info.id === activeModule)?.info.description}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Module Content */}
+                  <div className="p-6">
+                    <ActiveComponent selectedGuild={selectedGuild} onSave={handleSave} />
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-gray-800 rounded-lg p-8 text-center">
+                  <div className="text-gray-400 mb-4">
+                    <svg className="w-16 h-16 mx-auto mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 8.172V5L8 4z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-300 mb-2">Select a Module</h3>
+                  <p className="text-gray-500">
+                    Choose a module from the sidebar to configure its settings for this server.
+                  </p>
+                  {filteredModules.length === 0 && selectedCategory !== 'all' && (
+                    <p className="text-yellow-400 mt-4 text-sm">
+                      No modules found in the "{selectedCategory}" category. Try selecting "All Categories".
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Quick Stats */}
+        {!selectedGuild && (
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-gray-800 rounded-lg p-6 text-center">
+              <div className="text-2xl font-bold text-blue-400 mb-2">{modules.length}</div>
+              <div className="text-gray-400">Available Modules</div>
+            </div>
+            <div className="bg-gray-800 rounded-lg p-6 text-center">
+              <div className="text-2xl font-bold text-green-400 mb-2">
+                {session?.user?.guilds?.length || 0}
+              </div>
+              <div className="text-gray-400">Servers Available</div>
+            </div>
+            <div className="bg-gray-800 rounded-lg p-6 text-center">
+              <div className="text-2xl font-bold text-purple-400 mb-2">{categories.length}</div>
+              <div className="text-gray-400">Module Categories</div>
+            </div>
           </div>
         )}
       </div>
