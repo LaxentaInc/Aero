@@ -97,8 +97,8 @@ export const metadata: Metadata = {
     locale: 'en_US',
     url: 'https://www.laxenta.tech',
     siteName: 'Laxenta',
-    title: 'Laxenta - Fullstack Developer & System Engineer Portfolio',
-    description: '👋 Fullstack Developer & System Engineer • 💻 Love building useless things & collaborating on code • 🚀 Always diving into new knowledge • 🛠️ Custom dev tools & code commissions • ✨ Experimental projects',
+    title: 'Laxenta Inc',
+    description: '',
     images: [
       {
         url: '/og-image.png',

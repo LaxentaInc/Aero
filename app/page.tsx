@@ -250,7 +250,7 @@ const services = [
 		title: 'Web Development',
 		description: 'Modern, responsive websites built with latest technologies. From landing pages to complex web applications',
 		features: ['Responsive Design', 'SEO Optimized', 'Fast Performance', 'Modern UI/UX'],
-		price: 'Depends on project scope ngl',
+		price: 'Starting $ 0 ig just dm me lmao',
 		icon: (
 			<motion.svg 
 				width="80" 
@@ -341,7 +341,7 @@ const services = [
 		title: 'API Development',
 		description: 'RESTful APIs and backend services with proper documentation and scalable architecture',
 		features: ['REST/GraphQL', 'Authentication', 'Database Design', 'Documentation'],
-		price: 'Again depends on api complexity',
+		price: 'just dm me brh',
 		icon: (
 			<motion.svg 
 				width="80" 
@@ -428,7 +428,7 @@ const services = [
 		title: 'Code Review & Consulting',
 		description: 'Professional code review and optimization suggestions to improve your existing projects',
 		features: ['Code Quality', 'Performance Tips', 'Best Practices', 'Security Audit'],
-		price: '$0/second',
+		price: 'its free, just dm lol',
 		icon: (
 			<motion.svg 
 				width="80" 
