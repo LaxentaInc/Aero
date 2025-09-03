@@ -101,24 +101,13 @@ export const metadata: Metadata = {
     description: 'Welcome to my Portfolio/Api website',
     images: [
       {
-        url: 'https://www.laxenta.tech/KoiLogo.webp',
+        url: 'https://www.laxenta.tech/KoiLogo.png',
         width: 1200,
         height: 630,
         alt: 'Laxenta Inc',
-        type: 'image/webp',
+        type: 'image/png',
       }
     ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Laxenta Inc',
-    description: 'Welcome to my Portfolio/Api website',
-    images: [
-      {
-        url: 'https://www.laxenta.tech/KoiLogo.webp',
-        alt: 'Laxenta Inc'
-      }
-    ]
   },
   robots: {
     index: true,
