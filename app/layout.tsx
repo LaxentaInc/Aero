@@ -26,10 +26,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL('https://www.laxenta.tech'),
   title: {
-    default: "Laxenta - Fullstack Developer & System Engineer",
-    template: "%s | Laxenta"
+    default: "Laxenta Inc",
+    template: "%s | Laxenta Inc"
   },
-  description: "Hi there! I'm a fullstack developer and system engineer who loves building useless things and collaborating on any code I can get my hands on. Always eager to dive into new knowledge and experiences.",
+  description: "Welcome to my Portfolio/Api website",
   keywords: [
     // Personal Brand
     "laxenta",
@@ -96,26 +96,26 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     url: 'https://www.laxenta.tech',
-    siteName: 'Laxenta',
+    siteName: 'Laxenta Inc',
     title: 'Laxenta Inc',
-    description: '',
+    description: 'Welcome to my Portfolio/Api website',
     images: [
       {
-        url: '/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'Laxenta - Developer Portfolio',
+        url: 'https://www.laxenta.tech/og-image.png',
+        width: 300,
+        height: 200,
+        alt: 'Laxenta Inc',
         type: 'image/png',
       }
     ],
   },
   twitter: {
-    card: 'summary_large_image',
-    title: 'Laxenta - Fullstack Developer & System Engineer',
-    description: 'Fullstack developer who loves building experimental projects and collaborating on code. Always eager to explore new technologies and create custom solutions.',
+    card: 'summary',
+    title: 'Laxenta Inc',
+    description: 'Welcome to my Portfolio/Api website',
     images: {
-      url: '/og-image.png',
-      alt: 'Laxenta Developer Portfolio'
+      url: 'https://www.laxenta.tech/og-image.png',
+      alt: 'Laxenta Inc'
     }
   },
   robots: {
@@ -137,7 +137,7 @@ export const metadata: Metadata = {
     // Apple specific
     'apple-mobile-web-app-capable': 'yes',
     'apple-mobile-web-app-status-bar-style': 'default',
-    'apple-mobile-web-app-title': 'Laxenta Portfolio',
+    'apple-mobile-web-app-title': 'Laxenta Inc',
     // Theme colors
     'theme-color': '#5865F2',
     'msapplication-TileColor': '#5865F2',
@@ -165,7 +165,7 @@ export default function RootLayout({
     '@type': 'Person',
     name: 'Laxenta',
     jobTitle: 'Fullstack Developer & System Engineer',
-    description: 'Fullstack developer and system engineer who loves building experimental projects, creating developer tools, and collaborating on open source code.',
+    description: 'Welcome to my Portfolio/Api website',
     url: 'https://www.laxenta.tech',
     sameAs: [
       'https://github.com/me_straight',
