@@ -156,10 +156,10 @@ export default function RootLayout({
     '@type': 'Person',
     name: 'Laxenta',
     jobTitle: 'Fullstack Developer & System Engineer',
-    description: 'Welcome to my Portfolio/Api website',
+    description: 'Welcome to my Portfolio/Api website! ily lol',
     url: 'https://www.laxenta.tech',
     sameAs: [
-      'https://github.com/me_straight',
+      'https://github.com/shelleyloosespatience',
       // Add other social profiles here
     ],
     knowsAbout: [
@@ -191,6 +191,17 @@ export default function RootLayout({
         {/* Preconnect for performance */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        
+        {/* Explicit meta tags for Discord (because Discord is picky AF) */}
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Laxenta Inc" />
+        <meta property="og:description" content="Welcome to my Portfolio/Api website" />
+        <meta property="og:url" content="https://www.laxenta.tech" />
+        <meta property="og:image" content="https://www.laxenta.tech/KoiLogo.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="Laxenta Inc" />
+        <meta property="og:site_name" content="Laxenta Inc" />
         
         {/* Structured data */}
         <script
