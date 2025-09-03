@@ -101,22 +101,24 @@ export const metadata: Metadata = {
     description: 'Welcome to my Portfolio/Api website',
     images: [
       {
-        url: 'https://www.laxenta.tech/og-image.png',
-        width: 300,
-        height: 200,
+        url: 'https://www.laxenta.tech/KoiLogo.webp',
+        width: 1200,
+        height: 630,
         alt: 'Laxenta Inc',
-        type: 'image/png',
+        type: 'image/webp',
       }
     ],
   },
   twitter: {
-    card: 'summary',
+    card: 'summary_large_image',
     title: 'Laxenta Inc',
     description: 'Welcome to my Portfolio/Api website',
-    images: {
-      url: 'https://www.laxenta.tech/og-image.png',
-      alt: 'Laxenta Inc'
-    }
+    images: [
+      {
+        url: 'https://www.laxenta.tech/KoiLogo.webp',
+        alt: 'Laxenta Inc'
+      }
+    ]
   },
   robots: {
     index: true,
