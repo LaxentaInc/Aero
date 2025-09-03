@@ -78,7 +78,7 @@ export const metadata: Metadata = {
     "hire developer",
     "collaborative coding"
   ],
-  authors: [{ name: "Laxenta", url: "https://github.com/me_straight" }],
+  authors: [{ name: "Laxenta", url: "https://github.com/shelleyloosespatience" }],
   creator: "@me_straight", 
   publisher: "Laxenta",
   formatDetection: {
@@ -203,6 +203,12 @@ export default function RootLayout({
         <meta property="og:image:alt" content="Laxenta Inc" />
         <meta property="og:site_name" content="Laxenta Inc" />
         
+        {/* Twitter card – SMALL PREVIEW */}
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Laxenta Inc" />
+<meta name="twitter:description" content="Welcome to my Portfolio/Api website" />
+<meta name="twitter:image" content="https://www.laxenta.tech/KoiLogo.png" />
+
         {/* Structured data */}
         <script
           type="application/ld+json"
