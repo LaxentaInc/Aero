@@ -42,7 +42,7 @@ const LoginContent = () => {
   const { data: session, status } = useSession()
   const searchParams = useSearchParams()
   const router = useRouter()
-  const callbackUrl = searchParams.get('callbackUrl') || '/ai'
+  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
   const [isRedirecting, setIsRedirecting] = useState(false)
   const [agreeToTerms, setAgreeToTerms] = useState(false)
   const [agreeToPrivacy, setAgreeToPrivacy] = useState(false)
