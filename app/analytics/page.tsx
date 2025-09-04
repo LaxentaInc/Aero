@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieLabelRenderProps } from 'recharts';
+import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Shield, AlertTriangle, Activity, Server, Clock, Users, TrendingUp, Eye } from 'lucide-react';
 
 interface AnalyticsEvent {
@@ -125,6 +125,12 @@ export default function AnalyticsDashboard() {
               <h1 className="text-2xl font-bold text-white">Anti-Raid Analytics</h1>
             </div>
             <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <div className={`w-2 h-2 rounded-full ${loading ? 'bg-yellow-400 animate-pulse' : 'bg-green-400'}`}></div>
+                <span className="text-white/60 text-sm">
+                  {loading ? 'Updating...' : 'Live'}
+                </span>
+              </div>
               <select
                 value={timeRange}
                 onChange={(e) => setTimeRange(e.target.value)}
@@ -136,9 +142,14 @@ export default function AnalyticsDashboard() {
               </select>
               <button
                 onClick={fetchData}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                disabled={loading}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  loading 
+                    ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                }`}
               >
-                Refresh
+                {loading ? 'Refreshing...' : 'Refresh'}
               </button>
             </div>
           </div>
@@ -262,10 +273,7 @@ export default function AnalyticsDashboard() {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={(props: PieLabelRenderProps) => {
-                        const percent = props.percent || 0;
-                        return `${props.name} ${(percent * 100).toFixed(0)}%`;
-                      }}
+                      label={({ name, percent }) => `${name} ${percent ? (percent * 100).toFixed(0) : 0}%`}
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
@@ -295,7 +303,7 @@ export default function AnalyticsDashboard() {
                     <XAxis 
                       dataKey="hour" 
                       stroke="#ffffff80"
-                      tickFormatter={(value: string) => new Date(value).getHours() + ':00'}
+                      tickFormatter={(value) => new Date(value).getHours() + ':00'}
                     />
                     <YAxis stroke="#ffffff80" />
                     <Tooltip 
@@ -305,7 +313,7 @@ export default function AnalyticsDashboard() {
                         borderRadius: '8px',
                         color: '#fff'
                       }}
-                      labelFormatter={(value: string) => `Time: ${new Date(value).toLocaleTimeString()}`}
+                      labelFormatter={(value) => `Time: ${new Date(value).toLocaleTimeString()}`}
                     />
                     <Bar dataKey="count" fill="#10B981" />
                   </BarChart>
