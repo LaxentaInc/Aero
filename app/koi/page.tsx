@@ -475,7 +475,7 @@ const DiscordStatus = ({ currentPage }: { currentPage: PageType }) => {
 
                         <div className="flex gap-2">
                             <a
-                                href={`https://discord.com/users/${discordData.discord_user.id}`}
+                                href={`https://discord.com/users/953527567808356404`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className={`flex-1 px-3 py-2 rounded-lg text-center text-sm font-semibold transition-all duration-200 ${
@@ -693,7 +693,7 @@ const HomePage = () => {
                     transition={{ delay: 1.6, duration: 0.6 }}
                 >
                     <motion.a
-                        href="https://discord.gg/i-love-you-koi-ngl"
+                        href="https://discord.gg/ily-koi"
                         className="group px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-2xl font-bold hover:from-purple-700 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl text-lg flex items-center gap-2"
                         whileHover={{ scale: 1.05, y: -2 }}
                         whileTap={{ scale: 0.95 }}
