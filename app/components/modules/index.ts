@@ -23,6 +23,7 @@ export interface ModuleDefinition {
 
 // Import all modules here
 import AMAConfig, { moduleInfo as amaInfo } from './AMAConfig';
+import BotProtectionConfig, { moduleInfo as botProtectionInfo } from './BotProtectionConfig';
 // Add more imports as you create modules:
 // import ModerationConfig, { moduleInfo as moderationInfo } from './ModerationConfig';
 // import AutomodConfig, { moduleInfo as automodInfo } from './AutomodConfig';
@@ -33,6 +34,10 @@ export const modules: ModuleDefinition[] = [
   {
     info: amaInfo,
     component: AMAConfig,
+  },
+  {
+    info: botProtectionInfo,
+    component: BotProtectionConfig,
   },
   // Add new modules here:
   // {
