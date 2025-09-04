@@ -887,7 +887,7 @@ const TechStackViewer = ({ theme = 'dark' }: { theme?: 'dark' | 'light' }) => {
       onTouchEnd={handleTouchEnd}
       onKeyDown={handleKeyDown}
       tabIndex={0}
-      style={{ height: '670px' }} //gotta do for android XD
+      style={{ height: '700px' }} //gotta do for android XD
     >
       <div className="h-full flex flex-col md:flex-row">
         {/* Left Section - Content */}
