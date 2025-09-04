@@ -5,12 +5,20 @@ import { useSession } from 'next-auth/react';
 import { modules, getAllCategories } from '../components/modules';
 
 interface Guild {
-  id: string;
+  guildId: string;
   name: string;
   icon: string | null;
-  owner: boolean;
-  permissions: string;
-  memberCount?: number;
+  memberCount: number;
+  botJoinedAt: string;
+  lastUpdated: string;
+  features: string[];
+}
+
+interface ApiResponse {
+  success: boolean;
+  guilds: Guild[];
+  count: number;
+  error?: string;
 }
 
 export default function DashboardPage() {
@@ -28,32 +36,34 @@ export default function DashboardPage() {
     setTimeout(() => setMessage(null), 5000);
   };
 
-  // Fetch valid guilds from bot
+  // Fetch valid guilds from MongoDB (via our new API)
   useEffect(() => {
     async function fetchValidGuilds() {
       if (!session?.user?.id) return;
       
       try {
         setGuildLoading(true);
-        const response = await fetch(`/api/bot?action=guilds&userId=${session.user.id}`);
+        
+        // Use the new /api/guilds endpoint
+        const response = await fetch(`/api/guilds?userId=${session.user.id}`);
         
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         
-        const data = await response.json();
+        const data: ApiResponse = await response.json();
         
-        if (data.success && data.data?.guilds) {
-          setValidGuilds(data.data.guilds);
+        if (data.success && data.guilds) {
+          setValidGuilds(data.guilds);
           setMessage({ 
             type: 'success', 
-            text: `Found ${data.data.guilds.length} servers where you're owner and bot has admin permissions` 
+            text: `Found ${data.count} servers where you're the owner and bot has permissions` 
           });
         } else {
           setValidGuilds([]);
           setMessage({ 
             type: 'error', 
-            text: data.error || 'Failed to load servers' 
+            text: data.error || 'Failed to load servers from database' 
           });
         }
       } catch (error) {
@@ -61,7 +71,7 @@ export default function DashboardPage() {
         setValidGuilds([]);
         setMessage({ 
           type: 'error', 
-          text: `Connection error: ${error instanceof Error ? error.message : 'Unknown error'}. Is the bot running?` 
+          text: `Database connection error: ${error instanceof Error ? error.message : 'Unknown error'}. Check if MongoDB is accessible.` 
         });
       } finally {
         setGuildLoading(false);
@@ -76,6 +86,36 @@ export default function DashboardPage() {
     }
   }, [session, status]);
 
+  // Manual refresh function
+  const refreshGuilds = async () => {
+    if (!session?.user?.id) return;
+    
+    setGuildLoading(true);
+    setMessage({ type: 'success', text: 'Refreshing server list...' });
+    
+    try {
+      const response = await fetch(`/api/guilds?userId=${session.user.id}`);
+      const data: ApiResponse = await response.json();
+      
+      if (data.success) {
+        setValidGuilds(data.guilds);
+        setMessage({ 
+          type: 'success', 
+          text: `Refreshed! Found ${data.count} servers` 
+        });
+      } else {
+        setMessage({ type: 'error', text: data.error || 'Failed to refresh' });
+      }
+    } catch (error) {
+      setMessage({ 
+        type: 'error', 
+        text: `Refresh failed: ${error instanceof Error ? error.message : 'Unknown error'}` 
+      });
+    } finally {
+      setGuildLoading(false);
+    }
+  };
+
   const ActiveComponent = modules.find(m => m.info.id === activeModule)?.component;
   const categories = getAllCategories();
   
@@ -85,7 +125,7 @@ export default function DashboardPage() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="min-h-[calc(100vh-4rem)] mt-16 bg-gray-900 flex items-center justify-center">
         <div className="text-white text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-white mb-4"></div>
           <p>Loading dashboard...</p>
@@ -96,7 +136,7 @@ export default function DashboardPage() {
 
   if (!session) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="min-h-[calc(100vh-4rem)] mt-16 bg-gray-900 flex items-center justify-center">
         <div className="text-white text-center">
           <h1 className="text-2xl mb-4">Access Denied</h1>
           <p>Please log in with Discord to access the dashboard.</p>
@@ -106,18 +146,18 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-6">
+    <div className="min-h-[calc(100vh-4rem)] mt-16 bg-gray-900 text-white p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Bot Configuration Dashboard</h1>
-          <p className="text-gray-400">Manage your bot modules and settings across all servers</p>
+          <p className="text-gray-400">Manage your bot modules and settings across servers you own</p>
           <div className="mt-4 flex items-center gap-4 text-sm text-gray-500">
             <span>Total Modules: {modules.length}</span>
             <span>•</span>
             <span>Categories: {categories.length}</span>
             <span>•</span>
-            <span>Valid Servers: {validGuilds.length}</span>
+            <span>Your Servers: {validGuilds.length}</span>
           </div>
         </div>
 
@@ -132,20 +172,30 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Connection Status */}
-        <div className="mb-6 flex items-center gap-2 text-sm">
-          <div className={`w-3 h-3 rounded-full ${
-            validGuilds.length > 0 ? 'bg-green-500' : guildLoading ? 'bg-yellow-500' : 'bg-red-500'
-          }`}></div>
-          <span className="text-gray-400">
-            {guildLoading ? 'Connecting to bot...' : 
-             validGuilds.length > 0 ? 'Bot connected' : 'Bot disconnected'}
-          </span>
+        {/* Connection Status & Refresh */}
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-sm">
+            <div className={`w-3 h-3 rounded-full ${
+              validGuilds.length > 0 ? 'bg-green-500' : guildLoading ? 'bg-yellow-500' : 'bg-red-500'
+            }`}></div>
+            <span className="text-gray-400">
+              {guildLoading ? 'Loading from database...' : 
+               validGuilds.length > 0 ? 'Database connected' : 'No servers found'}
+            </span>
+          </div>
+          
+          <button
+            onClick={refreshGuilds}
+            disabled={guildLoading}
+            className="px-3 py-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 rounded text-sm transition-colors"
+          >
+            {guildLoading ? 'Refreshing...' : 'Refresh'}
+          </button>
         </div>
 
         {/* Guild Selection */}
         <div className="mb-8">
-          <label className="block text-sm font-medium mb-2">Select Server</label>
+          <label className="block text-sm font-medium mb-2">Select Your Server</label>
           <select
             value={selectedGuild}
             onChange={(e) => {
@@ -156,31 +206,88 @@ export default function DashboardPage() {
             className="w-full max-w-md bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <option value="">
-              {guildLoading ? 'Loading servers...' : 
-               validGuilds.length === 0 ? 'No valid servers found' : 'Choose a server...'}
+              {guildLoading ? 'Loading your servers...' : 
+               validGuilds.length === 0 ? 'No servers found' : 'Choose a server...'}
             </option>
             {validGuilds.map((guild: Guild) => (
-              <option key={guild.id} value={guild.id}>
-                {guild.name} {guild.memberCount ? `(${guild.memberCount} members)` : ''}
+              <option key={guild.guildId} value={guild.guildId}>
+                {guild.name} ({guild.memberCount} members)
               </option>
             ))}
           </select>
           
           {validGuilds.length === 0 && !guildLoading && (
             <div className="mt-2 p-3 bg-yellow-900 border border-yellow-700 rounded text-yellow-200 text-sm">
-              <p className="font-semibold mb-1">No servers available</p>
-              <p>Make sure:</p>
+              <p className="font-semibold mb-1">No owned servers found</p>
+              <p>This shows only servers where:</p>
               <ul className="list-disc list-inside ml-2 mt-1">
-                <li>You own the server</li>
-                <li>The bot is in your server</li>
-                <li>The bot has Administrator permissions</li>
-                <li>The bot is currently running and connected</li>
+                <li>You are the server owner</li>
+                <li>The bot is present in the server</li>
+                <li>The bot has proper permissions</li>
+                <li>The bot has synced the server data to database</li>
               </ul>
+              <button 
+                onClick={refreshGuilds}
+                className="mt-2 px-2 py-1 bg-yellow-700 hover:bg-yellow-600 rounded text-xs"
+              >
+                Check Again
+              </button>
+            </div>
+          )}
+
+          {/* Show some server info when selected */}
+          {selectedGuild && validGuilds.length > 0 && (
+            <div className="mt-2 text-xs text-gray-400">
+              {(() => {
+                const guild = validGuilds.find(g => g.guildId === selectedGuild);
+                return guild ? (
+                  <div className="flex items-center gap-4">
+                    <span>Members: {guild.memberCount}</span>
+                    <span>Bot joined: {new Date(guild.botJoinedAt).toLocaleDateString()}</span>
+                    <span>Last updated: {new Date(guild.lastUpdated).toLocaleString()}</span>
+                    {guild.features.length > 0 && (
+                      <span>Features: {guild.features.slice(0, 3).join(', ')}{guild.features.length > 3 ? '...' : ''}</span>
+                    )}
+                  </div>
+                ) : null;
+              })()}
             </div>
           )}
         </div>
 
-        {selectedGuild && (
+        {/* Selected Guild Summary */}
+        {selectedGuild && validGuilds.length > 0 && (
+          <div className="mb-6">
+            {(() => {
+              const guild = validGuilds.find(g => g.guildId === selectedGuild);
+              return guild ? (
+                <div className="bg-gray-800 rounded-lg p-4 border-l-4 border-blue-500">
+                  <div className="flex items-center gap-3">
+                    {guild.icon ? (
+                      <img
+                        src={guild.icon}
+                        alt={`${guild.name} icon`}
+                        className="w-8 h-8 rounded-full"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-gray-400 font-bold">
+                        {guild.name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <div>
+                      <h3 className="font-semibold text-white">Managing: {guild.name}</h3>
+                      <div className="flex items-center gap-4 text-xs text-gray-400 mt-1">
+                        <span>{guild.memberCount.toLocaleString()} members</span>
+                        <span>Bot joined: {new Date(guild.botJoinedAt).toLocaleDateString()}</span>
+                        <span>Updated: {new Date(guild.lastUpdated).toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : null;
+            })()}
+          </div>
+        )}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Module Sidebar */}
             <div className="lg:col-span-1">
@@ -303,7 +410,6 @@ export default function DashboardPage() {
               )}
             </div>
           </div>
-        )}
 
         {/* Quick Stats */}
         {!selectedGuild && (
@@ -316,9 +422,9 @@ export default function DashboardPage() {
               <div className="text-2xl font-bold text-green-400 mb-2">
                 {validGuilds.length}
               </div>
-              <div className="text-gray-400">Valid Servers</div>
+              <div className="text-gray-400">Your Servers</div>
               <div className="text-xs text-gray-500 mt-1">
-                (Owner + Bot Admin)
+                (Owned + Bot Present)
               </div>
             </div>
             <div className="bg-gray-800 rounded-lg p-6 text-center">
@@ -335,9 +441,10 @@ export default function DashboardPage() {
             <div className="text-xs text-gray-400 space-y-1">
               <p>Session Status: {status}</p>
               <p>User ID: {session?.user?.id || 'None'}</p>
-              <p>Valid Guilds: {validGuilds.length}</p>
+              <p>Owned Guilds: {validGuilds.length}</p>
               <p>Selected Guild: {selectedGuild || 'None'}</p>
               <p>Active Module: {activeModule || 'None'}</p>
+              <p>API Endpoint: /api/guilds</p>
             </div>
           </div>
         )}
