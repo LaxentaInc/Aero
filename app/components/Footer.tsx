@@ -110,7 +110,7 @@ export default function Footer() {
           me_straight: meJson.data
         });
       } catch (error) {
-        console.error("Failed to fetch Discord data:", error);
+       // console.error("Failed to fetch Discord data:", error);
       }
     };
 
