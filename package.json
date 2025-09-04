@@ -28,6 +28,7 @@
     "react-intersection-observer": "^9.16.0",
     "react-simple-typewriter": "^5.0.1",
     "react-syntax-highlighter": "^15.6.1",
+    "recharts": "^3.1.2",
     "spotify-web-api-node": "^5.0.2",
     "uuid": "^11.1.0",
     "ws": "^8.18.3"
@@ -40,6 +41,7 @@
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "@types/react-syntax-highlighter": "^15.5.13",
+    "@types/recharts": "^2.0.1",
     "@types/spotify-web-api-node": "^5.0.11",
     "@types/ws": "^8.18.1",
     "dompurify": "^3.2.6",

@@ -1,6 +1,7 @@
+//our outloader for all modules, passes them to dashboard.tsx
 import { ComponentType } from 'react';
 
-// Module info interface
+//Module info interface
 export interface ModuleInfo {
   id: string;
   name: string;
