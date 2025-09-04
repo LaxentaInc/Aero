@@ -693,7 +693,7 @@ const HomePage = () => {
                     transition={{ delay: 1.6, duration: 0.6 }}
                 >
                     <motion.a
-                        href="https://discord.gg/i-like-koi-ngl"
+                        href="https://discord.gg/i-love-you-koi-ngl"
                         className="group px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-2xl font-bold hover:from-purple-700 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl text-lg flex items-center gap-2"
                         whileHover={{ scale: 1.05, y: -2 }}
                         whileTap={{ scale: 0.95 }}
