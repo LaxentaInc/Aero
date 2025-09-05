@@ -7,7 +7,6 @@ import { Home, Briefcase, Code, Sun, Moon, ExternalLink, Star, GitFork, Calendar
 // Page Types
 type PageType = 'home' | 'projects' | 'skills';
 
-// Project data - PASTE YOUR PROJECT DATA HERE
 // Project data
 const projectsData = [
     {
@@ -208,6 +207,81 @@ const useProtection = () => {
     };
   }, [])
 }
+
+
+
+const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
+	return (
+		<div className="absolute inset-0 z-0 overflow-hidden">
+			<video
+				autoPlay
+				muted
+				loop
+				playsInline
+				crossOrigin="anonymous"
+				className={`absolute top-0 left-0 w-full h-full object-cover ${
+					theme === 'dark' ? 'opacity-40' : 'opacity-20'
+				}`}
+			>
+				{/* https://static.tradingview.com/static/bundles/northern-lights-pricing-desktop.86b1853e628d56f03bc8.webm */}
+                {/* https://prplmoe.me/assets/animation/Kochan_2.mp4 */}
+				<source 
+				    src="/videos/damnbro.mp4" //also add shorekeeper.mp4
+					type="video/mp4" 
+				/>
+			</video>
+			
+			{/* <img 
+  src="/videos/damnbro.mp4" 
+  alt="Background GIF"
+  className={`absolute top-0 left-0 w-full h-full object-cover z-0 ${theme === 'dark' ? 'opacity-40' : 'opacity-20'}`}
+/> */}
+
+			<div className={`absolute inset-0 bg-gradient-to-b ${
+				theme === 'dark' 
+					? 'from-black/50 via-black/30 to-black/50' 
+					: 'from-white/50 via-white/30 to-white/50'
+			}`} />
+		</div>
+	)
+}
+
+const Skillsbg = ({ theme }: { theme: 'dark' | 'light' }) => {
+	return (
+		<div className="absolute inset-0 z-0 overflow-hidden">
+			<video
+				autoPlay
+				muted
+				loop
+				playsInline
+				crossOrigin="anonymous"
+				className={`absolute top-0 left-0 w-full h-full object-cover ${
+					theme === 'dark' ? 'opacity-40' : 'opacity-20'
+				}`}
+			>
+				{/* https://static.tradingview.com/static/bundles/northern-lights-pricing-desktop.86b1853e628d56f03bc8.webm */}
+                {/* https://prplmoe.me/assets/animation/Kochan_2.mp4 */}
+				<source 
+				    src="https://static.tradingview.com/static/bundles/northern-lights-pricing-desktop.86b1853e628d56f03bc8.webm" //also add shorekeeper.mp4
+					type="video/webm" 
+				/>
+			</video>
+			
+			<img 
+  src="https://static.tradingview.com/static/bundles/northern-lights-pricing-desktop.86b1853e628d56f03bc8.webm" 
+  alt="Background GIF"
+  className={`absolute top-0 left-0 w-full h-full object-cover z-0 ${theme === 'dark' ? 'opacity-40' : 'opacity-20'}`}
+/>
+
+			<div className={`absolute inset-0 bg-gradient-to-b ${
+				theme === 'dark' 
+					? 'from-black/50 via-black/30 to-black/50' 
+					: 'from-white/50 via-white/30 to-white/50'
+			}`} />
+		</div>
+	)
+}
+
 
 const API_URL = "https://api.lanyard.rest/v1/users/886971572668219392";
 
@@ -592,7 +666,8 @@ const HomePage = () => {
                 ? 'bg-gradient-to-br from-gray-900 via-gray-900 to-purple-900/20' 
                 : 'bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50'
         } transition-all duration-500`}>
-            
+            			<VideoBackground theme={theme} />
+
             <div className="text-center max-w-4xl">
                 <motion.div
                     className="relative w-40 h-40 sm:w-48 sm:h-48 mx-auto mb-8 sm:mb-12 group"
