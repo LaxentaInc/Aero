@@ -39,7 +39,7 @@ export const moduleInfo = {
   name: 'Spam Protection',
   description: 'Advanced spam detection and filtering with AutoMod integration',
   category: 'moderation',
-  icon: '🚫'
+  //icon: '🚫'
 };
 
 const defaultConfig: SpamProtectionConfig = {

@@ -34,7 +34,7 @@ export const moduleInfo = {
   name: 'Account Age Protection',
   description: 'Protect against new/suspicious accounts',
   category: 'security',
-  icon: '🔒'
+  //icon: '🔒'
 };
 
 const defaultConfig: AccountAgeConfig = {

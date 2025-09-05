@@ -39,7 +39,7 @@ export const moduleInfo = {
   name: 'Bot Protection',
   description: 'Protect against suspicious bots and auto-punish bot adders',
   category: 'security',
-  icon: '🤖'
+  //icon: '🤖'
 };
 
 const defaultConfig: BotProtectionConfig = {

@@ -38,7 +38,7 @@ export const moduleInfo = {
   name: 'Anti Mass Action Protection',
   description: 'Protect against mass kicks, bans, and raids',
   category: 'moderation',
-  icon: '🛡️'
+  //icon: '🛡️'
 };
 
 const defaultConfig: AMAConfig = {
