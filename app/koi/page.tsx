@@ -673,6 +673,14 @@ const HomePage = () => {
         } transition-all duration-500`}>
             			<VideoBackground theme={theme} />
 
+<img
+  src="/MillenniumEvent.png"
+  alt="Anime girl"
+  className="absolute top-[35vh] left-1/2 -translate-x-[180%] w-[600px] h-auto z-10"
+/>
+
+
+
             <div className="text-center max-w-4xl">
                 <motion.div
                     className="relative w-40 h-40 sm:w-48 sm:h-48 mx-auto mb-8 sm:mb-12 group"
