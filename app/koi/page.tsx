@@ -208,8 +208,17 @@ const useProtection = () => {
   }, [])
 }
 
-
 const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
+	// list of possible video sources
+	const videos = [
+		"/videos/damnbro.webm",
+		"/videos/Eyeloading-bg.webm",
+        "/videos/myCutekoiiii.webm"
+	]
+
+	// pick one at random every render
+	const randomVideo = videos[Math.floor(Math.random() * videos.length)]
+
 	return (
 		<div className="absolute inset-0 z-0 overflow-hidden">
 			<video
@@ -218,18 +227,18 @@ const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
 				loop
 				playsInline
 				crossOrigin="anonymous"
-				className={`absolute top-0 left-0 w-full h-[52vh] object-cover ${
+				className={`absolute top-0 left-0 w-full h-[53vh] object-cover ${
 					theme === 'dark' ? 'opacity-40' : 'opacity-20'
 				}`}
 			>
 				{/* https://static.tradingview.com/static/bundles/northern-lights-pricing-desktop.86b1853e628d56f03bc8.webm */}
                 {/* https://prplmoe.me/assets/animation/Kochan_2.mp4 */}
 				<source 
-				    src="/videos/damnbro.webm"
+				    src={randomVideo} //also add shorekeeper.mp4
 					type="video/webm" 
 				/>
 			</video>
-			
+
 
 			<div className={`absolute inset-0 bg-gradient-to-b ${
 				theme === 'dark' 
@@ -239,6 +248,7 @@ const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
 		</div>
 	)
 }
+
 
 
 const Skillsbg = ({ theme }: { theme: 'dark' | 'light' }) => {

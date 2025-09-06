@@ -1163,16 +1163,11 @@ const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
 			>
 				{/* https://static.tradingview.com/static/bundles/northern-lights-pricing-desktop.86b1853e628d56f03bc8.webm */}
 				<source 
-				    src="/videos/myCutekoiiii.mp4" //also add shorekeeper.mp4
-					type="video/mp4" 
+				    src="/videos/myCutekoiiii.webm"
+					type="video/webm" 
 				/>
 			</video>
-			
-			<img 
-  src="https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/85cd7a0e-70d4-434d-82c1-b0b50aa15bf3/dhoco07-5eeaa350-983b-4eb4-ad36-bbc485212648.gif" 
-  alt="Background GIF"
-  className={`absolute top-0 left-0 w-full h-full object-cover z-0 ${theme === 'dark' ? 'opacity-40' : 'opacity-20'}`}
-/>
+
 
 			<div className={`absolute inset-0 bg-gradient-to-b ${
 				theme === 'dark' 
