@@ -227,7 +227,7 @@ const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
 				loop
 				playsInline
 				crossOrigin="anonymous"
-				className={`absolute top-0 left-0 w-full h-[53vh] object-cover ${
+				className={`fixed top-0 left-0 w-full h-[57vh] object-cover ${
 					theme === 'dark' ? 'opacity-40' : 'opacity-20'
 				}`}
 			>
@@ -240,7 +240,7 @@ const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
 			</video>
 
 
-			<div className={`fixed inset-0 bg-gradient-to-b ${
+			<div className={`absolute inset-0 bg-gradient-to-b ${
 				theme === 'dark' 
 					? 'from-black/50 via-black/30 to-black/50' 
 					: 'from-white/50 via-white/30 to-white/50'
@@ -676,7 +676,7 @@ const HomePage = () => {
 <img
   src="/MillenniumEvent.png"
   alt="Anime girl"
-className="absolute top-[35vh] left-1/2 -translate-x-[180%] w-[min(590px,45vw)] h-auto z-10"
+className="absolute top-[35vh] left-1/2 -translate-x-[160%] w-[min(590px,45vw)] h-auto z-10"
 />
 
 
