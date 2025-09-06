@@ -240,7 +240,7 @@ const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
 			</video>
 
 
-			<div className={`absolute inset-0 bg-gradient-to-b ${
+			<div className={`fixed inset-0 bg-gradient-to-b ${
 				theme === 'dark' 
 					? 'from-black/50 via-black/30 to-black/50' 
 					: 'from-white/50 via-white/30 to-white/50'
@@ -676,7 +676,7 @@ const HomePage = () => {
 <img
   src="/MillenniumEvent.png"
   alt="Anime girl"
-  className="absolute top-[35vh] left-1/2 -translate-x-[180%] w-[600px] h-auto z-10"
+  className="absolute top-[35vh] left-1/2 -translate-x-[180%] w-[500px] h-auto z-10"
 />
 
 
