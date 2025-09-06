@@ -879,7 +879,7 @@ const TechStackViewer = ({ theme = 'dark' }: { theme?: 'dark' | 'light' }) => {
  return (
    <div 
      ref={containerRef}
-     className={`w-[90%] max-w-7xl mx-auto rounded-3xl overflow-hidden border shadow-2xl backdrop-blur-xl h-[800px] md:h-[500px] ${
+     className={`w-[95%] max-w-7xl mx-auto rounded-3xl overflow-hidden border shadow-2xl backdrop-blur-xl h-[800px] md:h-[660px] ${
        theme === 'dark'
          ? 'bg-gradient-to-br from-gray-900/95 to-black/95 border-white/10'
          : 'bg-gradient-to-br from-white/95 to-gray-100/95 border-black/10'
@@ -1012,6 +1012,7 @@ const TechStackViewer = ({ theme = 'dark' }: { theme?: 'dark' | 'light' }) => {
    </div>
  )
 }
+
  const ImprovedTechStack = ({ theme = 'dark' }: { theme?: 'dark' | 'light' }) => {
   return (
     <section className={`relative py-20 min-h-screen flex items-center justify-center overflow-visible ${
@@ -1179,165 +1180,161 @@ const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
 	)
 }
 
+
 const AboutSection = ({ theme }: { theme: 'dark' | 'light' }) => {
-
-
   const aboutFeatures = [
     {
-      title: "Full-Stack Development",
-      description: "Building complete web applications from frontend to backend with modern technologies and best practices.",
+      title: "me is a full-Stack Dev",
+      description: "lowkey first i learned next js just to making complete web apps that actually look cool ngl, cool = good",
       icon: (
-        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="2"/>
-          <line x1="8" y1="21" x2="16" y2="21" stroke="currentColor" strokeWidth="2"/>
-          <line x1="12" y1="17" x2="12" y2="21" stroke="currentColor" strokeWidth="2"/>
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" className="transition-transform duration-300 group-hover:rotate-12">
+          <path d="M13 3L4 14h7v7l9-11h-7V3z" stroke="currentColor" strokeWidth="2" className="transition-all duration-300"/>
         </svg>
       )
     },
     {
-      title: "Discord Bot Development",
-      description: "Creating powerful Discord bots with custom commands, moderation tools, and advanced features for communities.",
+      title: "Discord Bot;s and stuff",
+      description: "Came into coding exactly bc of making bots for communities and degens (yea nsfw type scraper bots) usually in javascr or tscr",
       icon: (
-        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" strokeWidth="2"/>
-          <circle cx="9" cy="10" r="1" fill="currentColor"/>
-          <circle cx="15" cy="10" r="1" fill="currentColor"/>
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" className="transition-transform duration-300 group-hover:scale-110">
+          <circle cx="9" cy="12" r="1" fill="currentColor" className="animate-pulse"/>
+          <circle cx="15" cy="12" r="1" fill="currentColor" className="animate-pulse" style={{animationDelay: '0.5s'}}/>
+          <path d="M8 21l8-4.5L8 12l8-4.5L8 3" stroke="currentColor" strokeWidth="2"/>
         </svg>
       )
     },
     {
-      title: "API Development",
-      description: "Building scalable RESTful APIs with proper authentication, documentation, and security measures.",
+      title: "apis lol",
+      description: "they sucked ass when i first started making ngl tho, cors stuff was a headache to me, learned the hard way lol",
       icon: (
-        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2"/>
-          <path d="M12 1v6m0 6v6" stroke="currentColor" strokeWidth="2"/>
-          <path d="m21 12-6 0m-6 0-6 0" stroke="currentColor" strokeWidth="2"/>
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" className="transition-transform duration-300 group-hover:-rotate-12">
+          <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" strokeWidth="2"/>
+          <path d="M2 17l10 5 10-5" stroke="currentColor" strokeWidth="2"/>
+          <path d="M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2"/>
         </svg>
       )
     },
     {
-      title: "System Programming",
-      description: "Learning Rust for high-performance systems programming and exploring low-level optimization techniques.",
+      title: "Now learning Rust",
+      description: "Learning systems programming cz why not? ion wanna be replaced by ai bro lmao",
       icon: (
-        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="2"/>
-          <rect x="9" y="9" width="6" height="6" stroke="currentColor" strokeWidth="2"/>
-          <line x1="9" y1="1" x2="9" y2="4" stroke="currentColor" strokeWidth="2"/>
-          <line x1="15" y1="1" x2="15" y2="4" stroke="currentColor" strokeWidth="2"/>
-          <line x1="9" y1="20" x2="9" y2="23" stroke="currentColor" strokeWidth="2"/>
-          <line x1="15" y1="20" x2="15" y2="23" stroke="currentColor" strokeWidth="2"/>
-          <line x1="20" y1="9" x2="23" y2="9" stroke="currentColor" strokeWidth="2"/>
-          <line x1="20" y1="14" x2="23" y2="14" stroke="currentColor" strokeWidth="2"/>
-          <line x1="1" y1="9" x2="4" y2="9" stroke="currentColor" strokeWidth="2"/>
-          <line x1="1" y1="14" x2="4" y2="14" stroke="currentColor" strokeWidth="2"/>
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" className="transition-transform duration-300 group-hover:scale-105">
+          <polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5" stroke="currentColor" strokeWidth="2"/>
+          <circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="2"/>
+          <path d="M12 8v8" stroke="currentColor" strokeWidth="1"/>
+          <path d="M8 12h8" stroke="currentColor" strokeWidth="1"/>
         </svg>
       )
     },
     {
-      title: "Modern JavaScript",
-      description: "Expert in vanilla JavaScript, React, Next.js, Node.js and TypeScript for building interactive applications.",
+      title: "cute code",
+      description: "Complex problems → simple solutions. Clean code that doesn't make future me want to cry (will follow same practice with your code xd)",
       icon: (
-        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <polyline points="4,17 10,11 4,5" stroke="currentColor" strokeWidth="2"/>
-          <line x1="12" y1="19" x2="20" y2="19" stroke="currentColor" strokeWidth="2"/>
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" className="transition-transform duration-300 group-hover:scale-110">
+          <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="2"/>
+          <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2"/>
+        </svg>
+      )
+	},
+	   {
+      title: "i love koi san",
+      description: "LOL i had to say it bro, i know she will notice and read it someday XD",
+      icon: (
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" className="transition-transform duration-300 group-hover:rotate-45">
+          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" strokeWidth="2"/>
         </svg>
       )
     },
-    {
-      title: "Problem Solving",
-      description: "Turning complex problems into simple, elegant solutions with clean code and intuitive user experiences.",
-      icon: (
-        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M9.663 17h4.673M12 3v1m6.364 1.636-.707.707M21 12h-1M4 12H3m3.343-5.657-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" stroke="currentColor" strokeWidth="2"/>
-        </svg>
-      )
-    }
   ];
 
   return (
     <section className="py-20 relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute inset-0">
-        <div className={`absolute top-10 left-10 w-32 h-32 rounded-full ${
-          theme === 'dark' ? 'bg-blue-600/5' : 'bg-blue-600/5'
-        } blur-3xl`} />
-        <div className={`absolute bottom-10 right-10 w-40 h-40 rounded-full ${
-          theme === 'dark' ? 'bg-purple-600/5' : 'bg-purple-600/5'
-        } blur-3xl`} />
+      {/* Minimal background elements */}
+      <div className="absolute inset-0 opacity-30">
+        <div className={`absolute top-20 left-20 w-32 h-32 rounded-full ${
+          theme === 'dark' ? 'bg-blue-500/10' : 'bg-blue-500/5'
+        } blur-2xl animate-pulse`} />
+        <div className={`absolute bottom-20 right-20 w-40 h-40 rounded-full ${
+          theme === 'dark' ? 'bg-purple-500/10' : 'bg-purple-500/5'
+        } blur-2xl animate-pulse`} style={{animationDelay: '2s'}} />
       </div>
 
       <div className="max-w-7xl mx-auto px-8 relative z-10">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
-        >
+        <div className="text-center mb-16">
           <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${
             theme === 'dark' ? 'text-white' : 'text-black'
           }`} style={{ fontFamily: 'Mochiy Pop One, cursive' }}>
             About Me
           </h2>
-          <div className="max-w-3xl mx-auto">
+          <div className="max-w-4xl mx-auto">
             <p className={`text-lg md:text-xl leading-relaxed mb-6 ${
               theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
             }`} style={{ fontFamily: 'Mochiy Pop One, cursive' }}>
-              18.9yo hobbyist developer and college student in science majors. 
-              Started coding to build a Discord music bot and fell in love with turning ideas into reality.
+              Wanna get familiar huh? Well i Started programming at 16 after I passed school and returned to India from Thailand 
+              built my full first website for collage - it was a chess page in vue.js lol
+            </p>
+            <p className={`text-base md:text-lg leading-relaxed mb-6 ${
+              theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+            }`} style={{ fontFamily: 'Mochiy Pop One, cursive' }}>
+              Then i Learned JavaScript and liked web development cz it feels good when I paste something random and it doesn't have to be edited; it just works :3
+            </p>
+            <p className={`text-base md:text-lg leading-relaxed mb-6 ${
+              theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+            }`} style={{ fontFamily: 'Mochiy Pop One, cursive' }}>
+              Built Discord bots for myself, communities and also for degenerate people. Node.js is cool and I built all those APIs in life.
             </p>
             <p className={`text-base md:text-lg ${
               theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
             }`} style={{ fontFamily: 'Mochiy Pop One, cursive' }}>
-              I enjoy building things that work well and look good while doing it.
+              Developed full-stack web applications for small businesses and startups - 90% of them scammed me yes LMAO. Currently tryna learn Rust & Python (idk I don't wanna learn Python much ngl)
             </p>
+			<p className={`text-sm italic mt-4 ${
+			  theme === 'dark' ? 'text-gray-500' : 'text-gray-400'
+			}`} style={{ fontFamily: 'Mochiy Pop One, cursive' }}>
+			 Still wanna read more XD? here:- 
+			</p>
           </div>
-        </motion.div>
+        </div>
 
         {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {aboutFeatures.map((feature, index) => (
-            <motion.div
+            <div
               key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className={`p-8 rounded-2xl border transition-all duration-300 hover:scale-105 ${
+              className={`group p-6 rounded-xl border transition-all duration-300 cursor-pointer
+                hover:scale-[1.02] hover:-translate-y-1 ${
                 theme === 'dark' 
-                  ? 'bg-gray-900/50 border-gray-700 hover:border-gray-600 hover:bg-gray-900/70' 
-                  : 'bg-white/50 border-gray-200 hover:border-gray-300 hover:bg-white/70'
+                  ? 'bg-gray-900/40 border-gray-700/50 hover:border-gray-600 hover:bg-gray-900/60 hover:shadow-lg hover:shadow-blue-500/10' 
+                  : 'bg-white/40 border-gray-200/50 hover:border-gray-300 hover:bg-white/60 hover:shadow-lg hover:shadow-blue-500/10'
               } backdrop-blur-sm`}
             >
-              <div className={`mb-4 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>
+              <div className={`mb-4 transition-colors duration-300 ${
+                theme === 'dark' ? 'text-blue-400 group-hover:text-blue-300' : 'text-blue-600 group-hover:text-blue-500'
+              }`}>
                 {feature.icon}
               </div>
-              <h3 className={`text-xl font-bold mb-3 ${
-                theme === 'dark' ? 'text-white' : 'text-black'
+              <h3 className={`text-lg font-bold mb-3 transition-colors duration-300 ${
+                theme === 'dark' ? 'text-white group-hover:text-blue-100' : 'text-black group-hover:text-blue-900'
               }`} style={{ fontFamily: 'Mochiy Pop One, cursive' }}>
                 {feature.title}
               </h3>
-              <p className={`text-sm leading-relaxed ${
-                theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+              <p className={`text-sm leading-relaxed transition-colors duration-300 ${
+                theme === 'dark' ? 'text-gray-400 group-hover:text-gray-300' : 'text-gray-600 group-hover:text-gray-700'
               }`} style={{ fontFamily: 'Mochiy Pop One, cursive' }}>
                 {feature.description}
               </p>
-            </motion.div>
+            </div>
           ))}
         </div>
 
         {/* Stats Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="mt-16 text-center"
-        >
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className={`p-6 rounded-xl ${
-              theme === 'dark' ? 'bg-gray-900/30' : 'bg-white/30'
+        <div className="mt-16 text-center">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className={`p-6 rounded-xl transition-all duration-300 hover:scale-105 ${
+              theme === 'dark' ? 'bg-gray-900/30 hover:bg-gray-900/50' : 'bg-white/30 hover:bg-white/50'
             } backdrop-blur-sm`}>
-              <div className={`text-3xl font-bold ${
+              <div className={`text-3xl font-bold transition-all duration-300 ${
                 theme === 'dark' ? 'text-blue-400' : 'text-blue-600'
               }`} style={{ fontFamily: 'Mochiy Pop One, cursive' }}>
                 3+
@@ -1348,10 +1345,10 @@ const AboutSection = ({ theme }: { theme: 'dark' | 'light' }) => {
                 Years Coding
               </div>
             </div>
-            <div className={`p-6 rounded-xl ${
-              theme === 'dark' ? 'bg-gray-900/30' : 'bg-white/30'
+            <div className={`p-6 rounded-xl transition-all duration-300 hover:scale-105 ${
+              theme === 'dark' ? 'bg-gray-900/30 hover:bg-gray-900/50' : 'bg-white/30 hover:bg-white/50'
             } backdrop-blur-sm`}>
-              <div className={`text-3xl font-bold ${
+              <div className={`text-3xl font-bold transition-all duration-300 ${
                 theme === 'dark' ? 'text-purple-400' : 'text-purple-600'
               }`} style={{ fontFamily: 'Mochiy Pop One, cursive' }}>
                 50+
@@ -1362,10 +1359,10 @@ const AboutSection = ({ theme }: { theme: 'dark' | 'light' }) => {
                 Projects Built
               </div>
             </div>
-            <div className={`p-6 rounded-xl ${
-              theme === 'dark' ? 'bg-gray-900/30' : 'bg-white/30'
+            <div className={`p-6 rounded-xl transition-all duration-300 hover:scale-105 ${
+              theme === 'dark' ? 'bg-gray-900/30 hover:bg-gray-900/50' : 'bg-white/30 hover:bg-white/50'
             } backdrop-blur-sm`}>
-              <div className={`text-3xl font-bold ${
+              <div className={`text-3xl font-bold transition-all duration-300 ${
                 theme === 'dark' ? 'text-green-400' : 'text-green-600'
               }`} style={{ fontFamily: 'Mochiy Pop One, cursive' }}>
                 9+
@@ -1373,13 +1370,13 @@ const AboutSection = ({ theme }: { theme: 'dark' | 'light' }) => {
               <div className={`text-sm ${
                 theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
               }`} style={{ fontFamily: 'Mochiy Pop One, cursive' }}>
-                Technologies
+                Languages/Frameworks
               </div>
             </div>
-            <div className={`p-6 rounded-xl ${
-              theme === 'dark' ? 'bg-gray-900/30' : 'bg-white/30'
+            <div className={`p-6 rounded-xl transition-all duration-300 hover:scale-105 ${
+              theme === 'dark' ? 'bg-gray-900/30 hover:bg-gray-900/50' : 'bg-white/30 hover:bg-white/50'
             } backdrop-blur-sm`}>
-              <div className={`text-3xl font-bold ${
+              <div className={`text-3xl font-bold transition-all duration-300 ${
                 theme === 'dark' ? 'text-orange-400' : 'text-orange-600'
               }`} style={{ fontFamily: 'Mochiy Pop One, cursive' }}>
                 ∞
@@ -1391,11 +1388,13 @@ const AboutSection = ({ theme }: { theme: 'dark' | 'light' }) => {
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );
 };
+
+
 export default function HomePage() {
 	const { theme } = useTheme()
 	const router = useRouter()
