@@ -666,8 +666,8 @@ const HomePage = () => {
     const { theme } = useTheme();
 
     return (
-        <div className={`min-h-screen flex items-center justify-center p-6 pt-32 ${
-            theme === 'dark' 
+<div className={`relative min-h-screen flex items-center justify-center p-6 pt-32 ${
+                theme === 'dark' 
                 ? 'bg-gradient-to-br from-gray-900 via-gray-900 to-purple-900/20' 
                 : 'bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50'
         } transition-all duration-500`}>
@@ -676,7 +676,7 @@ const HomePage = () => {
 <img
   src="/MillenniumEvent.png"
   alt="Anime girl"
-  className="absolute top-[35vh] left-1/2 -translate-x-[180%] w-[500px] h-auto z-10"
+className="absolute top-[35vh] left-1/2 -translate-x-[180%] w-[min(590px,45vw)] h-auto z-10"
 />
 
 
