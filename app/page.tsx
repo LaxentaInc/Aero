@@ -878,7 +878,7 @@ const TechStackViewer = ({ theme = 'dark' }: { theme?: 'dark' | 'light' }) => {
  return (
    <div 
      ref={containerRef}
-     className={`w-[90%] max-w-7xl mx-auto rounded-3xl overflow-hidden border shadow-2xl backdrop-blur-xl h-[400px] md:h-[700px] ${
+     className={`w-[90%] max-w-7xl mx-auto rounded-3xl overflow-hidden border shadow-2xl backdrop-blur-xl h-[800px] md:h-[500px] ${
        theme === 'dark'
          ? 'bg-gradient-to-br from-gray-900/95 to-black/95 border-white/10'
          : 'bg-gradient-to-br from-white/95 to-gray-100/95 border-black/10'
