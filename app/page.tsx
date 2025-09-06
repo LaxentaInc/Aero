@@ -800,219 +800,217 @@ const TechStackCard = ({ tech, isActive, theme }: {
 }
 
 const TechStackViewer = ({ theme = 'dark' }: { theme?: 'dark' | 'light' }) => {
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [progress, setProgress] = useState(0)
-  const touchStartX = useRef<number>(0)
-  const touchStartY = useRef<number>(0)
-  const containerRef = useRef<HTMLDivElement>(null)
+ const [currentIndex, setCurrentIndex] = useState(0)
+ const [progress, setProgress] = useState(0)
+ const touchStartX = useRef<number>(0)
+ const touchStartY = useRef<number>(0)
+ const containerRef = useRef<HTMLDivElement>(null)
 
-  // Languages being learned
-  const learningLanguages = ['Rust', 'Python']
+ // Languages being learned
+ const learningLanguages = ['Rust', 'Python']
 
-  // Auto-progress through items
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex(prev => {
-        const next = (prev + 1) % techStacks.length
-        setProgress(0) // Reset progress for new item
-        return next
-      })
-    }, 4000) // 4 seconds per item
+ // Auto-progress through items
+ useEffect(() => {
+   const interval = setInterval(() => {
+     setCurrentIndex(prev => {
+       const next = (prev + 1) % techStacks.length
+       setProgress(0) // Reset progress for new item
+       return next
+     })
+   }, 4000) // 4 seconds per item
 
-    return () => clearInterval(interval)
-  }, [])
+   return () => clearInterval(interval)
+ }, [])
 
-  // Progress bar animation
-  useEffect(() => {
-    const startTime = Date.now()
-    const duration = 4000
+ // Progress bar animation
+ useEffect(() => {
+   const startTime = Date.now()
+   const duration = 4000
 
-    const updateProgress = () => {
-      const elapsed = Date.now() - startTime
-      const newProgress = Math.min((elapsed / duration) * 100, 100)
-      setProgress(newProgress)
+   const updateProgress = () => {
+     const elapsed = Date.now() - startTime
+     const newProgress = Math.min((elapsed / duration) * 100, 100)
+     setProgress(newProgress)
 
-      if (newProgress < 100) {
-        requestAnimationFrame(updateProgress)
-      }
-    }
+     if (newProgress < 100) {
+       requestAnimationFrame(updateProgress)
+     }
+   }
 
-    updateProgress()
-  }, [currentIndex])
+   updateProgress()
+ }, [currentIndex])
 
-  // Touch/swipe handlers
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX
-    touchStartY.current = e.touches[0].clientY
-  }
+ // Touch/swipe handlers
+ const handleTouchStart = (e: React.TouchEvent) => {
+   touchStartX.current = e.touches[0].clientX
+   touchStartY.current = e.touches[0].clientY
+ }
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    const touchEndX = e.changedTouches[0].clientX
-    const touchEndY = e.changedTouches[0].clientY
-    const deltaX = touchStartX.current - touchEndX
-    const deltaY = touchStartY.current - touchEndY
+ const handleTouchEnd = (e: React.TouchEvent) => {
+   const touchEndX = e.changedTouches[0].clientX
+   const touchEndY = e.changedTouches[0].clientY
+   const deltaX = touchStartX.current - touchEndX
+   const deltaY = touchStartY.current - touchEndY
 
-    // Only trigger swipe if horizontal movement is greater than vertical
-    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
-      if (deltaX > 0) {
-        // Swipe left - next item
-        setCurrentIndex(prev => (prev + 1) % techStacks.length)
-      } else {
-        // Swipe right - previous item
-        setCurrentIndex(prev => (prev - 1 + techStacks.length) % techStacks.length)
-      }
-      setProgress(0)
-    }
-  }
+   // Only trigger swipe if horizontal movement is greater than vertical
+   if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+     if (deltaX > 0) {
+       // Swipe left - next item
+       setCurrentIndex(prev => (prev + 1) % techStacks.length)
+     } else {
+       // Swipe right - previous item
+       setCurrentIndex(prev => (prev - 1 + techStacks.length) % techStacks.length)
+     }
+     setProgress(0)
+   }
+ }
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowLeft') {
-      setCurrentIndex(prev => (prev - 1 + techStacks.length) % techStacks.length)
-      setProgress(0)
-    } else if (e.key === 'ArrowRight') {
-      setCurrentIndex(prev => (prev + 1) % techStacks.length)
-      setProgress(0)
-    }
-  }
+ const handleKeyDown = (e: React.KeyboardEvent) => {
+   if (e.key === 'ArrowLeft') {
+     setCurrentIndex(prev => (prev - 1 + techStacks.length) % techStacks.length)
+     setProgress(0)
+   } else if (e.key === 'ArrowRight') {
+     setCurrentIndex(prev => (prev + 1) % techStacks.length)
+     setProgress(0)
+   }
+ }
 
-  return (
-    <div 
-      ref={containerRef}
-      className={`w-[90%] max-w-7xl mx-auto rounded-3xl overflow-hidden border shadow-2xl backdrop-blur-xl ${
-        theme === 'dark'
-          ? 'bg-gradient-to-br from-gray-900/95 to-black/95 border-white/10'
-          : 'bg-gradient-to-br from-white/95 to-gray-100/95 border-black/10'
-      }`}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-      onKeyDown={handleKeyDown}
-      tabIndex={0}
-      style={{ height: '700px' }} //gotta do for android XD
-    >
-      <div className="h-full flex flex-col md:flex-row">
-        {/* Left Section - Content */}
-        <div className="w-full md:w-[45%] p-6 md:p-12 flex flex-col justify-center">
-          <motion.h2
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            className={`text-3xl md:text-5xl font-black mb-6 ${theme === 'dark' ? 'text-white' : 'text-black'}`}
-          >
-            languages i know :p
-          </motion.h2>
+ return (
+   <div 
+     ref={containerRef}
+     className={`w-[90%] max-w-7xl mx-auto rounded-3xl overflow-hidden border shadow-2xl backdrop-blur-xl h-[400px] md:h-[700px] ${
+       theme === 'dark'
+         ? 'bg-gradient-to-br from-gray-900/95 to-black/95 border-white/10'
+         : 'bg-gradient-to-br from-white/95 to-gray-100/95 border-black/10'
+     }`}
+     onTouchStart={handleTouchStart}
+     onTouchEnd={handleTouchEnd}
+     onKeyDown={handleKeyDown}
+     tabIndex={0}
+   >
+     <div className="h-full flex flex-col md:flex-row">
+       {/* Left Section - Content */}
+       <div className="w-full md:w-[45%] p-6 md:p-12 flex flex-col justify-center">
+         <motion.h2
+           initial={{ y: 20, opacity: 0 }}
+           animate={{ y: 0, opacity: 1 }}
+           className={`text-3xl md:text-5xl font-black mb-6 ${theme === 'dark' ? 'text-white' : 'text-black'}`}
+         >
+           languages i know :p
+         </motion.h2>
 
-          <div className="space-y-6">
-            {/* Progress Bar */}
-            <div className={`w-full h-3 rounded-full overflow-hidden ${theme === 'dark' ? 'bg-white/10' : 'bg-black/10'}`}>
-              <motion.div
-                className="h-full bg-gradient-to-r from-purple-500 via-blue-500 to-purple-500 bg-[length:200%_100%]"
-                style={{
-                  width: `${progress}%`,
-                  backgroundPosition: `${progress}% 0`
-                }}
-                transition={{ duration: 0.1 }}
-              />
-            </div>
+         <div className="space-y-6">
+           {/* Progress Bar */}
+           <div className={`w-full h-3 rounded-full overflow-hidden ${theme === 'dark' ? 'bg-white/10' : 'bg-black/10'}`}>
+             <motion.div
+               className="h-full bg-gradient-to-r from-purple-500 via-blue-500 to-purple-500 bg-[length:200%_100%]"
+               style={{
+                 width: `${progress}%`,
+                 backgroundPosition: `${progress}% 0`
+               }}
+               transition={{ duration: 0.1 }}
+             />
+           </div>
 
-            {/* Current Tech Info */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentIndex}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                transition={{ duration: 0.3 }}
-                className="flex items-center gap-4"
-              >
-                <div className={`text-3xl md:text-4xl font-bold ${theme === 'dark' ? 'text-white/20' : 'text-black/20'}`}>
-                  {String(currentIndex + 1).padStart(2, '0')}
-                </div>
-                <div>
-                  <h3 className={`text-xl md:text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-                    {techStacks[currentIndex]?.name}
-                  </h3>
-                  <p className={`text-xs md:text-sm font-mono ${theme === 'dark' ? 'text-white/50' : 'text-black/50'} mb-2`}>
-                    {techStacks[currentIndex]?.description}
-                  </p>
-                  <div className="flex gap-2">
-                    <span
-                      className="text-xs px-2 py-1 rounded-full flex items-center gap-1.5"
-                      style={{
-                        backgroundColor: learningLanguages.includes(techStacks[currentIndex]?.name || '')
-                          ? '#a855f720'
-                          : '#10b98120',
-                        color: learningLanguages.includes(techStacks[currentIndex]?.name || '')
-                          ? theme === 'dark' ? '#a855f7' : '#7c3aed'
-                          : theme === 'dark' ? '#10b981' : '#059669'
-                      }}
-                    >
-                      {learningLanguages.includes(techStacks[currentIndex]?.name || '') ? (
-                        <>
-                          <BookIcon 
-                            className="w-3 h-3" 
-                            color={theme === 'dark' ? '#a855f7' : '#7c3aed'} 
-                          />
-                          Learning :3
-                        </>
-                      ) : (
-                        <>
-                          <ShieldCheckIcon 
-                            className="w-3 h-3" 
-                            color={theme === 'dark' ? '#10b981' : '#059669'} 
-                          />
-                          Proficient :)
-                        </>
-                      )}
-                    </span>
-                  </div>
-                </div>
-              </motion.div>
-            </AnimatePresence>
+           {/* Current Tech Info */}
+           <AnimatePresence mode="wait">
+             <motion.div
+               key={currentIndex}
+               initial={{ opacity: 0, x: -20 }}
+               animate={{ opacity: 1, x: 0 }}
+               exit={{ opacity: 0, x: 20 }}
+               transition={{ duration: 0.3 }}
+               className="flex items-center gap-4"
+             >
+               <div className={`text-3xl md:text-4xl font-bold ${theme === 'dark' ? 'text-white/20' : 'text-black/20'}`}>
+                 {String(currentIndex + 1).padStart(2, '0')}
+               </div>
+               <div>
+                 <h3 className={`text-xl md:text-2xl font-bold ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
+                   {techStacks[currentIndex]?.name}
+                 </h3>
+                 <p className={`text-xs md:text-sm font-mono ${theme === 'dark' ? 'text-white/50' : 'text-black/50'} mb-2`}>
+                   {techStacks[currentIndex]?.description}
+                 </p>
+                 <div className="flex gap-2">
+                   <span
+                     className="text-xs px-2 py-1 rounded-full flex items-center gap-1.5"
+                     style={{
+                       backgroundColor: learningLanguages.includes(techStacks[currentIndex]?.name || '')
+                         ? '#a855f720'
+                         : '#10b98120',
+                       color: learningLanguages.includes(techStacks[currentIndex]?.name || '')
+                         ? theme === 'dark' ? '#a855f7' : '#7c3aed'
+                         : theme === 'dark' ? '#10b981' : '#059669'
+                     }}
+                   >
+                     {learningLanguages.includes(techStacks[currentIndex]?.name || '') ? (
+                       <>
+                         <BookIcon 
+                           className="w-3 h-3" 
+                           color={theme === 'dark' ? '#a855f7' : '#7c3aed'} 
+                         />
+                         Learning :3
+                       </>
+                     ) : (
+                       <>
+                         <ShieldCheckIcon 
+                           className="w-3 h-3" 
+                           color={theme === 'dark' ? '#10b981' : '#059669'} 
+                         />
+                         Proficient :)
+                       </>
+                     )}
+                   </span>
+                 </div>
+               </div>
+             </motion.div>
+           </AnimatePresence>
 
-            {/* Navigation Dots */}
-            <div className="flex gap-2 justify-center md:justify-start">
-              {techStacks.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => {
-                    setCurrentIndex(index)
-                    setProgress(0)
-                  }}
-                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                    index === currentIndex
-                      ? 'bg-purple-500 w-6'
-                      : theme === 'dark' ? 'bg-white/20 hover:bg-white/40' : 'bg-black/20 hover:bg-black/40'
-                  }`}
-                />
-              ))}
-            </div>
+           {/* Navigation Dots */}
+           <div className="flex gap-2 justify-center md:justify-start">
+             {techStacks.map((_, index) => (
+               <button
+                 key={index}
+                 onClick={() => {
+                   setCurrentIndex(index)
+                   setProgress(0)
+                 }}
+                 className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                   index === currentIndex
+                     ? 'bg-purple-500 w-6'
+                     : theme === 'dark' ? 'bg-white/20 hover:bg-white/40' : 'bg-black/20 hover:bg-black/40'
+                 }`}
+               />
+             ))}
+           </div>
 
-            {/* Controls Hint */}
-            <p className={`text-xs font-mono ${theme === 'dark' ? 'text-white/30' : 'text-black/30'}`}>
-              Swipe, use arrow keys, or click dots to navigate
-            </p>
-          </div>
-        </div>
-        
-        {/* Right Section - Tech Cards */}
-        <div className="relative w-full md:w-[55%] h-full p-4 md:p-8">
-          <div className="h-full">
-            <AnimatePresence mode="wait">
-              {techStacks[currentIndex] && (
-                <TechStackCard 
-                  key={currentIndex}
-                  tech={techStacks[currentIndex]} 
-                  isActive={true}
-                  theme={theme}
-                />
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+           {/* Controls Hint */}
+           <p className={`text-xs font-mono ${theme === 'dark' ? 'text-white/30' : 'text-black/30'}`}>
+             Swipe, use arrow keys, or click dots to navigate
+           </p>
+         </div>
+       </div>
+       
+       {/* Right Section - Tech Cards */}
+       <div className="relative w-full md:w-[55%] h-full p-4 md:p-8">
+         <div className="h-full">
+           <AnimatePresence mode="wait">
+             {techStacks[currentIndex] && (
+               <TechStackCard 
+                 key={currentIndex}
+                 tech={techStacks[currentIndex]} 
+                 isActive={true}
+                 theme={theme}
+               />
+             )}
+           </AnimatePresence>
+         </div>
+       </div>
+     </div>
+   </div>
+ )
 }
-
  const ImprovedTechStack = ({ theme = 'dark' }: { theme?: 'dark' | 'light' }) => {
   return (
     <section className={`relative py-20 min-h-screen flex items-center justify-center overflow-visible ${
