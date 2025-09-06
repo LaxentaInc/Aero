@@ -250,8 +250,16 @@ const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
 }
 
 
-
 const Skillsbg = ({ theme }: { theme: 'dark' | 'light' }) => {
+	// list of possible video sources
+	const videos = [
+		"/videos/damnbro.webm",
+		"/videos/myCutekoiiii.webm"
+	]
+
+	// pick one at random every render
+	const randomVideo = videos[Math.floor(Math.random() * videos.length)]
+
 	return (
 		<div className="absolute inset-0 z-0 overflow-hidden">
 			<video
@@ -264,21 +272,13 @@ const Skillsbg = ({ theme }: { theme: 'dark' | 'light' }) => {
 					theme === 'dark' ? 'opacity-40' : 'opacity-20'
 				}`}
 			>
-				{/* https://static.tradingview.com/static/bundles/northern-lights-pricing-desktop.86b1853e628d56f03bc8.webm */}
-                {/* https://prplmoe.me/assets/animation/Kochan_2.mp4 */}
 				<source 
-				    src="https://static.tradingview.com/static/bundles/northern-lights-pricing-desktop.86b1853e628d56f03bc8.webm" //also add shorekeeper.mp4
+				    src={randomVideo} 
 					type="video/webm" 
 				/>
 			</video>
-			
-			<img 
-  src="https://static.tradingview.com/static/bundles/northern-lights-pricing-desktop.86b1853e628d56f03bc8.webm" 
-  alt="Background GIF"
-  className={`absolute top-0 left-0 w-full h-full object-cover z-0 ${theme === 'dark' ? 'opacity-40' : 'opacity-20'}`}
-/>
 
-			<div className={`absolute inset-0 bg-gradient-to-b ${
+			<div className={`fixed inset-0 bg-gradient-to-b ${
 				theme === 'dark' 
 					? 'from-black/50 via-black/30 to-black/50' 
 					: 'from-white/50 via-white/30 to-white/50'
@@ -973,6 +973,7 @@ const ProjectsPage = () => {
 };
 
 const SkillsPage = () => {
+    const { theme } = useTheme();
     const skillCategories = [
         {
             category: "Her Professional Talents",
@@ -1072,88 +1073,93 @@ const SkillsPage = () => {
             color: "from-green-400 to-teal-500"
         }
     ];
+return (
+<div className={`relative min-h-screen pt-32 pb-16 px-6 transition-all duration-500 ${
+    theme === 'dark' 
+        ? 'bg-gradient-to-br from-gray-900 via-gray-900 to-purple-900/20' 
+        : 'bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50'
+}`}>
+           <Skillsbg theme={theme} />
+       
+       <div className="relative max-w-7xl mx-auto z-10">
+           <motion.div
+               className="text-center mb-16"
+               initial={{ opacity: 0, y: 30 }}
+               animate={{ opacity: 1, y: 0 }}
+               transition={{ duration: 0.8 }}
+           >
+               <h1 className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 mb-6">
+                   Her Skills
+               </h1>
+               <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                   A breakdown of her.. ahem unique professional competencies (defnitely real)
+               </p>
+               <p className="text-lg text-gray-500 dark:text-gray-400 italic mt-2">
+                   these will keep on stacking the more i know about her personality, because why not lmao?
+               </p>
+           </motion.div>
 
-    return (
-        <div className="min-h-screen pt-32 pb-16 px-6 bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-purple-900/20 transition-all duration-500">
-            <div className="max-w-7xl mx-auto">
-                <motion.div
-                    className="text-center mb-16"
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8 }}
-                >
-                    <h1 className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 mb-6">
-                        Her Skills
-                    </h1>
-                    <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-                        A breakdown of her.. ahem unique professional competencies (defnitely real)
-                    </p>
-                    <p className="text-lg text-gray-500 dark:text-gray-400 italic mt-2">
-                        these will keep on stacking the more i know about her personality, because why not lmao?
-                        </p>
-                </motion.div>
+           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+               {skillCategories.map((category, index) => (
+                   <motion.div
+                       key={category.category}
+                       className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-8 border border-gray-200/50 dark:border-gray-700/50 shadow-lg hover:shadow-2xl transition-all duration-300"
+                       initial={{ opacity: 0, y: 50 }}
+                       animate={{ opacity: 1, y: 0 }}
+                       transition={{ delay: index * 0.2, duration: 0.6 }}
+                       whileHover={{ y: -4, scale: 1.02 }}
+                   >
+                       <div className="mb-8">
+                           <h2 className="text-3xl font-black text-gray-900 dark:text-white mb-3">
+                               {category.category}
+                           </h2>
+                           <p className="text-lg text-gray-600 dark:text-gray-300">
+                               {category.description}
+                           </p>
+                       </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
-                    {skillCategories.map((category, index) => (
-                        <motion.div
-                            key={category.category}
-                            className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-8 border border-gray-200/50 dark:border-gray-700/50 shadow-lg hover:shadow-2xl transition-all duration-300"
-                            initial={{ opacity: 0, y: 50 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.2, duration: 0.6 }}
-                            whileHover={{ y: -4, scale: 1.02 }}
-                        >
-                            <div className="mb-8">
-                                <h2 className="text-3xl font-black text-gray-900 dark:text-white mb-3">
-                                    {category.category}
-                                </h2>
-                                <p className="text-lg text-gray-600 dark:text-gray-300">
-                                    {category.description}
-                                </p>
-                            </div>
-
-                            <div className="space-y-8">
-                                {category.items.map((skill, skillIndex) => (
-                                    <motion.div
-                                        key={skill.name}
-                                        className="space-y-4"
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: (index * 0.2) + (skillIndex * 0.1) }}
-                                        whileHover={{ scale: 1.02 }}
-                                    >
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-xl font-bold text-gray-800 dark:text-gray-100">
-                                                {skill.name}
-                                            </span>
-                                            <span className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-600">
-                                                {skill.level}%
-                                            </span>
-                                        </div>
-                                        <div className="relative w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 overflow-hidden">
-                                            <motion.div
-                                                className={`h-full rounded-full bg-gradient-to-r ${category.color}`}
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${skill.level}%` }}
-                                                transition={{ 
-                                                    duration: 1.5, 
-                                                    delay: (index * 0.2) + (skillIndex * 0.1) + 0.5,
-                                                    ease: "easeOut"
-                                                }}
-                                            />
-                                        </div>
-                                        <p className="text-base text-gray-600 dark:text-gray-300 font-medium leading-relaxed">
-                                            {skill.description}
-                                        </p>
-                                    </motion.div>
-                                ))}
-                            </div>
-                        </motion.div>
-                    ))}
-                </div>
-            </div>
-        </div>
-    );
+                       <div className="space-y-8">
+                           {category.items.map((skill, skillIndex) => (
+                               <motion.div
+                                   key={skill.name}
+                                   className="space-y-4"
+                                   initial={{ opacity: 0, x: -20 }}
+                                   animate={{ opacity: 1, x: 0 }}
+                                   transition={{ delay: (index * 0.2) + (skillIndex * 0.1) }}
+                                   whileHover={{ scale: 1.02 }}
+                               >
+                                   <div className="flex justify-between items-center">
+                                       <span className="text-xl font-bold text-gray-800 dark:text-gray-100">
+                                           {skill.name}
+                                       </span>
+                                       <span className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-600">
+                                           {skill.level}%
+                                       </span>
+                                   </div>
+                                   <div className="relative w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 overflow-hidden">
+                                       <motion.div
+                                           className={`h-full rounded-full bg-gradient-to-r ${category.color}`}
+                                           initial={{ width: 0 }}
+                                           animate={{ width: `${skill.level}%` }}
+                                           transition={{ 
+                                               duration: 1.5, 
+                                               delay: (index * 0.2) + (skillIndex * 0.1) + 0.5,
+                                               ease: "easeOut"
+                                           }}
+                                       />
+                                   </div>
+                                   <p className="text-base text-gray-600 dark:text-gray-300 font-medium leading-relaxed">
+                                       {skill.description}
+                                   </p>
+                               </motion.div>
+                           ))}
+                       </div>
+                   </motion.div>
+               ))}
+           </div>
+       </div>
+   </div>
+);
 };
 
 const KoiPortfolio = () => {

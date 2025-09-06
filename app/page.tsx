@@ -8,6 +8,7 @@ import { FaReact, FaNodeJs, FaPython, FaRust, FaJs } from 'react-icons/fa'
 import { SiNextdotjs, SiTypescript, SiVuedotjs, SiDiscord } from 'react-icons/si'
 import { SpotifyNowPlaying } from './components/SpotifyNowPlaying'
 import { Typewriter } from 'react-simple-typewriter';
+import { Mochiy_Pop_One } from 'next/font/google'
 
 //svg
 const BookIcon = ({ className = "w-4 h-4", color = "currentColor" }) => (
@@ -1015,7 +1016,9 @@ const TechStackViewer = ({ theme = 'dark' }: { theme?: 'dark' | 'light' }) => {
   return (
     <section className={`relative py-20 min-h-screen flex items-center justify-center overflow-visible ${
       theme === 'dark' ? 'bg-gradient-to-b from-gray-900 to-black' : 'bg-gradient-to-b from-gray-100 to-white'
-    }`}>
+    }`}
+		style={{ fontFamily: 'Mochiy_Pop_One, cursive' }} //we make mochi uwu
+		>
       {/* Background Elements */}
       <div className="absolute inset-0">
         <div className={`absolute top-20 left-10 w-32 h-32 rounded-full ${
@@ -1176,28 +1179,242 @@ const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
 	)
 }
 
+const AboutSection = ({ theme }: { theme: 'dark' | 'light' }) => {
 
+
+  const aboutFeatures = [
+    {
+      title: "Full-Stack Development",
+      description: "Building complete web applications from frontend to backend with modern technologies and best practices.",
+      icon: (
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="2"/>
+          <line x1="8" y1="21" x2="16" y2="21" stroke="currentColor" strokeWidth="2"/>
+          <line x1="12" y1="17" x2="12" y2="21" stroke="currentColor" strokeWidth="2"/>
+        </svg>
+      )
+    },
+    {
+      title: "Discord Bot Development",
+      description: "Creating powerful Discord bots with custom commands, moderation tools, and advanced features for communities.",
+      icon: (
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" strokeWidth="2"/>
+          <circle cx="9" cy="10" r="1" fill="currentColor"/>
+          <circle cx="15" cy="10" r="1" fill="currentColor"/>
+        </svg>
+      )
+    },
+    {
+      title: "API Development",
+      description: "Building scalable RESTful APIs with proper authentication, documentation, and security measures.",
+      icon: (
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2"/>
+          <path d="M12 1v6m0 6v6" stroke="currentColor" strokeWidth="2"/>
+          <path d="m21 12-6 0m-6 0-6 0" stroke="currentColor" strokeWidth="2"/>
+        </svg>
+      )
+    },
+    {
+      title: "System Programming",
+      description: "Learning Rust for high-performance systems programming and exploring low-level optimization techniques.",
+      icon: (
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="2"/>
+          <rect x="9" y="9" width="6" height="6" stroke="currentColor" strokeWidth="2"/>
+          <line x1="9" y1="1" x2="9" y2="4" stroke="currentColor" strokeWidth="2"/>
+          <line x1="15" y1="1" x2="15" y2="4" stroke="currentColor" strokeWidth="2"/>
+          <line x1="9" y1="20" x2="9" y2="23" stroke="currentColor" strokeWidth="2"/>
+          <line x1="15" y1="20" x2="15" y2="23" stroke="currentColor" strokeWidth="2"/>
+          <line x1="20" y1="9" x2="23" y2="9" stroke="currentColor" strokeWidth="2"/>
+          <line x1="20" y1="14" x2="23" y2="14" stroke="currentColor" strokeWidth="2"/>
+          <line x1="1" y1="9" x2="4" y2="9" stroke="currentColor" strokeWidth="2"/>
+          <line x1="1" y1="14" x2="4" y2="14" stroke="currentColor" strokeWidth="2"/>
+        </svg>
+      )
+    },
+    {
+      title: "Modern JavaScript",
+      description: "Expert in vanilla JavaScript, React, Next.js, Node.js and TypeScript for building interactive applications.",
+      icon: (
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <polyline points="4,17 10,11 4,5" stroke="currentColor" strokeWidth="2"/>
+          <line x1="12" y1="19" x2="20" y2="19" stroke="currentColor" strokeWidth="2"/>
+        </svg>
+      )
+    },
+    {
+      title: "Problem Solving",
+      description: "Turning complex problems into simple, elegant solutions with clean code and intuitive user experiences.",
+      icon: (
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M9.663 17h4.673M12 3v1m6.364 1.636-.707.707M21 12h-1M4 12H3m3.343-5.657-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" stroke="currentColor" strokeWidth="2"/>
+        </svg>
+      )
+    }
+  ];
+
+  return (
+    <section className="py-20 relative overflow-hidden">
+      {/* Background Elements */}
+      <div className="absolute inset-0">
+        <div className={`absolute top-10 left-10 w-32 h-32 rounded-full ${
+          theme === 'dark' ? 'bg-blue-600/5' : 'bg-blue-600/5'
+        } blur-3xl`} />
+        <div className={`absolute bottom-10 right-10 w-40 h-40 rounded-full ${
+          theme === 'dark' ? 'bg-purple-600/5' : 'bg-purple-600/5'
+        } blur-3xl`} />
+      </div>
+
+      <div className="max-w-7xl mx-auto px-8 relative z-10">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-16"
+        >
+          <h2 className={`text-4xl md:text-5xl font-bold mb-6 ${
+            theme === 'dark' ? 'text-white' : 'text-black'
+          }`} style={{ fontFamily: 'Mochiy Pop One, cursive' }}>
+            About Me
+          </h2>
+          <div className="max-w-3xl mx-auto">
+            <p className={`text-lg md:text-xl leading-relaxed mb-6 ${
+              theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+            }`} style={{ fontFamily: 'Mochiy Pop One, cursive' }}>
+              18.9yo hobbyist developer and college student in science majors. 
+              Started coding to build a Discord music bot and fell in love with turning ideas into reality.
+            </p>
+            <p className={`text-base md:text-lg ${
+              theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+            }`} style={{ fontFamily: 'Mochiy Pop One, cursive' }}>
+              I enjoy building things that work well and look good while doing it.
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Features Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {aboutFeatures.map((feature, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              className={`p-8 rounded-2xl border transition-all duration-300 hover:scale-105 ${
+                theme === 'dark' 
+                  ? 'bg-gray-900/50 border-gray-700 hover:border-gray-600 hover:bg-gray-900/70' 
+                  : 'bg-white/50 border-gray-200 hover:border-gray-300 hover:bg-white/70'
+              } backdrop-blur-sm`}
+            >
+              <div className={`mb-4 ${theme === 'dark' ? 'text-blue-400' : 'text-blue-600'}`}>
+                {feature.icon}
+              </div>
+              <h3 className={`text-xl font-bold mb-3 ${
+                theme === 'dark' ? 'text-white' : 'text-black'
+              }`} style={{ fontFamily: 'Mochiy Pop One, cursive' }}>
+                {feature.title}
+              </h3>
+              <p className={`text-sm leading-relaxed ${
+                theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+              }`} style={{ fontFamily: 'Mochiy Pop One, cursive' }}>
+                {feature.description}
+              </p>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Stats Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="mt-16 text-center"
+        >
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div className={`p-6 rounded-xl ${
+              theme === 'dark' ? 'bg-gray-900/30' : 'bg-white/30'
+            } backdrop-blur-sm`}>
+              <div className={`text-3xl font-bold ${
+                theme === 'dark' ? 'text-blue-400' : 'text-blue-600'
+              }`} style={{ fontFamily: 'Mochiy Pop One, cursive' }}>
+                3+
+              </div>
+              <div className={`text-sm ${
+                theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+              }`} style={{ fontFamily: 'Mochiy Pop One, cursive' }}>
+                Years Coding
+              </div>
+            </div>
+            <div className={`p-6 rounded-xl ${
+              theme === 'dark' ? 'bg-gray-900/30' : 'bg-white/30'
+            } backdrop-blur-sm`}>
+              <div className={`text-3xl font-bold ${
+                theme === 'dark' ? 'text-purple-400' : 'text-purple-600'
+              }`} style={{ fontFamily: 'Mochiy Pop One, cursive' }}>
+                50+
+              </div>
+              <div className={`text-sm ${
+                theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+              }`} style={{ fontFamily: 'Mochiy Pop One, cursive' }}>
+                Projects Built
+              </div>
+            </div>
+            <div className={`p-6 rounded-xl ${
+              theme === 'dark' ? 'bg-gray-900/30' : 'bg-white/30'
+            } backdrop-blur-sm`}>
+              <div className={`text-3xl font-bold ${
+                theme === 'dark' ? 'text-green-400' : 'text-green-600'
+              }`} style={{ fontFamily: 'Mochiy Pop One, cursive' }}>
+                9+
+              </div>
+              <div className={`text-sm ${
+                theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+              }`} style={{ fontFamily: 'Mochiy Pop One, cursive' }}>
+                Technologies
+              </div>
+            </div>
+            <div className={`p-6 rounded-xl ${
+              theme === 'dark' ? 'bg-gray-900/30' : 'bg-white/30'
+            } backdrop-blur-sm`}>
+              <div className={`text-3xl font-bold ${
+                theme === 'dark' ? 'text-orange-400' : 'text-orange-600'
+              }`} style={{ fontFamily: 'Mochiy Pop One, cursive' }}>
+                ∞
+              </div>
+              <div className={`text-sm ${
+                theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+              }`} style={{ fontFamily: 'Mochiy Pop One, cursive' }}>
+                Ideas to Build
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </section>
+  );
+};
 export default function HomePage() {
 	const { theme } = useTheme()
 	const router = useRouter()
 	    useProtection(); //we use dis here too uwu
-//depretated :3
-	const skillsText = `// My Skills
-• JavaScript - Experienced in building interactive web apps
-• React/Next.js - Proficient in SSR & static applications
-• Node.js - Skilled in scalable backend services
-• Python - Automation, scripting & data analysis
-• Rust - Systems programming & optimization
-• TypeScript - Type-safe development
-• Vue.js - Component-based UI development
-• Discord.js - Building powerful Discord bots`
+	useEffect(() => {
+		const addCustomFont = () => {
+			// Check if font is already loaded
+			if (document.querySelector('link[href*="Mochiy+Pop+One"]')) {
+				return;
+			}
+			
+			const link = document.createElement('link');
+			link.href = 'https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&display=swap';
+			link.rel = 'stylesheet';
+			document.head.appendChild(link);
+		};
 
-	const journeyText = `// My Journey
-$ Started programming at age 12, built my first website using HTML & CSS
-$ Learned JavaScript and fell in love with interactive web development
-$ Built Discord bots for communities, learned Node.js and API design
-$ Developed full-stack applications for small businesses and startups
-$ Currently exploring Rust & Python for system programming and AI/ML`
+		addCustomFont();
+	}, []);
 
 	return (
 		<motion.div 
@@ -1341,82 +1558,7 @@ $ Currently exploring Rust & Python for system programming and AI/ML`
 </section>
 
 			{/* About Section - IMPROVED */}
-			<section className="py-20">
-				<div className="max-w-7xl mx-auto px-8">
-					<motion.div
-						initial={{ opacity: 0, y: 50 }}
-						whileInView={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.7 }}
-						className={`text-center mb-16 ${
-							theme === 'dark' ? 'text-white' : 'text-black'
-						}`}
-					>
-						<h2 className="text-4xl md:text-5xl font-extrabold mb-4">
-							About Me
-						</h2>
-						<p className={`text-lg md:text-xl leading-relaxed max-w-3xl mx-auto font-mono ${
-							theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-						}`}>
-							I'm a 18.9yo hobbyist developer and a collage student in science majors, i have enough experience in building dynamic Web Applications or backend services or both lol. 
-							My journey in tech started with a lil curiosity and basically bcz i wanted to make a discord music bot lmao, simple as that.  
-							I enjoy turning complex problems into dumb, beautiful, and intuitive designs.
-						</p>
-					</motion.div>
-					
-					{/*present skills and journey as beautiful monospace lists*/}
-					<div className="max-w-4xl mx-auto flex flex-col md:flex-row gap-12 items-start">
-						<div className="flex-1">
-							<h3 className={`font-mono text-xl md:text-2xl font-bold mb-4 ${theme === 'dark' ? 'text-purple-300' : 'text-purple-700'}`}>
-								// My Skills
-							</h3>
-							<ul className={`font-mono text-base md:text-lg leading-relaxed whitespace-pre-wrap ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'} pl-4`}>
-								<li>• JavaScript - Experienced in building interactive web apps</li>
-																<li>-</li>
-
-								<li>• React/Next.js - Proficient in SSR & static applications</li>
-																<li>-</li>
-
-								<li>• Node.js - Skilled in scalable backend services</li>
-																<li>-</li>
-
-								<li>• Python - Automation, scripting & data analysis</li>
-																<li>-</li>
-
-								<li>• Rust - Systems programming & optimization</li>
-																<li>-</li>
-
-								<li>• TypeScript - Type-safe development</li>
-																<li>-</li>
-
-								<li>• Vue.js - Component-based UI development</li>
-																<li>-</li>
-
-								<li>• Discord.js - Building powerful Discord bots</li>
-							</ul>
-						</div>
-						<div className="flex-1">
-							<h3 className={`font-mono text-xl md:text-2xl font-bold mb-4 ${theme === 'dark' ? 'text-green-300' : 'text-green-700'}`}>
-								# Why i started doing this?
-							</h3>
-							<ul className={`font-mono text-base md:text-lg leading-relaxed whitespace-pre-wrap ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} pl-4`}>
-								<li>$ WHY NOT? i started programming at age 16y after i passed school and returned india, built my first website for fun - it was a chess page lol</li>
-								<li>-</li>
-								<li>$ Learned JavaScript and liked web development cz it gives dopamine when i paste something random and it doesn't have to be edited; it just works :3</li>
-																<li>-</li>
-
-								<li>$ Built Discord bots for myself, communities and also for degenerate people, Node.js is cool and i built allat APIs in life</li>
-																<li>-</li>
-
-								<li>$ Developed full-stack web-applications for small businesses and startups- 90 percent of them scammed me yes LMAO</li>
-																<li>-</li>
-
-								<li>$ Currently tryna learn Rust & python idk i don't wanna learn python much ngl</li>
-							</ul>
-						</div>
-					</div>
-				</div>
-			</section>
-
+			<AboutSection theme={theme} />
 			{/* Tech Stack Section */}
 			<ImprovedTechStack theme={theme} />
 
