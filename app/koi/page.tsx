@@ -226,8 +226,8 @@ const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
 				{/* https://static.tradingview.com/static/bundles/northern-lights-pricing-desktop.86b1853e628d56f03bc8.webm */}
                 {/* https://prplmoe.me/assets/animation/Kochan_2.mp4 */}
 				<source 
-				    src="/videos/damnbro.mp4" //also add shorekeeper.mp4
-					type="video/mp4" 
+				    src="/videos/damnbro.wemb" //also add shorekeeper.mp4
+					type="video/webm" 
 				/>
 			</video>
 			
