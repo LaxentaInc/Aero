@@ -209,7 +209,6 @@ const useProtection = () => {
 }
 
 
-
 const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
 	return (
 		<div className="absolute inset-0 z-0 overflow-hidden">
@@ -219,23 +218,18 @@ const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
 				loop
 				playsInline
 				crossOrigin="anonymous"
-				className={`absolute top-0 left-0 w-full h-full object-cover ${
+				className={`absolute top-0 left-0 w-full h-[52vh] object-cover ${
 					theme === 'dark' ? 'opacity-40' : 'opacity-20'
 				}`}
 			>
 				{/* https://static.tradingview.com/static/bundles/northern-lights-pricing-desktop.86b1853e628d56f03bc8.webm */}
                 {/* https://prplmoe.me/assets/animation/Kochan_2.mp4 */}
 				<source 
-				    src="/videos/damnbro.wemb" //also add shorekeeper.mp4
+				    src="/videos/damnbro.webm"
 					type="video/webm" 
 				/>
 			</video>
 			
-			{/* <img 
-  src="/videos/damnbro.mp4" 
-  alt="Background GIF"
-  className={`absolute top-0 left-0 w-full h-full object-cover z-0 ${theme === 'dark' ? 'opacity-40' : 'opacity-20'}`}
-/> */}
 
 			<div className={`absolute inset-0 bg-gradient-to-b ${
 				theme === 'dark' 
@@ -245,6 +239,7 @@ const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
 		</div>
 	)
 }
+
 
 const Skillsbg = ({ theme }: { theme: 'dark' | 'light' }) => {
 	return (
