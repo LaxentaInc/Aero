@@ -1149,38 +1149,38 @@ const ServiceCard = ({ service, index, theme }: { service: typeof services[0], i
 	)
 }
 
-
 const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
-	return (
-		<div className="absolute inset-0 z-0 overflow-hidden">
-			<video
-				autoPlay
-				muted
-				loop
-				playsInline
-				crossOrigin="anonymous"
-				className={`absolute top-0 left-0 w-full h-full object-cover ${
-					theme === 'dark' ? 'opacity-40' : 'opacity-20'
-				}`}
-			>
-				{/* https://static.tradingview.com/static/bundles/northern-lights-pricing-desktop.86b1853e628d56f03bc8.webm */}
-				<source 
-				    src="/videos/myCutekoiiii.webm"
-					type="video/webm" 
-				/>
-			</video>
+  const videos = [
+    "/videos/laxenta.webm",
+    "/videos/myCutekoiiii.webm",
+    // "/videos/shorekeeper.mp4"  // add if needed
+  ]
 
+  const randomVideo = videos[Math.floor(Math.random() * videos.length)]
 
-			<div className={`absolute inset-0 bg-gradient-to-b ${
-				theme === 'dark' 
-					? 'from-black/50 via-black/30 to-black/50' 
-					: 'from-white/50 via-white/30 to-white/50'
-			}`} />
-		</div>
-	)
+  return (
+    <div className="absolute inset-0 z-0 overflow-hidden">
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        crossOrigin="anonymous"
+        className={`absolute top-0 left-0 w-full h-full object-cover ${
+          theme === 'dark' ? 'opacity-40' : 'opacity-20'
+        }`}
+      >
+        <source src={randomVideo} type="video/webm" />
+      </video>
+
+      <div className={`absolute inset-0 bg-gradient-to-b ${
+        theme === 'dark' 
+          ? 'from-black/50 via-black/30 to-black/50' 
+          : 'from-white/50 via-white/30 to-white/50'
+      }`} />
+    </div>
+  )
 }
-
-
 const AboutSection = ({ theme }: { theme: 'dark' | 'light' }) => {
   const aboutFeatures = [
     {
