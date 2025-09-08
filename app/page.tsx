@@ -1167,16 +1167,16 @@ const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
         playsInline
         crossOrigin="anonymous"
         className={`absolute top-0 left-0 w-full h-full object-cover ${
-          theme === 'dark' ? 'opacity-40' : 'opacity-20'
+          theme === 'dark' ? 'opacity-40' : 'opacity-60'  // Higher opacity in light mode
         }`}
       >
         <source src={randomVideo} type="video/webm" />
       </video>
 
-      <div className={`absolute inset-0 bg-gradient-to-b ${
+      <div className={`absolute inset-0 ${
         theme === 'dark' 
-          ? 'from-black/50 via-black/30 to-black/50' 
-          : 'from-white/50 via-white/30 to-white/50'
+          ? 'bg-gradient-to-b from-black/50 via-black/30 to-black/50'
+          : 'bg-transparent'  // Fully transparent in light mode
       }`} />
     </div>
   )
@@ -1431,98 +1431,74 @@ export default function HomePage() {
 			<SmoothCursor theme={theme} />
 			
 			{/* Hero Section */}
-			<section className="relative flex items-center justify-center min-h-screen py-32 px-8">
-				<div className={`absolute inset-0 bg-gradient-to-b ${
-					theme === 'dark' 
-						? 'from-black/50 via-black/30 to-black/50' 
-						: 'from-white/70 via-white/50 to-white/70'
-				}`} />
-				
-				<div className="relative z-10 max-w-5xl mx-auto text-center">
-					<motion.h1
-						initial={{ opacity: 0, y: 50 }}
-						whileInView={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.7 }}
-						className={`text-4xl md:text-6xl font-extrabold leading-tight mb-6 ${
-							theme === 'dark' ? 'text-white' : 'text-black'
-						}`}
-					>
-						Hi, How are You? :)
-					</motion.h1>
-					
+<section className="relative flex items-center justify-center min-h-screen py-32 px-8">
+	<div className={`absolute inset-0 ${
+		theme === 'dark' 
+			? 'bg-gradient-to-b from-black/50 via-black/30 to-black/50'
+			: 'bg-transparent'  // <-- Fully transparent in light mode
+	}`} />
+	
+	<div className="relative z-10 max-w-5xl mx-auto text-center">
+   	<motion.h1
+   		initial={{ opacity: 0, y: 50 }}
+   		whileInView={{ opacity: 1, y: 0 }}
+   		transition={{ duration: 0.7 }}
+   		className={`text-4xl md:text-6xl font-extrabold leading-tight mb-6 ${
+   			theme === 'dark' ? 'text-white' : 'text-black'
+   		}`}
+   	>
+   		Hi, How are You? :)
+   	</motion.h1>
+   	
+   	<motion.p
+   		className={`text-sm sm:text-xl md:text-2xl font-mono mb-8 ${
+   			theme === 'dark' ? 'text-white/70' : 'text-black/70'
+   		}`}
+   		initial={{ opacity: 0, y: 40 }}
+   		whileInView={{ opacity: 1, y: 0 }}
+   		transition={{ duration: 0.5, delay: 0.5 }}
+   	>
+   		<Typewriter
+   			words={[
+   				'Welcome to my about page! I love building useless things, and collaborating to code anything that I can lol :3',
+   			]}
+   			loop={1}
+   			cursor
+   			typeSpeed={20}
+   			deleteSpeed={9999}
+   		/>
+   	</motion.p>
 
-{/* 
-<motion.p
-  className={`text-sm sm:text-xl md:text-2xl font-mono mb-8 ${
-    theme === 'dark' ? 'text-white/70' : 'text-black/70'
-  }`}
-  initial={{ opacity: 0, y: 40 }}
-  whileInView={{ opacity: 1, y: 0 }}
-  transition={{ duration: 0.5, delay: 0.5 }}
->
-  Welcome to my about page! I love building useless things, and collaborating to code anything that I can lol
-</motion.p> */}
+   	<motion.p
+   		className={`text-sm sm:text-xl md:text-2xl font-mono ${
+   			theme === 'dark' ? 'text-white/60' : 'text-black/60'
+   		}`}
+   		initial={{ opacity: 0.6 }}
+   		animate={{ opacity: 0.6 }}
+   	>
+   		<Typewriter
+   			words={['</ @me_straight - fullstack developer & systems engineer >']}
+   			loop={1}
+   			cursor
+   			typeSpeed={10}
+   			deleteSpeed={9999}
+   		/>
+   	</motion.p>
 
-<motion.p
-  className={`text-sm sm:text-xl md:text-2xl font-mono mb-8 ${
-    theme === 'dark' ? 'text-white/70' : 'text-black/70'
-  }`}
-  initial={{ opacity: 0, y: 40 }}
-  whileInView={{ opacity: 1, y: 0 }}
-  transition={{ duration: 0.5, delay: 0.5 }}
->
-  <Typewriter
-    words={[
-      'Welcome to my about page! I love building useless things, and collaborating to code anything that I can lol :3',
-    ]}
-    loop={1}
-    cursor
-    typeSpeed={20}
-    deleteSpeed={9999}
-  />
-</motion.p>
-
-					            {/* <motion.p
-              className={`text-sm sm:text-xl md:text-2xl font-mono ${
-                theme === 'dark' ? 'text-white/60' : 'text-black/60'
-              }`}
-              initial={{ opacity: 0.6 }}
-              animate={{ opacity: 0.6 }}
-            >
-              {'</'} @me_straight - fullstack developer & system engineer {'>'}
-            </motion.p> */}
-			<motion.p
-  className={`text-sm sm:text-xl md:text-2xl font-mono ${
-    theme === 'dark' ? 'text-white/60' : 'text-black/60'
-  }`}
-  initial={{ opacity: 0.6 }}
-  animate={{ opacity: 0.6 }}
->
-  <Typewriter
-    words={['</ @me_straight - fullstack developer & systems engineer >']}
-    loop={1}
-    cursor
-    typeSpeed={10}
-    deleteSpeed={9999}
-  />
-</motion.p>
-
-
-
-					<motion.button
-						onClick={() => router.push('/contact')}
-						className={`mt-8 px-8 py-4 rounded-full font-mono text-lg ${
-							theme === 'dark' 
-								? 'bg-white text-black hover:bg-white/90' 
-								: 'bg-black text-white hover:bg-black/90'
-						} transition-colors`}
-						whileHover={{ scale: 1.05 }}
-						whileTap={{ scale: 0.95 }}
-					>
-						GET IN TOUCH
-					</motion.button>
-				</div>
-			</section>
+   	<motion.button
+   		onClick={() => router.push('/contact')}
+   		className={`mt-8 px-8 py-4 rounded-full font-mono text-lg ${
+   			theme === 'dark' 
+   				? 'bg-white text-black hover:bg-white/90' 
+   				: 'bg-black text-white hover:bg-black/90'
+   		} transition-colors`}
+   		whileHover={{ scale: 1.05 }}
+   		whileTap={{ scale: 0.95 }}
+   	>
+   		GET IN TOUCH
+   	</motion.button>
+   </div>
+</section>
 
 			{/* Spotify Now Playing */}
 			<section className="py-8">
