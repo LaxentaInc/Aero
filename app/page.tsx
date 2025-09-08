@@ -1168,7 +1168,7 @@ const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
         crossOrigin="anonymous"
         className={`absolute top-0 left-0 w-full h-full object-cover ${
           theme === 'dark' ? 'opacity-40' : 'opacity-60'  // Higher opacity in light mode
-        }`}
+        }`}   
       >
         <source src={randomVideo} type="video/webm" />
       </video>

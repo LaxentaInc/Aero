@@ -221,16 +221,16 @@ const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
 
 	return (
 		<div className="absolute inset-0 z-0 overflow-hidden">
-			<video
-				autoPlay
-				muted
-				loop
-				playsInline
-				crossOrigin="anonymous"
-				className={`fixed top-0 left-0 w-full h-[57vh] object-cover ${
-					theme === 'dark' ? 'opacity-40' : 'opacity-20'
-				}`}
-			>
+	      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        crossOrigin="anonymous"
+        className={`absolute top-0 left-0 w-full h-[57vh] object-cover ${
+          theme === 'dark' ? 'opacity-40' : 'opacity-60'  // Higher opacity in light mode
+        }`}   
+      >
 				{/* https://static.tradingview.com/static/bundles/northern-lights-pricing-desktop.86b1853e628d56f03bc8.webm */}
                 {/* https://prplmoe.me/assets/animation/Kochan_2.mp4 */}
 				<source 
