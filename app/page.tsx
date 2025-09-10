@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, useScroll, useTransform, AnimatePresence, useMotionValue, useSpring, useInView } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -58,9 +58,7 @@ const ShieldCheckIcon = ({ className = "w-4 h-4", color = "currentColor" }) => (
     />
   </svg>
 )
-
 // import { useInView } from 'react-intersection-observer';
-
 const techStacks = [
   {
     name: 'JavaScript',
@@ -520,111 +518,115 @@ const services = [
 ]
 
 const SmoothCursor = ({ theme }: { theme: 'dark' | 'light' }) => {
-	const cursorRef = useRef<HTMLDivElement>(null)
-	const cursorOutlineRef = useRef<HTMLDivElement>(null)
-	const [isMobile, setIsMobile] = useState(false)
+  const [isMobile, setIsMobile] = useState(false);
+  const [particles, setParticles] = useState<Array<{
+    id: number;
+    x: number;
+    y: number;
+    opacity: number;
+    scale: number;
+    vx: number;
+    vy: number;
+  }>>([]);
+  
+  const particleIdRef = useRef(0);
+  const animationRef = useRef<number | null>(null);
+  const lastMousePos = useRef({ x: 0, y: 0 });
 
-	// Add useEffect for global cursor style
-	useEffect(() => {
-		// Add cursor:none to body
-		document.body.style.cursor = 'none'
-		// Add cursor:none to all clickable elements
-		const clickableElements = document.querySelectorAll('a, button, input, select, textarea, [role="button"]')
-		clickableElements.forEach(el => {
-			(el as HTMLElement).style.cursor = 'none'
-		})
+  // Check if mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile('ontouchstart' in window || navigator.maxTouchPoints > 0);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
-		return () => {
-			// Cleanup
-			document.body.style.cursor = ''
-			clickableElements.forEach(el => {
-				(el as HTMLElement).style.cursor = ''
-			})
-		}
-	}, [])
+  // Particle animation
+  const animateParticles = useCallback(() => {
+    setParticles(prev => {
+      const updated = prev
+        .map(p => ({
+          ...p,
+          x: p.x + p.vx,
+          y: p.y + p.vy,
+          opacity: p.opacity - 0.03,
+          scale: p.scale * 0.97,
+        }))
+        .filter(p => p.opacity > 0.1);
+      
+      return updated;
+    });
+    
+    animationRef.current = requestAnimationFrame(animateParticles);
+  }, []);
 
-	useEffect(() => {
-		const checkMobile = () => {
-			setIsMobile('ontouchstart' in window || navigator.maxTouchPoints > 0)
-		}
-		checkMobile()
-		window.addEventListener('resize', checkMobile)
-		return () => window.removeEventListener('resize', checkMobile)
-	}, [])
+  // Add particles on mouse move
+  const addParticles = useCallback((x: number, y: number) => {
+    setParticles(prev => {
+      const newParticles = [];
+      
+      for (let i = 0; i < 2; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 1.5;
+        
+        newParticles.push({
+          id: particleIdRef.current++,
+          x: x + (Math.random() - 0.5) * 6,
+          y: y + (Math.random() - 0.5) * 6,
+          opacity: 0.7,
+          scale: Math.random() * 0.5 + 0.5,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+        });
+      }
+      
+      return [...prev, ...newParticles].slice(-20);
+    });
+  }, []);
 
-	useEffect(() => {
-		if (isMobile) return
-		const cursor = cursorRef.current
-		const cursorOutline = cursorOutlineRef.current
-		let mouseX = 0
-		let mouseY = 0
-		let outlineX = 0
-		let outlineY = 0
+  // Set up mouse tracking
+  useEffect(() => {
+    if (isMobile) return;
 
-		const handleMouseMove = (e: MouseEvent) => {
-			mouseX = e.clientX
-			mouseY = e.clientY
-		}
+    const handleMouseMove = (e: MouseEvent) => {
+      lastMousePos.current = { x: e.clientX, y: e.clientY };
+      addParticles(e.clientX, e.clientY);
+    };
 
-		const animateCursor = () => {
-			if (cursor) {
-				cursor.style.transform = `translate3d(${mouseX - 8}px, ${mouseY - 8}px, 0)`
-			}
-			if (cursorOutline) {
-				outlineX += (mouseX - outlineX) * 0.25
-				outlineY += (mouseY - outlineY) * 0.85
-				cursorOutline.style.transform = `translate3d(${outlineX - 20}px, ${outlineY - 20}px, 0)`
-			}
-			requestAnimationFrame(animateCursor)
-		}
+    document.addEventListener('mousemove', handleMouseMove);
+    animationRef.current = requestAnimationFrame(animateParticles);
 
-		window.addEventListener('mousemove', handleMouseMove)
-		animateCursor()
-		return () => {
-			window.removeEventListener('mousemove', handleMouseMove)
-		}
-	}, [isMobile])
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [isMobile, animateParticles, addParticles]);
 
-	if (isMobile) return null
+  if (isMobile) return null;
 
-	return (
-		<>
-			<style jsx global>{`
-				* {
-					cursor: none !important;
-				}
-			`}</style>
-			<div
-				ref={cursorRef}
-				className={`fixed w-4 h-4 rounded-full pointer-events-none z-[100] hidden md:block ${
-					theme === 'dark' ? 'bg-white mix-blend-difference' : 'bg-black'
-				}`}
-				style={{ willChange: 'transform' }}
-			/>
-			<div
-				ref={cursorOutlineRef}
-				className={`fixed w-10 h-10 rounded-full pointer-events-none z-[99] hidden md:block ${
-					theme === 'dark' ? 'border-white mix-blend-difference' : 'border-black'
-				} border`}
-				style={{ willChange: 'transform' }}
-			/>
-		</>
-	)
-}
-//unused
-const ScrollLockSection = ({ children, isLocked }: { children: React.ReactNode, isLocked: boolean }) => {
-	useEffect(() => {
-		if (isLocked) {
-			document.body.style.overflow = 'hidden'
-		} else {
-			document.body.style.overflow = ''
-		}
-		return () => {
-			document.body.style.overflow = ''
-		}
-	}, [isLocked])
-	return <>{children}</>
-}
+  return (
+    <div className="fixed inset-0 pointer-events-none z-[9999]">
+      {particles.map(particle => (
+        <div
+          key={particle.id}
+          className={`absolute w-1 h-1 rounded-full ${
+            theme === 'dark' ? 'bg-white' : 'bg-blue-500'
+          }`}
+          style={{
+            left: particle.x,
+            top: particle.y,
+            opacity: particle.opacity,
+            transform: `scale(${particle.scale})`,
+          }}
+        />
+      ))}
+    </div>
+  );
+};
 
 const useProtection = () => {
   useEffect(() => {
