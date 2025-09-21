@@ -1,72 +1,102 @@
 'use client';
-import React, { useState, useEffect } from 'react';
-import { LineChart, Line, AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Shield, AlertTriangle, Activity, Server, Clock, Users, TrendingUp, Eye } from 'lucide-react';
 
+import React, { useState, useEffect } from 'react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, LineChart, Line, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
+import { Activity, Shield, Users, AlertTriangle, TrendingUp, Clock, Database, Zap } from 'lucide-react';
+
+// Type definitions
 interface AnalyticsEvent {
   eventType: string;
-  data: any;
+  data: {
+    guildId?: string;
+    triggerType?: string;
+    joinCount?: number;
+    timestamp?: number;
+    [key: string]: any;
+  };
   timestamp: number;
   id: string;
+  guildId: string | null;
+  source: string;
+  version: string;
 }
 
-interface GuildStats {
-  guildId: string;
-  total: number;
-  raids: number;
-  lastActivity: number;
+interface AnalyticsData {
+  events: AnalyticsEvent[];
+  summary: {
+    totalEvents: number;
+    dateRange: {
+      start: number;
+      end: number;
+    };
+    eventTypes: Record<string, number>;
+    guilds: Record<string, number>;
+    topGuilds: Array<{ guildId: string; count: number }>;
+    recentActivity: Array<{
+      hour: string;
+      count: number;
+    }>;
+    raidStats: {
+      totalRaids: number;
+      avgJoinRate: number;
+      topTriggerTypes: Record<string, number>;
+    };
+  };
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    hasMore: boolean;
+  };
 }
 
-interface AnalyticsStats {
-  totalEvents: number;
-  recentEvents: number;
-  weeklyEvents: number;
-  eventTypes: Record<string, number>;
-  guildStats: Record<string, { total: number; raids: number; lastActivity: number }>;
-  hourlyActivity: Array<{ hour: string; count: number }>;
-  topGuilds: GuildStats[];
-}
+type TimeFilter = '1h' | '24h' | '7d' | '30d';
 
-interface TimeSeriesData {
-  timestamp: number;
-  date: string;
-  count: number;
-  label: string;
-}
+const Dashboard = () => {
+  const [data, setData] = useState<AnalyticsData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<string>('overview');
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>('24h');
+  const [autoRefresh, setAutoRefresh] = useState<boolean>(true);
 
-const COLORS = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316'];
+  // Colors for dark theme
+  const colors = {
+    primary: '#00d4ff',
+    secondary: '#7c3aed',
+    success: '#10b981',
+    danger: '#ef4444',
+    warning: '#f59e0b',
+    accent: '#ec4899'
+  };
 
-export default function AnalyticsDashboard() {
-  const [stats, setStats] = useState<AnalyticsStats | null>(null);
-  const [timeSeries, setTimeSeries] = useState<TimeSeriesData[]>([]);
-  const [recentEvents, setRecentEvents] = useState<AnalyticsEvent[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview');
-  const [timeRange, setTimeRange] = useState('24h');
-  const [selectedEventType, setSelectedEventType] = useState<string>('all');
+  const pieColors = ['#00d4ff', '#7c3aed', '#10b981', '#ef4444', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4'];
 
-  // Fetch analytics data
-  const fetchData = async () => {
-    setLoading(true);
+  // Fetch data from API
+  const fetchData = async (): Promise<void> => {
     try {
-      // Fetch stats
-      const statsRes = await fetch('/api/raidAnalytics?action=stats');
-      const statsData = await statsRes.json();
-      setStats(statsData);
+      setLoading(true);
+      const timeRanges: Record<TimeFilter, number> = {
+        '1h': Date.now() - (60 * 60 * 1000),
+        '24h': Date.now() - (24 * 60 * 60 * 1000),
+        '7d': Date.now() - (7 * 24 * 60 * 60 * 1000),
+        '30d': Date.now() - (30 * 24 * 60 * 60 * 1000)
+      };
 
-      // Fetch time series
-      const interval = timeRange === '24h' ? 'hour' : 'day';
-      const days = timeRange === '24h' ? 1 : timeRange === '7d' ? 7 : 30;
-      const timeSeriesRes = await fetch(`/api/raidAnalytics?action=timeseries&interval=${interval}&days=${days}`);
-      const timeSeriesData = await timeSeriesRes.json();
-      setTimeSeries(timeSeriesData.timeSeries);
-
-      // Fetch recent events
-      const eventsRes = await fetch('/api/raidAnalytics?action=events&limit=50');
-      const eventsData = await eventsRes.json();
-      setRecentEvents(eventsData.events);
-    } catch (error) {
-      console.error('Failed to fetch analytics data:', error);
+      const startTime = timeRanges[timeFilter];
+      const url = `/api/analytics?limit=1000&startTime=${startTime}&summary=true`;
+      
+      const response = await fetch(url);
+      const result = await response.json();
+      
+      if (result.success) {
+        setData(result.data);
+        setError(null);
+      } else {
+        setError(result.error);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error occurred');
     } finally {
       setLoading(false);
     }
@@ -74,327 +104,324 @@ export default function AnalyticsDashboard() {
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 30000); // Refresh every 30 seconds
+  }, [timeFilter]);
+
+  // Auto refresh every 30 seconds
+  useEffect(() => {
+    if (!autoRefresh) return;
+    
+    const interval = setInterval(fetchData, 30000);
     return () => clearInterval(interval);
-  }, [timeRange]);
+  }, [autoRefresh, timeFilter]);
 
-  const formatTimestamp = (timestamp: number) => {
-    return new Date(timestamp).toLocaleString();
+  // Prepare chart data
+  const getEventTypeChartData = (): Array<{name: string; value: number; color: string}> => {
+    if (!data?.summary?.eventTypes) return [];
+    return Object.entries(data.summary.eventTypes).map(([name, value]) => ({
+      name: name.replace('_', ' ').toUpperCase(),
+      value: value,
+      color: pieColors[Object.keys(data.summary.eventTypes).indexOf(name) % pieColors.length]
+    }));
   };
 
-  const formatEventType = (eventType: string) => {
-    return eventType.split('_').map(word => 
-      word.charAt(0).toUpperCase() + word.slice(1)
-    ).join(' ');
+  const getActivityChartData = (): Array<{time: string; events: number}> => {
+    if (!data?.summary?.recentActivity) return [];
+    return data.summary.recentActivity.map((item: {hour: string; count: number}) => ({
+      time: new Date(item.hour).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      events: item.count
+    }));
   };
 
-  const getEventTypeIcon = (eventType: string) => {
-    switch (eventType) {
-      case 'raid_detected': return <AlertTriangle className="h-4 w-4 text-red-500" />;
-      case 'user_join': return <Users className="h-4 w-4 text-green-500" />;
-      case 'suspicious_activity': return <Eye className="h-4 w-4 text-yellow-500" />;
-      default: return <Activity className="h-4 w-4 text-blue-500" />;
-    }
+  const getTopGuildsData = (): Array<{guild: string; events: number}> => {
+    if (!data?.summary?.topGuilds) return [];
+    return data.summary.topGuilds.slice(0, 8).map((guild: {guildId: string; count: number}) => ({
+      guild: `Guild ${guild.guildId.slice(-6)}`,
+      events: guild.count
+    }));
   };
 
-  const pieChartData = stats ? Object.entries(stats.eventTypes).map(([type, count]) => ({
-    name: formatEventType(type),
-    value: count,
-    type
-  })) : [];
-
-  if (loading && !stats) {
+  if (loading && !data) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-400 mx-auto mb-4"></div>
-          <p className="text-white text-xl">Loading Analytics...</p>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-400 mx-auto mb-4"></div>
+          <p className="text-gray-400 text-lg">Loading analytics...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-center bg-gray-800 p-8 rounded-lg border border-red-500/20">
+          <AlertTriangle className="h-12 w-12 text-red-400 mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-white mb-2">Connection Error</h2>
+          <p className="text-gray-400 mb-4">{error}</p>
+          <button 
+            onClick={fetchData}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors"
+          >
+            Retry
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen bg-gray-900 text-white">
       {/* Header */}
-      <div className="bg-black/20 backdrop-blur-xl border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-3">
-              <Shield className="h-8 w-8 text-blue-400" />
-              <h1 className="text-2xl font-bold text-white">Anti-Raid Analytics</h1>
-            </div>
+      <header className="bg-gray-800 border-b border-gray-700 sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <div className={`w-2 h-2 rounded-full ${loading ? 'bg-yellow-400 animate-pulse' : 'bg-green-400'}`}></div>
-                <span className="text-white/60 text-sm">
-                  {loading ? 'Updating...' : 'Live'}
-                </span>
-              </div>
-              <select
-                value={timeRange}
-                onChange={(e) => setTimeRange(e.target.value)}
-                className="bg-white/10 border border-white/20 text-white rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+              <Shield className="h-8 w-8 text-blue-400" />
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+                Anti-Raid Analytics
+              </h1>
+              {loading && (
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-400"></div>
+              )}
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              {/* Time Filter */}
+              <select 
+                value={timeFilter} 
+                onChange={(e) => setTimeFilter(e.target.value as TimeFilter)}
+                className="bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
               >
+                <option value="1h">Last Hour</option>
                 <option value="24h">Last 24 Hours</option>
                 <option value="7d">Last 7 Days</option>
                 <option value="30d">Last 30 Days</option>
               </select>
-              <button
+              
+              {/* Auto Refresh Toggle */}
+              <label className="flex items-center space-x-2 text-sm">
+                <input 
+                  type="checkbox" 
+                  checked={autoRefresh} 
+                  onChange={(e) => setAutoRefresh(e.target.checked)}
+                  className="rounded bg-gray-700 border-gray-600 text-blue-400 focus:ring-blue-400"
+                />
+                <span>Auto-refresh</span>
+              </label>
+              
+              <button 
                 onClick={fetchData}
-                disabled={loading}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  loading 
-                    ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
-                    : 'bg-blue-600 hover:bg-blue-700 text-white'
-                }`}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors text-sm"
               >
-                {loading ? 'Refreshing...' : 'Refresh'}
+                Refresh
               </button>
             </div>
           </div>
+          
+          {/* Navigation Tabs */}
+          <nav className="mt-4">
+            <div className="flex space-x-1">
+              {['overview', 'events', 'guilds'].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium capitalize transition-colors ${
+                    activeTab === tab 
+                      ? 'bg-blue-600 text-white' 
+                      : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                  }`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+          </nav>
         </div>
-      </div>
+      </header>
 
-      {/* Navigation */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <nav className="flex space-x-4 mb-8">
-          {[
-            { id: 'overview', label: 'Overview', icon: Activity },
-            { id: 'events', label: 'Event Stream', icon: Clock },
-            { id: 'guilds', label: 'Guild Stats', icon: Server }
-          ].map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              onClick={() => setActiveTab(id)}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-all ${
-                activeTab === id
-                  ? 'bg-blue-600 text-white shadow-lg'
-                  : 'bg-white/10 text-white/80 hover:bg-white/20'
-              }`}
-            >
-              <Icon className="h-4 w-4" />
-              <span>{label}</span>
-            </button>
-          ))}
-        </nav>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white/10 backdrop-blur-xl rounded-xl p-6 border border-white/20">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white/60 text-sm">Total Events</p>
-                <p className="text-2xl font-bold text-white">{stats?.totalEvents || 0}</p>
-              </div>
-              <Activity className="h-8 w-8 text-blue-400" />
-            </div>
-          </div>
-
-          <div className="bg-white/10 backdrop-blur-xl rounded-xl p-6 border border-white/20">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white/60 text-sm">Recent (24h)</p>
-                <p className="text-2xl font-bold text-white">{stats?.recentEvents || 0}</p>
-              </div>
-              <Clock className="h-8 w-8 text-green-400" />
-            </div>
-          </div>
-
-          <div className="bg-white/10 backdrop-blur-xl rounded-xl p-6 border border-white/20">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white/60 text-sm">Raids Detected</p>
-                <p className="text-2xl font-bold text-white">
-                  {stats?.eventTypes?.raid_detected || 0}
-                </p>
-              </div>
-              <AlertTriangle className="h-8 w-8 text-red-400" />
-            </div>
-          </div>
-
-          <div className="bg-white/10 backdrop-blur-xl rounded-xl p-6 border border-white/20">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white/60 text-sm">Active Guilds</p>
-                <p className="text-2xl font-bold text-white">
-                  {stats ? Object.keys(stats.guildStats).length : 0}
-                </p>
-              </div>
-              <Server className="h-8 w-8 text-purple-400" />
-            </div>
-          </div>
-        </div>
-
-        {/* Tab Content */}
+      <main className="max-w-7xl mx-auto px-6 py-6">
+        {/* Overview Tab */}
         {activeTab === 'overview' && (
-          <div className="space-y-8">
-            {/* Activity Chart */}
-            <div className="bg-white/10 backdrop-blur-xl rounded-xl p-6 border border-white/20">
-              <h3 className="text-xl font-semibold text-white mb-6">Activity Timeline</h3>
-              <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={timeSeries}>
-                  <defs>
-                    <linearGradient id="colorActivity" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.1}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
-                  <XAxis dataKey="label" stroke="#ffffff80" />
-                  <YAxis stroke="#ffffff80" />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'rgba(0,0,0,0.8)', 
-                      border: '1px solid rgba(255,255,255,0.2)',
-                      borderRadius: '8px',
-                      color: '#fff'
-                    }} 
-                  />
-                  <Area 
-                    type="monotone" 
-                    dataKey="count" 
-                    stroke="#3B82F6" 
-                    fillOpacity={1} 
-                    fill="url(#colorActivity)" 
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
+          <div className="space-y-6">
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-gray-400 text-sm">Total Events</p>
+                    <p className="text-3xl font-bold text-white">{data?.summary?.totalEvents?.toLocaleString() || '0'}</p>
+                  </div>
+                  <Database className="h-8 w-8 text-blue-400" />
+                </div>
+              </div>
+              
+              <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-gray-400 text-sm">Raids Detected</p>
+                    <p className="text-3xl font-bold text-red-400">{data?.summary?.raidStats?.totalRaids || '0'}</p>
+                  </div>
+                  <AlertTriangle className="h-8 w-8 text-red-400" />
+                </div>
+              </div>
+              
+              <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-gray-400 text-sm">Active Guilds</p>
+                    <p className="text-3xl font-bold text-green-400">{data?.summary?.topGuilds?.length || '0'}</p>
+                  </div>
+                  <Users className="h-8 w-8 text-green-400" />
+                </div>
+              </div>
+              
+              <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-gray-400 text-sm">Avg Join Rate</p>
+                    <p className="text-3xl font-bold text-yellow-400">{data?.summary?.raidStats?.avgJoinRate || '0'}</p>
+                  </div>
+                  <TrendingUp className="h-8 w-8 text-yellow-400" />
+                </div>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Event Types Distribution */}
-              <div className="bg-white/10 backdrop-blur-xl rounded-xl p-6 border border-white/20">
-                <h3 className="text-xl font-semibold text-white mb-6">Event Distribution</h3>
+            {/* Charts Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Activity Timeline */}
+              <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
+                <div className="flex items-center space-x-2 mb-4">
+                  <Activity className="h-5 w-5 text-blue-400" />
+                  <h3 className="text-lg font-semibold">Activity Timeline</h3>
+                </div>
+                <ResponsiveContainer width="100%" height={300}>
+                  <LineChart data={getActivityChartData()}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <XAxis dataKey="time" stroke="#9ca3af" tick={{fontSize: 12}} />
+                    <YAxis stroke="#9ca3af" tick={{fontSize: 12}} />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#1f2937', 
+                        border: '1px solid #374151',
+                        borderRadius: '8px',
+                        color: '#ffffff'
+                      }} 
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="events" 
+                      stroke={colors.primary} 
+                      strokeWidth={3}
+                      dot={{ r: 4, fill: colors.primary }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Event Types */}
+              <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
+                <div className="flex items-center space-x-2 mb-4">
+                  <Zap className="h-5 w-5 text-purple-400" />
+                  <h3 className="text-lg font-semibold">Event Distribution</h3>
+                </div>
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie
-                      data={pieChartData}
+                      data={getEventTypeChartData()}
                       cx="50%"
                       cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name} ${percent ? (percent * 100).toFixed(0) : 0}%`}
-                      outerRadius={80}
-                      fill="#8884d8"
+                      innerRadius={60}
+                      outerRadius={120}
                       dataKey="value"
+                      label={({name, percent}: {name: string; percent?: number}) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
+                      labelLine={false}
+                      fontSize={11}
                     >
-                      {pieChartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      {getEventTypeChartData().map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
                     <Tooltip 
                       contentStyle={{ 
-                        backgroundColor: 'rgba(0,0,0,0.8)', 
-                        border: '1px solid rgba(255,255,255,0.2)',
+                        backgroundColor: '#1f2937', 
+                        border: '1px solid #374151',
                         borderRadius: '8px',
-                        color: '#fff'
+                        color: '#ffffff'
                       }} 
                     />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
+            </div>
 
-              {/* Hourly Activity */}
-              <div className="bg-white/10 backdrop-blur-xl rounded-xl p-6 border border-white/20">
-                <h3 className="text-xl font-semibold text-white mb-6">24H Activity Pattern</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={stats?.hourlyActivity || []}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#ffffff20" />
-                    <XAxis 
-                      dataKey="hour" 
-                      stroke="#ffffff80"
-                      tickFormatter={(value) => new Date(value).getHours() + ':00'}
-                    />
-                    <YAxis stroke="#ffffff80" />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'rgba(0,0,0,0.8)', 
-                        border: '1px solid rgba(255,255,255,0.2)',
-                        borderRadius: '8px',
-                        color: '#fff'
-                      }}
-                      labelFormatter={(value) => `Time: ${new Date(value).toLocaleTimeString()}`}
-                    />
-                    <Bar dataKey="count" fill="#10B981" />
-                  </BarChart>
-                </ResponsiveContainer>
+            {/* Top Guilds Chart */}
+            <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
+              <div className="flex items-center space-x-2 mb-4">
+                <Users className="h-5 w-5 text-green-400" />
+                <h3 className="text-lg font-semibold">Most Active Guilds</h3>
               </div>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={getTopGuildsData()}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                  <XAxis dataKey="guild" stroke="#9ca3af" tick={{fontSize: 12}} />
+                  <YAxis stroke="#9ca3af" tick={{fontSize: 12}} />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: '#1f2937', 
+                      border: '1px solid #374151',
+                      borderRadius: '8px',
+                      color: '#ffffff'
+                    }} 
+                  />
+                  <Bar dataKey="events" fill={colors.success} radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
         )}
 
+        {/* Events Tab */}
         {activeTab === 'events' && (
-          <div className="bg-white/10 backdrop-blur-xl rounded-xl p-6 border border-white/20">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-semibold text-white">Recent Events</h3>
-              <select
-                value={selectedEventType}
-                onChange={(e) => setSelectedEventType(e.target.value)}
-                className="bg-white/10 border border-white/20 text-white rounded-lg px-3 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-              >
-                <option value="all">All Events</option>
-                {stats && Object.keys(stats.eventTypes).map(type => (
-                  <option key={type} value={type}>{formatEventType(type)}</option>
-                ))}
-              </select>
-            </div>
-            
-            <div className="space-y-3 max-h-96 overflow-y-auto">
-              {recentEvents
-                .filter(event => selectedEventType === 'all' || event.eventType === selectedEventType)
-                .map((event, index) => (
-                <div key={event.id} className="bg-white/5 rounded-lg p-4 border border-white/10">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      {getEventTypeIcon(event.eventType)}
-                      <div>
-                        <p className="text-white font-medium">{formatEventType(event.eventType)}</p>
-                        <p className="text-white/60 text-sm">
-                          Guild: {event.data?.guildId || 'Unknown'} | 
-                          {event.data?.triggerType && ` Trigger: ${event.data.triggerType} |`}
-                          {event.data?.joinCount && ` Joins: ${event.data.joinCount}`}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-white/60 text-sm">{formatTimestamp(event.timestamp)}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'guilds' && (
-          <div className="bg-white/10 backdrop-blur-xl rounded-xl p-6 border border-white/20">
-            <h3 className="text-xl font-semibold text-white mb-6">Top Guilds by Activity</h3>
+          <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
+            <h3 className="text-lg font-semibold mb-4 flex items-center space-x-2">
+              <Clock className="h-5 w-5 text-blue-400" />
+              <span>Recent Events</span>
+            </h3>
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b border-white/20">
-                    <th className="text-left text-white/80 py-3 px-4">Guild ID</th>
-                    <th className="text-left text-white/80 py-3 px-4">Total Events</th>
-                    <th className="text-left text-white/80 py-3 px-4">Raids Detected</th>
-                    <th className="text-left text-white/80 py-3 px-4">Last Activity</th>
+                  <tr className="border-b border-gray-700">
+                    <th className="text-left py-3 text-gray-400">Time</th>
+                    <th className="text-left py-3 text-gray-400">Event</th>
+                    <th className="text-left py-3 text-gray-400">Guild</th>
+                    <th className="text-left py-3 text-gray-400">Details</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {stats?.topGuilds.map((guild, index) => (
-                    <tr key={guild.guildId} className="border-b border-white/10 hover:bg-white/5">
-                      <td className="py-3 px-4 text-white font-mono text-sm">
-                        {guild.guildId.slice(0, 8)}...
+                  {data?.events?.slice(0, 20).map((event: AnalyticsEvent, index: number) => (
+                    <tr key={event.id || index} className="border-b border-gray-800 hover:bg-gray-700/50">
+                      <td className="py-3 text-gray-300">
+                        {new Date(event.timestamp).toLocaleString()}
                       </td>
-                      <td className="py-3 px-4 text-white">{guild.total}</td>
-                      <td className="py-3 px-4">
-                        <span className={`px-2 py-1 rounded text-sm ${
-                          guild.raids > 0 ? 'bg-red-500/20 text-red-300' : 'bg-green-500/20 text-green-300'
+                      <td className="py-3">
+                        <span className={`inline-flex px-2 py-1 rounded text-xs font-medium ${
+                          event.eventType.includes('raid') ? 'bg-red-900/50 text-red-300' :
+                          event.eventType.includes('ban') ? 'bg-yellow-900/50 text-yellow-300' :
+                          'bg-blue-900/50 text-blue-300'
                         }`}>
-                          {guild.raids}
+                          {event.eventType.replace('_', ' ').toUpperCase()}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-white/60 text-sm">
-                        {formatTimestamp(guild.lastActivity)}
+                      <td className="py-3 text-gray-300">
+                        {event.guildId ? `...${event.guildId.slice(-6)}` : 'N/A'}
+                      </td>
+                      <td className="py-3 text-gray-400 text-xs">
+                        {event.data?.triggerType && (
+                          <span className="mr-2">Trigger: {event.data.triggerType}</span>
+                        )}
+                        {event.data?.joinCount && (
+                          <span>Joins: {event.data.joinCount}</span>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -403,7 +430,41 @@ export default function AnalyticsDashboard() {
             </div>
           </div>
         )}
-      </div>
+
+        {/* Guilds Tab */}
+        {activeTab === 'guilds' && (
+          <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
+            <h3 className="text-lg font-semibold mb-4 flex items-center space-x-2">
+              <Users className="h-5 w-5 text-green-400" />
+              <span>Guild Statistics</span>
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {data?.summary?.topGuilds?.map((guild: {guildId: string; count: number}, index: number) => (
+                <div key={guild.guildId} className="bg-gray-700 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="font-medium">Guild {guild.guildId.slice(-8)}</h4>
+                    <span className="text-xs bg-blue-600 px-2 py-1 rounded">#{index + 1}</span>
+                  </div>
+                  <p className="text-2xl font-bold text-blue-400">{guild.count}</p>
+                  <p className="text-sm text-gray-400">total events</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-gray-800 border-t border-gray-700 mt-12">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between text-sm text-gray-400">
+            <p>Anti-Raid Analytics Dashboard</p>
+            <p>Last updated: {data ? new Date(data.summary?.dateRange?.end).toLocaleString() : 'Never'}</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
-}
+};
+
+export default Dashboard;

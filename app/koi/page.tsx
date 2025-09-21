@@ -757,9 +757,9 @@ className="absolute top-[35vh] left-1/2 -translate-x-[160%] w-[min(590px,45vw)] 
                     }`}>
                         She a student who always is bored and jumps off cliffs for fun.
                         <br />
-                        Always eager to dive into new knowledge, experiences and off cliffs into the ocean.
+                        Always eager to dive into new knowledge, experiences and off cliffs
                         <br />
-                        When she is not studying, you'll probably find her coding, talking to me or trying to jump off another cliff.
+                        When she is not studying, you'll probably find her coding, talking to me or trying to jump off another cliff Or well listening to music ngl.
                     </p>
                 </motion.div>
 
@@ -771,7 +771,7 @@ className="absolute top-[35vh] left-1/2 -translate-x-[160%] w-[min(590px,45vw)] 
                     animate={{ opacity: 1 }}
                     transition={{ delay: 1.4, duration: 0.8 }}
                 >
-                    That's all I can describe about her Ngl
+                    That's all I wanna describe about her ngl
                 </motion.p>
 
                 <motion.div
@@ -987,17 +987,17 @@ const SkillsPage = () => {
                 { 
                     name: "Overthinking", 
                     level: 95, 
-                    description: "Will analyze a simple 'hi' text for 5 mins" 
+                    description: "Will analyze and reply to a simple 'hi' text for 2 DAYS (yea no more 5 mins lol)" 
                 },
-                { 
-                    name: "Caffeine Dependence", 
-                    level: 69, 
-                    description: "Cannot function without at least 5 mouthful spoons of raw coffee per day" 
-                },
+                // { 
+                //     name: "Caffeine Dependence", 
+                //     level: 69, 
+                //     description: "Cannot function without at least 5 mouthful spoons of raw coffee per day" 
+                // },
                 { 
                     name: "Tab Hoarding", 
                     level: 47, 
-                    description: "Currently has 47 browser tabs open and refuses to close any" 
+                    description: "Currently has 50 browser tabs open and refuses to close any" 
                 },
                 {
                     name: "Bored"
@@ -1015,44 +1015,44 @@ const SkillsPage = () => {
                 { 
                     name: "Hobby", 
                     level: 100, 
-                    description: "OH you thought sutdying or coding? NAHH she Likes to jump off cliffs for no reason at all" 
+                    description: "OH you thought sutdying or coding? NAHH she Likes to jump off cliffs for all the reasons in the world" 
                 },
                 { 
-                    name: "Meme Knowledge", 
+                    name: "Emoji Knowledge", 
                     level: 96, 
-                    description: "Can communicate entirely through anime reaction gifs and emojis lmao" 
+                    description: "She is enlightened and Can communicate entirely through anime reaction gifs and emojis, she is beyond us MORTALS" 
                 },
                 { 
                     name: "Adorable", 
                     level: 100, 
-                    description: "Can never take a single complement, and always acts bored" 
+                    description: "Can never take a single complement, and always acts bored (she likes complements, i know it but she wont admit it)" 
                 },
                            { 
-                    name: "Annoying", 
+                    name: "Love?", 
                     level: 100, 
-                    description: "Unitentionally annoys you, and you can't even be mad at her, bcz she is clueless about everything lol" 
+                    description: "NAHHHHH, too Expensive in this Economy!" 
                 },
                 {
                     name: "Crazy",
                     level: 85,  
-                    description: "I tell her that i will go and meet her in a year or so, and she acts like she will be lonely, like bruh XD i mean im lonely too until we meet, sadly lmao"
+                    description: "Is she normal? NOPE, is she crazy and weird? DEFINITELY, is that a good thing??? maybe not for others, but for me; YES its acceptable"
                 }
             ],
             color: "from-blue-400 to-purple-500"
         },
         {
             category: "Her Life Skills!",
-            description: "survival capablities",
+            description: "How she survives in this cruel world",
             items: [
                 { 
-                    name: "Mood swings", 
+                    name: "Sleep", 
                     level: 50, 
-                    description: "50-50 chance she will get mad at you for no reason at all or act cute asf, cant even get mad at her, she is so innocent for that XD" 
+                    description: "whats that?" 
                 },
                 { 
                     name: "Rest Schedule?", 
                     level: 26, 
-                    description: "What is a consistent bedtime? We don't know her, absolutely questionable sleeping habits, and says her ghost uses pc all night ;-;" 
+                    description: "What is a consistent bedtime? its just her ghost that uses pc all night, def not her" 
                 },
                 { 
                     name: "Snack Discovery", 
@@ -1062,12 +1062,12 @@ const SkillsPage = () => {
                 { 
                     name: "Playlist Curation", 
                     level: 99, 
-                    description: "Has 26 different mood playlists and all kind of subscriptions lmao" 
+                    description: "Has 26 different mood playlists and refuses to share any with me ;c" 
                 },
                               { 
-                    name: "Mafia girl", 
+                    name: "Daddy's girl", 
                     level: 100, 
-                    description: "Is rich af and acts like she got some kind of secret business going lmao" 
+                    description: "Well i dont even wanna write this one, but it is just is an enderaing nature of her, but i personally dont have my father in this world which hurts to get reminded of uff" 
                 }
             ],
             color: "from-green-400 to-teal-500"
