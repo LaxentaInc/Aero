@@ -1,435 +1,235 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { FaReact, FaNodeJs, FaPython, FaRust, FaJs } from 'react-icons/fa'
-import { SiNextdotjs, SiTypescript, SiVuedotjs, SiDiscord } from 'react-icons/si'
+import { useState, useRef, useEffect } from 'react'
 
 const techStacks = [
   {
-    name: 'JavaScript',
-    icon: (theme: 'dark' | 'light') => <FaJs size={48} color="#F7DF1E" />,
-    color: '#F7DF1E',
-    description: "The foundation of modern web development. Started here because why not - built tons of projects and got comfortable with its quirks.",
-    bgGradient: 'from-amber-900/20 to-yellow-900/20',
-    experience: 'Advanced',
-    projects: '22+ projects',
-    yearsUsing: '3+ years',
-  },
-  {
     name: 'React',
-    icon: (theme: 'dark' | 'light') => <FaReact size={48} color="#61DAFB" />,
-    color: '#61DAFB',
-    description: "Component-based architecture that just makes sense. The ecosystem is massive and the community is solid.",
-    bgGradient: 'from-cyan-900/20 to-blue-900/20',
-    experience: 'Advanced',
-    projects: '20+ projects',
-    yearsUsing: '2+ years',
-  },
-  {
-    name: 'Next.js',
-    icon: (theme: 'dark' | 'light') => <SiNextdotjs size={48} color="#ffffff" />,
-    color: '#ffffff',
-    description: "Full-stack React framework. SSR, SSG, API routes - everything you need in one package. This site runs on it.",
-    bgGradient: 'from-gray-900/20 to-black/20',
-    experience: 'Advanced',
-    projects: '20+ projects',
-    yearsUsing: '2+ years',
+    description: 'Component-based UI library for building interactive interfaces',
+    svg: (
+      <svg viewBox="0 0 100 100" className="w-20 h-20 text-white">
+        <circle cx="50" cy="50" r="8" fill="currentColor" />
+        <ellipse cx="50" cy="50" rx="35" ry="15" fill="none" stroke="currentColor" strokeWidth="3" transform="rotate(0 50 50)" />
+        <ellipse cx="50" cy="50" rx="35" ry="15" fill="none" stroke="currentColor" strokeWidth="3" transform="rotate(60 50 50)" />
+        <ellipse cx="50" cy="50" rx="35" ry="15" fill="none" stroke="currentColor" strokeWidth="3" transform="rotate(120 50 50)" />
+      </svg>
+    )
   },
   {
     name: 'TypeScript',
-    icon: (theme: 'dark' | 'light') => <SiTypescript size={48} color="#3178C6" />,
-    color: '#3178C6',
-    description: "JavaScript with types. Catches bugs before they happen and makes refactoring actually safe.",
-    bgGradient: 'from-blue-900/20 to-indigo-900/20',
-    experience: 'Advanced',
-    projects: 'Most recent work',
-    yearsUsing: '2+ years',
+    description: 'Typed superset of JavaScript that compiles to plain JavaScript',
+    svg: (
+      <svg viewBox="0 0 100 100" className="w-20 h-20 text-white">
+        <rect x="10" y="10" width="80" height="80" rx="8" fill="none" stroke="currentColor" strokeWidth="3"/>
+        <text x="50" y="65" textAnchor="middle" className="text-2xl font-bold fill-current">TS</text>
+      </svg>
+    )
   },
   {
-    name: 'Discord.js',
-    icon: (theme: 'dark' | 'light') => <SiDiscord size={48} color="#5865F2" />,
-    color: '#5865F2',
-    description: "What got me into programming. Built community bots, moderation tools, and automation scripts.",
-    bgGradient: 'from-indigo-900/20 to-purple-900/20',
-    experience: 'Expert',
-    projects: '3 major bots',
-    yearsUsing: '3+ years',
+    name: 'Next.js',
+    description: 'Full-stack React framework with server-side rendering',
+    svg: (
+      <svg viewBox="0 0 100 100" className="w-20 h-20 text-white">
+        <polygon points="20,80 50,20 80,80" fill="none" stroke="currentColor" strokeWidth="3"/>
+        <line x1="35" y1="60" x2="65" y2="60" stroke="currentColor" strokeWidth="3"/>
+      </svg>
+    )
   },
   {
     name: 'Node.js',
-    icon: (theme: 'dark' | 'light') => <FaNodeJs size={48} color="#339933" />,
-    color: '#339933',
-    description: "JavaScript on the server. APIs, microservices, real-time applications - the backend workhorse.",
-    bgGradient: 'from-green-900/20 to-emerald-900/20',
-    experience: 'Expert',
-    projects: 'Countless APIs',
-    yearsUsing: '3+ years',
+    description: 'JavaScript runtime built on Chrome\'s V8 JavaScript engine',
+    svg: (
+      <svg viewBox="0 0 100 100" className="w-20 h-20 text-white">
+        <path d="M50 10 L80 30 L80 70 L50 90 L20 70 L20 30 Z" fill="none" stroke="currentColor" strokeWidth="3"/>
+        <circle cx="50" cy="40" r="6" fill="currentColor"/>
+        <path d="M35 60 Q50 50 65 60" fill="none" stroke="currentColor" strokeWidth="3"/>
+      </svg>
+    )
   },
   {
-    name: 'Rust',
-    icon: (theme: 'dark' | 'light') => <FaRust size={48} color="#CE422B" />,
-    color: '#CE422B',
-    description: "Systems programming language focused on safety and performance. Currently learning - the ownership model is fascinating.",
-    bgGradient: 'from-red-900/20 to-orange-900/20',
-    experience: 'Learning',
-    projects: 'CLI tools & experiments',
-    yearsUsing: '6 months',
+    name: 'Discord.js',
+    description: 'Powerful library for interacting with the Discord API',
+    svg: (
+      <svg viewBox="0 0 100 100" className="w-20 h-20 text-white">
+        <rect x="20" y="30" width="60" height="40" rx="15" fill="none" stroke="currentColor" strokeWidth="3"/>
+        <circle cx="35" cy="45" r="4" fill="currentColor"/>
+        <circle cx="65" cy="45" r="4" fill="currentColor"/>
+        <path d="M30 55 Q50 65 70 55" fill="none" stroke="currentColor" strokeWidth="3"/>
+      </svg>
+    )
   },
   {
     name: 'Python',
-    icon: (theme: 'dark' | 'light') => <FaPython size={48} color="#3776AB" />,
-    color: '#3776AB',
-    description: "Scripting and automation. Good for quick prototypes and data processing, though I prefer other languages for most work.",
-    bgGradient: 'from-blue-900/20 to-yellow-900/20',
-    experience: 'Learning',
-    projects: '8+ experiments',
-    yearsUsing: '8 months',
+    description: 'High-level programming language with elegant syntax',
+    svg: (
+      <svg viewBox="0 0 100 100" className="w-20 h-20 text-white">
+        <path d="M30 20 Q50 10 70 20 Q80 30 70 50 Q50 60 30 50 Q20 30 30 20" fill="none" stroke="currentColor" strokeWidth="3"/>
+        <circle cx="40" cy="30" r="3" fill="currentColor"/>
+        <path d="M30 50 Q50 40 70 50 Q80 70 70 80 Q50 90 30 80 Q20 70 30 50" fill="none" stroke="currentColor" strokeWidth="3"/>
+        <circle cx="60" cy="70" r="3" fill="currentColor"/>
+      </svg>
+    )
   },
+  {
+    name: 'Rust',
+    description: 'Systems programming language focused on safety and performance',
+    svg: (
+      <svg viewBox="0 0 100 100" className="w-20 h-20 text-white">
+        <circle cx="50" cy="50" r="25" fill="none" stroke="currentColor" strokeWidth="3"/>
+        <circle cx="50" cy="50" r="8" fill="currentColor"/>
+        <path d="M50 25 L55 35 L50 30 L45 35 Z" fill="currentColor"/>
+        <path d="M75 50 L65 45 L70 50 L65 55 Z" fill="currentColor"/>
+        <path d="M50 75 L45 65 L50 70 L55 65 Z" fill="currentColor"/>
+        <path d="M25 50 L35 55 L30 50 L35 45 Z" fill="currentColor"/>
+      </svg>
+    )
+  },
+  {
+    name: 'JavaScript',
+    description: 'The programming language of the web',
+    svg: (
+      <svg viewBox="0 0 100 100" className="w-20 h-20 text-white">
+        <rect x="15" y="15" width="70" height="70" rx="8" fill="none" stroke="currentColor" strokeWidth="3"/>
+        <text x="50" y="65" textAnchor="middle" className="text-2xl font-bold fill-current">JS</text>
+      </svg>
+    )
+  }
 ]
 
-const ScrollLockedTechStack = ({ theme = 'dark' }: { theme?: 'dark' | 'light' }) => {
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [isLocked, setIsLocked] = useState(false)
-  const [hasEntered, setHasEntered] = useState(false)
+export default function GlassmorphismTechStack() {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const lastScrollTime = useRef(0)
+  const [isDragging, setIsDragging] = useState(false)
+  const startX = useRef(0)
+  const scrollLeft = useRef(0)
 
-  const preventScroll = useCallback((e: Event) => {
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!containerRef.current) return
+    setIsDragging(true)
+    startX.current = e.pageX - containerRef.current.offsetLeft
+    scrollLeft.current = containerRef.current.scrollLeft
+  }
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !containerRef.current) return
     e.preventDefault()
-    e.stopPropagation()
-    return false
+    const x = e.pageX - containerRef.current.offsetLeft
+    const walk = (x - startX.current) * 0.8 // Slower scroll
+    containerRef.current.scrollLeft = scrollLeft.current - walk
+  }
+
+  const handleMouseUp = () => {
+    setIsDragging(false)
+  }
+
+  const handleWheel = (e: WheelEvent) => {
+    if (!containerRef.current) return
+    e.preventDefault()
+    containerRef.current.scrollLeft += e.deltaY * 0.5 // Much slower scroll
+  }
+
+  useEffect(() => {
+    const container = containerRef.current
+    if (container) {
+      container.addEventListener('wheel', handleWheel, { passive: false })
+      return () => container.removeEventListener('wheel', handleWheel)
+    }
   }, [])
 
-  const lockScroll = useCallback(() => {
-    document.body.style.overflow = 'hidden'
-    document.addEventListener('wheel', preventScroll, { passive: false })
-    document.addEventListener('touchmove', preventScroll, { passive: false })
-    document.addEventListener('keydown', (e) => {
-      if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '].includes(e.key)) {
-        e.preventDefault()
-      }
-    })
-  }, [preventScroll])
-
-  const unlockScroll = useCallback(() => {
-    document.body.style.overflow = 'unset'
-    document.removeEventListener('wheel', preventScroll)
-    document.removeEventListener('touchmove', preventScroll)
-    document.removeEventListener('keydown', (e) => {
-      if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End', ' '].includes(e.key)) {
-        e.preventDefault()
-      }
-    })
-  }, [preventScroll])
-
-  const handleTechScroll = useCallback((e: WheelEvent) => {
-    if (!isLocked) return
-
-    const now = Date.now()
-    if (now - lastScrollTime.current < 150) return // Throttle
-    lastScrollTime.current = now
-
-    const delta = e.deltaY
-
-    if (delta > 0) {
-      // Scroll down - next tech
-      if (currentIndex < techStacks.length - 1) {
-        setCurrentIndex(prev => prev + 1)
-      } else {
-        // Reached the end, unlock and allow normal scroll
-        setIsLocked(false)
-        unlockScroll()
-      }
-    } else {
-      // Scroll up - previous tech
-      if (currentIndex > 0) {
-        setCurrentIndex(prev => prev - 1)
-      } else {
-        // At beginning, unlock and allow normal scroll up
-        setIsLocked(false)
-        unlockScroll()
-      }
-    }
-  }, [isLocked, currentIndex, unlockScroll])
-
-  useEffect(() => {
-    const handleGlobalScroll = () => {
-      if (!containerRef.current || isLocked) return
-      
-      const rect = containerRef.current.getBoundingClientRect()
-      const isInView = rect.top <= window.innerHeight * 0.5 && rect.bottom >= window.innerHeight * 0.5
-      
-      if (isInView && !hasEntered) {
-        setHasEntered(true)
-        setIsLocked(true)
-        setCurrentIndex(0)
-        lockScroll()
-        
-        // Add the tech scroll handler
-        document.addEventListener('wheel', handleTechScroll, { passive: false })
-      }
-    }
-
-    if (!isLocked) {
-      window.addEventListener('scroll', handleGlobalScroll)
-    }
-
-    return () => {
-      window.removeEventListener('scroll', handleGlobalScroll)
-      if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current)
-    }
-  }, [handleTechScroll, hasEntered, isLocked, lockScroll])
-
-  useEffect(() => {
-    if (isLocked) {
-      document.addEventListener('wheel', handleTechScroll, { passive: false })
-    } else {
-      document.removeEventListener('wheel', handleTechScroll)
-    }
-
-    return () => {
-      document.removeEventListener('wheel', handleTechScroll)
-    }
-  }, [isLocked, handleTechScroll])
-
-  useEffect(() => {
-    // Cleanup on unmount
-    return () => {
-      unlockScroll()
-    }
-  }, [unlockScroll])
-
-  const current = techStacks[currentIndex]
-
   return (
-    <div
-      ref={containerRef}
-      className="relative min-h-screen flex items-center justify-center bg-black"
-    >
-      {/* Lock indicator */}
-      <AnimatePresence>
-        {isLocked && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-8 left-1/2 transform -translate-x-1/2 z-50"
-          >
-            <div className="px-4 py-2 rounded-lg bg-red-500/10 border border-red-500/20 backdrop-blur-sm">
-              <div className="flex items-center gap-2 text-red-400 text-sm font-mono">
-                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                SCROLL LOCKED - Use wheel to navigate
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white overflow-hidden">
+      
+      {/* Header */}
+      <div className="text-center py-20">
+        <h1 className="text-7xl font-thin tracking-widest mb-8">
+          TECH STACK
+        </h1>
+        <div className="w-32 h-px bg-white/30 mx-auto"></div>
+      </div>
+
+      {/* Cards Container */}
+      <div className="relative">
+        <div 
+          ref={containerRef}
+          className="flex gap-8 px-[50vw] py-20 overflow-x-auto cursor-grab active:cursor-grabbing"
+          style={{ 
+            scrollbarWidth: 'none', 
+            msOverflowStyle: 'none',
+            scrollBehavior: 'smooth'
+          }}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+        >
+          {techStacks.map((tech, index) => (
+            <div
+              key={tech.name}
+              className="flex-shrink-0 w-80 h-96 relative"
+              onMouseEnter={() => setHoveredIndex(index)}
+              onMouseLeave={() => setHoveredIndex(null)}
+            >
+              {/* Glassmorphism Card */}
+              <div className="w-full h-full relative overflow-hidden rounded-2xl transition-all duration-500">
+                
+                {/* Glass background */}
+                <div className="absolute inset-0 bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl"></div>
+                
+                {/* Default state - just the SVG centered */}
+                <div className={`absolute inset-0 flex items-center justify-center transition-all duration-700 ${
+                  hoveredIndex === index ? 'opacity-0 scale-75 blur-sm' : 'opacity-100 scale-100 blur-0'
+                }`}>
+                  {tech.svg}
+                </div>
+
+                {/* Hover state - info overlay */}
+                <div className={`absolute inset-0 flex flex-col items-center justify-center p-8 transition-all duration-700 ${
+                  hoveredIndex === index ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-8'
+                }`}>
+                  
+                  {/* Background blur overlay */}
+                  <div className="absolute inset-0 bg-black/20 backdrop-blur-md rounded-2xl"></div>
+                  
+                  {/* Content */}
+                  <div className="relative z-10 text-center">
+                    
+                    {/* SVG */}
+                    <div className="mb-6 transform scale-75">
+                      {tech.svg}
+                    </div>
+                    
+                    {/* Title */}
+                    <h3 className="text-3xl font-light mb-4 tracking-wide">
+                      {tech.name}
+                    </h3>
+                    
+                    {/* Description */}
+                    <p className="text-gray-300 leading-relaxed text-center max-w-xs">
+                      {tech.description}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Hover glow effect */}
+                <div className={`absolute inset-0 rounded-2xl transition-all duration-500 ${
+                  hoveredIndex === index 
+                    ? 'shadow-2xl shadow-white/20 border-white/40' 
+                    : 'shadow-lg shadow-white/5'
+                }`}></div>
               </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Progress indicator */}
-      <div className="fixed right-8 top-1/2 transform -translate-y-1/2 z-40">
-        <div className="flex flex-col gap-1">
-          {techStacks.map((_, index) => (
-            <div
-              key={index}
-              className={`w-1 h-8 rounded-full transition-all duration-300 ${
-                index <= currentIndex 
-                  ? 'bg-gradient-to-b from-white to-gray-400' 
-                  : 'bg-gray-800'
-              }`}
-            />
           ))}
         </div>
       </div>
 
-      {/* Main content */}
-      <div className="max-w-7xl mx-auto px-8 grid lg:grid-cols-2 gap-16 items-center">
-        
-        {/* Left - Card */}
-        <div className="relative">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentIndex}
-              initial={{ opacity: 0, x: -30, scale: 0.98 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              exit={{ opacity: 0, x: 30, scale: 0.98 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
-              className="relative"
-            >
-              <div 
-                className={`relative h-[500px] rounded-2xl overflow-hidden bg-gradient-to-br ${current?.bgGradient} border border-white/10`}
-                style={{
-                  background: `linear-gradient(135deg, ${current?.color}15 0%, transparent 100%), #0a0a0a`
-                }}
-              >
-                {/* Grid pattern overlay */}
-                <div className="absolute inset-0 opacity-5">
-                  <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:20px_20px]" />
-                </div>
-                
-                {/* Content */}
-                <div className="relative z-10 p-8 h-full flex flex-col">
-                  {/* Header */}
-                  <div className="flex items-center justify-between mb-8">
-                    <motion.div
-                      className="flex items-center gap-4"
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.1 }}
-                    >
-                      <div className="p-3 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
-                        {current?.icon(theme)}
-                      </div>
-                      <div>
-                        <h3 className="text-2xl font-bold text-white">
-                          {current?.name}
-                        </h3>
-                        <div className="text-sm text-gray-400 font-mono">
-                          {current?.yearsUsing}
-                        </div>
-                      </div>
-                    </motion.div>
-                    
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.2 }}
-                      className={`px-3 py-1 rounded-lg text-xs font-mono border ${
-                        current?.experience === 'Expert' ? 'bg-green-500/20 border-green-500/30 text-green-300' :
-                        current?.experience === 'Advanced' ? 'bg-blue-500/20 border-blue-500/30 text-blue-300' :
-                        'bg-amber-500/20 border-amber-500/30 text-amber-300'
-                      }`}
-                    >
-                      {current?.experience}
-                    </motion.div>
-                  </div>
-
-                  {/* Description */}
-                  <motion.div
-                    className="flex-1 mb-8"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                  >
-                    <p className="text-gray-300 text-lg leading-relaxed">
-                      {current?.description}
-                    </p>
-                  </motion.div>
-
-                  {/* Projects */}
-                  <motion.div
-                    className="flex items-center justify-between text-gray-400"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                  >
-                    <span className="text-sm font-mono">PROJECTS</span>
-                    <span className="text-white font-medium">{current?.projects}</span>
-                  </motion.div>
-
-                  {/* Experience bar */}
-                  <motion.div 
-                    className="mt-4 w-full h-1 bg-white/10 rounded-full overflow-hidden"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.4 }}
-                  >
-                    <motion.div
-                      className="h-full bg-gradient-to-r from-white to-gray-300 rounded-full"
-                      initial={{ width: 0 }}
-                      animate={{ 
-                        width: current?.experience === 'Expert' ? '100%' : 
-                               current?.experience === 'Advanced' ? '85%' : '60%'
-                      }}
-                      transition={{ delay: 0.5, duration: 0.8, ease: "easeOut" }}
-                    />
-                  </motion.div>
-                </div>
-
-                {/* Accent line */}
-                <motion.div
-                  className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white/50 to-transparent"
-                  initial={{ scaleX: 0 }}
-                  animate={{ scaleX: 1 }}
-                  transition={{ delay: 0.4, duration: 0.8 }}
-                />
-              </div>
-            </motion.div>
-          </AnimatePresence>
-        </div>
-
-        {/* Right - Info */}
-        <div className="space-y-8">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <h2 className="text-5xl font-bold text-white mb-4">
-              Tech Stack
-            </h2>
-            <p className="text-xl text-gray-400 leading-relaxed">
-              Technologies I use to build scalable, modern applications. Each serves a specific purpose in my development workflow.
-            </p>
-          </motion.div>
-
-          {/* Current tech focus */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`info-${currentIndex}`}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-              className="p-6 rounded-xl bg-white/5 border border-white/10 backdrop-blur-sm"
-            >
-              <h4 className="text-xl font-bold text-white mb-3">
-                Currently Viewing: {current?.name}
-              </h4>
-              <div className="flex items-center gap-4 text-sm text-gray-400 font-mono">
-                <span>Experience: {current?.experience}</span>
-                <span>•</span>
-                <span>Duration: {current?.yearsUsing}</span>
-              </div>
-            </motion.div>
-          </AnimatePresence>
-
-          {/* Instructions */}
-          <motion.div
-            className="text-gray-500 text-sm font-mono flex items-center gap-2"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1 }}
-          >
-            {isLocked ? (
-              <>
-                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
-                Scroll to navigate • {currentIndex + 1}/{techStacks.length}
-              </>
-            ) : (
-              'Scroll to explore tech stack'
-            )}
-          </motion.div>
-        </div>
+      {/* Instructions */}
+      <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 text-center text-gray-500 text-sm font-light">
+        Scroll or drag to explore
       </div>
 
-      {/* Counter */}
-      <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 text-center">
-        <motion.div
-          className="text-2xl font-mono text-white mb-1"
-          key={currentIndex}
-          initial={{ y: 10, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.3 }}
-        >
-          {String(currentIndex + 1).padStart(2, '0')}
-        </motion.div>
-        <div className="text-sm text-gray-500 font-mono">
-          {String(techStacks.length).padStart(2, '0')}
-        </div>
-        <div className="w-12 h-px bg-gray-600 mx-auto mt-2" />
-      </div>
+      <style jsx>{`
+        .overflow-x-auto::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
     </div>
   )
 }
-
-export default ScrollLockedTechStack
