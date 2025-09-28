@@ -211,9 +211,9 @@ const useProtection = () => {
 const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
 	// list of possible video sources
 	const videos = [
-    "/videos/peaceAtLast.mp4",
     "/videos/Raphtalia_Girl_By_laxenta .mp4",
-    "/videos/IfYouSeeThis_You_Are_cute_missKoi.webm"
+    "/videos/IfYouSeeThis_You_Are_cute_missKoi.webm",
+    "/videos/peaceATlast.webm",
 	]
 
 	// pick one at random every render

@@ -790,6 +790,7 @@ const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
   const videos = [
     "/videos/laxenta1.webm",
     "/videos/myCutekoiiii.webm",
+    "/videos/IfYouSeeThis_You_Are_cute_missKoi.webm",
     "/videos/Raphtalia_Girl_By_laxenta .mp4",
     // "/videos/shorekeeper.mp4"  // add if needed
   ]
