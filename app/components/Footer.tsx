@@ -155,30 +155,6 @@ export default function Footer() {
   // Team member's links
   const teamLinks = [
     {
-      name: 'YouTube',
-      icon: Youtube,
-      href: 'https://www.youtube.com/@tuhinsarkar_in',
-      color: '#FF0000'
-    },
-    {
-      name: 'Twitter',
-      icon: Twitter,
-      href: 'https://x.com/awedaxel',
-      color: '#1DA1F2'
-    },
-    {
-      name: 'GitHub',
-      icon: Github,
-      href: 'https://github.com/tuhinsarkar-in',
-      color: theme === 'dark' ? '#fff' : '#000'
-    },
-    {
-      name: 'Instagram',
-      icon: Instagram,
-      href: 'https://instagram.com/tuhinsarkar.in',
-      color: theme === 'dark' ? '#fff' : '#000'
-    },
-    {
       name: 'Website',
       icon: Globe,
       href: 'https://tuhinsarkar.in',
