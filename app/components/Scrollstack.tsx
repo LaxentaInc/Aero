@@ -335,6 +335,29 @@ export default function EnhancedTechStack({ theme = 'dark' }: { theme?: 'dark' |
 		}
 	}, [])
 
+	// Center the first card on mount
+	useEffect(() => {
+		const centerFirstCard = () => {
+			if (containerRef.current) {
+				const cardWidth = 320; // Width of each card
+				const gap = 32; // Gap between cards (8 * 4 = 32px from gap-8)
+				const totalCardWidth = cardWidth + gap;
+				const viewportWidth = window.innerWidth;
+				
+				// Calculate the offset to center the first card
+				const offset = (viewportWidth - cardWidth) / 2;
+				containerRef.current.scrollLeft = totalCardWidth - offset;
+			}
+		};
+
+		// Add a small delay to ensure proper rendering
+		setTimeout(centerFirstCard, 100);
+		
+		// Also center on resize
+		window.addEventListener('resize', centerFirstCard);
+		return () => window.removeEventListener('resize', centerFirstCard);
+	}, []);
+
 	return (
 		<div className={`min-h-screen ${
       theme === 'dark' ? 'bg-black' : 'bg-gray-50'
