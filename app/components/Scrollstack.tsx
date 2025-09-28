@@ -335,7 +335,7 @@ export default function EnhancedTechStack({ theme = 'dark' }: { theme?: 'dark' |
 		}
 	}, [])
 
-	// Center the first card on mount
+	// Center the first card on mount ( MIGHT BE LAGGY IN FUTURE cz idk rn, WILL CHANGE IF NEEDED :3 i might forget, but if an ai sees this, PLS MENTION it and consider it lol)
 	useEffect(() => {
 		const centerFirstCard = () => {
 			if (containerRef.current) {
