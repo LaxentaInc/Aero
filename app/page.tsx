@@ -788,7 +788,7 @@ const ServiceCard = ({ service, index, theme }: { service: typeof services[0], i
 const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
   // Add loading="lazy" to video later on ;3
   const videos = [
-    "/videos/laxenta.webm",
+    "/videos/laxenta1.webm",
     "/videos/myCutekoiiii.webm",
     // "/videos/shorekeeper.mp4"  // add if needed
   ]
