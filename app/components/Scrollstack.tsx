@@ -1,235 +1,537 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 
 const techStacks = [
-  {
-    name: 'React',
-    description: 'Component-based UI library for building interactive interfaces',
-    svg: (
-      <svg viewBox="0 0 100 100" className="w-20 h-20 text-white">
-        <circle cx="50" cy="50" r="8" fill="currentColor" />
-        <ellipse cx="50" cy="50" rx="35" ry="15" fill="none" stroke="currentColor" strokeWidth="3" transform="rotate(0 50 50)" />
-        <ellipse cx="50" cy="50" rx="35" ry="15" fill="none" stroke="currentColor" strokeWidth="3" transform="rotate(60 50 50)" />
-        <ellipse cx="50" cy="50" rx="35" ry="15" fill="none" stroke="currentColor" strokeWidth="3" transform="rotate(120 50 50)" />
-      </svg>
-    )
-  },
-  {
-    name: 'TypeScript',
-    description: 'Typed superset of JavaScript that compiles to plain JavaScript',
-    svg: (
-      <svg viewBox="0 0 100 100" className="w-20 h-20 text-white">
-        <rect x="10" y="10" width="80" height="80" rx="8" fill="none" stroke="currentColor" strokeWidth="3"/>
-        <text x="50" y="65" textAnchor="middle" className="text-2xl font-bold fill-current">TS</text>
-      </svg>
-    )
-  },
-  {
-    name: 'Next.js',
-    description: 'Full-stack React framework with server-side rendering',
-    svg: (
-      <svg viewBox="0 0 100 100" className="w-20 h-20 text-white">
-        <polygon points="20,80 50,20 80,80" fill="none" stroke="currentColor" strokeWidth="3"/>
-        <line x1="35" y1="60" x2="65" y2="60" stroke="currentColor" strokeWidth="3"/>
-      </svg>
-    )
-  },
-  {
-    name: 'Node.js',
-    description: 'JavaScript runtime built on Chrome\'s V8 JavaScript engine',
-    svg: (
-      <svg viewBox="0 0 100 100" className="w-20 h-20 text-white">
-        <path d="M50 10 L80 30 L80 70 L50 90 L20 70 L20 30 Z" fill="none" stroke="currentColor" strokeWidth="3"/>
-        <circle cx="50" cy="40" r="6" fill="currentColor"/>
-        <path d="M35 60 Q50 50 65 60" fill="none" stroke="currentColor" strokeWidth="3"/>
-      </svg>
-    )
-  },
-  {
-    name: 'Discord.js',
-    description: 'Powerful library for interacting with the Discord API',
-    svg: (
-      <svg viewBox="0 0 100 100" className="w-20 h-20 text-white">
-        <rect x="20" y="30" width="60" height="40" rx="15" fill="none" stroke="currentColor" strokeWidth="3"/>
-        <circle cx="35" cy="45" r="4" fill="currentColor"/>
-        <circle cx="65" cy="45" r="4" fill="currentColor"/>
-        <path d="M30 55 Q50 65 70 55" fill="none" stroke="currentColor" strokeWidth="3"/>
-      </svg>
-    )
-  },
-  {
-    name: 'Python',
-    description: 'High-level programming language with elegant syntax',
-    svg: (
-      <svg viewBox="0 0 100 100" className="w-20 h-20 text-white">
-        <path d="M30 20 Q50 10 70 20 Q80 30 70 50 Q50 60 30 50 Q20 30 30 20" fill="none" stroke="currentColor" strokeWidth="3"/>
-        <circle cx="40" cy="30" r="3" fill="currentColor"/>
-        <path d="M30 50 Q50 40 70 50 Q80 70 70 80 Q50 90 30 80 Q20 70 30 50" fill="none" stroke="currentColor" strokeWidth="3"/>
-        <circle cx="60" cy="70" r="3" fill="currentColor"/>
-      </svg>
-    )
-  },
-  {
-    name: 'Rust',
-    description: 'Systems programming language focused on safety and performance',
-    svg: (
-      <svg viewBox="0 0 100 100" className="w-20 h-20 text-white">
-        <circle cx="50" cy="50" r="25" fill="none" stroke="currentColor" strokeWidth="3"/>
-        <circle cx="50" cy="50" r="8" fill="currentColor"/>
-        <path d="M50 25 L55 35 L50 30 L45 35 Z" fill="currentColor"/>
-        <path d="M75 50 L65 45 L70 50 L65 55 Z" fill="currentColor"/>
-        <path d="M50 75 L45 65 L50 70 L55 65 Z" fill="currentColor"/>
-        <path d="M25 50 L35 55 L30 50 L35 45 Z" fill="currentColor"/>
-      </svg>
-    )
-  },
-  {
-    name: 'JavaScript',
-    description: 'The programming language of the web',
-    svg: (
-      <svg viewBox="0 0 100 100" className="w-20 h-20 text-white">
-        <rect x="15" y="15" width="70" height="70" rx="8" fill="none" stroke="currentColor" strokeWidth="3"/>
-        <text x="50" y="65" textAnchor="middle" className="text-2xl font-bold fill-current">JS</text>
-      </svg>
-    )
-  }
+	{
+		name: 'React',
+		level: 'Expert',
+		years: '2+',
+		projects: '15ish',
+		description: 'Component-based architecture that powers modern UIs',
+		hoverTitle: 'REACTIVE INTERFACES',
+		hoverDescription: 'Virtual DOM manipulation • Hooks ecosystem • Component lifecycle',
+		svg: (
+			<svg viewBox="0 0 100 100" className="w-16 h-16">
+				<circle cx="50" cy="50" r="7" fill="#61DAFB" />
+				<ellipse
+					cx="50"
+					cy="50"
+					rx="35"
+					ry="13"
+					fill="none"
+					stroke="#61DAFB"
+					strokeWidth="2.5"
+				/>
+				<ellipse
+					cx="50"
+					cy="50"
+					rx="35"
+					ry="13"
+					fill="none"
+					stroke="#61DAFB"
+					strokeWidth="2.5"
+					transform="rotate(60 50 50)"
+				/>
+				<ellipse
+					cx="50"
+					cy="50"
+					rx="35"
+					ry="13"
+					fill="none"
+					stroke="#61DAFB"
+					strokeWidth="2.5"
+					transform="rotate(120 50 50)"
+				/>
+			</svg>
+		),
+	},
+	{
+		name: 'TypeScript',
+		level: 'Advanced',
+		years: '2+',
+		projects: 'Most recent',
+		description: 'Typed superset of JavaScript that scales',
+		hoverTitle: 'TYPE SAFETY',
+		hoverDescription: 'Static typing • Interface contracts • Compile-time checks',
+		svg: (
+			<svg viewBox="0 0 100 100" className="w-16 h-16">
+				<rect
+					x="15"
+					y="15"
+					width="70"
+					height="70"
+					rx="4"
+					fill="#3178C6"
+				/>
+				<text
+					x="50"
+					y="62"
+					textAnchor="middle"
+					className="text-3xl font-bold"
+					fill="white"
+				>
+					TS
+				</text>
+			</svg>
+		),
+	},
+	{
+		name: 'Next.js',
+		level: 'Advanced',
+		years: '2+',
+		projects: '10+',
+		description: 'Full-stack React framework with SSR/SSG',
+		hoverTitle: 'PRODUCTION READY',
+		hoverDescription: 'Server components • API routes • Image optimization',
+		svg: (
+			<svg viewBox="0 0 100 100" className="w-16 h-16">
+				<circle
+					cx="50"
+					cy="50"
+					r="40"
+					fill="black"
+					stroke="white"
+					strokeWidth="2"
+				/>
+				<path
+					d="M30 30 L70 70"
+					stroke="white"
+					strokeWidth="4"
+					strokeLinecap="round"
+				/>
+				<path
+					d="M60 30 L60 55"
+					stroke="white"
+					strokeWidth="4"
+					strokeLinecap="round"
+				/>
+			</svg>
+		),
+	},
+	{
+		name: 'Node.js',
+		level: 'Expert',
+		years: '3+',
+		projects: 'Idk',
+		description: 'JavaScript runtime for scalable backends',
+		hoverTitle: 'SERVER RUNTIME',
+		hoverDescription: 'Event-driven • Non-blocking I/O • NPM ecosystem',
+		svg: (
+			<svg viewBox="0 0 100 100" className="w-16 h-16">
+				<path
+					d="M50 10 L80 27.5 L80 72.5 L50 90 L20 72.5 L20 27.5 Z"
+					fill="#339933"
+				/>
+				<path
+					d="M50 20 L70 32.5 L70 67.5 L50 80 L30 67.5 L30 32.5 Z"
+					fill="#fff"
+				/>
+				<text
+					x="50"
+					y="58"
+					textAnchor="middle"
+					className="text-xl font-bold"
+					fill="#339933"
+				>
+					N
+				</text>
+			</svg>
+		),
+	},
+	{
+		name: 'Discord.js',
+		level: 'Expert',
+		years: '3+',
+		projects: '(check out at /dashboard)',
+		description: 'Powerful library for Discord bots',
+		hoverTitle: 'BOT DEVELOPMENT',
+		hoverDescription: 'WebSocket handling • Command systems • Rich embeds',
+		svg: (
+			<svg viewBox="0 0 100 100" className="w-16 h-16">
+				<path
+					d="M35 25 C15 25 10 45 10 55 C10 75 20 80 30 80 L70 80 C80 80 90 75 90 55 C90 45 85 25 65 25 C60 20 55 18 50 18 C45 18 40 20 35 25"
+					fill="#5865F2"
+				/>
+				<ellipse cx="35" cy="45" rx="7" ry="9" fill="white" />
+				<ellipse cx="65" cy="45" rx="7" ry="9" fill="white" />
+				<circle cx="35" cy="45" r="3" fill="#5865F2" />
+				<circle cx="65" cy="45" r="3" fill="#5865F2" />
+			</svg>
+		),
+	},
+	{
+		name: 'Python',
+		level: 'Learning',
+		years: '8 months',
+		projects: '1 lmao',
+		description: 'Versatile language for automation & AI',
+		hoverTitle: 'SCRIPTING STUFF IG',
+		hoverDescription: 'Data science • Machine learning • Web scraping ( i dont know this lang much ngl XD )',
+		svg: (
+			<svg viewBox="0 0 100 100" className="w-16 h-16">
+				<path
+					d="M40 15 C30 15 25 20 25 30 L25 40 L50 40 L50 45 L25 45 L20 45 C10 45 5 50 5 60 C5 70 10 75 20 75 L30 75 L30 65 C30 55 35 50 45 50 L60 50 C70 50 75 45 75 35 L75 30 C75 20 70 15 60 15 Z"
+					fill="#3776AB"
+				/>
+				<path
+					d="M60 85 C70 85 75 80 75 70 L75 60 L50 60 L50 55 L75 55 L80 55 C90 55 95 50 95 40 C95 30 90 25 80 25 L70 25 L70 35 C70 45 65 50 55 50 L40 50 C30 50 25 55 25 65 L25 70 C25 80 30 85 40 85 Z"
+					fill="#FFD43B"
+				/>
+				<circle cx="35" cy="30" r="3" fill="white" />
+				<circle cx="65" cy="70" r="3" fill="white" />
+			</svg>
+		),
+	},
+	{
+		name: 'Rust',
+		level: 'Learning',
+		years: '2 months',
+		projects: 'Soon enough ig',
+		description: 'Memory-safe systems programming',
+		hoverTitle: 'ZERO-COST ABSTRACTIONS',
+		hoverDescription: 'Ownership model • No garbage collector • Fearless concurrency',
+		svg: (
+			<svg viewBox="0 0 100 100" className="w-16 h-16">
+				<circle
+					cx="50"
+					cy="50"
+					r="35"
+					fill="none"
+					stroke="#CE422B"
+					strokeWidth="3"
+				/>
+				<path d="M50 15 L50 35 M50 65 L50 85 M15 50 L35 50 M65 50 L85 50" />
+				<circle cx="50" cy="50" r="12" fill="#CE422B" />
+				<text
+					x="50"
+					y="57"
+					textAnchor="middle"
+					className="text-xl font-bold"
+					fill="white"
+				>
+					R
+				</text>
+			</svg>
+		),
+	},
+	{
+		name: 'JavaScript',
+		level: 'Expert',
+		years: '3+',
+		projects: 'Cant count, a lot ig',
+		description: 'The language that runs everywhere',
+		hoverTitle: 'WEB FOUNDATION',
+		hoverDescription: 'Used everywhere • Async/await • ES6+ features',
+		svg: (
+			<svg viewBox="0 0 100 100" className="w-16 h-16">
+				<rect
+					x="15"
+					y="15"
+					width="70"
+					height="70"
+					rx="4"
+					fill="#F7DF1E"
+				/>
+				<text
+					x="50"
+					y="62"
+					textAnchor="middle"
+					className="text-3xl font-bold"
+					fill="black"
+				>
+					JS
+				</text>
+			</svg>
+		),
+	},
 ]
 
-export default function GlassmorphismTechStack() {
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
-  const [isDragging, setIsDragging] = useState(false)
-  const startX = useRef(0)
-  const scrollLeft = useRef(0)
+export default function EnhancedTechStack() {
+	const [activeIndex, setActiveIndex] = useState(0)
+	const [isDragging, setIsDragging] = useState(false)
+	const [hoveredCard, setHoveredCard] = useState<number | null>(null)
+	const containerRef = useRef<HTMLDivElement>(null)
+	const startX = useRef<number>(0)
+	const scrollLeft = useRef<number>(0)
+	const dragVelocity = useRef<number>(0)
+	const lastX = useRef<number>(0)
+	const animationRef = useRef<number | undefined>(undefined)
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!containerRef.current) return
-    setIsDragging(true)
-    startX.current = e.pageX - containerRef.current.offsetLeft
-    scrollLeft.current = containerRef.current.scrollLeft
-  }
+	const handleMouseDown = useCallback((e: React.MouseEvent) => {
+		if (!containerRef.current) return
+		setIsDragging(true)
+		containerRef.current.style.cursor = 'grabbing'
+		startX.current = e.pageX - containerRef.current.offsetLeft
+		scrollLeft.current = containerRef.current.scrollLeft
+		lastX.current = e.pageX
+		dragVelocity.current = 0
+	}, [])
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !containerRef.current) return
-    e.preventDefault()
-    const x = e.pageX - containerRef.current.offsetLeft
-    const walk = (x - startX.current) * 0.8 // Slower scroll
-    containerRef.current.scrollLeft = scrollLeft.current - walk
-  }
+	const handleMouseMove = useCallback(
+		(e: React.MouseEvent) => {
+			if (!isDragging || !containerRef.current) return
+			e.preventDefault()
+			const x = e.pageX - containerRef.current.offsetLeft
+			const walk = (x - startX.current) * 0.8 // Reduced from 1.2 to 0.8
+			containerRef.current.scrollLeft = scrollLeft.current - walk
 
-  const handleMouseUp = () => {
-    setIsDragging(false)
-  }
+			// Calculate velocity for momentum
+			dragVelocity.current = (e.pageX - lastX.current) * 0.6 // Added multiplier to reduce momentum
+			lastX.current = e.pageX
+		},
+		[isDragging]
+	)
 
-  const handleWheel = (e: WheelEvent) => {
-    if (!containerRef.current) return
-    e.preventDefault()
-    containerRef.current.scrollLeft += e.deltaY * 0.5 // Much slower scroll
-  }
+	const handleMouseUp = useCallback(() => {
+		if (!containerRef.current) return
+		setIsDragging(false)
+		containerRef.current.style.cursor = 'grab'
 
-  useEffect(() => {
-    const container = containerRef.current
-    if (container) {
-      container.addEventListener('wheel', handleWheel, { passive: false })
-      return () => container.removeEventListener('wheel', handleWheel)
-    }
-  }, [])
+		// Apply momentum
+		const decelerate = () => {
+			if (!containerRef.current) return
+			if (Math.abs(dragVelocity.current) > 0.5) {
+				containerRef.current.scrollLeft -= dragVelocity.current
+				dragVelocity.current *= 0.92
+				animationRef.current = requestAnimationFrame(decelerate)
+			}
+		}
+		decelerate()
+	}, [])
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 text-white overflow-hidden">
-      
-      {/* Header */}
-      <div className="text-center py-20">
-        <h1 className="text-7xl font-thin tracking-widest mb-8">
-          TECH STACK
-        </h1>
-        <div className="w-32 h-px bg-white/30 mx-auto"></div>
-      </div>
+	const handleWheel = useCallback(
+		(e: WheelEvent) => {
+			if (!containerRef.current) return
+			e.preventDefault()
+			containerRef.current.scrollLeft += e.deltaY * 0.5 // Reduced from 0.8 to 0.5
+		},
+		[]
+	)
 
-      {/* Cards Container */}
-      <div className="relative">
-        <div 
-          ref={containerRef}
-          className="flex gap-8 px-[50vw] py-20 overflow-x-auto cursor-grab active:cursor-grabbing"
-          style={{ 
-            scrollbarWidth: 'none', 
-            msOverflowStyle: 'none',
-            scrollBehavior: 'smooth'
-          }}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-        >
-          {techStacks.map((tech, index) => (
-            <div
-              key={tech.name}
-              className="flex-shrink-0 w-80 h-96 relative"
-              onMouseEnter={() => setHoveredIndex(index)}
-              onMouseLeave={() => setHoveredIndex(null)}
-            >
-              {/* Glassmorphism Card */}
-              <div className="w-full h-full relative overflow-hidden rounded-2xl transition-all duration-500">
-                
-                {/* Glass background */}
-                <div className="absolute inset-0 bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl"></div>
-                
-                {/* Default state - just the SVG centered */}
-                <div className={`absolute inset-0 flex items-center justify-center transition-all duration-700 ${
-                  hoveredIndex === index ? 'opacity-0 scale-75 blur-sm' : 'opacity-100 scale-100 blur-0'
-                }`}>
-                  {tech.svg}
-                </div>
+	useEffect(() => {
+		const container = containerRef.current
+		if (container) {
+			container.addEventListener('wheel', handleWheel, { passive: false })
+			return () => {
+				container.removeEventListener('wheel', handleWheel)
+				if (animationRef.current) cancelAnimationFrame(animationRef.current)
+			}
+		}
+	}, [handleWheel])
 
-                {/* Hover state - info overlay */}
-                <div className={`absolute inset-0 flex flex-col items-center justify-center p-8 transition-all duration-700 ${
-                  hoveredIndex === index ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-8'
-                }`}>
-                  
-                  {/* Background blur overlay */}
-                  <div className="absolute inset-0 bg-black/20 backdrop-blur-md rounded-2xl"></div>
-                  
-                  {/* Content */}
-                  <div className="relative z-10 text-center">
-                    
-                    {/* SVG */}
-                    <div className="mb-6 transform scale-75">
-                      {tech.svg}
-                    </div>
-                    
-                    {/* Title */}
-                    <h3 className="text-3xl font-light mb-4 tracking-wide">
-                      {tech.name}
-                    </h3>
-                    
-                    {/* Description */}
-                    <p className="text-gray-300 leading-relaxed text-center max-w-xs">
-                      {tech.description}
-                    </p>
-                  </div>
-                </div>
+	// Update active index based on scroll position
+	useEffect(() => {
+		const handleScroll = () => {
+			if (!containerRef.current) return
+			const scrollPos = containerRef.current.scrollLeft
+			const cardWidth = 320
+			const newIndex = Math.round(scrollPos / cardWidth)
+			setActiveIndex(Math.max(0, Math.min(newIndex, techStacks.length - 1)))
+		}
 
-                {/* Hover glow effect */}
-                <div className={`absolute inset-0 rounded-2xl transition-all duration-500 ${
-                  hoveredIndex === index 
-                    ? 'shadow-2xl shadow-white/20 border-white/40' 
-                    : 'shadow-lg shadow-white/5'
-                }`}></div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+		const container = containerRef.current
+		if (container) {
+			container.addEventListener('scroll', handleScroll)
+			return () => container.removeEventListener('scroll', handleScroll)
+		}
+	}, [])
 
-      {/* Instructions */}
-      <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 text-center text-gray-500 text-sm font-light">
-        Scroll or drag to explore
-      </div>
+	return (
+		<div className="min-h-screen bg-black text-white overflow-hidden relative font-mono">
+			{/* Grid background */}
+			<div className="fixed inset-0 opacity-5">
+				<div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:50px_50px]"></div>
+			</div>
 
-      <style jsx>{`
-        .overflow-x-auto::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
-    </div>
-  )
+			{/* Floating particles - optimized */}
+			<div className="fixed inset-0 overflow-hidden pointer-events-none">
+				{[...Array(10)].map((_, i) => (
+					<div
+						key={i}
+						className="absolute w-1 h-1 bg-white opacity-20"
+						style={{
+							left: `${Math.random() * 100}%`,
+							top: `${Math.random() * 100}%`,
+							animation: `float ${10 + Math.random() * 10}s linear infinite`,
+							animationDelay: `${Math.random() * 5}s`,
+						}}
+					/>
+				))}
+			</div>
+
+			{/* Header */}
+			<div className="text-center py-20 relative z-10">
+				<h1 className="text-7xl font-thin tracking-wider mb-6">TECH STACK</h1>
+				<div className="w-24 h-px bg-white mx-auto mb-6"></div>
+				<p className="text-gray-400 text-lg max-w-2xl mx-auto">
+					Technologies that power my development workflow
+				</p>
+			</div>
+
+			{/* Main Horizontal Scroll Container */}
+			<div className="relative z-10">
+				<div
+					ref={containerRef}
+					className="flex gap-8 px-[50vw] py-16 overflow-x-auto scrollbar-hide cursor-grab"
+					style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+					onMouseDown={handleMouseDown}
+					onMouseMove={handleMouseMove}
+					onMouseUp={handleMouseUp}
+					onMouseLeave={handleMouseUp}
+				>
+					{techStacks.map((tech, index) => (
+						<div
+							key={tech.name}
+							className="flex-shrink-0 w-80 h-96 relative transition-all duration-500 group"
+							style={{
+								transform: `
+                  scale(${index === activeIndex ? 1.05 : 0.95})
+                  translateY(${index === activeIndex ? '-8px' : '0'})
+                `,
+								opacity: index === activeIndex ? 1 : 0.7,
+								filter:
+									index === activeIndex ? 'none' : 'grayscale(30%)',
+							}}
+							onMouseEnter={() => setHoveredCard(index)}
+							onMouseLeave={() => setHoveredCard(null)}
+						>
+							{/* Glass Card */}
+							<div className="w-full h-full relative overflow-hidden rounded-xl transition-all duration-500 hover:shadow-2xl hover:shadow-white/10">
+								{/* Glass background */}
+								<div className="absolute inset-0 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl transition-all duration-500 hover:bg-white/10 hover:border-white/20"></div>
+
+								{/* Grid Pattern */}
+								<div className="absolute inset-0 opacity-5">
+									<div className="w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.2)_1px,transparent_1px)] bg-[length:20px_20px]"></div>
+								</div>
+
+								{/* Default Content */}
+								<div
+									className={`relative z-10 p-8 h-full flex flex-col transition-all duration-500 ${
+										hoveredCard === index
+											? 'opacity-0 scale-95'
+											: 'opacity-100 scale-100'
+									}`}
+								>
+									{/* Icon and Level */}
+									<div className="flex items-start justify-between mb-6">
+										<div className="transition-transform duration-500 hover:scale-110">
+											{tech.svg}
+										</div>
+										<div
+											className={`px-3 py-1 text-xs border ${
+												tech.level === 'Expert'
+													? 'border-white bg-white text-black'
+													: tech.level === 'Advanced'
+													? 'border-gray-400 text-gray-300'
+													: 'border-gray-600 text-gray-500'
+											}`}
+										>
+											{tech.level.toUpperCase()}
+										</div>
+									</div>
+
+									{/* Name */}
+									<h3 className="text-2xl mb-2 tracking-wide">
+										{tech.name}
+									</h3>
+									<div className="w-12 h-px bg-white/50 mb-4"></div>
+
+									{/* Description */}
+									<p className="text-gray-400 text-sm leading-relaxed mb-auto">
+										{tech.description}
+									</p>
+
+									{/* Stats */}
+									<div className="space-y-3 mt-6">
+										<div className="flex justify-between items-center text-sm">
+											<span className="text-gray-500">EXPERIENCE</span>
+											<span className="text-white">{tech.years}</span>
+										</div>
+										<div className="flex justify-between items-center text-sm">
+											<span className="text-gray-500">PROJECTS</span>
+											<span className="text-white">{tech.projects}</span>
+										</div>
+									</div>
+								</div>
+
+								{/* Hover Overlay */}
+								<div
+									className={`absolute inset-0 flex flex-col items-center justify-center p-8 transition-all duration-500 ${
+										hoveredCard === index
+											? 'opacity-100 scale-100'
+											: 'opacity-0 scale-110 pointer-events-none'
+									}`}
+								>
+									<div className="absolute inset-0 bg-black/60 backdrop-blur-xl rounded-xl"></div>
+
+									<div className="relative z-10 text-center">
+										<div className="mb-6 transform scale-110">
+											{tech.svg}
+										</div>
+
+										<h3 className="text-xl mb-2 tracking-widest text-gray-300">
+											{tech.hoverTitle}
+										</h3>
+
+										<p className="text-white/80 text-sm leading-relaxed">
+											{tech.hoverDescription}
+										</p>
+									</div>
+								</div>
+							</div>
+						</div>
+					))}
+				</div>
+
+				{/* Current tech indicator */}
+				<div className="flex justify-center gap-2 mt-8 pb-16">
+					{techStacks.map((_, index) => (
+						<button
+							key={index}
+							onClick={() => {
+								const container = containerRef.current
+								if (!container) return
+								const cardWidth = 320 + 32 // card width + gap
+								container.scrollTo({
+									left: index * cardWidth,
+									behavior: 'smooth',
+								})
+							}}
+							className={`w-2 h-2 transition-all duration-300 ${
+								index === activeIndex
+									? 'bg-white w-8'
+									: 'bg-white/30 hover:bg-white/50'
+							}`}
+						/>
+					))}
+				</div>
+
+				{/* Instructions */}
+				<div className="relative z-10 text-center pb-8">
+					<span className="text-gray-600 text-xs">
+						SCROLL • DRAG • EXPLORE
+					</span>
+				</div>
+			</div>
+
+			<style jsx>{`
+				.scrollbar-hide {
+					-ms-overflow-style: none;
+					scrollbar-width: none;
+				}
+				.scrollbar-hide::-webkit-scrollbar {
+					display: none;
+				}
+
+				@keyframes float {
+					0% {
+						transform: translateY(100vh) translateX(0);
+					}
+					100% {
+						transform: translateY(-100vh) translateX(100px);
+					}
+				}
+			`}</style>
+		</div>
+	)
 }
