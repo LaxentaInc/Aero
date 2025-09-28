@@ -211,7 +211,7 @@ const useProtection = () => {
 const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
 	// list of possible video sources
 	const videos = [
-    "/videos/peaceAlas(1).webm",
+    "/videos/peaceAtLast.mp4",
     "/videos/Raphtalia_Girl_By_laxenta .mp4",
 	]
 
