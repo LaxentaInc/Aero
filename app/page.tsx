@@ -9,7 +9,7 @@ import { SiNextdotjs, SiTypescript, SiVuedotjs, SiDiscord } from 'react-icons/si
 import { SpotifyNowPlaying } from './components/SpotifyNowPlaying'
 import { Typewriter } from 'react-simple-typewriter';
 import { Mochiy_Pop_One } from 'next/font/google'
-import  GlassmorphismTechStack from './components/Scrollstack'
+import  Techs from './components/Scrollstack'
 //svg
 const BookIcon = ({ className = "w-4 h-4", color = "currentColor" }) => (
   <svg 
@@ -1173,7 +1173,7 @@ export default function HomePage() {
 			<AboutSection theme={theme} />
 			{/* Tech Stack Section */}
 			{/* <ImprovedTechStack theme={theme} /> */}
-			<GlassmorphismTechStack/>
+			<Techs theme={theme} />
 			{/* Services Section */}
 			<section className="py-20">
 				<div className="max-w-7xl mx-auto px-8">

@@ -245,7 +245,7 @@ const techStacks = [
 	},
 ]
 
-export default function EnhancedTechStack() {
+export default function EnhancedTechStack({ theme = 'dark' }: { theme?: 'dark' | 'light' }) {
 	const [activeIndex, setActiveIndex] = useState(0)
 	const [isDragging, setIsDragging] = useState(false)
 	const [hoveredCard, setHoveredCard] = useState<number | null>(null)
@@ -336,18 +336,26 @@ export default function EnhancedTechStack() {
 	}, [])
 
 	return (
-		<div className="min-h-screen bg-black text-white overflow-hidden relative font-mono">
+		<div className={`min-h-screen ${
+      theme === 'dark' ? 'bg-black' : 'bg-gray-50'
+    } overflow-hidden relative font-mono`}>
 			{/* Grid background */}
 			<div className="fixed inset-0 opacity-5">
-				<div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:50px_50px]"></div>
+				<div className={`absolute inset-0 ${
+          theme === 'dark' 
+            ? 'bg-[linear-gradient(rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.1)_1px,transparent_1px)]'
+            : 'bg-[linear-gradient(rgba(0,0,0,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(0,0,0,0.1)_1px,transparent_1px)]'
+        } bg-[size:50px_50px]`}></div>
 			</div>
 
-			{/* Floating particles - optimized */}
+			{/* Floating particles */}
 			<div className="fixed inset-0 overflow-hidden pointer-events-none">
 				{[...Array(10)].map((_, i) => (
 					<div
 						key={i}
-						className="absolute w-1 h-1 bg-white opacity-20"
+						className={`absolute w-1 h-1 ${
+              theme === 'dark' ? 'bg-white' : 'bg-black'
+            } opacity-20`}
 						style={{
 							left: `${Math.random() * 100}%`,
 							top: `${Math.random() * 100}%`,
@@ -360,14 +368,22 @@ export default function EnhancedTechStack() {
 
 			{/* Header */}
 			<div className="text-center py-20 relative z-10">
-				<h1 className="text-7xl font-thin tracking-wider mb-6">TECH STACK</h1>
-				<div className="w-24 h-px bg-white mx-auto mb-6"></div>
-				<p className="text-gray-400 text-lg max-w-2xl mx-auto">
+				<h1 className={`text-7xl font-thin tracking-wider mb-6 ${
+          theme === 'dark' ? 'text-white' : 'text-gray-900'
+        }`}>
+					TECH STACK
+				</h1>
+				<div className={`w-24 h-px mx-auto mb-6 ${
+          theme === 'dark' ? 'bg-white' : 'bg-gray-900'
+        }`}></div>
+				<p className={`text-lg max-w-2xl mx-auto ${
+          theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+        }`}>
 					Technologies that power my development workflow
 				</p>
 			</div>
 
-			{/* Main Horizontal Scroll Container */}
+			{/* Main Container */}
 			<div className="relative z-10">
 				<div
 					ref={containerRef}
@@ -388,8 +404,7 @@ export default function EnhancedTechStack() {
                   translateY(${index === activeIndex ? '-8px' : '0'})
                 `,
 								opacity: index === activeIndex ? 1 : 0.7,
-								filter:
-									index === activeIndex ? 'none' : 'grayscale(30%)',
+								filter: index === activeIndex ? 'none' : 'grayscale(30%)'
 							}}
 							onMouseEnter={() => setHoveredCard(index)}
 							onMouseLeave={() => setHoveredCard(null)}
@@ -397,21 +412,16 @@ export default function EnhancedTechStack() {
 							{/* Glass Card */}
 							<div className="w-full h-full relative overflow-hidden rounded-xl transition-all duration-500 hover:shadow-2xl hover:shadow-white/10">
 								{/* Glass background */}
-								<div className="absolute inset-0 bg-white/5 backdrop-blur-md border border-white/10 rounded-xl transition-all duration-500 hover:bg-white/10 hover:border-white/20"></div>
+								<div className={`absolute inset-0 ${
+                  theme === 'dark'
+                    ? 'bg-white/5 backdrop-blur-md border-white/10 hover:bg-white/10 hover:border-white/20'
+                    : 'bg-black/5 backdrop-blur-md border-black/10 hover:bg-black/10 hover:border-black/20'
+                } border rounded-xl transition-all duration-500`}></div>
 
-								{/* Grid Pattern */}
-								<div className="absolute inset-0 opacity-5">
-									<div className="w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.2)_1px,transparent_1px)] bg-[length:20px_20px]"></div>
-								</div>
-
-								{/* Default Content */}
-								<div
-									className={`relative z-10 p-8 h-full flex flex-col transition-all duration-500 ${
-										hoveredCard === index
-											? 'opacity-0 scale-95'
-											: 'opacity-100 scale-100'
-									}`}
-								>
+								{/* Content */}
+								<div className={`relative z-10 p-8 h-full flex flex-col transition-all duration-500 ${
+                  hoveredCard === index ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
+                }`}>
 									{/* Icon and Level */}
 									<div className="flex items-start justify-between mb-6">
 										<div className="transition-transform duration-500 hover:scale-110">
@@ -431,13 +441,19 @@ export default function EnhancedTechStack() {
 									</div>
 
 									{/* Name */}
-									<h3 className="text-2xl mb-2 tracking-wide">
+									<h3 className={`text-2xl mb-2 tracking-wide ${
+                    theme === 'dark' ? 'text-white' : 'text-gray-900'
+                  }`}>
 										{tech.name}
 									</h3>
-									<div className="w-12 h-px bg-white/50 mb-4"></div>
+									<div className={`w-12 h-px mb-4 ${
+                    theme === 'dark' ? 'bg-white/50' : 'bg-black/50'
+                  }`}></div>
 
 									{/* Description */}
-									<p className="text-gray-400 text-sm leading-relaxed mb-auto">
+									<p className={`text-sm leading-relaxed mb-auto ${
+                    theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                  }`}>
 										{tech.description}
 									</p>
 
@@ -455,29 +471,27 @@ export default function EnhancedTechStack() {
 								</div>
 
 								{/* Hover Overlay */}
-								<div
-									className={`absolute inset-0 flex flex-col items-center justify-center p-8 transition-all duration-500 ${
-										hoveredCard === index
-											? 'opacity-100 scale-100'
-											: 'opacity-0 scale-110 pointer-events-none'
-									}`}
-								>
-									<div className="absolute inset-0 bg-black/60 backdrop-blur-xl rounded-xl"></div>
+								<div className={`absolute inset-0 flex flex-col items-center justify-center p-8 transition-all duration-500 ${
+                  hoveredCard === index ? 'opacity-100 scale-100' : 'opacity-0 scale-110 pointer-events-none'
+                }`}>
+                  <div className={`absolute inset-0 ${
+                    theme === 'dark' ? 'bg-black/60' : 'bg-white/60'
+                  } backdrop-blur-xl rounded-xl`}></div>
 
-									<div className="relative z-10 text-center">
-										<div className="mb-6 transform scale-110">
-											{tech.svg}
-										</div>
+                  <div className="relative z-10 text-center">
+                    <div className="mb-6 transform scale-110">
+                      {tech.svg}
+                    </div>
 
-										<h3 className="text-xl mb-2 tracking-widest text-gray-300">
-											{tech.hoverTitle}
-										</h3>
+                    <h3 className="text-xl mb-2 tracking-widest text-gray-300">
+                      {tech.hoverTitle}
+                    </h3>
 
-										<p className="text-white/80 text-sm leading-relaxed">
-											{tech.hoverDescription}
-										</p>
-									</div>
-								</div>
+                    <p className="text-white/80 text-sm leading-relaxed">
+                      {tech.hoverDescription}
+                    </p>
+                  </div>
+                </div>
 							</div>
 						</div>
 					))}
@@ -498,17 +512,19 @@ export default function EnhancedTechStack() {
 								})
 							}}
 							className={`w-2 h-2 transition-all duration-300 ${
-								index === activeIndex
-									? 'bg-white w-8'
-									: 'bg-white/30 hover:bg-white/50'
-							}`}
+                index === activeIndex 
+                  ? theme === 'dark' ? 'bg-white w-8' : 'bg-black w-8'
+                  : theme === 'dark' ? 'bg-white/30 hover:bg-white/50' : 'bg-black/30 hover:bg-black/50'
+              }`}
 						/>
 					))}
 				</div>
 
 				{/* Instructions */}
 				<div className="relative z-10 text-center pb-8">
-					<span className="text-gray-600 text-xs">
+					<span className={`text-xs ${
+            theme === 'dark' ? 'text-gray-600' : 'text-gray-400'
+          }`}>
 						SCROLL • DRAG • EXPLORE
 					</span>
 				</div>
