@@ -760,6 +760,9 @@ className="absolute top-[35vh] left-1/2 -translate-x-[160%] w-[min(590px,45vw)] 
                         <br />
                         When she is not studying, you'll probably find her coding, talking to me or trying to jump off another cliff Or well listening to music ngl.
                     </p>
+
+                    <div className="mb-8"></div>
+
                 <motion.p
                     className={`text-lg sm:text-xl font-medium italic mb-12 ${
                         theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
