@@ -211,9 +211,8 @@ const useProtection = () => {
 const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
 	// list of possible video sources
 	const videos = [
-		"/videos/damnbro.webm",
-		"/videos/Eyeloading-bg.webm",
-        "/videos/myCutekoiiii.webm"
+    "/videos/peaceAlas(1).webm",
+    "/videos/Raphtalia_Girl_By_laxenta .mp4",
 	]
 
 	// pick one at random every render
@@ -227,8 +226,8 @@ const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
         loop
         playsInline
         crossOrigin="anonymous"
-        className={`absolute top-0 left-0 w-full h-[57vh] object-cover ${
-          theme === 'dark' ? 'opacity-40' : 'opacity-60'  // Higher opacity in light mode
+        className={`absolute top-0 left-0 w-full h-[62vh] object-cover ${
+          theme === 'dark' ? 'opacity-40' : 'opacity-60'  //higher opacity in light mode
         }`}   
       >
 				{/* https://static.tradingview.com/static/bundles/northern-lights-pricing-desktop.86b1853e628d56f03bc8.webm */}
@@ -774,35 +773,8 @@ className="absolute top-[35vh] left-1/2 -translate-x-[160%] w-[min(590px,45vw)] 
                     That's all I wanna describe about her ngl
                 </motion.p>
 
-                <motion.div
-                    className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6 mb-12"
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 1.6, duration: 0.6 }}
-                >
-                    <motion.a
-                        href="https://discord.gg/ily-koi"
-                        className="group px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-2xl font-bold hover:from-purple-700 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl text-lg flex items-center gap-2"
-                        whileHover={{ scale: 1.05, y: -2 }}
-                        whileTap={{ scale: 0.95 }}
-                    >
-                        <span>DISCORD</span>
-                        <ExternalLink size={20} className="group-hover:translate-x-1 transition-transform" />
-                    </motion.a>
-                    <motion.a
-                        href="https://github.com/koimoee"
-                        className={`group px-8 py-4 border-2 rounded-2xl font-bold transition-all duration-300 text-lg flex items-center gap-2 ${
-                            theme === 'dark' 
-                                ? 'border-gray-600 text-gray-300 hover:border-gray-500 hover:bg-gray-800/50' 
-                                : 'border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50'
-                        }`}
-                        whileHover={{ scale: 1.05, y: -2 }}
-                        whileTap={{ scale: 0.95 }}
-                    >
-                        <span>GITHUB</span>
-                        <ExternalLink size={20} className="group-hover:translate-x-1 transition-transform" />
-                    </motion.a>
-                </motion.div>
+                <div className="mb-12"></div>
+
             </div>
         </div>
     );
