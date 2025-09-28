@@ -1,78 +1,91 @@
 'use client'
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { FaSpotify } from 'react-icons/fa'
+import { FaSpotify, FaRedo } from 'react-icons/fa'
 import { useTheme } from '../contexts/ThemeContext'
 
 export const SpotifyNowPlaying = () => {
     const { theme } = useTheme()
-    const [loading, setLoading] = useState(true)
+    const [state, setState] = useState({ loading: false, error: false, visible: false })
+    const containerRef = useRef<HTMLDivElement>(null)
+    const iframeRef = useRef<HTMLIFrameElement>(null)
 
+    // Lazy load on scroll
+    useEffect(() => {
+        if (!containerRef.current) return
+        
+        const observer = new IntersectionObserver(([entry]) => {
+            if (entry.isIntersecting) {
+                setState(s => ({ ...s, visible: true, loading: true }))
+                observer.disconnect()
+            }
+        }, { rootMargin: '100px' })
+        
+        observer.observe(containerRef.current)
+        return () => observer.disconnect()
+    }, [])
+
+    const handleLoad = () => setState(s => ({ ...s, loading: false, error: false }))
+    const handleError = () => setState(s => ({ ...s, loading: false, error: true }))
+    
+    const retry = () => {
+        if (!iframeRef.current) return
+        setState(s => ({ ...s, loading: true, error: false }))
+        iframeRef.current.src = iframeRef.current.src // Force reload
+    }
+
+    const isDark = theme === 'dark'
+    
     return (
         <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6 }}
-            className={`relative w-full max-w-5xl mx-auto rounded-2xl overflow-hidden shadow-2xl 
-                ${theme === 'dark' 
-                    ? 'bg-gradient-to-br from-gray-900/90 to-black/90 border border-white/20' 
-                    : 'bg-gradient-to-br from-white/90 to-gray-100/90 border border-black/20'
-                } backdrop-blur-xl`}
+            ref={containerRef}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`relative max-w-5xl mx-auto rounded-2xl overflow-hidden shadow-xl
+                ${isDark ? 'bg-gray-900/90 border-white/10' : 'bg-white/90 border-black/10'} 
+                border backdrop-blur-sm`}
         >
-            {/* Loading Spinner */}
-            {loading && (
-                <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/20 backdrop-blur-sm rounded-2xl">
-                    <motion.div
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                        className="w-8 h-8 border-2 border-green-500 border-t-transparent rounded-full"
-                    />
+            {/* Loading */}
+            {state.loading && (
+                <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/30 backdrop-blur-sm">
+                    <div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
                 </div>
             )}
 
-            {/* Iframe container - responsive height */}
-            <div 
-                className="
-                    w-full 
-                    h-[50vh]           /* fill 60% of viewport height */
-                    sm:h-[55vh] 
-                    md:h-[65vh] 
-                    lg:h-[40vh] 
-                "
-            >
-                <iframe
-                    src="https://open.spotify.com/embed/playlist/7MpJSyn7FFdm9qwGVJXzCd?utm_source=generator&theme=0"
-                    className="w-full h-full rounded-2xl"
-                    frameBorder="0"
-                    allowFullScreen
-                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                    loading="lazy"
-                    onLoad={() => setLoading(false)}
-                    title="Spotify Playlist"
-                />
+            {/* Error */}
+            {state.error && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-black/50 backdrop-blur-sm text-white">
+                    <p className="mb-3">Failed to load playlist</p>
+                    <button onClick={retry} className="flex items-center gap-2 px-3 py-1.5 bg-green-600 hover:bg-green-700 rounded-lg text-sm transition-colors">
+                        <FaRedo size={12} /> Retry
+                    </button>
+                </div>
+            )}
+
+            {/* Player */}
+            <div className="w-full h-[50vh] sm:h-[55vh] lg:h-[40vh]">
+                {state.visible && (
+                    <iframe
+                        ref={iframeRef}
+                        src="https://open.spotify.com/embed/playlist/7MpJSyn7FFdm9qwGVJXzCd?utm_source=generator&theme=0"
+                        className="w-full h-full"
+                        frameBorder="0"
+                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                        loading="lazy"
+                        onLoad={handleLoad}
+                        onError={handleError}
+                        title="Spotify Playlist"
+                    />
+                )}
             </div>
 
-            {/* Spotify branding */}
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: loading ? 0 : 1 }}
-                transition={{ delay: 0.5 }}
-                className="absolute bottom-3 right-3 bg-black/30 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-1.5"
-            >
-                <FaSpotify className="text-[#1DB954]" size={16} />
-                <span className="text-xs font-medium text-white">Spotify</span>
-            </motion.div>
-
-            {/* Optional glow effect */}
-            <div 
-                className="absolute inset-0 pointer-events-none rounded-2xl opacity-30"
-                style={{
-                    background: `linear-gradient(45deg, 
-                        transparent 0%, 
-                        ${theme === 'dark' ? 'rgba(29, 185, 84, 0.1)' : 'rgba(29, 185, 84, 0.05)'} 50%, 
-                        transparent 100%)`
-                }}
-            />
+            {/* Badge */}
+            {!state.loading && !state.error && (
+                <div className="absolute bottom-3 right-3 bg-black/40 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-1.5">
+                    <FaSpotify className="text-green-500" size={14} />
+                    <span className="text-xs text-white/90">Spotify</span>
+                </div>
+            )}
         </motion.div>
     )
 }

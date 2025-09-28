@@ -1,7 +1,7 @@
 {
-  "name": "Laxenta Inc- Free AI Api Platform/Create Discord Shapes!",
+  "name": "Laxenta Inc",
   "short_name": "Laxenta AI",
-  "description": "Chat/Code with 100+ AI like claude, o1, sonar-reasoning etc. 20~ image models and gen imgs for free! Create Discord shapes with AI!",
+  "description": "Dashboard for discord bot ayumi and portfolio for Laxenta Inc.'s services",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0a0a",
