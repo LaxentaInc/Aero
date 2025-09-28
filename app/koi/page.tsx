@@ -213,6 +213,7 @@ const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
 	const videos = [
     "/videos/peaceAtLast.mp4",
     "/videos/Raphtalia_Girl_By_laxenta .mp4",
+    "/videos/IfYouSeeThis_You_Are_cute_missKoi.webm"
 	]
 
 	// pick one at random every render
@@ -252,8 +253,7 @@ const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
 const Skillsbg = ({ theme }: { theme: 'dark' | 'light' }) => {
 	// list of possible video sources
 	const videos = [
-		"/videos/damnbro.webm",
-		"/videos/myCutekoiiii.webm"
+		"/videos/IfYouSeeThis_You_Are_cute_missKoi.webm",
 	]
 
 	// pick one at random every render
@@ -741,7 +741,7 @@ className="absolute top-[35vh] left-1/2 -translate-x-[160%] w-[min(590px,45vw)] 
                     </motion.p>
                 </motion.div>
 
-                <motion.div
+                {/* <motion.div
                     className={`backdrop-blur-lg rounded-2xl p-8 mb-8 border shadow-xl ${
                         theme === 'dark' 
                             ? 'bg-gray-800/70 border-gray-700/50' 
@@ -750,7 +750,7 @@ className="absolute top-[35vh] left-1/2 -translate-x-[160%] w-[min(590px,45vw)] 
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 1.2, duration: 0.8 }}
-                >
+                > */}
                     <p className={`text-lg sm:text-xl leading-relaxed ${
                         theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
                     }`}>
@@ -760,8 +760,6 @@ className="absolute top-[35vh] left-1/2 -translate-x-[160%] w-[min(590px,45vw)] 
                         <br />
                         When she is not studying, you'll probably find her coding, talking to me or trying to jump off another cliff Or well listening to music ngl.
                     </p>
-                </motion.div>
-
                 <motion.p
                     className={`text-lg sm:text-xl font-medium italic mb-12 ${
                         theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
@@ -961,20 +959,20 @@ const SkillsPage = () => {
                     level: 95, 
                     description: "Will analyze and reply to a simple 'hi' text for 2 DAYS (yea no more 5 mins lol)" 
                 },
-                // { 
-                //     name: "Caffeine Dependence", 
-                //     level: 69, 
-                //     description: "Cannot function without at least 5 mouthful spoons of raw coffee per day" 
-                // },
+                { 
+                    name: "Caffeine Dependence", 
+                    level: 69, 
+                    description: "Cannot function without at least 5 mouthful spoons of raw coffee per day" 
+                },
                 { 
                     name: "Tab Hoarding", 
-                    level: 47, 
+                    level: 50, 
                     description: "Currently has 50 browser tabs open and refuses to close any" 
                 },
                 {
                     name: "Bored"
                     , level: 69,
-                    description: "thats her whole personality lol, i aint even gotta explain, if she sees this, she will be mad at me XD"
+                    description: "thats her whole personality lol, i aint even gotta explain, if she sees this, she will be mad at me internally ;=;"
                 }
                     
             ],
@@ -982,7 +980,7 @@ const SkillsPage = () => {
         },
         {
             category: "Social Skills",
-            description: "Totally normal and not awkward at all",
+            description: "Totally normal",
             items: [
                 { 
                     name: "Hobby", 
@@ -992,12 +990,12 @@ const SkillsPage = () => {
                 { 
                     name: "Emoji Knowledge", 
                     level: 96, 
-                    description: "She is enlightened and Can communicate entirely through anime reaction gifs and emojis, she is beyond us MORTALS" 
+                    description: "She is enlightened and Can communicate entirely through anime reaction gifs and emojis .-." 
                 },
                 { 
                     name: "Adorable", 
                     level: 100, 
-                    description: "Can never take a single complement, and always acts bored (she likes complements, i know it but she wont admit it)" 
+                    description: "Being this adorable? Yea thats a social skill ig?" 
                 },
                            { 
                     name: "Love?", 
@@ -1007,7 +1005,7 @@ const SkillsPage = () => {
                 {
                     name: "Crazy",
                     level: 85,  
-                    description: "Is she normal? NOPE, is she crazy and weird? DEFINITELY, is that a good thing??? maybe not for others, but for me; YES its acceptable"
+                    description: "Is she normal? NOPE, is she crazy? weird? annoying? have mood swings? miscommunication? DEFINITELY, is that a good thing??? maybe not for others, but for me; YES its acceptable"
                 }
             ],
             color: "from-blue-400 to-purple-500"
@@ -1037,9 +1035,9 @@ const SkillsPage = () => {
                     description: "Has 26 different mood playlists and refuses to share any with me ;c" 
                 },
                               { 
-                    name: "Daddy's girl", 
+                    name: "she is a fish?", 
                     level: 100, 
-                    description: "Well i dont even wanna write this one, but it is just is an enderaing nature of her, but i personally dont have my father in this world which hurts to get reminded of uff" 
+                    description: "Yes, beat me to it" 
                 }
             ],
             color: "from-green-400 to-teal-500"
