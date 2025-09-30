@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { modules, getAllCategories } from '../components/modules';
+import Link from 'next/link';
 
 interface Guild {
   guildId: string;
@@ -116,16 +117,33 @@ export default function DashboardPage() {
 
   if (!session) {
     return (
-      <div className="min-h-screen bg-[#0f1419] flex items-center justify-center">
-        <div className="text-center bg-[#1a1f2a] p-12 rounded-2xl shadow-2xl border border-[#2a3441] backdrop-blur-xl">
-          <div className="w-20 h-20 bg-gradient-to-br from-[#5865F2] to-[#7289DA] rounded-full mx-auto mb-6 animate-pulse shadow-lg shadow-[#5865F2]/20"></div>
-          <h1 className="text-3xl font-bold text-white mb-4">Access Required</h1>
-          <p className="text-gray-400 mb-8">Please log in with Discord to continue</p>
-          <button className="px-8 py-3 bg-gradient-to-r from-[#5865F2] to-[#7289DA] text-white rounded-lg hover:shadow-lg hover:shadow-[#5865F2]/30 transition-all duration-300 hover:scale-105">
-            Login with Discord
-          </button>
-        </div>
-      </div>
+<div className="min-h-screen bg-[#0f1419] flex items-center justify-center px-4">
+  <div className="text-center bg-[#1a1f2a]/80 p-12 rounded-2xl shadow-xl border border-[#2a3441] backdrop-blur-xl max-w-sm w-full">
+    
+    {/* Discord Icon */}
+    <div className="w-20 h-20 mx-auto mb-6 flex items-center justify-center rounded-full bg-gradient-to-br from-[#5865F2] to-[#7289DA] shadow-lg shadow-[#5865F2]/30 animate-pulse">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 245 240"
+        className="w-12 h-12"
+        fill="white"
+      >
+        <path d="M104.4 103.9c-5.7 0-10.2 5-10.2 11.1s4.6 11.1 10.2 11.1c5.7 0 10.2-5 10.2-11.1.1-6.1-4.5-11.1-10.2-11.1zm36.2 0c-5.7 0-10.2 5-10.2 11.1s4.6 11.1 10.2 11.1c5.7 0 10.2-5 10.2-11.1s-4.5-11.1-10.2-11.1z"/>
+        <path d="M189.5 20h-134C32.7 20 20 32.7 20 48.5v134C20 199.3 32.7 212 48.5 212h113.5l-5.3-18.4 12.8 11.9 12 11.2 21.2 19V48.5C212 32.7 199.3 20 183.5 20zm-38.6 135.5s-3.6-4.3-6.6-8c13.1-3.7 18.1-11.8 18.1-11.8-4.1 2.7-8 4.6-11.5 5.9-5 2.1-9.8 3.5-14.5 4.3-9.6 1.8-18.4 1.3-25.9-.1-5.7-1.1-10.6-2.6-14.7-4.3-2.3-.9-4.8-2-7.3-3.4-.3-.2-.6-.3-.9-.5-.2-.1-.3-.2-.4-.3-1.8-1-2.8-1.7-2.8-1.7s4.8 7.9 17.5 11.7c-3 3.8-6.7 8.2-6.7 8.2-22.1-.7-30.5-15.1-30.5-15.1 0-31.9 14.3-57.8 14.3-57.8 14.3-10.7 27.9-10.4 27.9-10.4l1 1.2c-17.9 5.1-26.1 13.1-26.1 13.1s2.2-1.2 5.9-2.9c10.7-4.7 19.2-6 22.7-6.4.6-.1 1.1-.2 1.7-.2 6.1-.8 13-1 20.2-.2 9.5 1.1 19.7 3.9 30.1 9.6 0 0-7.8-7.4-24.6-12.5l1.4-1.6s13.6-.3 27.9 10.4c0 0 14.3 25.9 14.3 57.8-.1-.1-8.5 14.3-30.6 15z"/>
+      </svg>
+    </div>
+
+    <h1 className="text-3xl font-bold text-white mb-3">Access Required</h1>
+    <p className="text-gray-400 mb-8">Please log in with Discord to continue</p>
+    
+    <button className="px-8 py-3 bg-gradient-to-r from-[#5865F2] to-[#7289DA] text-white rounded-lg shadow-md hover:shadow-lg hover:shadow-[#5865F2]/30 transition-all duration-300 hover:scale-105 active:scale-95 focus:outline-none">
+      Login with Discord
+    </button>
+  </div>
+</div>
+
+
+
     );
   }
 
@@ -143,7 +161,7 @@ export default function DashboardPage() {
       } overflow-hidden`}>
         <div className="flex flex-col items-center py-6 space-y-4">
           {/* Home Button */}
-          <button className="group relative">
+          <Link href="/" className="group relative">
             <div className="w-12 h-12 bg-gradient-to-br from-[#5865F2] to-[#7289DA] rounded-2xl flex items-center justify-center hover:rounded-xl transition-all duration-300">
               <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -152,7 +170,7 @@ export default function DashboardPage() {
             <div className="absolute left-16 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#1a1f2a] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 whitespace-nowrap">
               <span className="text-sm text-white">Home</span>
             </div>
-          </button>
+          </Link>
 
           <div className="w-12 h-px bg-[#2a3441]"></div>
 
