@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
+import { Mochiy_Pop_One } from 'next/font/google';
 import { modules, getAllCategories } from '../components/modules';
 import Link from 'next/link';
 
@@ -22,6 +23,11 @@ interface ApiResponse {
   error?: string;
 }
 
+const mochi = Mochiy_Pop_One({ 
+  weight: '400',
+  subsets: ['latin'] 
+});
+
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const [selectedGuild, setSelectedGuild] = useState<string>('');
@@ -33,6 +39,8 @@ export default function DashboardPage() {
   const [guildLoading, setGuildLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'servers' | 'modules'>('servers');
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
 
   const handleSave = (success: boolean, text: string) => {
     setMessage({ type: success ? 'success' : 'error', text });
@@ -100,6 +108,18 @@ export default function DashboardPage() {
   const filteredModules = selectedCategory === 'all' 
     ? modules 
     : modules.filter(m => m.info.category === selectedCategory);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setIsProfileOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   if (status === 'loading' || loading) {
     return (
@@ -205,13 +225,26 @@ export default function DashboardPage() {
           ))}
 
           {/* Add Server Button */}
-          <button className="group relative">
+          <a 
+            href="https://discord.com/oauth2/authorize?client_id=1107155830274523136&permissions=564602374565366&integration_type=0&scope=bot"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group relative"
+          >
             <div className="w-12 h-12 bg-[#1a1f2a] border-2 border-dashed border-[#3a4451] rounded-2xl flex items-center justify-center hover:border-[#5865F2] hover:bg-[#1f2631] transition-all duration-300">
-              <svg className="w-6 h-6 text-[#5865F2]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg 
+                className="w-6 h-6 text-[#5865F2] group-hover:rotate-90 transition-transform duration-300" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+              >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
             </div>
-          </button>
+            <div className="absolute left-16 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#1a1f2a] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 whitespace-nowrap">
+              <span className="text-sm text-white">Add to Server</span>
+            </div>
+          </a>
         </div>
       </div>
 
@@ -229,18 +262,57 @@ export default function DashboardPage() {
             </div>
             
             {/* User Profile */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4" ref={profileRef}>
               <div className="relative">
-                <div className="absolute inset-0 bg-green-500 rounded-full animate-ping opacity-75"></div>
-                <div className="relative w-12 h-12 bg-gradient-to-br from-[#5865F2] to-[#7289DA] rounded-full overflow-hidden border-2 border-green-500">
-                  {session?.user?.image ? (
-                    <img src={session.user.image} alt="Profile" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-white font-bold">
-                      {session?.user?.name?.charAt(0) || 'U'}
+                <button 
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className="relative transition-transform hover:scale-105"
+                >
+                  <div className="absolute inset-0 bg-green-500 rounded-full animate-ping opacity-75"></div>
+                  <div className="relative w-12 h-12 bg-gradient-to-br from-[#5865F2] to-[#7289DA] rounded-full overflow-hidden border-2 border-green-500">
+                    {session?.user?.image ? (
+                      <img src={session.user.image} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-white font-bold">
+                        {session?.user?.name?.charAt(0) || 'U'}
+                      </div>
+                    )}
+                  </div>
+                </button>
+
+                {/* Profile Dropdown */}
+                {isProfileOpen && (
+                  <div className="absolute right-0 mt-2 w-72 rounded-xl overflow-hidden backdrop-blur-lg border border-white/10 shadow-2xl z-50 animate-fade-in">
+                    <div className="bg-black/50 p-4">
+                      <div className="flex items-center gap-3 mb-3">
+                        <img src={session?.user?.image ?? undefined} alt="Profile" className="w-12 h-12 rounded-full border-2 border-[#5865F2]" />
+                        <div>
+                          <h3 className={`${mochi.className} text-white text-sm`}>{session?.user?.name}</h3>
+                          <p className="text-gray-400 text-xs">Discord Account Connected</p>
+                        </div>
+                      </div>
+                      <div className="bg-white/5 rounded-lg p-3 mb-3">
+                        <div className="flex items-center gap-2 text-sm">
+                          <svg className="w-4 h-4 text-[#5865F2]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                          </svg>
+                          <span className={`${mochi.className} text-gray-300`}>
+                            {validGuilds.length} Servers Connected
+                          </span>
+                        </div>
+                      </div>
+                      <a 
+                        href="/api/auth/signout"
+                        className="flex items-center gap-2 w-full p-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        <span className={`${mochi.className} text-sm`}>Logout</span>
+                      </a>
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -293,9 +365,19 @@ export default function DashboardPage() {
                 <button
                   onClick={refreshGuilds}
                   disabled={guildLoading}
-                  className="px-6 py-3 bg-gradient-to-r from-[#5865F2] to-[#7289DA] text-white rounded-lg hover:shadow-lg hover:shadow-[#5865F2]/30 transition-all duration-300 hover:scale-105 disabled:opacity-50"
+                  className="p-2 rounded-lg hover:bg-white/5 transition-colors group disabled:opacity-50"
                 >
-                  {guildLoading ? 'Refreshing...' : 'Refresh'}
+                  <svg 
+                    className={`w-8 h-8 ${guildLoading ? 'animate-spin' : 'group-hover:animate-spin'}`}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M21 12a9 9 0 11-6.219-8.56" />
+                  </svg>
                 </button>
               </div>
 
@@ -348,19 +430,29 @@ export default function DashboardPage() {
                   </div>
                 ))}
 
-                {/* Add New Server Card */}
-                <div className="group relative bg-[#1a1f2a] rounded-xl overflow-hidden border-2 border-dashed border-[#2a3441] hover:border-[#5865F2] transition-all duration-300 hover:scale-105">
+                {/* Add Server Button */}
+                <a 
+                  href="https://discord.com/oauth2/authorize?client_id=1107155830274523136&permissions=564602374565366&integration_type=0&scope=bot"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group relative bg-[#1a1f2a] rounded-xl overflow-hidden border-2 border-dashed border-[#2a3441] hover:border-[#5865F2] transition-all duration-300 hover:scale-105"
+                >
                   <div className="aspect-square flex items-center justify-center">
                     <div className="text-center">
-                      <div className="w-16 h-16 mx-auto mb-3 bg-[#2a3441] rounded-full flex items-center justify-center group-hover:bg-[#5865F2]/20 transition-colors duration-300">
-                        <svg className="w-8 h-8 text-[#5865F2]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <div className="w-16 h-16 mx-auto mb-3 bg-[#2a3441] rounded-full flex items-center justify-center group-hover:bg-[#5865F2]/20 transition-all duration-300">
+                        <svg 
+                          className="w-8 h-8 text-[#5865F2] group-hover:rotate-90 transition-transform duration-300" 
+                          fill="none" 
+                          viewBox="0 0 24 24" 
+                          stroke="currentColor"
+                        >
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                         </svg>
                       </div>
                       <p className="text-sm text-gray-400 font-medium">Add Bot to Server</p>
                     </div>
                   </div>
-                </div>
+                </a>
               </div>
 
               {validGuilds.length === 0 && !guildLoading && (
