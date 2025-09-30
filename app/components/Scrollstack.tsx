@@ -1,9 +1,20 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import type { JSX } from 'react'
 
-const techStacks = [
+interface TechStack {
+  name: string;
+  level?: 'Learning' | 'Advanced' | 'Expert';
+  years: string;
+  projects: string;
+  description: string;
+  hoverTitle: string;
+  hoverDescription: string;
+  svg: JSX.Element;
+}
+
+const techStacks: TechStack[] = [
 	{
 		name: 'React',
-		level: 'Expert',
 		years: '2+',
 		projects: '15ish',
 		description: 'Component-based architecture that powers modern UIs',
@@ -46,7 +57,6 @@ const techStacks = [
 	},
 	{
 		name: 'TypeScript',
-		level: 'Advanced',
 		years: '2+',
 		projects: 'Most recent',
 		description: 'Typed superset of JavaScript that scales',
@@ -76,7 +86,6 @@ const techStacks = [
 	},
 	{
 		name: 'Next.js',
-		level: 'Advanced',
 		years: '2+',
 		projects: '10+',
 		description: 'Full-stack React framework with SSR/SSG',
@@ -109,7 +118,6 @@ const techStacks = [
 	},
 	{
 		name: 'Node.js',
-		level: 'Expert',
 		years: '3+',
 		projects: 'Idk',
 		description: 'JavaScript runtime for scalable backends',
@@ -139,7 +147,6 @@ const techStacks = [
 	},
 	{
 		name: 'Discord.js',
-		level: 'Expert',
 		years: '3+',
 		projects: '(check out at /dashboard)',
 		description: 'Powerful library for Discord bots',
@@ -215,7 +222,6 @@ const techStacks = [
 	},
 	{
 		name: 'JavaScript',
-		level: 'Expert',
 		years: '3+',
 		projects: 'Cant count, a lot ig',
 		description: 'The language that runs everywhere',
@@ -450,17 +456,19 @@ export default function EnhancedTechStack({ theme = 'dark' }: { theme?: 'dark' |
 										<div className="transition-transform duration-500 hover:scale-110">
 											{tech.svg}
 										</div>
-										<div
-											className={`px-3 py-1 text-xs border ${
-												tech.level === 'Expert'
-													? 'border-white bg-white text-black'
-													: tech.level === 'Advanced'
-													? 'border-gray-400 text-gray-300'
-													: 'border-gray-600 text-gray-500'
-											}`}
-										>
-											{tech.level.toUpperCase()}
-										</div>
+										{tech.level && (
+											<div
+												className={`px-3 py-1 text-xs border ${
+													tech.level === 'Expert'
+														? 'border-white bg-white text-black'
+														: tech.level === 'Advanced'
+														? 'border-gray-400 text-gray-300'
+														: 'border-gray-600 text-gray-500'
+												}`}
+											>
+												{tech.level.toUpperCase()}
+											</div>
+										)}
 									</div>
 
 									{/* Name */}

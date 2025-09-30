@@ -421,6 +421,105 @@ const services = [
 	},
 	{
 		id: 4,
+		title: 'Hosting & Panel Setup',
+		description: 'Complete server setup with custom panels, monitoring, and deployment pipelines for your applications',
+		features: ['Server Configuration', 'Control Panels', 'Domain Setup', 'SSL/Security'],
+		icon: (
+			<motion.svg 
+				width="80" height="80" viewBox="0 0 80 80"
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 1 }}
+				transition={{ duration: 0.5 }}
+			>
+				<defs>
+					<linearGradient id="hostingGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+						<stop offset="0%" stopColor="#2563EB" />
+						<stop offset="100%" stopColor="#1D4ED8" />
+					</linearGradient>
+				</defs>
+				<motion.rect width={48} height={40} x={16} y={20} rx={6} fill="url(#hostingGradient)" />
+				<motion.path d="M24 36h32M24 44h32" stroke="white" strokeWidth="2" strokeLinecap="round"
+					animate={{ pathLength: [0, 1] }}
+					transition={{ duration: 2, repeat: Infinity }}
+				/>
+				<motion.circle cx="40" cy="28" r="4" fill="white" 
+					animate={{ scale: [1, 1.2, 1] }}
+					transition={{ duration: 1.5, repeat: Infinity }}
+				/>
+			</motion.svg>
+		),
+		gradient: 'from-blue-600 to-blue-800',
+		bgImage: 'radial-gradient(ellipse at center, rgba(37, 99, 235, 0.1), transparent 50%)',
+	},
+	{
+		id: 5,
+		title: 'Backend Services',
+		description: 'Scalable backend solutions with database design, authentication, and real-time functionality',
+		features: ['Database Design', 'Auth Systems', 'Real-time Services', 'Microservices'],
+		icon: (
+			<motion.svg 
+				width="80" height="80" viewBox="0 0 80 80"
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 1 }}
+				transition={{ duration: 0.5 }}
+			>
+				<defs>
+					<linearGradient id="backendGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+						<stop offset="0%" stopColor="#6366F1" />
+						<stop offset="100%" stopColor="#4F46E5" />
+					</linearGradient>
+				</defs>
+				<motion.path d="M20 25h40v30H20z" fill="url(#backendGradient)" />
+				<motion.circle cx="30" cy="40" r="3" fill="white"
+					animate={{ scale: [1, 1.2, 1] }}
+					transition={{ duration: 1, repeat: Infinity }}
+				/>
+				<motion.circle cx="50" cy="40" r="3" fill="white"
+					animate={{ scale: [1, 1.2, 1] }}
+					transition={{ duration: 1, repeat: Infinity, delay: 0.5 }}
+				/>
+				<motion.path d="M30 40h20" stroke="white" strokeWidth="2"
+					animate={{ pathLength: [0, 1] }}
+					transition={{ duration: 1.5, repeat: Infinity }}
+				/>
+			</motion.svg>
+		),
+		gradient: 'from-indigo-600 to-indigo-800',
+		bgImage: 'radial-gradient(ellipse at center, rgba(99, 102, 241, 0.1), transparent 50%)',
+	},
+	{
+		id: 6,
+		title: 'UI/UX Redesign',
+		description: 'Transform your existing interfaces with modern design principles and improved user experience',
+		features: ['Modern UI', 'User Experience', 'Responsive Design', 'Animation'],
+		icon: (
+			<motion.svg 
+				width="80" height="80" viewBox="0 0 80 80"
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 1 }}
+				transition={{ duration: 0.5 }}
+			>
+				<defs>
+					<linearGradient id="designGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+						<stop offset="0%" stopColor="#EC4899" />
+						<stop offset="100%" stopColor="#D946EF" />
+					</linearGradient>
+				</defs>
+				<motion.rect width={44} height={36} x={18} y={22} rx={8} fill="url(#designGradient)"
+					animate={{ scale: [1, 1.05, 1] }}
+					transition={{ duration: 2, repeat: Infinity }}
+				/>
+				<motion.path d="M26 34h28M26 42h20" stroke="white" strokeWidth="2" strokeLinecap="round"
+					animate={{ pathLength: [0, 1] }}
+					transition={{ duration: 1.5, repeat: Infinity }}
+				/>
+			</motion.svg>
+		),
+		gradient: 'from-pink-600 to-fuchsia-600',
+		bgImage: 'radial-gradient(ellipse at center, rgba(236, 72, 153, 0.1), transparent 50%)',
+	},
+	{
+		id: 7,
 		title: 'Code Review & Consulting',
 		description: 'Professional code review and optimization suggestions to improve your existing projects',
 		features: ['Code Quality', 'Performance Tips', 'Best Practices', 'Security Audit'],
