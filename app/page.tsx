@@ -170,7 +170,6 @@ const services = [
 		title: 'Custom Discord Bots',
 		description: 'Fully customized Discord bots with advanced features, moderation tools, and unique commands tailored to your server needs',
 		features: ['Custom Commands', 'Music Player', 'Dashboard Panel'],
-		price: 'Just dm and ask brh',
 		icon: (
 			<motion.svg 
 				width="80" 
@@ -249,7 +248,6 @@ const services = [
 		title: 'Web Development',
 		description: 'Modern, responsive websites built with latest technologies. From landing pages to complex web applications',
 		features: ['Responsive Design', 'SEO Optimized', 'Fast Performance', 'Modern UI/UX'],
-		price: 'Starting $ 0 ig just dm me lmao',
 		icon: (
 			<motion.svg 
 				width="80" 
@@ -340,7 +338,6 @@ const services = [
 		title: 'API Development',
 		description: 'RESTful APIs and backend services with proper documentation and scalable architecture',
 		features: ['REST/GraphQL', 'Authentication', 'Database Design', 'Documentation'],
-		price: 'just dm me brh',
 		icon: (
 			<motion.svg 
 				width="80" 
@@ -427,7 +424,6 @@ const services = [
 		title: 'Code Review & Consulting',
 		description: 'Professional code review and optimization suggestions to improve your existing projects',
 		features: ['Code Quality', 'Performance Tips', 'Best Practices', 'Security Audit'],
-		price: 'its free, just dm lol',
 		icon: (
 			<motion.svg 
 				width="80" 
@@ -754,7 +750,7 @@ const ServiceCard = ({ service, index, theme }: { service: typeof services[0], i
 						{service.description}
 					</p>
 					
-					<div className="flex flex-wrap gap-2 mb-6">
+					<div className="flex flex-wrap gap-2">
 						{service.features.map((feature, idx) => (
 							<motion.span
 								key={idx}
@@ -771,14 +767,6 @@ const ServiceCard = ({ service, index, theme }: { service: typeof services[0], i
 							</motion.span>
 						))}
 					</div>
-					
-					<motion.div
-						className={`text-2xl font-bold bg-gradient-to-r ${service.gradient} bg-clip-text text-transparent`}
-						animate={{ opacity: [0.7, 1, 0.7] }}
-						transition={{ duration: 2, repeat: Infinity }}
-					>
-						{service.price}
-					</motion.div>
 				</div>
 			</motion.div>
 		</Link>
