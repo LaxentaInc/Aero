@@ -26,7 +26,7 @@ export interface ModuleDefinition {
 import AMAConfig, { moduleInfo as amaInfo } from './AMAConfig';
 import BotProtectionConfig, { moduleInfo as botProtectionInfo } from './BotProtectionConfig';
 import AccountAgeProtectionConfig, { moduleInfo as accountAgeProtectionInfo } from './AccountAgeConfig';
-import SpamProtectionConfig, { moduleInfo as spamProtectionInfo } from './SpamConfig';
+import AntiNukeConfig, { moduleInfo as antiNukeInfo } from './AntiNukeConfig';
 // Add more imports as you create modules:
 // import ModerationConfig, { moduleInfo as moderationInfo } from './ModerationConfig';
 // import AutomodConfig, { moduleInfo as automodInfo } from './AutomodConfig';
@@ -47,8 +47,8 @@ export const modules: ModuleDefinition[] = [
     component: AccountAgeProtectionConfig,
   },
   {
-    info: spamProtectionInfo,
-    component: SpamProtectionConfig,
+  info: antiNukeInfo,
+  component: AntiNukeConfig,
   },
   // Add new modules here:
   // {
