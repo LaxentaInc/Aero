@@ -42,6 +42,7 @@ export default function DashboardPage() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
 
+
   const handleSave = (success: boolean, text: string) => {
     setMessage({ type: success ? 'success' : 'error', text });
     setTimeout(() => setMessage(null), 5000);
@@ -101,6 +102,49 @@ export default function DashboardPage() {
       setGuildLoading(false);
     }
   };
+ // No this is not a condom
+  const useProtection = () => {
+  useEffect(() => {
+    const preventDefaultKeys = (e: KeyboardEvent) => {
+      if (
+        (e.ctrlKey && (e.key === 'c' || e.key === 'C' || e.key === 'u' || e.key === 'U')) ||
+        e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && e.key === 'i') ||
+        (e.ctrlKey && e.shiftKey && e.key === 'I')
+      ) {
+        e.preventDefault();
+        return false;
+      }
+    };
+
+    const preventContextMenu = (e: Event) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.closest('.allow-select')) {
+        return;
+      }
+      e.preventDefault();
+      return false;
+    };
+
+    document.addEventListener('contextmenu', preventContextMenu);
+    document.addEventListener('keydown', preventDefaultKeys);
+
+    const images = document.getElementsByTagName('img');
+    Array.from(images).forEach(img => {
+      img.addEventListener('dragstart', (e) => e.preventDefault());
+      img.setAttribute('draggable', 'false');
+    });
+
+    return () => {
+      document.removeEventListener('contextmenu', preventContextMenu);
+      document.removeEventListener('keydown', preventDefaultKeys);
+      Array.from(images).forEach(img => {
+        img.removeEventListener('dragstart', (e) => e.preventDefault());
+      });
+    };
+  }, [])
+}
+  useProtection();
 
   const ActiveComponent = modules.find(m => m.info.id === activeModule)?.component;
   const categories = getAllCategories();
