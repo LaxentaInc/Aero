@@ -419,7 +419,7 @@ export default function Navbar() {
                         whileHover={{ boxShadow: '0 0 20px rgba(255,255,255,0.3)' }}
                       />
                     </motion.div>
-                    {isHorizontal && !isCompact && (
+                    {isHorizontal && (
                       <GlitchText className={`text-xl font-black font-mono ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
                         Laxenta Inc.
                       </GlitchText>
