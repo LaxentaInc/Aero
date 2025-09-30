@@ -9,7 +9,7 @@ import { Menu } from 'lucide-react' //unused
 import { useDiscord } from '../contexts/DiscordContext'
 
 //auto-hide
-const AUTO_HIDE_ROUTES = ['/ai', '/image-gen', '/login', '/koi', ]
+const AUTO_HIDE_ROUTES = ['/ai', '/image-gen', '/login', '/koi', "/dashboard" ]
 //eeeeeeee
 const LoadingAnimation = ({ 
   theme, 

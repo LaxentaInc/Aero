@@ -30,21 +30,20 @@ export default function DashboardPage() {
   const [validGuilds, setValidGuilds] = useState<Guild[]>([]);
   const [loading, setLoading] = useState(true);
   const [guildLoading, setGuildLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'servers' | 'modules'>('servers');
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const handleSave = (success: boolean, text: string) => {
     setMessage({ type: success ? 'success' : 'error', text });
     setTimeout(() => setMessage(null), 5000);
   };
 
-  // Fetch valid guilds from MongoDB (via our new API)
   useEffect(() => {
     async function fetchValidGuilds() {
       if (!session?.user?.id) return;
       
       try {
         setGuildLoading(true);
-        
-        // Use the new /api/guilds endpoint
         const response = await fetch(`/api/guilds?userId=${session.user.id}`);
         
         if (!response.ok) {
@@ -55,24 +54,12 @@ export default function DashboardPage() {
         
         if (data.success && data.guilds) {
           setValidGuilds(data.guilds);
-          setMessage({ 
-            type: 'success', 
-            text: `Found ${data.count} servers where you're the owner and bot has permissions` 
-          });
         } else {
           setValidGuilds([]);
-          setMessage({ 
-            type: 'error', 
-            text: data.error || 'Failed to load servers from database' 
-          });
         }
       } catch (error) {
         console.error('Failed to fetch guilds:', error);
         setValidGuilds([]);
-        setMessage({ 
-          type: 'error', 
-          text: `Database connection error: ${error instanceof Error ? error.message : 'Unknown error'}. Check if MongoDB is accessible.` 
-        });
       } finally {
         setGuildLoading(false);
         setLoading(false);
@@ -86,12 +73,10 @@ export default function DashboardPage() {
     }
   }, [session, status]);
 
-  // Manual refresh function
   const refreshGuilds = async () => {
     if (!session?.user?.id) return;
     
     setGuildLoading(true);
-    setMessage({ type: 'success', text: 'Refreshing server list...' });
     
     try {
       const response = await fetch(`/api/guilds?userId=${session.user.id}`);
@@ -99,18 +84,10 @@ export default function DashboardPage() {
       
       if (data.success) {
         setValidGuilds(data.guilds);
-        setMessage({ 
-          type: 'success', 
-          text: `Refreshed! Found ${data.count} servers` 
-        });
-      } else {
-        setMessage({ type: 'error', text: data.error || 'Failed to refresh' });
+        handleSave(true, `Found ${data.count} servers`);
       }
     } catch (error) {
-      setMessage({ 
-        type: 'error', 
-        text: `Refresh failed: ${error instanceof Error ? error.message : 'Unknown error'}` 
-      });
+      handleSave(false, 'Failed to refresh servers');
     } finally {
       setGuildLoading(false);
     }
@@ -125,10 +102,13 @@ export default function DashboardPage() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="min-h-[calc(100vh-4rem)] mt-16 bg-gray-900 flex items-center justify-center">
-        <div className="text-white text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-white mb-4"></div>
-          <p>Loading dashboard...</p>
+      <div className="min-h-screen bg-[#0f1419] flex items-center justify-center">
+        <div className="text-center">
+          <div className="relative">
+            <div className="w-20 h-20 border-4 border-[#5865F2] border-t-transparent rounded-full animate-spin mx-auto"></div>
+            <div className="absolute inset-0 w-20 h-20 border-4 border-[#5865F2] opacity-20 rounded-full mx-auto"></div>
+          </div>
+          <p className="text-gray-400 mt-4 animate-pulse">Loading dashboard...</p>
         </div>
       </div>
     );
@@ -136,319 +116,424 @@ export default function DashboardPage() {
 
   if (!session) {
     return (
-      <div className="min-h-[calc(100vh-4rem)] mt-16 bg-gray-900 flex items-center justify-center">
-        <div className="text-white text-center">
-          <h1 className="text-2xl mb-4">Access Denied</h1>
-          <p>Please log in with Discord to access the dashboard.</p>
+      <div className="min-h-screen bg-[#0f1419] flex items-center justify-center">
+        <div className="text-center bg-[#1a1f2a] p-12 rounded-2xl shadow-2xl border border-[#2a3441] backdrop-blur-xl">
+          <div className="w-20 h-20 bg-gradient-to-br from-[#5865F2] to-[#7289DA] rounded-full mx-auto mb-6 animate-pulse shadow-lg shadow-[#5865F2]/20"></div>
+          <h1 className="text-3xl font-bold text-white mb-4">Access Required</h1>
+          <p className="text-gray-400 mb-8">Please log in with Discord to continue</p>
+          <button className="px-8 py-3 bg-gradient-to-r from-[#5865F2] to-[#7289DA] text-white rounded-lg hover:shadow-lg hover:shadow-[#5865F2]/30 transition-all duration-300 hover:scale-105">
+            Login with Discord
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] mt-16 bg-gray-900 text-white p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-[#0f1419] text-white flex">
+      {/* Animated Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -left-40 w-80 h-80 bg-[#5865F2] rounded-full opacity-5 blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -right-40 w-80 h-80 bg-[#7289DA] rounded-full opacity-5 blur-3xl animate-pulse delay-700"></div>
+      </div>
+
+      {/* Sidebar */}
+      <div className={`fixed left-0 top-0 h-full bg-[#111822] border-r border-[#2a3441] transition-all duration-300 z-40 ${
+        sidebarOpen ? 'w-20' : 'w-0'
+      } overflow-hidden`}>
+        <div className="flex flex-col items-center py-6 space-y-4">
+          {/* Home Button */}
+          <button className="group relative">
+            <div className="w-12 h-12 bg-gradient-to-br from-[#5865F2] to-[#7289DA] rounded-2xl flex items-center justify-center hover:rounded-xl transition-all duration-300">
+              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
+            </div>
+            <div className="absolute left-16 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#1a1f2a] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 whitespace-nowrap">
+              <span className="text-sm text-white">Home</span>
+            </div>
+          </button>
+
+          <div className="w-12 h-px bg-[#2a3441]"></div>
+
+          {/* Server Icons */}
+          {validGuilds.slice(0, 5).map((guild) => (
+            <button
+              key={guild.guildId}
+              onClick={() => {
+                setSelectedGuild(guild.guildId);
+                setActiveTab('modules');
+              }}
+              className="group relative"
+            >
+              <div className={`w-12 h-12 rounded-2xl overflow-hidden hover:rounded-xl transition-all duration-300 ${
+                selectedGuild === guild.guildId ? 'ring-2 ring-[#5865F2]' : ''
+              }`}>
+                {guild.icon ? (
+                  <img src={guild.icon.replace(/size=\d+/, 'size=256')} alt={guild.name} className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-[#2a3441] flex items-center justify-center text-gray-400 font-bold">
+                    {guild.name.charAt(0)}
+                  </div>
+                )}
+              </div>
+              <div className="absolute left-16 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-[#1a1f2a] rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 whitespace-nowrap">
+                <span className="text-sm text-white">{guild.name}</span>
+              </div>
+              {selectedGuild === guild.guildId && (
+                <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-r-full"></div>
+              )}
+            </button>
+          ))}
+
+          {/* Add Server Button */}
+          <button className="group relative">
+            <div className="w-12 h-12 bg-[#1a1f2a] border-2 border-dashed border-[#3a4451] rounded-2xl flex items-center justify-center hover:border-[#5865F2] hover:bg-[#1f2631] transition-all duration-300">
+              <svg className="w-6 h-6 text-[#5865F2]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 ml-20">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Bot Configuration Dashboard</h1>
-          <p className="text-gray-400">Manage your bot modules and settings across servers you own</p>
-          <div className="mt-4 flex items-center gap-4 text-sm text-gray-500">
-            <span>Total Modules: {modules.length}</span>
-            <span>•</span>
-            <span>Categories: {categories.length}</span>
-            <span>•</span>
-            <span>Your Servers: {validGuilds.length}</span>
+        <div className="bg-[#111822]/80 backdrop-blur-xl border-b border-[#2a3441] px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-400 text-sm uppercase tracking-wider mb-2 animate-fade-in">Welcome Back,</p>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+                {session?.user?.name || 'User'}
+              </h1>
+              <p className="text-gray-500 mt-1">Where would you like to start?</p>
+            </div>
+            
+            {/* User Profile */}
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <div className="absolute inset-0 bg-green-500 rounded-full animate-ping opacity-75"></div>
+                <div className="relative w-12 h-12 bg-gradient-to-br from-[#5865F2] to-[#7289DA] rounded-full overflow-hidden border-2 border-green-500">
+                  {session?.user?.image ? (
+                    <img src={session.user.image} alt="Profile" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-white font-bold">
+                      {session?.user?.name?.charAt(0) || 'U'}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Tab Navigation */}
+          <div className="flex gap-8 mt-8">
+            <button
+              onClick={() => setActiveTab('servers')}
+              className={`px-6 py-2 rounded-lg font-medium transition-all duration-300 ${
+                activeTab === 'servers'
+                  ? 'bg-[#5865F2] text-white shadow-lg shadow-[#5865F2]/30'
+                  : 'text-gray-400 hover:text-white hover:bg-[#1a1f2a]'
+              }`}
+            >
+              SERVERS
+            </button>
+            <button
+              onClick={() => setActiveTab('modules')}
+              className={`px-6 py-2 rounded-lg font-medium transition-all duration-300 ${
+                activeTab === 'modules'
+                  ? 'bg-[#5865F2] text-white shadow-lg shadow-[#5865F2]/30'
+                  : 'text-gray-400 hover:text-white hover:bg-[#1a1f2a]'
+              }`}
+            >
+              MODULES
+            </button>
           </div>
         </div>
 
         {/* Messages */}
         {message && (
-          <div className={`mb-6 p-4 rounded-lg ${
-            message.type === 'success' ? 'bg-green-900 border border-green-700' : 'bg-red-900 border border-red-700'
+          <div className={`mx-8 mt-6 p-4 rounded-xl backdrop-blur-xl border animate-slide-down ${
+            message.type === 'success' 
+              ? 'bg-green-500/10 border-green-500/30 text-green-400' 
+              : 'bg-red-500/10 border-red-500/30 text-red-400'
           }`}>
-            <p className={message.type === 'success' ? 'text-green-200' : 'text-red-200'}>
-              {message.text}
-            </p>
+            {message.text}
           </div>
         )}
 
-        {/* Connection Status & Refresh */}
-        <div className="mb-6 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm">
-            <div className={`w-3 h-3 rounded-full ${
-              validGuilds.length > 0 ? 'bg-green-500' : guildLoading ? 'bg-yellow-500' : 'bg-red-500'
-            }`}></div>
-            <span className="text-gray-400">
-              {guildLoading ? 'Loading from database...' : 
-               validGuilds.length > 0 ? 'Database connected' : 'No servers found'}
-            </span>
-          </div>
-          
-          <button
-            onClick={refreshGuilds}
-            disabled={guildLoading}
-            className="px-3 py-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 rounded text-sm transition-colors"
-          >
-            {guildLoading ? 'Refreshing...' : 'Refresh'}
-          </button>
-        </div>
-
-        {/* Guild Selection */}
-        <div className="mb-8">
-          <label className="block text-sm font-medium mb-2">Select Your Server</label>
-          <select
-            value={selectedGuild}
-            onChange={(e) => {
-              setSelectedGuild(e.target.value);
-              setActiveModule(''); // Reset active module when changing guilds
-            }}
-            disabled={guildLoading || validGuilds.length === 0}
-            className="w-full max-w-md bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <option value="">
-              {guildLoading ? 'Loading your servers...' : 
-               validGuilds.length === 0 ? 'No servers found' : 'Choose a server...'}
-            </option>
-            {validGuilds.map((guild: Guild) => (
-              <option key={guild.guildId} value={guild.guildId}>
-                {guild.name} ({guild.memberCount} members)
-              </option>
-            ))}
-          </select>
-          
-          {validGuilds.length === 0 && !guildLoading && (
-            <div className="mt-2 p-3 bg-yellow-900 border border-yellow-700 rounded text-yellow-200 text-sm">
-              <p className="font-semibold mb-1">No owned servers found</p>
-              <p>This shows only servers where:</p>
-              <ul className="list-disc list-inside ml-2 mt-1">
-                <li>You are the server owner</li>
-                <li>The bot is present in the server</li>
-                <li>The bot has proper permissions</li>
-                <li>The bot has synced the server data to database</li>
-              </ul>
-              <button 
-                onClick={refreshGuilds}
-                className="mt-2 px-2 py-1 bg-yellow-700 hover:bg-yellow-600 rounded text-xs"
-              >
-                Check Again
-              </button>
-            </div>
-          )}
-
-          {/* Show some server info when selected */}
-          {selectedGuild && validGuilds.length > 0 && (
-            <div className="mt-2 text-xs text-gray-400">
-              {(() => {
-                const guild = validGuilds.find(g => g.guildId === selectedGuild);
-                return guild ? (
-                  <div className="flex items-center gap-4">
-                    <span>Members: {guild.memberCount}</span>
-                    <span>Bot joined: {new Date(guild.botJoinedAt).toLocaleDateString()}</span>
-                    <span>Last updated: {new Date(guild.lastUpdated).toLocaleString()}</span>
-                    {guild.features.length > 0 && (
-                      <span>Features: {guild.features.slice(0, 3).join(', ')}{guild.features.length > 3 ? '...' : ''}</span>
-                    )}
-                  </div>
-                ) : null;
-              })()}
-            </div>
-          )}
-        </div>
-
-        {/* Selected Guild Summary */}
-        {selectedGuild && validGuilds.length > 0 && (
-          <div className="mb-6">
-            {(() => {
-              const guild = validGuilds.find(g => g.guildId === selectedGuild);
-              return guild ? (
-                <div className="bg-gray-800 rounded-lg p-4 border-l-4 border-blue-500">
-                  <div className="flex items-center gap-3">
-                    {guild.icon ? (
-                      <img
-                        src={guild.icon}
-                        alt={`${guild.name} icon`}
-                        className="w-8 h-8 rounded-full"
-                      />
-                    ) : (
-                      <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-gray-400 font-bold">
-                        {guild.name.charAt(0).toUpperCase()}
-                      </div>
-                    )}
-                    <div>
-                      <h3 className="font-semibold text-white">Managing: {guild.name}</h3>
-                      <div className="flex items-center gap-4 text-xs text-gray-400 mt-1">
-                        <span>{guild.memberCount.toLocaleString()} members</span>
-                        <span>Bot joined: {new Date(guild.botJoinedAt).toLocaleDateString()}</span>
-                        <span>Updated: {new Date(guild.lastUpdated).toLocaleString()}</span>
-                      </div>
-                    </div>
-                  </div>
+        {/* Content Area */}
+        <div className="p-8">
+          {activeTab === 'servers' ? (
+            <>
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h2 className="text-2xl font-bold text-white mb-2">YOUR SERVERS</h2>
+                  <p className="text-gray-400">Manage your Discord servers and bot configurations</p>
                 </div>
-              ) : null;
-            })()}
-          </div>
-        )}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            {/* Module Sidebar */}
-            <div className="lg:col-span-1">
-              <div className="bg-gray-800 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold">Modules</h3>
-                  <span className="text-xs bg-gray-700 px-2 py-1 rounded">
-                    {filteredModules.length}
-                  </span>
-                </div>
+                <button
+                  onClick={refreshGuilds}
+                  disabled={guildLoading}
+                  className="px-6 py-3 bg-gradient-to-r from-[#5865F2] to-[#7289DA] text-white rounded-lg hover:shadow-lg hover:shadow-[#5865F2]/30 transition-all duration-300 hover:scale-105 disabled:opacity-50"
+                >
+                  {guildLoading ? 'Refreshing...' : 'Refresh'}
+                </button>
+              </div>
 
-                {/* Category Filter */}
-                {categories.length > 0 && (
-                  <div className="mb-4">
-                    <select
-                      value={selectedCategory}
-                      onChange={(e) => {
-                        setSelectedCategory(e.target.value);
-                        setActiveModule(''); // Reset active module when changing category
-                      }}
-                      className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm text-white focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    >
-                      <option value="all">All Categories</option>
-                      {categories.map((category) => (
-                        <option key={category} value={category}>
-                          {category.charAt(0).toUpperCase() + category.slice(1)}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                {/* Module List */}
-                <div className="space-y-2">
-                  {filteredModules.length === 0 ? (
-                    <div className="text-gray-500 text-sm text-center py-4">
-                      No modules in this category
+              {/* Server Grid */}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                {validGuilds.map((guild, index) => (
+                  <div
+                    key={guild.guildId}
+                    className="group relative bg-[#1a1f2a] rounded-xl overflow-hidden border border-[#2a3441] hover:border-[#5865F2] transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-[#5865F2]/20 animate-fade-in"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <div className="aspect-square relative overflow-hidden bg-gradient-to-br from-[#5865F2]/20 to-[#7289DA]/20">
+                      {guild.icon ? (
+                        <img src={guild.icon.replace(/size=\d+/, 'size=256')} alt={guild.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <span className="text-6xl font-bold text-[#5865F2]/30">
+                            {guild.name.charAt(0)}
+                          </span>
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#1a1f2a] via-transparent to-transparent"></div>
                     </div>
-                  ) : (
-                    filteredModules.map((module) => (
+                    
+                    <div className="p-4">
+                      <h3 className="text-base font-bold text-white mb-2 truncate">{guild.name}</h3>
+                      <div className="flex items-center gap-2 text-xs text-gray-400 mb-3">
+                        <span className="flex items-center gap-1">
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                          </svg>
+                          {guild.memberCount}
+                        </span>
+                      </div>
+                      
                       <button
-                        key={module.info.id}
-                        onClick={() => setActiveModule(module.info.id)}
-                        className={`w-full text-left p-3 rounded-lg transition-all duration-200 ${
-                          activeModule === module.info.id
-                            ? 'bg-blue-600 text-white shadow-lg scale-105'
-                            : 'bg-gray-700 hover:bg-gray-600 text-gray-300 hover:scale-102'
-                        }`}
+                        onClick={() => {
+                          setSelectedGuild(guild.guildId);
+                          setActiveTab('modules');
+                        }}
+                        className="w-full py-2 text-sm bg-gradient-to-r from-[#5865F2] to-[#7289DA] text-white rounded-lg font-medium hover:shadow-lg hover:shadow-[#5865F2]/30 transition-all duration-300"
                       >
-                        <div className="flex items-center gap-2">
-                          {module.info.icon && (
-                            <span className="text-lg">{module.info.icon}</span>
-                          )}
-                          <div className="flex-1">
-                            <div className="font-medium text-sm">{module.info.name}</div>
-                            <div className="text-xs text-gray-400 mt-1 line-clamp-2">
-                              {module.info.description}
+                        Manage
+                      </button>
+                    </div>
+
+                    {selectedGuild === guild.guildId && (
+                      <div className="absolute top-2 right-2 w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    )}
+                  </div>
+                ))}
+
+                {/* Add New Server Card */}
+                <div className="group relative bg-[#1a1f2a] rounded-xl overflow-hidden border-2 border-dashed border-[#2a3441] hover:border-[#5865F2] transition-all duration-300 hover:scale-105">
+                  <div className="aspect-square flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="w-16 h-16 mx-auto mb-3 bg-[#2a3441] rounded-full flex items-center justify-center group-hover:bg-[#5865F2]/20 transition-colors duration-300">
+                        <svg className="w-8 h-8 text-[#5865F2]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                      </div>
+                      <p className="text-sm text-gray-400 font-medium">Add Bot to Server</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {validGuilds.length === 0 && !guildLoading && (
+                <div className="text-center py-12 bg-[#1a1f2a] rounded-2xl border border-[#2a3441]">
+                  <div className="w-20 h-20 mx-auto mb-6 bg-[#2a3441] rounded-full flex items-center justify-center">
+                    <svg className="w-10 h-10 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-white mb-2">No Servers Found</h3>
+                  <p className="text-gray-400 mb-6">Add the bot to your Discord server to get started</p>
+                  <button className="px-6 py-2.5 bg-gradient-to-r from-[#5865F2] to-[#7289DA] text-white rounded-lg hover:shadow-lg hover:shadow-[#5865F2]/30 transition-all duration-300">
+                    Invite Bot
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              {/* Modules Tab */}
+              {selectedGuild ? (
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                  {/* Module Sidebar */}
+                  <div className="lg:col-span-1">
+                    <div className="bg-[#1a1f2a] rounded-2xl border border-[#2a3441] overflow-hidden">
+                      <div className="p-6 bg-gradient-to-br from-[#5865F2]/10 to-[#7289DA]/10 border-b border-[#2a3441]">
+                        <h3 className="text-lg font-bold text-white mb-2">Modules</h3>
+                        <p className="text-sm text-gray-400">{filteredModules.length} available</p>
+                      </div>
+
+                      {/* Category Filter */}
+                      <div className="p-4 border-b border-[#2a3441]">
+                        <select
+                          value={selectedCategory}
+                          onChange={(e) => {
+                            setSelectedCategory(e.target.value);
+                            setActiveModule('');
+                          }}
+                          className="w-full bg-[#111822] border border-[#2a3441] rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#5865F2] transition-colors"
+                        >
+                          <option value="all">All Categories</option>
+                          {categories.map((category) => (
+                            <option key={category} value={category}>
+                              {category.charAt(0).toUpperCase() + category.slice(1)}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Module List */}
+                      <div className="p-4 space-y-3 max-h-[600px] overflow-y-auto custom-scrollbar">
+                        {filteredModules.map((module) => (
+                          <button
+                            key={module.info.id}
+                            onClick={() => setActiveModule(module.info.id)}
+                            className={`w-full p-4 rounded-xl transition-all duration-300 ${
+                              activeModule === module.info.id
+                                ? 'bg-gradient-to-r from-[#5865F2] to-[#7289DA] text-white shadow-lg shadow-[#5865F2]/30 scale-105'
+                                : 'bg-[#111822] hover:bg-[#1f2631] text-gray-300 hover:scale-102'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              {module.info.icon && (
+                                <span className="text-2xl">{module.info.icon}</span>
+                              )}
+                              <div className="text-left">
+                                <div className="font-semibold">{module.info.name}</div>
+                                <div className="text-xs opacity-70 line-clamp-1">
+                                  {module.info.description}
+                                </div>
+                              </div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Module Configuration */}
+                  <div className="lg:col-span-3">
+                    {ActiveComponent ? (
+                      <div className="bg-[#1a1f2a] rounded-2xl border border-[#2a3441] overflow-hidden animate-fade-in">
+                        <div className="bg-gradient-to-r from-[#5865F2] to-[#7289DA] p-8">
+                          <div className="flex items-center gap-4">
+                            {modules.find(m => m.info.id === activeModule)?.info.icon && (
+                              <span className="text-4xl">
+                                {modules.find(m => m.info.id === activeModule)?.info.icon}
+                              </span>
+                            )}
+                            <div>
+                              <h2 className="text-2xl font-bold text-white">
+                                {modules.find(m => m.info.id === activeModule)?.info.name}
+                              </h2>
+                              <p className="text-white/80 mt-1">
+                                {modules.find(m => m.info.id === activeModule)?.info.description}
+                              </p>
                             </div>
                           </div>
                         </div>
-                        {module.info.category && (
-                          <div className="mt-2">
-                            <span className="text-xs bg-gray-600 px-2 py-1 rounded capitalize">
-                              {module.info.category}
-                            </span>
-                          </div>
-                        )}
-                      </button>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Module Configuration */}
-            <div className="lg:col-span-3">
-              {ActiveComponent ? (
-                <div className="bg-gray-800 rounded-lg overflow-hidden">
-                  {/* Module Header */}
-                  <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6">
-                    <div className="flex items-center gap-3">
-                      {modules.find(m => m.info.id === activeModule)?.info.icon && (
-                        <span className="text-2xl">
-                          {modules.find(m => m.info.id === activeModule)?.info.icon}
-                        </span>
-                      )}
-                      <div>
-                        <h2 className="text-xl font-bold text-white">
-                          {modules.find(m => m.info.id === activeModule)?.info.name}
-                        </h2>
-                        <p className="text-blue-100 mt-1">
-                          {modules.find(m => m.info.id === activeModule)?.info.description}
-                        </p>
+                        
+                        <div className="p-8">
+                          <ActiveComponent selectedGuild={selectedGuild} onSave={handleSave} />
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                  
-                  {/* Module Content */}
-                  <div className="p-6">
-                    <ActiveComponent selectedGuild={selectedGuild} onSave={handleSave} />
+                    ) : (
+                      <div className="bg-[#1a1f2a] rounded-2xl border border-[#2a3441] p-12 text-center">
+                        <div className="w-24 h-24 mx-auto mb-6 bg-[#2a3441] rounded-full flex items-center justify-center">
+                          <svg className="w-12 h-12 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                          </svg>
+                        </div>
+                        <h3 className="text-xl font-bold text-white mb-2">Select a Module</h3>
+                        <p className="text-gray-400">Choose a module from the sidebar to configure its settings</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : (
-                <div className="bg-gray-800 rounded-lg p-8 text-center">
-                  <div className="text-gray-400 mb-4">
-                    <svg className="w-16 h-16 mx-auto mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 8.172V5L8 4z" />
+                <div className="text-center py-16">
+                  <div className="w-24 h-24 mx-auto mb-6 bg-[#2a3441] rounded-full flex items-center justify-center">
+                    <svg className="w-12 h-12 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-medium text-gray-300 mb-2">Select a Module</h3>
-                  <p className="text-gray-500">
-                    Choose a module from the sidebar to configure its settings for this server.
-                  </p>
-                  {filteredModules.length === 0 && selectedCategory !== 'all' && (
-                    <p className="text-yellow-400 mt-4 text-sm">
-                      No modules found in the "{selectedCategory}" category. Try selecting "All Categories".
-                    </p>
-                  )}
+                  <h3 className="text-2xl font-bold text-white mb-4">No Server Selected</h3>
+                  <p className="text-gray-400 mb-8">Select a server from the sidebar or go to the servers tab</p>
+                  <button
+                    onClick={() => setActiveTab('servers')}
+                    className="px-8 py-3 bg-gradient-to-r from-[#5865F2] to-[#7289DA] text-white rounded-lg hover:shadow-lg hover:shadow-[#5865F2]/30 transition-all duration-300 hover:scale-105"
+                  >
+                    View Servers
+                  </button>
                 </div>
               )}
-            </div>
-          </div>
-
-        {/* Quick Stats */}
-        {!selectedGuild && (
-          <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-gray-800 rounded-lg p-6 text-center">
-              <div className="text-2xl font-bold text-blue-400 mb-2">{modules.length}</div>
-              <div className="text-gray-400">Available Modules</div>
-            </div>
-            <div className="bg-gray-800 rounded-lg p-6 text-center">
-              <div className="text-2xl font-bold text-green-400 mb-2">
-                {validGuilds.length}
-              </div>
-              <div className="text-gray-400">Your Servers</div>
-              <div className="text-xs text-gray-500 mt-1">
-                (Owned + Bot Present)
-              </div>
-            </div>
-            <div className="bg-gray-800 rounded-lg p-6 text-center">
-              <div className="text-2xl font-bold text-purple-400 mb-2">{categories.length}</div>
-              <div className="text-gray-400">Module Categories</div>
-            </div>
-          </div>
-        )}
-
-        {/* Debug Info */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mt-8 bg-gray-800 rounded-lg p-4">
-            <h4 className="text-sm font-bold text-gray-300 mb-2">Debug Info</h4>
-            <div className="text-xs text-gray-400 space-y-1">
-              <p>Session Status: {status}</p>
-              <p>User ID: {session?.user?.id || 'None'}</p>
-              <p>Owned Guilds: {validGuilds.length}</p>
-              <p>Selected Guild: {selectedGuild || 'None'}</p>
-              <p>Active Module: {activeModule || 'None'}</p>
-              <p>API Endpoint: /api/guilds</p>
-            </div>
-          </div>
-        )}
+            </>
+          )}
+        </div>
       </div>
+
+      <style jsx>{`
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        @keyframes slide-down {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .animate-fade-in {
+          animation: fade-in 0.5s ease-out forwards;
+        }
+
+        .animate-slide-down {
+          animation: slide-down 0.3s ease-out forwards;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #1a1f2a;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #5865F2;
+          border-radius: 3px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #7289DA;
+        }
+
+        .delay-700 {
+          animation-delay: 700ms;
+        }
+      `}</style>
     </div>
   );
 }
