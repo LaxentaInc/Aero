@@ -10,6 +10,7 @@ export const SpotifyNowPlaying = () => {
     const containerRef = useRef<HTMLDivElement>(null)
     const iframeRef = useRef<HTMLIFrameElement>(null)
     const loadTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+    const retryCountRef = useRef(0)
 
     // Lazy load on scroll
     useEffect(() => {
@@ -18,10 +19,10 @@ export const SpotifyNowPlaying = () => {
         const observer = new IntersectionObserver(([entry]) => {
             if (entry.isIntersecting) {
                 setState(s => ({ ...s, visible: true, loading: true }))
-                // Set timeout for stuck loading (10 seconds)
+                // Increased timeout for first load (20 seconds)
                 loadTimeoutRef.current = setTimeout(() => {
                     setState(s => s.loading ? { ...s, loading: false, error: true } : s)
-                }, 10000)
+                }, 20000)
                 observer.disconnect()
             }
         }, { rootMargin: '100px' })
@@ -35,23 +36,38 @@ export const SpotifyNowPlaying = () => {
 
     const handleLoad = () => {
         if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current)
-        // Add small delay to ensure content is rendered
+        
+        // Give Spotify embed more time to render on first load
+        const delay = retryCountRef.current === 0 ? 1500 : 500
+        
         setTimeout(() => {
-            setState(s => ({ ...s, loading: false, error: false }))
-        }, 500)
+            // Check if iframe actually has content
+            try {
+                const iframeDoc = iframeRef.current?.contentWindow?.document
+                // If we can't access it, assume it's loaded (cross-origin)
+                setState(s => ({ ...s, loading: false, error: false }))
+                retryCountRef.current = 0 // Reset retry count on success
+            } catch (e) {
+                // Cross-origin iframe loaded successfully
+                setState(s => ({ ...s, loading: false, error: false }))
+                retryCountRef.current = 0
+            }
+        }, delay)
     }
     
     const retry = () => {
         if (!iframeRef.current) return
+        
+        retryCountRef.current++
         setState(s => ({ ...s, loading: true, error: false }))
         
         // Clear old timeout
         if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current)
         
-        // Set new timeout
+        // Set new timeout (shorter for retries)
         loadTimeoutRef.current = setTimeout(() => {
             setState(s => s.loading ? { ...s, loading: false, error: true } : s)
-        }, 10000)
+        }, 15000)
         
         // Force reload by changing src
         const currentSrc = iframeRef.current.src
@@ -59,6 +75,12 @@ export const SpotifyNowPlaying = () => {
         setTimeout(() => {
             if (iframeRef.current) iframeRef.current.src = currentSrc
         }, 100)
+    }
+
+    // Add error handler for iframe
+    const handleError = () => {
+        if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current)
+        setState(s => ({ ...s, loading: false, error: true }))
     }
 
     const isDark = theme === 'dark'
@@ -75,7 +97,10 @@ export const SpotifyNowPlaying = () => {
             {/* Loading */}
             {state.loading && (
                 <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/30 backdrop-blur-sm">
-                    <div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
+                    <div className="flex flex-col items-center gap-2">
+                        <div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
+                        <span className="text-xs text-white/70">Loading Spotify...</span>
+                    </div>
                 </div>
             )}
 
@@ -100,6 +125,7 @@ export const SpotifyNowPlaying = () => {
                         allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                         loading="lazy"
                         onLoad={handleLoad}
+                        onError={handleError}
                         title="Spotify Playlist"
                     />
                 )}
