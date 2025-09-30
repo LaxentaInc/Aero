@@ -90,14 +90,14 @@ export const SpotifyNowPlaying = () => {
             ref={containerRef}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`relative max-w-5xl mx-auto rounded-2xl overflow-hidden shadow-xl
+            className={`relative max-w-5xl mx-auto rounded-2xl overflow-hidden shadow-xl z-10
                 ${isDark ? 'bg-gray-900/90 border-white/10' : 'bg-white/90 border-black/10'} 
                 border backdrop-blur-sm`}
         >
             {/* Loading */}
             {state.loading && (
-                <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/30 backdrop-blur-sm">
-                    <div className="flex flex-col items-center gap-2">
+                <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/30 backdrop-blur-sm pointer-events-none">
+                    <div className="flex flex-col items-center gap-2 pointer-events-auto">
                         <div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin" />
                         <span className="text-xs text-white/70">Loading Spotify...</span>
                     </div>
@@ -106,7 +106,7 @@ export const SpotifyNowPlaying = () => {
 
             {/* Error */}
             {state.error && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-black/50 backdrop-blur-sm text-white">
+                <div className="absolute inset-0 flex flex-col items-center justify-center z-10 bg-black/50 backdrop-blur-sm pointer-events-auto">
                     <p className="mb-3">Failed to load playlist</p>
                     <button onClick={retry} className="flex items-center gap-2 px-3 py-1.5 bg-green-600 hover:bg-green-700 rounded-lg text-sm transition-colors">
                         <FaRedo size={12} /> Retry

@@ -4,8 +4,8 @@ import { motion, useScroll, useTransform, AnimatePresence, useMotionValue, useSp
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useTheme } from './contexts/ThemeContext'
-import { FaReact, FaNodeJs, FaPython, FaRust, FaJs } from 'react-icons/fa'
-import { SiNextdotjs, SiTypescript, SiVuedotjs, SiDiscord } from 'react-icons/si'
+// import { FaReact, FaNodeJs, FaPython, FaRust, FaJs } from 'react-icons/fa'
+// import { SiNextdotjs, SiTypescript, SiVuedotjs, SiDiscord } from 'react-icons/si'
 import { SpotifyNowPlaying } from './components/SpotifyNowPlaying'
 import { Typewriter } from 'react-simple-typewriter';
 import { Mochiy_Pop_One } from 'next/font/google'
@@ -612,51 +612,6 @@ const useProtection = () => {
   }, [])
 }
 
-
-// Typing Animation Component
-const TypingAnimation = ({ text, delay = 0, theme }: { text: string, delay?: number, theme: 'dark' | 'light' }) => {
-	const [displayText, setDisplayText] = useState('')
-	const [showCursor, setShowCursor] = useState(true)
-	const elementRef = useRef<HTMLDivElement>(null)
-	const isInView = useInView(elementRef, { once: true })
-	
-	useEffect(() => {
-		if (!isInView) return
-		
-		const timeout = setTimeout(() => {
-			let currentIndex = 0
-			const typingInterval = setInterval(() => {
-				if (currentIndex <= text.length) {
-					setDisplayText(text.slice(0, currentIndex))
-					currentIndex++
-				} else {
-					clearInterval(typingInterval)
-				}
-			}, 60) // ~100 words per minute
-
-			return () => clearInterval(typingInterval)
-		}, delay)
-
-		return () => clearTimeout(timeout)
-	}, [text, delay, isInView])
-
-	useEffect(() => {
-		const cursorInterval = setInterval(() => {
-			setShowCursor(prev => !prev)
-		}, 500)
-		return () => clearInterval(cursorInterval)
-	}, [])
-
-	return (
-		<div ref={elementRef}>
-			<span className={`font-mono ${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-				{displayText}
-				<span className={showCursor ? 'opacity-100' : 'opacity-0'}>_</span>
-			</span>
-		</div>
-	)
-}
-
 // Service Card Component with Link
 const ServiceCard = ({ service, index, theme }: { service: typeof services[0], index: number, theme: 'dark' | 'light' }) => {
 	return (
@@ -722,10 +677,8 @@ const ServiceCard = ({ service, index, theme }: { service: typeof services[0], i
 const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
   // Add loading="lazy" to video later on ;3
   const videos = [
-    "/videos/laxenta1.webm",
     "/videos/myCutekoiiii.webm",
     "/videos/IfYouSeeThis_You_Are_cute_missKoi.webm",
-    // "/videos/Raphtalia_Girl_By_laxenta .mp4",
     // "/videos/shorekeeper.mp4"  // add if needed
   ]
 // Add loading="lazy" to video
