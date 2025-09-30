@@ -8,7 +8,7 @@ import { useTheme } from '../contexts/ThemeContext'
 import { Youtube, Twitter, Github, Instagram, Shield, FileText, Network, Globe, Palette } from 'lucide-react'
 
 //Routes where footer should be hidden
-const HIDE_FOOTER_ROUTES = ['/ai', '/image-gen']
+const HIDE_FOOTER_ROUTES = ['/ai', '/image-gen', '/dashboard']
 
 const DISCORD_API_URL = "https://api.lanyard.rest/v1/users/886971572668219392";
 const ME_DISCORD_API_URL = "https://api.lanyard.rest/v1/users/953527567808356404";
