@@ -9,6 +9,7 @@ export const SpotifyNowPlaying = () => {
     const [state, setState] = useState({ loading: false, error: false, visible: false })
     const containerRef = useRef<HTMLDivElement>(null)
     const iframeRef = useRef<HTMLIFrameElement>(null)
+    const loadTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
     // Lazy load on scroll
     useEffect(() => {
@@ -17,21 +18,47 @@ export const SpotifyNowPlaying = () => {
         const observer = new IntersectionObserver(([entry]) => {
             if (entry.isIntersecting) {
                 setState(s => ({ ...s, visible: true, loading: true }))
+                // Set timeout for stuck loading (10 seconds)
+                loadTimeoutRef.current = setTimeout(() => {
+                    setState(s => s.loading ? { ...s, loading: false, error: true } : s)
+                }, 10000)
                 observer.disconnect()
             }
         }, { rootMargin: '100px' })
         
         observer.observe(containerRef.current)
-        return () => observer.disconnect()
+        return () => {
+            observer.disconnect()
+            if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current)
+        }
     }, [])
 
-    const handleLoad = () => setState(s => ({ ...s, loading: false, error: false }))
-    const handleError = () => setState(s => ({ ...s, loading: false, error: true }))
+    const handleLoad = () => {
+        if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current)
+        // Add small delay to ensure content is rendered
+        setTimeout(() => {
+            setState(s => ({ ...s, loading: false, error: false }))
+        }, 500)
+    }
     
     const retry = () => {
         if (!iframeRef.current) return
         setState(s => ({ ...s, loading: true, error: false }))
-        iframeRef.current.src = iframeRef.current.src // Force reload
+        
+        // Clear old timeout
+        if (loadTimeoutRef.current) clearTimeout(loadTimeoutRef.current)
+        
+        // Set new timeout
+        loadTimeoutRef.current = setTimeout(() => {
+            setState(s => s.loading ? { ...s, loading: false, error: true } : s)
+        }, 10000)
+        
+        // Force reload by changing src
+        const currentSrc = iframeRef.current.src
+        iframeRef.current.src = 'about:blank'
+        setTimeout(() => {
+            if (iframeRef.current) iframeRef.current.src = currentSrc
+        }, 100)
     }
 
     const isDark = theme === 'dark'
@@ -73,7 +100,6 @@ export const SpotifyNowPlaying = () => {
                         allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                         loading="lazy"
                         onLoad={handleLoad}
-                        onError={handleError}
                         title="Spotify Playlist"
                     />
                 )}
