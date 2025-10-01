@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { MongoClient, Db, Collection } from 'mongodb';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth'; // Adjust path to your auth config
 
 // Types
 interface AccountAgeConfig {
@@ -20,6 +22,14 @@ interface AccountAgeDocument {
   config: AccountAgeConfig;
   lastUpdated: Date;
   createdAt: Date;
+}
+
+interface Guild {
+  id: string;
+  name: string;
+  icon: string | null;
+  owner: boolean;
+  permissions: string;
 }
 
 // MongoDB connection
@@ -64,6 +74,22 @@ const defaultConfig: AccountAgeConfig = {
   bypassTrusted: true,
   logActions: true,
   debug: false
+};
+
+// Security: Check if user has permission to manage a guild
+const userCanManageGuild = (guilds: Guild[] | undefined, guildId: string): boolean => {
+  if (!guilds || !Array.isArray(guilds)) {
+    return false;
+  }
+
+  const guild = guilds.find(g => g.id === guildId);
+  if (!guild) {
+    return false;
+  }
+
+  // Check if user is owner OR has MANAGE_GUILD permission (0x20)
+  const hasManagePermission = (BigInt(guild.permissions) & BigInt(0x20)) === BigInt(0x20);
+  return guild.owner || hasManagePermission;
 };
 
 // Validation functions
@@ -133,6 +159,15 @@ const validateGuildId = (guildId: string): boolean => {
 // GET handler - Fetch configuration for a guild
 export async function GET(request: NextRequest) {
   try {
+    // SECURITY LAYER 1: Authentication
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { error: 'Authentication required. Please log in.' },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const guildId = searchParams.get('guildId');
 
@@ -150,8 +185,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { collection } = await connectToMongoDB();
+    // SECURITY LAYER 2: Authorization
+    if (!userCanManageGuild(session.user.guilds, guildId)) {
+      return NextResponse.json(
+        { error: 'You do not have permission to manage this guild' },
+        { status: 403 }
+      );
+    }
 
+    const { collection } = await connectToMongoDB();
     const document = await collection.findOne({ guildId });
 
     if (!document) {
@@ -175,10 +217,19 @@ export async function GET(request: NextRequest) {
 // POST handler - Create or update configuration for a guild
 export async function POST(request: NextRequest) {
   try {
+    // SECURITY LAYER 1: Authentication
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { error: 'Authentication required. Please log in.' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const { guildId, config } = body;
 
-    // Validate guild ID
+    // SECURITY LAYER 2: Validate guild ID
     if (!guildId || !validateGuildId(guildId)) {
       return NextResponse.json(
         { error: 'Valid guild ID is required' },
@@ -186,7 +237,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate configuration
+    // SECURITY LAYER 3: Authorization - Check if user can manage this guild
+    if (!userCanManageGuild(session.user.guilds, guildId)) {
+      return NextResponse.json(
+        { error: 'You do not have permission to manage this guild' },
+        { status: 403 }
+      );
+    }
+
+    // SECURITY LAYER 4: Validate configuration
     if (!config) {
       return NextResponse.json(
         { error: 'Configuration is required' },
@@ -206,7 +265,7 @@ export async function POST(request: NextRequest) {
 
     const now = new Date();
     
-    // Prepare the document
+    // Prepare the document with sanitized data
     const document: AccountAgeDocument = {
       guildId,
       config: {
@@ -272,6 +331,15 @@ export async function POST(request: NextRequest) {
 // DELETE handler - Remove configuration for a guild
 export async function DELETE(request: NextRequest) {
   try {
+    // SECURITY LAYER 1: Authentication
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { error: 'Authentication required. Please log in.' },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const guildId = searchParams.get('guildId');
 
@@ -289,8 +357,15 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const { collection } = await connectToMongoDB();
+    // SECURITY LAYER 2: Authorization
+    if (!userCanManageGuild(session.user.guilds, guildId)) {
+      return NextResponse.json(
+        { error: 'You do not have permission to manage this guild' },
+        { status: 403 }
+      );
+    }
 
+    const { collection } = await connectToMongoDB();
     const result = await collection.deleteOne({ guildId });
 
     if (result.deletedCount === 0) {
@@ -317,6 +392,15 @@ export async function DELETE(request: NextRequest) {
 // PUT handler - Reset configuration to defaults for a guild
 export async function PUT(request: NextRequest) {
   try {
+    // SECURITY LAYER 1: Authentication
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { error: 'Authentication required. Please log in.' },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const guildId = searchParams.get('guildId');
 
@@ -331,6 +415,14 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json(
         { error: 'Invalid guild ID format' },
         { status: 400 }
+      );
+    }
+
+    // SECURITY LAYER 2: Authorization
+    if (!userCanManageGuild(session.user.guilds, guildId)) {
+      return NextResponse.json(
+        { error: 'You do not have permission to manage this guild' },
+        { status: 403 }
       );
     }
 

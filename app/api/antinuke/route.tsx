@@ -25,7 +25,7 @@ async function connectToDatabase() {
   return { client, db };
 }
 
-// Config validation schema
+// Updated config interface matching backend module
 interface AntiNukeConfig {
   enabled: boolean;
   antiNukeEnabled: boolean;
@@ -34,22 +34,36 @@ interface AntiNukeConfig {
   webhookCreateThreshold: number;
   emojiDeleteThreshold: number;
   stickerDeleteThreshold: number;
+  banThreshold: number;
+  kickThreshold: number;
   timeWindow: number;
+  burstWindow: number;
   trustedUsers: string[];
   trustedRoles: string[];
   bypassTrusted: boolean;
+  monitorBots: boolean;
+  botThresholdMultiplier: number;
   punishmentActions: string[];
   timeoutDuration: number;
   enableRollback: boolean;
   rollbackChannels: boolean;
   rollbackRoles: boolean;
   rollbackEmojis: boolean;
+  maxChannelBackups: number;
+  maxRoleBackups: number;
+  maxEmojiBackups: number;
+  maxStickerBackups: number;
+  backupRetentionHours: number;
   notifyOwner: boolean;
+  progressiveAlerts: boolean;
   logChannelId: string | null;
   logActions: boolean;
   antiWebhookSpam: boolean;
   antiSelfBot: boolean;
   maxWebhooksPerChannel: number;
+  auditLogCacheDuration: number;
+  eventBatchWindow: number;
+  circuitBreakerThreshold: number;
   debug: boolean;
 }
 
@@ -57,18 +71,28 @@ function validateConfig(data: any): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
   
   // Check required boolean fields
-  const boolFields = ['enabled', 'antiNukeEnabled', 'bypassTrusted', 'enableRollback', 
-                      'rollbackChannels', 'rollbackRoles', 'rollbackEmojis', 
-                      'notifyOwner', 'logActions', 'antiWebhookSpam', 'antiSelfBot', 'debug'];
+  const boolFields = [
+    'enabled', 'antiNukeEnabled', 'bypassTrusted', 'monitorBots',
+    'enableRollback', 'rollbackChannels', 'rollbackRoles', 'rollbackEmojis',
+    'notifyOwner', 'progressiveAlerts', 'logActions', 'antiWebhookSpam', 
+    'antiSelfBot', 'debug'
+  ];
   
   boolFields.forEach(field => {
-    if (typeof data[field] !== 'boolean') errors.push(`${field} must be boolean`);
+    if (typeof data[field] !== 'boolean') {
+      errors.push(`${field} must be boolean`);
+    }
   });
 
-  // Check threshold numbers (must be positive)
-  const thresholds = ['channelDeleteThreshold', 'roleDeleteThreshold', 'webhookCreateThreshold',
-                     'emojiDeleteThreshold', 'stickerDeleteThreshold', 'timeWindow', 
-                     'timeoutDuration', 'maxWebhooksPerChannel'];
+  // Check threshold numbers (must be positive integers)
+  const thresholds = [
+    'channelDeleteThreshold', 'roleDeleteThreshold', 'webhookCreateThreshold',
+    'emojiDeleteThreshold', 'stickerDeleteThreshold', 'banThreshold', 
+    'kickThreshold', 'timeWindow', 'burstWindow', 'timeoutDuration', 
+    'maxWebhooksPerChannel', 'maxChannelBackups', 'maxRoleBackups',
+    'maxEmojiBackups', 'maxStickerBackups', 'backupRetentionHours',
+    'auditLogCacheDuration', 'eventBatchWindow', 'circuitBreakerThreshold'
+  ];
   
   thresholds.forEach(field => {
     if (typeof data[field] !== 'number' || data[field] < 1) {
@@ -76,10 +100,23 @@ function validateConfig(data: any): { valid: boolean; errors: string[] } {
     }
   });
 
+  // Check botThresholdMultiplier (must be positive, can be decimal)
+  if (typeof data.botThresholdMultiplier !== 'number' || 
+      data.botThresholdMultiplier <= 0 || 
+      data.botThresholdMultiplier > 1) {
+    errors.push('botThresholdMultiplier must be a number between 0 and 1');
+  }
+
   // Check arrays
-  if (!Array.isArray(data.trustedUsers)) errors.push('trustedUsers must be array');
-  if (!Array.isArray(data.trustedRoles)) errors.push('trustedRoles must be array');
-  if (!Array.isArray(data.punishmentActions)) errors.push('punishmentActions must be array');
+  if (!Array.isArray(data.trustedUsers)) {
+    errors.push('trustedUsers must be array');
+  }
+  if (!Array.isArray(data.trustedRoles)) {
+    errors.push('trustedRoles must be array');
+  }
+  if (!Array.isArray(data.punishmentActions)) {
+    errors.push('punishmentActions must be array');
+  }
 
   // Validate punishment actions
   const validActions = ['remove_roles', 'timeout', 'kick', 'ban', 'notify'];
@@ -176,7 +213,7 @@ export async function POST(request: NextRequest) {
     const now = new Date();
     const existingDoc = await collection.findOne({ guildId });
 
-    const result = await collection.updateOne(
+    await collection.updateOne(
       { guildId },
       {
         $set: {

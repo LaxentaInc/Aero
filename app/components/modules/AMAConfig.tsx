@@ -36,7 +36,7 @@ interface ModuleConfigProps {
 export const moduleInfo = {
   id: 'anti-mass-action',
   name: 'Anti Mass Action Protection',
-  description: 'Protect against mass kicks, bans, and raids',
+  description: 'Protect against mass kicks, bans and Admin Power trips',
   category: 'moderation',
   //icon: '🛡️'
 };
