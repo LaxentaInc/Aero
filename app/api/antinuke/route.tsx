@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { MongoClient, Db } from 'mongodb';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth'; // Adjust path to your auth config
 
 // MongoDB connection singleton
 let cachedClient: MongoClient | null = null;
@@ -25,7 +27,6 @@ async function connectToDatabase() {
   return { client, db };
 }
 
-// Updated config interface matching backend module
 interface AntiNukeConfig {
   enabled: boolean;
   antiNukeEnabled: boolean;
@@ -70,7 +71,6 @@ interface AntiNukeConfig {
 function validateConfig(data: any): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
   
-  // Check required boolean fields
   const boolFields = [
     'enabled', 'antiNukeEnabled', 'bypassTrusted', 'monitorBots',
     'enableRollback', 'rollbackChannels', 'rollbackRoles', 'rollbackEmojis',
@@ -84,7 +84,6 @@ function validateConfig(data: any): { valid: boolean; errors: string[] } {
     }
   });
 
-  // Check threshold numbers (must be positive integers)
   const thresholds = [
     'channelDeleteThreshold', 'roleDeleteThreshold', 'webhookCreateThreshold',
     'emojiDeleteThreshold', 'stickerDeleteThreshold', 'banThreshold', 
@@ -100,14 +99,12 @@ function validateConfig(data: any): { valid: boolean; errors: string[] } {
     }
   });
 
-  // Check botThresholdMultiplier (must be positive, can be decimal)
   if (typeof data.botThresholdMultiplier !== 'number' || 
       data.botThresholdMultiplier <= 0 || 
       data.botThresholdMultiplier > 1) {
     errors.push('botThresholdMultiplier must be a number between 0 and 1');
   }
 
-  // Check arrays
   if (!Array.isArray(data.trustedUsers)) {
     errors.push('trustedUsers must be array');
   }
@@ -118,7 +115,6 @@ function validateConfig(data: any): { valid: boolean; errors: string[] } {
     errors.push('punishmentActions must be array');
   }
 
-  // Validate punishment actions
   const validActions = ['remove_roles', 'timeout', 'kick', 'ban', 'notify'];
   if (Array.isArray(data.punishmentActions)) {
     data.punishmentActions.forEach((action: string) => {
@@ -128,7 +124,6 @@ function validateConfig(data: any): { valid: boolean; errors: string[] } {
     });
   }
 
-  // logChannelId can be null or string
   if (data.logChannelId !== null && typeof data.logChannelId !== 'string') {
     errors.push('logChannelId must be string or null');
   }
@@ -136,9 +131,30 @@ function validateConfig(data: any): { valid: boolean; errors: string[] } {
   return { valid: errors.length === 0, errors };
 }
 
+// Helper function to check if user can manage a guild
+function canUserManageGuild(session: any, guildId: string): boolean {
+  if (!session?.user?.guilds) {
+    return false;
+  }
+
+  const guild = session.user.guilds.find((g: any) => g.id === guildId);
+  if (!guild) {
+    return false;
+  }
+
+  // Check if user is owner OR has MANAGE_GUILD permission (0x20)
+  return guild.owner || (BigInt(guild.permissions) & BigInt(0x20)) === BigInt(0x20);
+}
+
 // GET - Fetch config for a guild
 export async function GET(request: NextRequest) {
   try {
+    // Auth check
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const guildId = searchParams.get('guildId');
 
@@ -146,6 +162,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         { error: 'guildId query parameter required' },
         { status: 400 }
+      );
+    }
+
+    // Authorization check
+    if (!canUserManageGuild(session, guildId)) {
+      return NextResponse.json(
+        { error: 'Not authorized to access this guild' },
+        { status: 403 }
       );
     }
 
@@ -181,6 +205,12 @@ export async function GET(request: NextRequest) {
 // POST - Create or update config
 export async function POST(request: NextRequest) {
   try {
+    // Auth check
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { guildId, config } = body;
 
@@ -188,6 +218,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'guildId is required and must be string' },
         { status: 400 }
+      );
+    }
+
+    // Authorization check
+    if (!canUserManageGuild(session, guildId)) {
+      return NextResponse.json(
+        { error: 'Not authorized to modify this guild' },
+        { status: 403 }
       );
     }
 
@@ -220,6 +258,7 @@ export async function POST(request: NextRequest) {
           guildId,
           config,
           lastUpdated: now,
+          lastUpdatedBy: session.user.id, // Track who made the change
           ...(existingDoc ? {} : { createdAt: now })
         }
       },
@@ -246,6 +285,12 @@ export async function POST(request: NextRequest) {
 // PATCH - Partially update config
 export async function PATCH(request: NextRequest) {
   try {
+    // Auth check
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { guildId, configUpdates } = body;
 
@@ -253,6 +298,14 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json(
         { error: 'guildId is required' },
         { status: 400 }
+      );
+    }
+
+    // Authorization check
+    if (!canUserManageGuild(session, guildId)) {
+      return NextResponse.json(
+        { error: 'Not authorized to modify this guild' },
+        { status: 403 }
       );
     }
 
@@ -292,7 +345,8 @@ export async function PATCH(request: NextRequest) {
       {
         $set: {
           config: mergedConfig,
-          lastUpdated: now
+          lastUpdated: now,
+          lastUpdatedBy: session.user.id
         }
       }
     );
@@ -317,6 +371,12 @@ export async function PATCH(request: NextRequest) {
 // DELETE - Remove config for a guild
 export async function DELETE(request: NextRequest) {
   try {
+    // Auth check
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const guildId = searchParams.get('guildId');
 
@@ -324,6 +384,14 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json(
         { error: 'guildId query parameter required' },
         { status: 400 }
+      );
+    }
+
+    // Authorization check
+    if (!canUserManageGuild(session, guildId)) {
+      return NextResponse.json(
+        { error: 'Not authorized to delete config for this guild' },
+        { status: 403 }
       );
     }
 
