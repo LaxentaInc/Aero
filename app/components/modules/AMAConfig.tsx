@@ -189,7 +189,7 @@ export default function AMAConfig({ selectedGuild, onSave }: ModuleConfigProps) 
             />
           </div>
 
-          <div className="flex items-center justify-between">
+          {/* <div className="flex items-center justify-between">
             <label className="text-sm font-medium">Anti-Raid Protection</label>
             <input
               type="checkbox"
@@ -197,7 +197,7 @@ export default function AMAConfig({ selectedGuild, onSave }: ModuleConfigProps) 
               onChange={(e) => updateConfig('antiRaidEnabled', e.target.checked)}
               className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
             />
-          </div>
+          </div> */}
 
           <div>
             <label className="block text-sm font-medium mb-1">Kick Threshold</label>
