@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useConfigCache } from '../../hooks/useConfigCache';
 
 // Types
 interface AMAConfig {
@@ -70,6 +71,7 @@ export default function AMAConfig({ selectedGuild, onSave }: ModuleConfigProps) 
   const [config, setConfig] = useState<AMAConfig>(defaultConfig);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const { getCached, setCached, invalidate: _invalidate } = useConfigCache();
 
   // Load config when guild is selected
   useEffect(() => {
@@ -79,6 +81,13 @@ export default function AMAConfig({ selectedGuild, onSave }: ModuleConfigProps) 
   }, [selectedGuild]);
 
   const loadConfig = async () => {
+    const cacheKey = `account-age-${selectedGuild}`;
+    const cached = getCached(cacheKey);
+    if (cached) {
+      setConfig(cached);
+      return; // Skip API call
+    }
+
     setLoading(true);
     try {
       const response = await fetch(`/api/ama-config?guildId=${selectedGuild}`);
@@ -86,15 +95,23 @@ export default function AMAConfig({ selectedGuild, onSave }: ModuleConfigProps) 
       if (response.ok) {
         const data: AMADocument = await response.json();
         setConfig(data.config);
+        setCached(cacheKey, data.config); // CACHE IT
+
       } else if (response.status === 404) {
         // No config exists, use defaults
         setConfig(defaultConfig);
+        setCached(cacheKey, defaultConfig); // CACHE DEFAULT
+      } else if (response.status === 429) {
+        setConfig(defaultConfig);
+
       } else {
         throw new Error('Failed to load configuration');
       }
     } catch (error) {
-      console.error('Failed to load config:', error);
-      onSave?.(false, 'Failed to load configuration');
+      // console.error('Failed to load config:', error);
+      // onSave?.(false, 'Failed to load configuration');
+        setConfig(defaultConfig); // graceful fallback
+
     } finally {
       setLoading(false);
     }
@@ -117,6 +134,9 @@ export default function AMAConfig({ selectedGuild, onSave }: ModuleConfigProps) 
       });
 
       if (response.ok) {
+        const cacheKey = `account-age-${selectedGuild}`;
+        setCached(cacheKey, config); // Update cache with new config
+
         onSave?.(true, 'Configuration saved successfully!');
       } else {
         throw new Error('Failed to save configuration');

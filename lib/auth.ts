@@ -13,6 +13,8 @@ declare module 'next-auth' {
       image?: string | null
       guilds?: Guild[]
     }
+      accessToken?: string //YU UH
+
   }
 }
 
@@ -72,6 +74,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string
         session.user.name = token.username
         session.user.image = `https://cdn.discordapp.com/avatars/${token.id}/${token.avatar}.png`
+        session.accessToken =token.accessToken
 
         // Fetch guilds
         if (token.accessToken) {

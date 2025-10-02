@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useConfigCache } from '../../hooks/useConfigCache';
 
 // Types
 interface BotProtectionConfig {
@@ -74,6 +75,7 @@ export default function BotProtectionConfig({ selectedGuild, onSave }: ModuleCon
   const [config, setConfig] = useState<BotProtectionConfig>(defaultConfig);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const { getCached, setCached, invalidate } = useConfigCache();
 
   // Load config when guild is selected
   useEffect(() => {
@@ -83,6 +85,14 @@ export default function BotProtectionConfig({ selectedGuild, onSave }: ModuleCon
   }, [selectedGuild]);
 
   const loadConfig = async () => {
+        const cacheKey = `account-age-${selectedGuild}`;
+    const cached = getCached(cacheKey);
+       
+    if (cached) {
+      setConfig(cached);
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await fetch(`/api/bot-protection?guildId=${selectedGuild}`);
@@ -90,15 +100,23 @@ export default function BotProtectionConfig({ selectedGuild, onSave }: ModuleCon
       if (response.ok) {
         const data: BotProtectionDocument = await response.json();
         setConfig(data.config);
+                setCached(cacheKey, data.config); // CACHE IT
+
       } else if (response.status === 404) {
         // No config exists, use defaults
         setConfig(defaultConfig);
+                setCached(cacheKey, defaultConfig); // CACHE DEFAULT
+      } else if (response.status === 429) {
+        // limited
+        // console.warn('Rate limited, using defaults');
+        setConfig(defaultConfig);
+
       } else {
         throw new Error('Failed to load configuration');
       }
     } catch (error) {
-      console.error('Failed to load config:', error);
-      onSave?.(false, 'Failed to load configuration');
+      setConfig(defaultConfig); // Graceful fallback
+      onSave?.(false, 'Failed to load configuration, API IS Down'); // API Is DOWN
     } finally {
       setLoading(false);
     }
@@ -121,6 +139,9 @@ export default function BotProtectionConfig({ selectedGuild, onSave }: ModuleCon
       });
 
       if (response.ok) {
+// drop cache when saving and update it with new config 
+        const cacheKey = `account-age-${selectedGuild}`;
+        setCached(cacheKey, config);
         onSave?.(true, 'Configuration saved successfully!');
       } else {
         throw new Error('Failed to save configuration');

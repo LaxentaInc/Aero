@@ -1,0 +1,86 @@
+just a little doc for our hook, simple
+import { useConfigCache } from '../hooks/useConfigCache';
+
+export default function AccountAgeProtection({ selectedGuild, onSave }: ModuleConfigProps) {
+  const { getCached, setCached, invalidate } = useConfigCache();
+  
+  //rest of state declarations :3 
+
+  const loadConfig = async () => {
+    // CHECK CACHE FIRST
+    const cacheKey = `account-age-${selectedGuild}`;
+    const cached = getCached(cacheKey);
+    
+    if (cached) {
+      setConfig(cached);
+      return; // Skip API call
+    }
+
+    // ONLY CALL API IF CACHE MISS
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/account-age-protection?guildId=${selectedGuild}`);
+      
+      if (response.ok) {
+        const data: AccountAgeDocument = await response.json();
+        setConfig(data.config);
+        setCached(cacheKey, data.config); // CACHE IT
+      } else if (response.status === 404) {
+        setConfig(defaultConfig);
+        setCached(cacheKey, defaultConfig); // CACHE DEFAULT
+      } else if (response.status === 429) {
+        // Rate limited - silently use defaults
+        console.warn('Rate limited, using defaults');
+        setConfig(defaultConfig);
+      } else {
+        throw new Error('Failed to load configuration');
+      }
+    } catch (error) {
+      console.warn('Config load failed:', error);
+      setConfig(defaultConfig); // fallback
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const saveConfig = async () => {
+    if (!selectedGuild) return;
+    
+    setSaving(true);
+    try {
+      const response = await fetch('/api/account-age-protection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ guildId: selectedGuild, config }),
+      });
+
+      if (response.ok) {
+        // INVALIDATE CACHE ON SAVE
+        const cacheKey = `account-age-${selectedGuild}`;
+        setCached(cacheKey, config); // Update cache with new config
+        onSave?.(true, 'Configuration saved successfully!');
+      } else {
+        throw new Error('Failed to save configuration');
+      }
+    } catch (error) {
+      console.error('Failed to save config:', error);
+      onSave?.(false, 'Failed to save configuration');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // ... rest stays the same ...
+}
+
+
+
+
+In each module we shall:
+
+Add import { useConfigCache } from '../hooks/useConfigCache';
+Add const { getCached, setCached } = useConfigCache(); at the top
+Add 5 lines in loadConfig() to check cache first
+Add 1 line in saveConfig() to update cache
+Handle 429 status gracefully (no error spam)
+

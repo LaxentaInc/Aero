@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useConfigCache } from '../../hooks/useConfigCache';
 
 // Types
 interface AntiNukeConfig {
@@ -146,6 +147,7 @@ export default function AntiNukeConfig({ selectedGuild, onSave }: ModuleConfigPr
   const [config, setConfig] = useState<AntiNukeConfig>(defaultConfig);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const { getCached, setCached, invalidate: _invalidate } = useConfigCache(); //uh again, invalidate is unused for now xd
 
   useEffect(() => {
     if (selectedGuild) {
@@ -154,6 +156,14 @@ export default function AntiNukeConfig({ selectedGuild, onSave }: ModuleConfigPr
   }, [selectedGuild]);
 
   const loadConfig = async () => {
+
+    const cacheKey = `account-age-${selectedGuild}`;
+    const cached = getCached(cacheKey);
+    
+    if (cached) {
+      setConfig(cached);
+      return; // no api call
+    }
     setLoading(true);
     try {
       const response = await fetch(`/api/antinuke?guildId=${selectedGuild}`);
@@ -161,14 +171,21 @@ export default function AntiNukeConfig({ selectedGuild, onSave }: ModuleConfigPr
       if (response.ok) {
         const data: AntiNukeDocument = await response.json();
         setConfig(data.config);
+        setCached(cacheKey, data.config)
       } else if (response.status === 404) {
         setConfig(defaultConfig);
+        setCached(cacheKey, defaultConfig); // c DEFAULT
+      } else if (response.status === 429) {
+        setConfig(defaultConfig);
+
+
       } else {
         throw new Error('Failed to load configuration');
       }
     } catch (error) {
-      console.error('Failed to load config:', error);
-      onSave?.(false, 'Failed to load configuration');
+      setConfig(defaultConfig); // Graceful fallback
+
+      onSave?.(false, 'Failed to load configuration, API Is DOWN');
     } finally {
       setLoading(false);
     }
@@ -186,6 +203,9 @@ export default function AntiNukeConfig({ selectedGuild, onSave }: ModuleConfigPr
       });
 
       if (response.ok) {
+
+        const cacheKey = `account-age-${selectedGuild}`;
+        setCached(cacheKey, config); // Update cache with new config
         onSave?.(true, 'Anti-Nuke configuration saved successfully!');
       } else {
         const error = await response.json();
