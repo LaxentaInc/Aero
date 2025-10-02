@@ -85,7 +85,7 @@ export default function BotProtectionConfig({ selectedGuild, onSave }: ModuleCon
   }, [selectedGuild]);
 
   const loadConfig = async () => {
-        const cacheKey = `account-age-${selectedGuild}`;
+  const cacheKey = `bot-protection-${selectedGuild}`;
     const cached = getCached(cacheKey);
        
     if (cached) {
@@ -100,12 +100,12 @@ export default function BotProtectionConfig({ selectedGuild, onSave }: ModuleCon
       if (response.ok) {
         const data: BotProtectionDocument = await response.json();
         setConfig(data.config);
-                setCached(cacheKey, data.config); // CACHE IT
+        setCached(cacheKey, data.config); // CACHE IT
 
       } else if (response.status === 404) {
         // No config exists, use defaults
         setConfig(defaultConfig);
-                setCached(cacheKey, defaultConfig); // CACHE DEFAULT
+        setCached(cacheKey, defaultConfig); // CACHE DEFAULT
       } else if (response.status === 429) {
         // limited
         // console.warn('Rate limited, using defaults');
@@ -116,7 +116,7 @@ export default function BotProtectionConfig({ selectedGuild, onSave }: ModuleCon
       }
     } catch (error) {
       setConfig(defaultConfig); // Graceful fallback
-      onSave?.(false, 'Failed to load configuration, API IS Down'); // API Is DOWN
+      // onSave?.(false, 'Failed to load configuration, API IS Down'); // API Is DOWN
     } finally {
       setLoading(false);
     }
@@ -140,7 +140,7 @@ export default function BotProtectionConfig({ selectedGuild, onSave }: ModuleCon
 
       if (response.ok) {
 // drop cache when saving and update it with new config 
-        const cacheKey = `account-age-${selectedGuild}`;
+      const cacheKey = `bot-protection-${selectedGuild}`;
         setCached(cacheKey, config);
         onSave?.(true, 'Configuration saved successfully!');
       } else {

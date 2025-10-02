@@ -81,7 +81,7 @@ export default function AMAConfig({ selectedGuild, onSave }: ModuleConfigProps) 
   }, [selectedGuild]);
 
   const loadConfig = async () => {
-    const cacheKey = `account-age-${selectedGuild}`;
+    const cacheKey = `AMA-pro-${selectedGuild}`;
     const cached = getCached(cacheKey);
     if (cached) {
       setConfig(cached);
@@ -134,7 +134,7 @@ export default function AMAConfig({ selectedGuild, onSave }: ModuleConfigProps) 
       });
 
       if (response.ok) {
-        const cacheKey = `account-age-${selectedGuild}`;
+        const cacheKey = `AMA-pro-${selectedGuild}`;
         setCached(cacheKey, config); // Update cache with new config
 
         onSave?.(true, 'Configuration saved successfully!');

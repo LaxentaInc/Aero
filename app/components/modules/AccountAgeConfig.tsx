@@ -107,9 +107,11 @@ export default function AccountAgeProtection({ selectedGuild, onSave }: ModuleCo
         throw new Error('Failed to load configuration');
       }
     } catch (error) {
-      console.error('Failed to load config:', error);
+      // console.error('Failed to load config:', error);
       // onSave?.(false, 'Failed to load configuration');
-            setConfig(defaultConfig); //  fallback
+            // setConfig(defaultConfig); //  fallback
+                    setCached(cacheKey, defaultConfig); // CACHE DEFAULT
+
 
     } finally {
       setLoading(false);

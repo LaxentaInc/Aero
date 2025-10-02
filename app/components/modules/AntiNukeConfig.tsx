@@ -157,7 +157,7 @@ export default function AntiNukeConfig({ selectedGuild, onSave }: ModuleConfigPr
 
   const loadConfig = async () => {
 
-    const cacheKey = `account-age-${selectedGuild}`;
+    const cacheKey = `anti-nuke-${selectedGuild}`;
     const cached = getCached(cacheKey);
     
     if (cached) {
@@ -183,9 +183,10 @@ export default function AntiNukeConfig({ selectedGuild, onSave }: ModuleConfigPr
         throw new Error('Failed to load configuration');
       }
     } catch (error) {
-      setConfig(defaultConfig); // Graceful fallback
+      // setConfig(defaultConfig); // Graceful fallback
+        setCached(cacheKey, defaultConfig); // c DEFAULT
 
-      onSave?.(false, 'Failed to load configuration, API Is DOWN');
+      // onSave?.(false, 'Failed to load configuration, API Is DOWN');
     } finally {
       setLoading(false);
     }
@@ -204,7 +205,7 @@ export default function AntiNukeConfig({ selectedGuild, onSave }: ModuleConfigPr
 
       if (response.ok) {
 
-        const cacheKey = `account-age-${selectedGuild}`;
+        const cacheKey = `anti-nuke-${selectedGuild}`;
         setCached(cacheKey, config); // Update cache with new config
         onSave?.(true, 'Anti-Nuke configuration saved successfully!');
       } else {
