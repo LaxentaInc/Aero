@@ -23,10 +23,11 @@ export interface ModuleDefinition {
 }
 
 // Import all modules here
-import AMAConfig, { moduleInfo as amaInfo } from './AMAConfig';
+import AMAConfig, { moduleInfo as amaInfo, moduleInfo } from './AMAConfig';
 import BotProtectionConfig, { moduleInfo as botProtectionInfo } from './BotProtectionConfig';
 import AccountAgeProtectionConfig, { moduleInfo as accountAgeProtectionInfo } from './AccountAgeConfig';
 import AntiNukeConfig, { moduleInfo as antiNukeInfo } from './AntiNukeConfig';
+import AntiPermissionAbuseConfig, { moduleInfo as APAconfig } from './APAConfig';
 // Add more imports as you create modules:
 // import ModerationConfig, { moduleInfo as moderationInfo } from './ModerationConfig';
 // import AutomodConfig, { moduleInfo as automodInfo } from './AutomodConfig';
@@ -50,6 +51,10 @@ export const modules: ModuleDefinition[] = [
   info: antiNukeInfo,
   component: AntiNukeConfig,
   },
+  {
+    info: APAconfig,
+    component: AntiPermissionAbuseConfig,
+  }
   // Add new modules here:
   // {
   //   info: moderationInfo,

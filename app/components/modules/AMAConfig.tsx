@@ -6,7 +6,6 @@ import { useConfigCache } from '../../hooks/useConfigCache';
 // Types
 interface AMAConfig {
   enabled: boolean;
-  antiRaidEnabled: boolean;
   kickThreshold: number;
   banThreshold: number;
   timeWindow: number;
@@ -39,12 +38,10 @@ export const moduleInfo = {
   name: 'Anti Mass Action Protection',
   description: 'Protect against mass kicks, bans and Admin Power trips',
   category: 'moderation',
-  //icon: '🛡️'
 };
 
 const defaultConfig: AMAConfig = {
   enabled: true,
-  antiRaidEnabled: true,
   kickThreshold: 5,
   banThreshold: 5,
   timeWindow: 300,
@@ -209,15 +206,6 @@ export default function AMAConfig({ selectedGuild, onSave }: ModuleConfigProps) 
             />
           </div>
 
-          {/* <div className="flex items-center justify-between">
-            <label className="text-sm font-medium">Anti-Raid Protection</label>
-            <input
-              type="checkbox"
-              checked={config.antiRaidEnabled}
-              onChange={(e) => updateConfig('antiRaidEnabled', e.target.checked)}
-              className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
-            />
-          </div> */}
 
           <div>
             <label className="block text-sm font-medium mb-1">Kick Threshold</label>

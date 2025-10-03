@@ -6,7 +6,6 @@ import { authOptions } from '@/lib/auth'; // Adjust path to your auth config
 // Types
 interface AMAConfig {
   enabled: boolean;
-  antiRaidEnabled: boolean;
   kickThreshold: number;
   banThreshold: number;
   timeWindow: number;
@@ -69,7 +68,6 @@ async function connectToMongoDB(): Promise<{ db: Db; collection: Collection<AMAD
 // Default configuration
 const defaultConfig: AMAConfig = {
   enabled: true,
-  antiRaidEnabled: true,
   kickThreshold: 5,
   banThreshold: 5,
   timeWindow: 300,
@@ -294,7 +292,6 @@ export async function POST(request: NextRequest) {
       guildId,
       config: {
         enabled: config.enabled,
-        antiRaidEnabled: config.antiRaidEnabled,
         kickThreshold: config.kickThreshold,
         banThreshold: config.banThreshold,
         timeWindow: config.timeWindow,
