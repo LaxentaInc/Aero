@@ -6,7 +6,6 @@ import { useConfigCache } from '../../hooks/useConfigCache';
 // Types
 interface AntiNukeConfig {
   enabled: boolean;
-  // antiNukeEnabled: boolean;
   channelDeleteThreshold: number;
   roleDeleteThreshold: number;
   webhookCreateThreshold: number;
