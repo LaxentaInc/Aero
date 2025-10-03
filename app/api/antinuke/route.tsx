@@ -29,7 +29,6 @@ async function connectToDatabase() {
 
 interface AntiNukeConfig {
   enabled: boolean;
-  antiNukeEnabled: boolean;
   channelDeleteThreshold: number;
   roleDeleteThreshold: number;
   webhookCreateThreshold: number;
@@ -72,7 +71,7 @@ function validateConfig(data: any): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
   
   const boolFields = [
-    'enabled', 'antiNukeEnabled', 'bypassTrusted', 'monitorBots',
+    'enabled', 'bypassTrusted', 'monitorBots',
     'enableRollback', 'rollbackChannels', 'rollbackRoles', 'rollbackEmojis',
     'notifyOwner', 'progressiveAlerts', 'logActions', 'antiWebhookSpam', 
     'antiSelfBot', 'debug'

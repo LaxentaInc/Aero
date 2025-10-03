@@ -182,8 +182,8 @@ export default function AntiNukeConfig({ selectedGuild, onSave }: ModuleConfigPr
         throw new Error('Failed to load configuration');
       }
     } catch (error) {
-      // setConfig(defaultConfig); // Graceful fallback
-        setCached(cacheKey, defaultConfig); // c DEFAULT
+      setConfig(defaultConfig); // Graceful fallback
+        // setCached(cacheKey, defaultConfig); // c DEFAULT
 
       // onSave?.(false, 'Failed to load configuration, API Is DOWN');
     } finally {
