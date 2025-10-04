@@ -324,7 +324,7 @@ export default function AMAConfig({ selectedGuild, onSave }: ModuleConfigProps) 
             />
           </div>
 
-          <div className="flex items-center justify-between">
+          {/* <div className="flex items-center justify-between">
             <label className="text-sm font-medium">Debug Mode</label>
             <input
               type="checkbox"
@@ -332,7 +332,7 @@ export default function AMAConfig({ selectedGuild, onSave }: ModuleConfigProps) 
               onChange={(e) => updateConfig('debug', e.target.checked)}
               className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
             />
-          </div>
+          </div> */}
         </div>
 
         <div className="mt-4">

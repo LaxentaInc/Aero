@@ -730,7 +730,7 @@ export default function AntiPermissionAbuseConfig({ selectedGuild, onSave }: Mod
             />
           </div>
 
-          <div className="flex items-center justify-between p-4 bg-gray-900/50 rounded-lg border border-gray-700/50 hover:border-gray-600/50 transition-colors">
+          {/* <div className="flex items-center justify-between p-4 bg-gray-900/50 rounded-lg border border-gray-700/50 hover:border-gray-600/50 transition-colors">
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-gray-200">Debug Mode</span>
               <Tooltip text="Enable detailed debug logging">
@@ -742,7 +742,7 @@ export default function AntiPermissionAbuseConfig({ selectedGuild, onSave }: Mod
               onChange={(val) => updateConfig('debug', val)}
               disabled={isFormDisabled}
             />
-          </div>
+          </div> */}
         </div>
 
         <div>

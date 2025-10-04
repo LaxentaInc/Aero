@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useConfigCache } from '../../hooks/useConfigCache';
+import { Info, Save, Check, X, Loader2, Shield, Users, Settings, Bell, FileText, AlertTriangle, Zap, RotateCcw, Cpu } from 'lucide-react';
 
 // Types
 interface AntiNukeConfig {
@@ -105,11 +106,11 @@ const defaultConfig: AntiNukeConfig = {
 };
 
 const punishmentOptions = [
-  { value: 'remove_roles', label: 'Remove Dangerous Roles', description: 'Strips all roles with admin/destructive permissions' },
-  { value: 'timeout', label: 'Timeout', description: 'Temporarily mute the violator' },
-  { value: 'kick', label: 'Kick from Server', description: 'Immediately remove from server (can rejoin)' },
-  { value: 'ban', label: 'Ban from Server', description: 'Permanent removal (cannot rejoin)' },
-  { value: 'notify', label: 'Notify Owner', description: 'Send DM to server owner with details' }
+  { value: 'remove_roles', label: 'Remove Dangerous Roles', description: 'Strips all roles with admin/destructive permissions', tooltip: 'Immediately removes all dangerous permissions from the attacker' },
+  { value: 'timeout', label: 'Timeout', description: 'Temporarily mute the violator', tooltip: 'Prevents the user from interacting while investigation occurs' },
+  { value: 'kick', label: 'Kick from Server', description: 'Immediately remove from server (can rejoin)', tooltip: 'Removes the user but allows them to rejoin with an invite' },
+  { value: 'ban', label: 'Ban from Server', description: 'Permanent removal (cannot rejoin)', tooltip: 'Permanently bans the user from the server' },
+  { value: 'notify', label: 'Notify Owner', description: 'Send DM to server owner with details', tooltip: 'Sends immediate alert to server owner with full details' }
 ];
 
 const validateNumberInput = (value: string, min: number, max?: number): number => {
@@ -121,43 +122,89 @@ const validateNumberInput = (value: string, min: number, max?: number): number =
   
   return numValue;
 };
-// Then update each number input with proper validation:
 
-// Tooltip component
-function Tooltip({ text }: { text: string }) {
+const validateFloatInput = (value: string, min: number, max: number): number => {
+  const numValue = parseFloat(value);
+  
+  if (isNaN(numValue)) return min;
+  if (numValue < min) return min;
+  if (numValue > max) return max;
+  
+  return parseFloat(numValue.toFixed(1));
+};
+
+const Tooltip = ({ text, children }: { text: string; children?: React.ReactNode }) => {
   const [show, setShow] = useState(false);
-
+  
   return (
-    <div className="relative inline-block ml-1">
-      <svg
+    <div className="relative inline-flex items-center">
+      <div
         onMouseEnter={() => setShow(true)}
         onMouseLeave={() => setShow(false)}
-        className="w-4 h-4 text-gray-400 hover:text-gray-300 cursor-help inline"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
+        className="cursor-help"
       >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-        />
-      </svg>
+        {children || <Info className="w-4 h-4 text-gray-500" />}
+      </div>
       {show && (
-        <div className="absolute z-50 w-64 px-3 py-2 text-xs text-white bg-gray-900 rounded-lg shadow-xl border border-gray-700 left-6 top-0 transform -translate-y-1/2">
+        <div className="absolute z-50 left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg shadow-xl border border-gray-700 whitespace-nowrap animate-in fade-in slide-in-from-bottom-1 duration-200">
           {text}
+          <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 border-4 border-transparent border-t-gray-900"></div>
         </div>
       )}
     </div>
   );
-}
+};
+
+
+const Toggle = ({ checked, onChange, disabled }: { checked: boolean; onChange: (checked: boolean) => void; disabled?: boolean }) => {
+  return (
+    <button
+      onClick={() => !disabled && onChange(!checked)}
+      disabled={disabled}
+      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800 disabled:opacity-50 disabled:cursor-not-allowed ${
+        checked ? 'bg-blue-600' : 'bg-gray-700'
+      }`}
+    >
+      <span
+        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${
+          checked ? 'translate-x-6' : 'translate-x-1'
+        }`}
+      />
+    </button>
+  );
+};
+
+const Checkbox = ({ checked, onChange, disabled, label }: { checked: boolean; onChange: (checked: boolean) => void; disabled?: boolean; label?: string }) => {
+  return (
+    <label className="flex items-center cursor-pointer group">
+      <div className="relative">
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={(e) => onChange(e.target.checked)}
+          disabled={disabled}
+          className="sr-only"
+        />
+        <div className={`w-5 h-5 border-2 rounded transition-all duration-200 flex items-center justify-center ${
+          checked 
+            ? 'bg-blue-600 border-blue-600' 
+            : 'bg-gray-700 border-gray-600 group-hover:border-gray-500'
+        } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
+          {checked && <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
+        </div>
+      </div>
+      {label && <span className="ml-2 text-sm">{label}</span>}
+    </label>
+  );
+};
 
 export default function AntiNukeConfig({ selectedGuild, onSave }: ModuleConfigProps) {
   const [config, setConfig] = useState<AntiNukeConfig>(defaultConfig);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const { getCached, setCached, invalidate: _invalidate } = useConfigCache(); //uh again, invalidate is unused for now xd
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
+  const [lastSaveTime, setLastSaveTime] = useState<number>(0);
+  const { getCached, setCached, invalidate: _invalidate } = useConfigCache();
 
   useEffect(() => {
     if (selectedGuild) {
@@ -166,14 +213,14 @@ export default function AntiNukeConfig({ selectedGuild, onSave }: ModuleConfigPr
   }, [selectedGuild]);
 
   const loadConfig = async () => {
-
     const cacheKey = `anti-nuke-${selectedGuild}`;
     const cached = getCached(cacheKey);
     
     if (cached) {
       setConfig(cached);
-      return; // no api call
+      return;
     }
+
     setLoading(true);
     try {
       const response = await fetch(`/api/antinuke?guildId=${selectedGuild}`);
@@ -181,22 +228,15 @@ export default function AntiNukeConfig({ selectedGuild, onSave }: ModuleConfigPr
       if (response.ok) {
         const data: AntiNukeDocument = await response.json();
         setConfig(data.config);
-        setCached(cacheKey, data.config)
+        setCached(cacheKey, data.config);
       } else if (response.status === 404) {
         setConfig(defaultConfig);
-        setCached(cacheKey, defaultConfig); // c DEFAULT
-      } else if (response.status === 429) {
-        setConfig(defaultConfig);
-
-
+        setCached(cacheKey, defaultConfig);
       } else {
-        throw new Error('Failed to load configuration');
+        setConfig(defaultConfig);
       }
     } catch (error) {
-      // setConfig(defaultConfig); // Graceful fallback
-        setCached(cacheKey, defaultConfig); // c DEFAULT
-
-      // onSave?.(false, 'Failed to load configuration, API Is DOWN');
+      setConfig(defaultConfig);
     } finally {
       setLoading(false);
     }
@@ -205,7 +245,18 @@ export default function AntiNukeConfig({ selectedGuild, onSave }: ModuleConfigPr
   const saveConfig = async () => {
     if (!selectedGuild) return;
     
+    const now = Date.now();
+    const timeSinceLastSave = now - lastSaveTime;
+    const cooldown = 15000;
+    
+    if (timeSinceLastSave < cooldown) {
+      onSave?.(false, `Please wait ${Math.ceil((cooldown - timeSinceLastSave) / 1000)} seconds before saving again`);
+      return;
+    }
+    
     setSaving(true);
+    setSaveStatus('saving');
+    
     try {
       const response = await fetch('/api/antinuke', {
         method: 'POST',
@@ -214,17 +265,22 @@ export default function AntiNukeConfig({ selectedGuild, onSave }: ModuleConfigPr
       });
 
       if (response.ok) {
-
         const cacheKey = `anti-nuke-${selectedGuild}`;
-        setCached(cacheKey, config); // Update cache with new config
+        setCached(cacheKey, config);
+        setSaveStatus('success');
+        setLastSaveTime(now);
         onSave?.(true, 'Anti-Nuke configuration saved successfully!');
+        
+        setTimeout(() => setSaveStatus('idle'), 2000);
       } else {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to save');
+        throw new Error('Failed to save configuration');
       }
     } catch (error) {
       console.error('Failed to save config:', error);
+      setSaveStatus('error');
       onSave?.(false, 'Failed to save configuration');
+      
+      setTimeout(() => setSaveStatus('idle'), 2000);
     } finally {
       setSaving(false);
     }
@@ -265,384 +321,458 @@ export default function AntiNukeConfig({ selectedGuild, onSave }: ModuleConfigPr
     }
   };
 
+  const isFormDisabled = loading || saving;
+
   if (loading) {
     return (
-      <div className="text-center py-8">
-        <div className="text-gray-400">Loading configuration...</div>
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center space-y-4">
+          <Loader2 className="w-8 h-8 animate-spin text-red-500 mx-auto" />
+          <div className="text-gray-400">Loading anti-nuke configuration...</div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Module Description */}
-      <div className="bg-gradient-to-r from-red-900/20 to-orange-900/20 border border-red-800/30 rounded-lg p-6">
-        <div className="flex items-start space-x-3">
-          <svg className="w-8 h-8 text-red-400 flex-shrink-0 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
+    <div className="space-y-6 animate-in fade-in duration-300">
+      {/* Header Card */}
+      <div className="bg-gradient-to-r from-red-900/20 to-orange-900/20 border border-red-800/30 rounded-xl p-6">
+        <div className="flex items-start gap-4">
+          <div className="p-3 bg-red-600/20 rounded-lg">
+            <Shield className="w-6 h-6 text-red-400" />
+          </div>
           <div>
-            <h2 className="text-xl font-bold text-red-400 mb-2">Anti-Nuke Protection System</h2>
-            <p className="text-gray-300 text-sm leading-relaxed">
-              This module provides comprehensive protection against server raids, mass destructive actions, and automated attacks. 
-              It monitors suspicious patterns like rapid channel/role deletions, webhook spam, and mass bans/kicks. When violations 
-              are detected, it automatically punishes the attacker and attempts to recover deleted resources. Features include 
-              <span className="text-yellow-400 font-semibold"> burst detection</span>, 
-              <span className="text-blue-400 font-semibold"> circuit breakers</span> for emergency lockdowns, 
-              <span className="text-green-400 font-semibold"> progressive warnings</span>, and 
-              <span className="text-purple-400 font-semibold"> intelligent rollback</span> with priority-based recovery.
-            </p>
+            <h2 className="text-xl font-bold text-white mb-1">Anti-Nuke Protection</h2>
+            <p className="text-gray-400 text-sm">Advanced protection against mass destructive actions, server raids, and automated attacks</p>
           </div>
         </div>
       </div>
 
-      {/* Basic Settings */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-red-400 flex items-center">
-            Core Protection
-          </h3>
-          
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium flex items-center">
-              Module Enabled
-              <Tooltip text="Master switch - disables all anti-nuke protections when off" />
-            </label>
-            <input
-              type="checkbox"
-              checked={config.enabled}
-              onChange={(e) => updateConfig('enabled', e.target.checked)}
-              className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
-            />
+      {/* Module Status */}
+      <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={`w-3 h-3 rounded-full ${config.enabled ? 'bg-green-500 animate-pulse' : 'bg-gray-600'}`} />
+            <span className="font-medium text-white">Module Status</span>
+            <Tooltip text="Enable or disable the entire anti-nuke protection system">
+              <Info className="w-4 h-4 text-gray-500" />
+            </Tooltip>
           </div>
+          <Toggle 
+            checked={config.enabled} 
+            onChange={(val) => updateConfig('enabled', val)}
+            disabled={isFormDisabled}
+          />
+        </div>
+      </div>
 
-          {/* <div className="flex items-center justify-between">
-            <label className="text-sm font-medium flex items-center">
-              Anti-Nuke Active
-              <Tooltip text="When enabled, actively monitors and punishes destructive actions. Disable temporarily to allow legitimate mass changes." />
-            </label>
-            <input
-              type="checkbox"
-              checked={config.antiNukeEnabled}
-              onChange={(e) => updateConfig('antiNukeEnabled', e.target.checked)}
-              className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
-            />
-          </div> */}
-
-          <div>
-            <label className="block text-sm font-medium mb-1 flex items-center">
-              Detection Time Window
-              <Tooltip text="Actions within this time period are counted together. For example, deleting 3 channels within 30 seconds triggers protection." />
-            </label>
-            <div className="flex items-center space-x-2">
+      {/* Core Protection Settings */}
+      <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 space-y-5">
+        <div className="flex items-center gap-3 mb-4">
+          <Zap className="w-5 h-5 text-yellow-400" />
+          <h3 className="text-lg font-semibold text-white">Core Protection Settings</h3>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                <div className="flex items-center gap-2">
+                  Detection Time Window (seconds)
+                  <Tooltip text="Actions within this time period are counted together. For example, deleting 3 channels within 30 seconds triggers protection." />
+                </div>
+              </label>
               <input
                 type="number"
                 min="10"
                 max="300"
                 value={config.timeWindow}
-                onChange={(e) => updateConfig('timeWindow', parseInt(e.target.value) || 10)}
-                className="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={(e) => updateConfig('timeWindow', validateNumberInput(e.target.value, 10, 300))}
+                onBlur={(e) => {
+                  const validated = validateNumberInput(e.target.value, 10, 300);
+                  if (validated !== config.timeWindow) {
+                    updateConfig('timeWindow', validated);
+                  }
+                }}
+                disabled={isFormDisabled}
+                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               />
-              <span className="text-sm text-gray-400">seconds</span>
+              <p className="text-xs text-gray-500 mt-1">Min: 10s, Max: 300s</p>
             </div>
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1 flex items-center">
-              Burst Detection Window
-              <Tooltip text="CRITICAL: Detects rapid-fire attacks. If 3+ actions happen within this window, emergency circuit breaker activates immediately." />
-            </label>
-            <div className="flex items-center space-x-2">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                <div className="flex items-center gap-2">
+                  Burst Detection Window (seconds)
+                  <Tooltip text="CRITICAL: Detects rapid-fire attacks. If 3+ actions happen within this window, emergency circuit breaker activates immediately." />
+                </div>
+              </label>
               <input
                 type="number"
                 min="1"
                 max="10"
                 value={config.burstWindow}
-                onChange={(e) => updateConfig('burstWindow', parseInt(e.target.value) || 1)}
-                className="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+                onChange={(e) => updateConfig('burstWindow', validateNumberInput(e.target.value, 1, 10))}
+                onBlur={(e) => {
+                  const validated = validateNumberInput(e.target.value, 1, 10);
+                  if (validated !== config.burstWindow) {
+                    updateConfig('burstWindow', validated);
+                  }
+                }}
+                disabled={isFormDisabled}
+                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               />
-              <span className="text-sm text-gray-400">seconds</span>
+              <p className="text-xs text-gray-500 mt-1">Min: 1s, Max: 10s</p>
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1 flex items-center">
-              Circuit Breaker Threshold
-              <Tooltip text="Emergency lockdown trigger. If this many actions occur within 1 second, immediately strip all dangerous permissions before checking other thresholds." />
-            </label>
-            <input
-              type="number"
-              min="2"
-              max="10"
-              value={config.circuitBreakerThreshold}
-              onChange={(e) => updateConfig('circuitBreakerThreshold', parseInt(e.target.value) || 2)}
-              className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-red-500"
-            />
-          </div>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                <div className="flex items-center gap-2">
+                  Circuit Breaker Threshold
+                  <Tooltip text="Emergency lockdown trigger. If this many actions occur within 1 second, immediately strip all dangerous permissions before checking other thresholds." />
+                </div>
+              </label>
+              <input
+                type="number"
+                min="2"
+                max="10"
+                value={config.circuitBreakerThreshold}
+                onChange={(e) => updateConfig('circuitBreakerThreshold', validateNumberInput(e.target.value, 2, 10))}
+                onBlur={(e) => {
+                  const validated = validateNumberInput(e.target.value, 2, 10);
+                  if (validated !== config.circuitBreakerThreshold) {
+                    updateConfig('circuitBreakerThreshold', validated);
+                  }
+                }}
+                disabled={isFormDisabled}
+                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+              <p className="text-xs text-gray-500 mt-1">Min: 2, Max: 10</p>
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">Timeout Duration</label>
-            <div className="flex items-center space-x-2">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                <div className="flex items-center gap-2">
+                  Timeout Duration (seconds)
+                  <Tooltip text="How long to timeout violators when timeout punishment is triggered" />
+                </div>
+              </label>
               <input
                 type="number"
                 min="60"
                 max="2419200"
                 value={config.timeoutDuration}
-                onChange={(e) => updateConfig('timeoutDuration', parseInt(e.target.value) || 60)}
-                className="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={(e) => updateConfig('timeoutDuration', validateNumberInput(e.target.value, 60, 2419200))}
+                onBlur={(e) => {
+                  const validated = validateNumberInput(e.target.value, 60, 2419200);
+                  if (validated !== config.timeoutDuration) {
+                    updateConfig('timeoutDuration', validated);
+                  }
+                }}
+                disabled={isFormDisabled}
+                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               />
-              <span className="text-sm text-gray-400">{Math.floor(config.timeoutDuration / 60)} min</span>
+              <p className="text-xs text-gray-500 mt-1">Min: 60s, Max: 28 days (2419200s) | Current: {Math.floor(config.timeoutDuration / 60)} minutes</p>
             </div>
           </div>
         </div>
+      </div>
 
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold text-orange-400">Destruction Thresholds</h3>
-          <p className="text-xs text-gray-400">Maximum actions allowed within the time window before punishment triggers</p>
-          
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium mb-1">Channels Deleted</label>
-              <input
-                type="number"
-                min="1"
-                max="20"
-                value={config.channelDeleteThreshold}
-                onChange={(e) => updateConfig('channelDeleteThreshold', parseInt(e.target.value) || 1)}
-                className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Roles Deleted</label>
-              <input
-                type="number"
-                min="1"
-                max="20"
-                value={config.roleDeleteThreshold}
-                onChange={(e) => updateConfig('roleDeleteThreshold', parseInt(e.target.value) || 1)}
-                className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1 flex items-center">
-                Members Banned
-                <Tooltip text="Prevents ban raids where attackers mass-ban legitimate members" />
-              </label>
-              <input
-                type="number"
-                min="1"
-                max="20"
-                value={config.banThreshold}
-                onChange={(e) => updateConfig('banThreshold', parseInt(e.target.value) || 1)}
-                className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Members Kicked</label>
-              <input
-                type="number"
-                min="1"
-                max="30"
-                value={config.kickThreshold}
-                onChange={(e) => updateConfig('kickThreshold', parseInt(e.target.value) || 1)}
-                className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Webhooks Created</label>
-              <input
-                type="number"
-                min="1"
-                max="20"
-                value={config.webhookCreateThreshold}
-                onChange={(e) => updateConfig('webhookCreateThreshold', parseInt(e.target.value) || 1)}
-                className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Emojis Deleted</label>
-              <input
-                type="number"
-                min="1"
-                max="50"
-                value={config.emojiDeleteThreshold}
-                onChange={(e) => updateConfig('emojiDeleteThreshold', parseInt(e.target.value) || 1)}
-                className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+      {/* Destruction Thresholds */}
+      <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 space-y-4">
+        <div className="flex items-center gap-3 mb-2">
+          <AlertTriangle className="w-5 h-5 text-red-400" />
+          <h3 className="text-lg font-semibold text-white">Destruction Thresholds</h3>
+        </div>
+        <p className="text-sm text-gray-400 mb-4">Maximum actions allowed within the time window before punishment triggers</p>
+        
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Channels Deleted</label>
+            <input
+              type="number"
+              min="1"
+              max="20"
+              value={config.channelDeleteThreshold}
+              onChange={(e) => updateConfig('channelDeleteThreshold', validateNumberInput(e.target.value, 1, 20))}
+              onBlur={(e) => {
+                const validated = validateNumberInput(e.target.value, 1, 20);
+                if (validated !== config.channelDeleteThreshold) {
+                  updateConfig('channelDeleteThreshold', validated);
+                }
+              }}
+              disabled={isFormDisabled}
+              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Stickers Deleted</label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Roles Deleted</label>
+            <input
+              type="number"
+              min="1"
+              max="20"
+              value={config.roleDeleteThreshold}
+              onChange={(e) => updateConfig('roleDeleteThreshold', validateNumberInput(e.target.value, 1, 20))}
+              onBlur={(e) => {
+                const validated = validateNumberInput(e.target.value, 1, 20);
+                if (validated !== config.roleDeleteThreshold) {
+                  updateConfig('roleDeleteThreshold', validated);
+                }
+              }}
+              disabled={isFormDisabled}
+              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              <div className="flex items-center gap-2">
+                Members Banned
+                <Tooltip text="Prevents ban raids where attackers mass-ban legitimate members" />
+              </div>
+            </label>
+            <input
+              type="number"
+              min="1"
+              max="20"
+              value={config.banThreshold}
+              onChange={(e) => updateConfig('banThreshold', validateNumberInput(e.target.value, 1, 20))}
+              onBlur={(e) => {
+                const validated = validateNumberInput(e.target.value, 1, 20);
+                if (validated !== config.banThreshold) {
+                  updateConfig('banThreshold', validated);
+                }
+              }}
+              disabled={isFormDisabled}
+              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Members Kicked</label>
+            <input
+              type="number"
+              min="1"
+              max="30"
+              value={config.kickThreshold}
+              onChange={(e) => updateConfig('kickThreshold', validateNumberInput(e.target.value, 1, 30))}
+              onBlur={(e) => {
+                const validated = validateNumberInput(e.target.value, 1, 30);
+                if (validated !== config.kickThreshold) {
+                  updateConfig('kickThreshold', validated);
+                }
+              }}
+              disabled={isFormDisabled}
+              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Webhooks Created</label>
+            <input
+              type="number"
+              min="1"
+              max="20"
+              value={config.webhookCreateThreshold}
+              onChange={(e) => updateConfig('webhookCreateThreshold', validateNumberInput(e.target.value, 1, 20))}
+              onBlur={(e) => {
+                const validated = validateNumberInput(e.target.value, 1, 20);
+                if (validated !== config.webhookCreateThreshold) {
+                  updateConfig('webhookCreateThreshold', validated);
+                }
+              }}
+              disabled={isFormDisabled}
+              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Emojis Deleted</label>
+            <input
+              type="number"
+              min="1"
+              max="50"
+              value={config.emojiDeleteThreshold}
+              onChange={(e) => updateConfig('emojiDeleteThreshold', validateNumberInput(e.target.value, 1, 50))}
+              onBlur={(e) => {
+                const validated = validateNumberInput(e.target.value, 1, 50);
+                if (validated !== config.emojiDeleteThreshold) {
+                  updateConfig('emojiDeleteThreshold', validated);
+                }
+              }}
+              disabled={isFormDisabled}
+              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Stickers Deleted</label>
             <input
               type="number"
               min="1"
               max="50"
               value={config.stickerDeleteThreshold}
-              onChange={(e) => updateConfig('stickerDeleteThreshold', parseInt(e.target.value) || 1)}
-              className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onChange={(e) => updateConfig('stickerDeleteThreshold', validateNumberInput(e.target.value, 1, 50))}
+              onBlur={(e) => {
+                const validated = validateNumberInput(e.target.value, 1, 50);
+                if (validated !== config.stickerDeleteThreshold) {
+                  updateConfig('stickerDeleteThreshold', validated);
+                }
+              }}
+              disabled={isFormDisabled}
+              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
         </div>
       </div>
 
       {/* Bot Monitoring */}
-      <div className="border-t border-gray-700 pt-6">
-        <h3 className="text-lg font-semibold text-cyan-400 mb-4 flex items-center">
-          Bot Account Monitoring
-          <Tooltip text="Monitors bot accounts separately. Compromised bots are extremely dangerous as they can bypass rate limits and act instantly." />
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium flex items-center">
-              Monitor Bot Actions
+      <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 space-y-4">
+        <div className="flex items-center gap-3 mb-2">
+          <Cpu className="w-5 h-5 text-cyan-400" />
+          <h3 className="text-lg font-semibold text-white">Bot Account Monitoring</h3>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="flex items-center justify-between p-4 bg-gray-900/50 rounded-lg border border-gray-700/50 hover:border-gray-600/50 transition-colors">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-200">Monitor Bot Actions</span>
               <Tooltip text="When enabled, bot accounts are also tracked. Disable only if you have trusted bots that perform mass operations." />
-            </label>
-            <input
-              type="checkbox"
-              checked={config.monitorBots}
-              onChange={(e) => updateConfig('monitorBots', e.target.checked)}
-              className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
+            </div>
+            <Toggle 
+              checked={config.monitorBots} 
+              onChange={(val) => updateConfig('monitorBots', val)}
+              disabled={isFormDisabled}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1 flex items-center">
-              Bot Threshold Multiplier
-              <Tooltip text="Bots get stricter limits. 0.5 means bots can only do 50% of what humans can before triggering protection. Lower = stricter." />
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              <div className="flex items-center gap-2">
+                Bot Threshold Multiplier
+                <Tooltip text="Bots get stricter limits. 0.5 means bots can only do 50% of what humans can before triggering protection. Lower = stricter." />
+              </div>
             </label>
-            <div className="flex items-center space-x-2">
-              <input
-                type="number"
-                min="0.1"
-                max="1"
-                step="0.1"
-                value={config.botThresholdMultiplier}
-                onChange={(e) => updateConfig('botThresholdMultiplier', parseFloat(e.target.value) || 0.1)}
-                disabled={!config.monitorBots}
-                className="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-              />
-              <span className="text-sm text-gray-400">{Math.floor(config.botThresholdMultiplier * 100)}%</span>
-            </div>
+            <input
+              type="number"
+              min="0.1"
+              max="1"
+              step="0.1"
+              value={config.botThresholdMultiplier}
+              onChange={(e) => updateConfig('botThresholdMultiplier', validateFloatInput(e.target.value, 0.1, 1))}
+              onBlur={(e) => {
+                const validated = validateFloatInput(e.target.value, 0.1, 1);
+                if (validated !== config.botThresholdMultiplier) {
+                  updateConfig('botThresholdMultiplier', validated);
+                }
+              }}
+              disabled={isFormDisabled || !config.monitorBots}
+              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            />
+            <p className="text-xs text-gray-500 mt-1">Current: {Math.floor(config.botThresholdMultiplier * 100)}% of normal limits</p>
           </div>
         </div>
       </div>
 
       {/* Punishment Actions */}
-      <div className="border-t border-gray-700 pt-6">
-        <h3 className="text-lg font-semibold text-yellow-400 mb-4 flex items-center">
-          Automatic Punishments
-          <Tooltip text="Actions taken automatically when thresholds are exceeded. Multiple can be selected and will execute in order." />
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 space-y-4">
+        <div className="flex items-center gap-3 mb-2">
+          <Settings className="w-5 h-5 text-yellow-400" />
+          <h3 className="text-lg font-semibold text-white">Automatic Punishments</h3>
+        </div>
+        <p className="text-sm text-gray-400 mb-4">Actions taken automatically when thresholds are exceeded. Multiple can be selected and will execute in order.</p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {punishmentOptions.map((option) => (
-            <div key={option.value} className="bg-gray-700 rounded-lg p-3 hover:bg-gray-600 transition-colors">
-              <div className="flex items-start">
-                <input
-                  type="checkbox"
-                  id={`punishment-${option.value}`}
-                  checked={config.punishmentActions.includes(option.value)}
-                  onChange={() => togglePunishmentAction(option.value)}
-                  className="w-4 h-4 text-blue-600 bg-gray-800 border-gray-600 rounded focus:ring-blue-500 mt-0.5 mr-3 flex-shrink-0"
-                />
-                <div>
-                  <label htmlFor={`punishment-${option.value}`} className="text-sm font-medium cursor-pointer block">
-                    {option.label}
-                  </label>
-                  <p className="text-xs text-gray-400 mt-1">{option.description}</p>
+            <div key={option.value} className="p-4 bg-gray-900/50 rounded-lg border border-gray-700/50 hover:border-gray-600/50 transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Checkbox
+                    checked={config.punishmentActions.includes(option.value)}
+                    onChange={() => togglePunishmentAction(option.value)}
+                    disabled={isFormDisabled}
+                  />
+                  <span className="text-sm font-medium text-gray-200">{option.label}</span>
                 </div>
+                <Tooltip text={option.tooltip}>
+                  <Info className="w-4 h-4 text-gray-500" />
+                </Tooltip>
               </div>
+              <p className="text-xs text-gray-400 mt-2 ml-8">{option.description}</p>
             </div>
           ))}
         </div>
       </div>
 
       {/* Rollback System */}
-      <div className="border-t border-gray-700 pt-6">
-        <h3 className="text-lg font-semibold text-green-400 mb-4 flex items-center">
-          Automatic Rollback & Recovery
-          <Tooltip text="Automatically recreates deleted channels, roles, and emojis using cached backups. Uses priority system to recover most important items first." />
-        </h3>
+      <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 space-y-4">
+        <div className="flex items-center gap-3 mb-2">
+          <RotateCcw className="w-5 h-5 text-green-400" />
+          <h3 className="text-lg font-semibold text-white">Automatic Rollback & Recovery</h3>
+        </div>
         
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium flex items-center">
-              Enable Rollback System
+          <div className="flex items-center justify-between p-4 bg-gray-900/50 rounded-lg border border-gray-700/50">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-200">Enable Rollback System</span>
               <Tooltip text="Master switch for all recovery features. When off, nothing will be automatically recovered." />
-            </label>
-            <input
-              type="checkbox"
-              checked={config.enableRollback}
-              onChange={(e) => updateConfig('enableRollback', e.target.checked)}
-              className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
+            </div>
+            <Toggle 
+              checked={config.enableRollback} 
+              onChange={(val) => updateConfig('enableRollback', val)}
+              disabled={isFormDisabled}
             />
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium">Recover Channels</label>
-              <input
-                type="checkbox"
-                checked={config.rollbackChannels}
-                onChange={(e) => updateConfig('rollbackChannels', e.target.checked)}
-                disabled={!config.enableRollback}
-                className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 disabled:opacity-50"
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium">Recover Roles</label>
-              <input
-                type="checkbox"
-                checked={config.rollbackRoles}
-                onChange={(e) => updateConfig('rollbackRoles', e.target.checked)}
-                disabled={!config.enableRollback}
-                className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 disabled:opacity-50"
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium">Recover Emojis</label>
-              <input
-                type="checkbox"
-                checked={config.rollbackEmojis}
-                onChange={(e) => updateConfig('rollbackEmojis', e.target.checked)}
-                disabled={!config.enableRollback}
-                className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500 disabled:opacity-50"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1 flex items-center">
-                Backup Age Limit
-                <Tooltip text="How long to keep backups. Older backups are automatically deleted to save memory." />
-              </label>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="number"
-                  min="1"
-                  max="168"
-                  value={config.backupRetentionHours}
-                  onChange={(e) => updateConfig('backupRetentionHours', parseInt(e.target.value) || 1)}
-                  disabled={!config.enableRollback}
-                  className="w-20 bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-                />
-                <span className="text-xs text-gray-400">hours</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex items-center justify-between p-4 bg-gray-900/50 rounded-lg border border-gray-700/50">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-200">Recover Channels</span>
+                <Tooltip text="Automatically recreate deleted channels with their settings and permissions" />
               </div>
+              <Toggle 
+                checked={config.rollbackChannels} 
+                onChange={(val) => updateConfig('rollbackChannels', val)}
+                disabled={isFormDisabled || !config.enableRollback}
+              />
+            </div>
+
+            <div className="flex items-center justify-between p-4 bg-gray-900/50 rounded-lg border border-gray-700/50">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-200">Recover Roles</span>
+                <Tooltip text="Automatically recreate deleted roles with their permissions and colors" />
+              </div>
+              <Toggle 
+                checked={config.rollbackRoles} 
+                onChange={(val) => updateConfig('rollbackRoles', val)}
+                disabled={isFormDisabled || !config.enableRollback}
+              />
+            </div>
+
+            <div className="flex items-center justify-between p-4 bg-gray-900/50 rounded-lg border border-gray-700/50">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-200">Recover Emojis</span>
+                <Tooltip text="Automatically restore deleted emojis from backup cache" />
+              </div>
+              <Toggle 
+                checked={config.rollbackEmojis} 
+                onChange={(val) => updateConfig('rollbackEmojis', val)}
+                disabled={isFormDisabled || !config.enableRollback}
+              />
             </div>
           </div>
 
-          <div className="bg-gray-800 rounded-lg p-4">
+          {/* Backup Storage Limits */}
+          <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700/50">
             <h4 className="text-sm font-semibold text-gray-300 mb-3 flex items-center">
               Backup Storage Limits
               <Tooltip text="Maximum items to keep in backup cache. Limits memory usage while keeping most important items backed up." />
             </h4>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
                 <label className="block text-xs text-gray-400 mb-1">Channels</label>
                 <input
@@ -650,9 +780,15 @@ export default function AntiNukeConfig({ selectedGuild, onSave }: ModuleConfigPr
                   min="5"
                   max="100"
                   value={config.maxChannelBackups}
-                  onChange={(e) => updateConfig('maxChannelBackups', parseInt(e.target.value) || 5)}
-                  disabled={!config.enableRollback}
-                  className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                  onChange={(e) => updateConfig('maxChannelBackups', validateNumberInput(e.target.value, 5, 100))}
+                  onBlur={(e) => {
+                    const validated = validateNumberInput(e.target.value, 5, 100);
+                    if (validated !== config.maxChannelBackups) {
+                      updateConfig('maxChannelBackups', validated);
+                    }
+                  }}
+                  disabled={isFormDisabled || !config.enableRollback}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
               <div>
@@ -662,9 +798,15 @@ export default function AntiNukeConfig({ selectedGuild, onSave }: ModuleConfigPr
                   min="10"
                   max="200"
                   value={config.maxRoleBackups}
-                  onChange={(e) => updateConfig('maxRoleBackups', parseInt(e.target.value) || 10)}
-                  disabled={!config.enableRollback}
-                  className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                  onChange={(e) => updateConfig('maxRoleBackups', validateNumberInput(e.target.value, 10, 200))}
+                  onBlur={(e) => {
+                    const validated = validateNumberInput(e.target.value, 10, 200);
+                    if (validated !== config.maxRoleBackups) {
+                      updateConfig('maxRoleBackups', validated);
+                    }
+                  }}
+                  disabled={isFormDisabled || !config.enableRollback}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
               <div>
@@ -674,9 +816,15 @@ export default function AntiNukeConfig({ selectedGuild, onSave }: ModuleConfigPr
                   min="20"
                   max="500"
                   value={config.maxEmojiBackups}
-                  onChange={(e) => updateConfig('maxEmojiBackups', parseInt(e.target.value) || 20)}
-                  disabled={!config.enableRollback}
-                  className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                  onChange={(e) => updateConfig('maxEmojiBackups', validateNumberInput(e.target.value, 20, 500))}
+                  onBlur={(e) => {
+                    const validated = validateNumberInput(e.target.value, 20, 500);
+                    if (validated !== config.maxEmojiBackups) {
+                      updateConfig('maxEmojiBackups', validated);
+                    }
+                  }}
+                  disabled={isFormDisabled || !config.enableRollback}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
               <div>
@@ -686,225 +834,293 @@ export default function AntiNukeConfig({ selectedGuild, onSave }: ModuleConfigPr
                   min="20"
                   max="500"
                   value={config.maxStickerBackups}
-                  onChange={(e) => updateConfig('maxStickerBackups', parseInt(e.target.value) || 20)}
-                  disabled={!config.enableRollback}
-                  className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                  onChange={(e) => updateConfig('maxStickerBackups', validateNumberInput(e.target.value, 20, 500))}
+                  onBlur={(e) => {
+                    const validated = validateNumberInput(e.target.value, 20, 500);
+                    if (validated !== config.maxStickerBackups) {
+                      updateConfig('maxStickerBackups', validated);
+                    }
+                  }}
+                  disabled={isFormDisabled || !config.enableRollback}
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
             </div>
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              <div className="flex items-center gap-2">
+                Backup Age Limit (hours)
+                <Tooltip text="How long to keep backups. Older backups are automatically deleted to save memory." />
+              </div>
+            </label>
+            <input
+              type="number"
+              min="1"
+              max="168"
+              value={config.backupRetentionHours}
+              onChange={(e) => updateConfig('backupRetentionHours', validateNumberInput(e.target.value, 1, 168))}
+              onBlur={(e) => {
+                const validated = validateNumberInput(e.target.value, 1, 168);
+                if (validated !== config.backupRetentionHours) {
+                  updateConfig('backupRetentionHours', validated);
+                }
+              }}
+              disabled={isFormDisabled || !config.enableRollback}
+              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            />
+            <p className="text-xs text-gray-500 mt-1">Min: 1 hour, Max: 1 week (168 hours)</p>
+          </div>
         </div>
       </div>
 
-      {/* Advanced Protection */}
-      <div className="border-t border-gray-700 pt-6">
-        <h3 className="text-lg font-semibold text-cyan-400 mb-4">Advanced Features</h3>
+      {/* Advanced Features */}
+      <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 space-y-4">
+        <div className="flex items-center gap-3 mb-2">
+          <Zap className="w-5 h-5 text-cyan-400" />
+          <h3 className="text-lg font-semibold text-white">Advanced Features</h3>
+        </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium flex items-center">
-              Progressive Alerts
+          <div className="flex items-center justify-between p-4 bg-gray-900/50 rounded-lg border border-gray-700/50 hover:border-gray-600/50 transition-colors">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-200">Progressive Alerts</span>
               <Tooltip text="Sends a warning to the owner when someone is 1 action away from triggering punishment. Helps catch threats early." />
-            </label>
-            <input
-              type="checkbox"
-              checked={config.progressiveAlerts}
-              onChange={(e) => updateConfig('progressiveAlerts', e.target.checked)}
-              className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
+            </div>
+            <Toggle 
+              checked={config.progressiveAlerts} 
+              onChange={(val) => updateConfig('progressiveAlerts', val)}
+              disabled={isFormDisabled}
             />
           </div>
 
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium flex items-center">
-              Anti-Webhook Spam
+          <div className="flex items-center justify-between p-4 bg-gray-900/50 rounded-lg border border-gray-700/50 hover:border-gray-600/50 transition-colors">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-200">Anti-Webhook Spam</span>
               <Tooltip text="Limits webhooks per channel to prevent spam attacks where attackers create hundreds of webhooks." />
-            </label>
-            <input
-              type="checkbox"
-              checked={config.antiWebhookSpam}
-              onChange={(e) => updateConfig('antiWebhookSpam', e.target.checked)}
-              className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
+            </div>
+            <Toggle 
+              checked={config.antiWebhookSpam} 
+              onChange={(val) => updateConfig('antiWebhookSpam', val)}
+              disabled={isFormDisabled}
             />
           </div>
 
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium flex items-center">
-              Anti-SelfBot Detection
+          <div className="flex items-center justify-between p-4 bg-gray-900/50 rounded-lg border border-gray-700/50 hover:border-gray-600/50 transition-colors">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-200">Anti-SelfBot Detection</span>
               <Tooltip text="Ignores actions by this bot itself to prevent false positives when the bot is legitimately managing the server." />
-            </label>
-            <input
-              type="checkbox"
-              checked={config.antiSelfBot}
-              onChange={(e) => updateConfig('antiSelfBot', e.target.checked)}
-              className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
+            </div>
+            <Toggle 
+              checked={config.antiSelfBot} 
+              onChange={(val) => updateConfig('antiSelfBot', val)}
+              disabled={isFormDisabled}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Max Webhooks per Channel</label>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              <div className="flex items-center gap-2">
+                Max Webhooks per Channel
+                <Tooltip text="Maximum number of webhooks allowed per channel when anti-webhook spam is enabled" />
+              </div>
+            </label>
             <input
               type="number"
               min="1"
               max="15"
               value={config.maxWebhooksPerChannel}
-              onChange={(e) => updateConfig('maxWebhooksPerChannel', parseInt(e.target.value) || 1)}
-              className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onChange={(e) => updateConfig('maxWebhooksPerChannel', validateNumberInput(e.target.value, 1, 15))}
+              onBlur={(e) => {
+                const validated = validateNumberInput(e.target.value, 1, 15);
+                if (validated !== config.maxWebhooksPerChannel) {
+                  updateConfig('maxWebhooksPerChannel', validated);
+                }
+              }}
+              disabled={isFormDisabled}
+              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
         </div>
       </div>
 
       {/* Performance Tuning */}
-      <div className="border-t border-gray-700 pt-6">
-        <h3 className="text-lg font-semibold text-purple-400 mb-4 flex items-center">
-          Performance Tuning
-          <Tooltip text="Advanced settings that control how the system processes events. Only change these if you understand their impact." />
-        </h3>
+      <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 space-y-4">
+        <div className="flex items-center gap-3 mb-2">
+          <Cpu className="w-5 h-5 text-purple-400" />
+          <h3 className="text-lg font-semibold text-white">Performance Tuning</h3>
+        </div>
+        
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium mb-1 flex items-center">
-              Audit Log Cache Duration
-              <Tooltip text="How long to cache Discord audit logs (in milliseconds). Higher = fewer API calls but slightly stale data. 2000ms is optimal." />
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              <div className="flex items-center gap-2">
+                Audit Log Cache Duration (ms)
+                <Tooltip text="How long to cache Discord audit logs. Higher = fewer API calls but slightly stale data. 2000ms is optimal." />
+              </div>
             </label>
-            <div className="flex items-center space-x-2">
-              <input
-                type="number"
-                min="500"
-                max="10000"
-                step="500"
-                value={config.auditLogCacheDuration}
-                onChange={(e) => updateConfig('auditLogCacheDuration', parseInt(e.target.value) || 500)}
-                className="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <span className="text-xs text-gray-400">ms</span>
-            </div>
+            <input
+              type="number"
+              min="500"
+              max="10000"
+              step="500"
+              value={config.auditLogCacheDuration}
+              onChange={(e) => updateConfig('auditLogCacheDuration', validateNumberInput(e.target.value, 500, 10000))}
+              onBlur={(e) => {
+                const validated = validateNumberInput(e.target.value, 500, 10000);
+                if (validated !== config.auditLogCacheDuration) {
+                  updateConfig('auditLogCacheDuration', validated);
+                }
+              }}
+              disabled={isFormDisabled}
+              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            />
+            <p className="text-xs text-gray-500 mt-1">Min: 500ms, Max: 10000ms</p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1 flex items-center">
-              Event Batch Window
-              <Tooltip text="Groups events within this window for efficient processing. Lower = more responsive but higher CPU usage." />
-            </label>
-            <div className="flex items-center space-x-2">
-              <input
-                type="number"
-                min="100"
-                max="1000"
-                step="50"
-                value={config.eventBatchWindow}
-                onChange={(e) => updateConfig('eventBatchWindow', parseInt(e.target.value) || 100)}
-                className="flex-1 bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <span className="text-xs text-gray-400">ms</span>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium flex items-center">
-              Debug Mode
-              <Tooltip text="Enables detailed console logging for troubleshooting. Disable in production as it creates lots of log spam." />
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              <div className="flex items-center gap-2">
+                Event Batch Window (ms)
+                <Tooltip text="Groups events within this window for efficient processing. Lower = more responsive but higher CPU usage." />
+              </div>
             </label>
             <input
-              type="checkbox"
-              checked={config.debug}
-              onChange={(e) => updateConfig('debug', e.target.checked)}
-              className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
+              type="number"
+              min="100"
+              max="1000"
+              step="50"
+              value={config.eventBatchWindow}
+              onChange={(e) => updateConfig('eventBatchWindow', validateNumberInput(e.target.value, 100, 1000))}
+              onBlur={(e) => {
+                const validated = validateNumberInput(e.target.value, 100, 1000);
+                if (validated !== config.eventBatchWindow) {
+                  updateConfig('eventBatchWindow', validated);
+                }
+              }}
+              disabled={isFormDisabled}
+              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             />
+            <p className="text-xs text-gray-500 mt-1">Min: 100ms, Max: 1000ms</p>
           </div>
+{/* 
+          <div className="flex items-center justify-between p-4 bg-gray-900/50 rounded-lg border border-gray-700/50">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-200">Debug Mode</span>
+              <Tooltip text="Enables detailed console logging for troubleshooting. Disable in production as it creates lots of log spam." />
+            </div>
+            <Toggle 
+              checked={config.debug} 
+              onChange={(val) => updateConfig('debug', val)}
+              disabled={isFormDisabled}
+            />
+          </div> */}
         </div>
       </div>
 
       {/* Logging & Notifications */}
-      <div className="border-t border-gray-700 pt-6">
-        <h3 className="text-lg font-semibold text-purple-400 mb-4">Logging & Notifications</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium flex items-center">
-              Notify Server Owner
+      <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 space-y-4">
+        <div className="flex items-center gap-3 mb-2">
+          <Bell className="w-5 h-5 text-purple-400" />
+          <h3 className="text-lg font-semibold text-white">Logging & Notifications</h3>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div className="flex items-center justify-between p-4 bg-gray-900/50 rounded-lg border border-gray-700/50 hover:border-gray-600/50 transition-colors">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-200">Notify Server Owner</span>
               <Tooltip text="Sends detailed DM to server owner when violations occur, including what failed and why." />
-            </label>
-            <input
-              type="checkbox"
-              checked={config.notifyOwner}
-              onChange={(e) => updateConfig('notifyOwner', e.target.checked)}
-              className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
+            </div>
+            <Toggle 
+              checked={config.notifyOwner} 
+              onChange={(val) => updateConfig('notifyOwner', val)}
+              disabled={isFormDisabled}
             />
           </div>
 
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium">Log to Channel</label>
-            <input
-              type="checkbox"
-              checked={config.logActions}
-              onChange={(e) => updateConfig('logActions', e.target.checked)}
-              className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
+          <div className="flex items-center justify-between p-4 bg-gray-900/50 rounded-lg border border-gray-700/50 hover:border-gray-600/50 transition-colors">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-200">Log to Channel</span>
+              <Tooltip text="Logs all anti-nuke actions and detections to the configured log channel" />
+            </div>
+            <Toggle 
+              checked={config.logActions} 
+              onChange={(val) => updateConfig('logActions', val)}
+              disabled={isFormDisabled}
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1 flex items-center">
-            Log Channel ID (optional)
-            <Tooltip text="Specific channel for anti-nuke logs. Leave empty to use system channel. Right-click channel > Copy ID to get this." />
+          <label className="block text-sm font-medium text-gray-300 mb-2">
+            <div className="flex items-center gap-2">
+              Log Channel ID (optional)
+              <Tooltip text="Specific channel for anti-nuke logs. Leave empty to use system channel. Right-click channel > Copy ID to get this." />
+            </div>
           </label>
           <input
             type="text"
             placeholder="e.g. 1234567890123456789"
             value={config.logChannelId || ''}
             onChange={(e) => updateConfig('logChannelId', e.target.value || null)}
-            className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={isFormDisabled}
+            className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           />
         </div>
       </div>
 
-      {/* Trusted Users & Roles */}
-      <div className="border-t border-gray-700 pt-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-yellow-400 flex items-center">
-            Trusted Bypass List
-            <Tooltip text="Users/roles on this list are ignored by anti-nuke. Use carefully - if compromised, they can destroy your server!" />
-          </h3>
-          <div className="flex items-center">
-            <label className="text-sm font-medium mr-2">Enable Bypass</label>
-            <input
-              type="checkbox"
-              checked={config.bypassTrusted}
-              onChange={(e) => updateConfig('bypassTrusted', e.target.checked)}
-              className="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-500"
-            />
+      {/* Trust Settings */}
+      <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6 space-y-4">
+        <div className="flex items-center gap-3 mb-2">
+          <Users className="w-5 h-5 text-yellow-400" />
+          <h3 className="text-lg font-semibold text-white">Trust Settings</h3>
+        </div>
+        
+        <div className="flex items-center justify-between p-4 bg-gray-900/50 rounded-lg border border-gray-700/50 mb-4">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-200">Bypass Trusted Users/Roles</span>
+            <Tooltip text="Allow trusted users/roles to bypass all anti-nuke protections. Use with extreme caution!" />
           </div>
+          <Toggle 
+            checked={config.bypassTrusted} 
+            onChange={(val) => updateConfig('bypassTrusted', val)}
+            disabled={isFormDisabled}
+          />
         </div>
 
-        <div className="bg-yellow-900/20 border border-yellow-600/30 rounded-lg p-3 mb-4">
-          <p className="text-xs text-yellow-200">
-            ⚠️ Warning: Trusted users can bypass ALL protections. Only add administrators you completely trust. 
-            Server owners are automatically trusted and cannot be punished.
+        <div className="bg-yellow-900/20 border border-yellow-600/30 rounded-lg p-4 mb-4">
+          <p className="text-sm text-yellow-200 flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+            <span>Warning: Trusted users can bypass ALL protections. Only add administrators you completely trust. Server owners are automatically trusted and cannot be punished.</span>
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Trusted Users */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h4 className="text-sm font-semibold text-gray-300">Trusted Users</h4>
+              <h4 className="font-medium text-gray-200">Trusted Users</h4>
               <button
                 onClick={addTrustedUser}
-                className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm transition-colors"
+                disabled={isFormDisabled}
+                className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:cursor-not-allowed px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
               >
                 Add User
               </button>
             </div>
-            <div className="space-y-2 max-h-40 overflow-y-auto">
+            <div className="space-y-2 max-h-40 overflow-y-auto custom-scrollbar">
               {config.trustedUsers.length === 0 ? (
-                <p className="text-gray-500 text-sm">No trusted users added</p>
+                <p className="text-gray-500 text-sm text-center py-4">No trusted users configured</p>
               ) : (
                 config.trustedUsers.map((userId) => (
-                  <div key={userId} className="flex items-center justify-between bg-gray-700 rounded px-3 py-2">
-                    <span className="text-sm font-mono">{userId}</span>
+                  <div key={userId} className="flex items-center justify-between bg-gray-900/70 rounded-lg px-4 py-3 border border-gray-700/50 group hover:border-gray-600 transition-colors">
+                    <span className="text-sm font-mono text-gray-300">{userId}</span>
                     <button
                       onClick={() => removeTrustedUser(userId)}
-                      className="text-red-400 hover:text-red-300 text-sm"
+                      disabled={isFormDisabled}
+                      className="text-red-400 hover:text-red-300 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
                     >
-                      Remove
+                      <X className="w-4 h-4" />
                     </button>
                   </div>
                 ))
@@ -912,29 +1128,30 @@ export default function AntiNukeConfig({ selectedGuild, onSave }: ModuleConfigPr
             </div>
           </div>
 
-          {/* Trusted Roles */}
           <div>
             <div className="flex items-center justify-between mb-3">
-              <h4 className="text-sm font-semibold text-gray-300">Trusted Roles</h4>
+              <h4 className="font-medium text-gray-200">Trusted Roles</h4>
               <button
                 onClick={addTrustedRole}
-                className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-sm transition-colors"
+                disabled={isFormDisabled}
+                className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:cursor-not-allowed px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
               >
                 Add Role
               </button>
             </div>
-            <div className="space-y-2 max-h-40 overflow-y-auto">
+            <div className="space-y-2 max-h-40 overflow-y-auto custom-scrollbar">
               {config.trustedRoles.length === 0 ? (
-                <p className="text-gray-500 text-sm">No trusted roles added</p>
+                <p className="text-gray-500 text-sm text-center py-4">No trusted roles configured</p>
               ) : (
                 config.trustedRoles.map((roleId) => (
-                  <div key={roleId} className="flex items-center justify-between bg-gray-700 rounded px-3 py-2">
-                    <span className="text-sm font-mono">{roleId}</span>
+                  <div key={roleId} className="flex items-center justify-between bg-gray-900/70 rounded-lg px-4 py-3 border border-gray-700/50 group hover:border-gray-600 transition-colors">
+                    <span className="text-sm font-mono text-gray-300">{roleId}</span>
                     <button
                       onClick={() => removeTrustedRole(roleId)}
-                      className="text-red-400 hover:text-red-300 text-sm"
+                      disabled={isFormDisabled}
+                      className="text-red-400 hover:text-red-300 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
                     >
-                      Remove
+                      <X className="w-4 h-4" />
                     </button>
                   </div>
                 ))
@@ -945,62 +1162,134 @@ export default function AntiNukeConfig({ selectedGuild, onSave }: ModuleConfigPr
       </div>
 
       {/* Save Button */}
-      <div className="border-t border-gray-700 pt-6">
+      <div className="sticky bottom-0 bg-gray-800/80 backdrop-blur-md border border-gray-700 rounded-xl p-6 shadow-2xl">
         <button
           onClick={saveConfig}
-          disabled={saving || !selectedGuild}
-          className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed px-6 py-3 rounded-lg font-medium transition-colors"
+          disabled={isFormDisabled || !selectedGuild || saveStatus === 'success'}
+          className={`w-full py-4 rounded-xl font-semibold text-white transition-all duration-200 flex items-center justify-center gap-3 shadow-lg ${
+            saveStatus === 'saving' 
+              ? 'bg-red-600 cursor-wait' 
+              : saveStatus === 'success'
+              ? 'bg-green-600'
+              : saveStatus === 'error'
+              ? 'bg-red-600 hover:bg-red-700'
+              : 'bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 active:scale-[0.98]'
+          } disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100`}
         >
-          {saving ? 'Saving Configuration...' : 'Save Anti-Nuke Configuration'}
+          {saveStatus === 'saving' && (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              <span>Saving Configuration...</span>
+            </>
+          )}
+          {saveStatus === 'success' && (
+            <>
+              <Check className="w-5 h-5" />
+              <span>Configuration Saved!</span>
+            </>
+          )}
+          {saveStatus === 'error' && (
+            <>
+              <X className="w-5 h-5" />
+              <span>Failed to Save - Try Again</span>
+            </>
+          )}
+          {saveStatus === 'idle' && (
+            <>
+              <Save className="w-5 h-5" />
+              <span>Save Anti-Nuke Configuration</span>
+            </>
+          )}
         </button>
+        {lastSaveTime > 0 && saveStatus === 'idle' && (
+          <p className="text-center text-xs text-gray-500 mt-3">
+            Last saved: {new Date(lastSaveTime).toLocaleTimeString()}
+          </p>
+        )}
       </div>
 
       {/* Configuration Summary */}
-      <div className="border-t border-gray-700 pt-6">
-        <h3 className="text-lg font-semibold text-gray-400 mb-3">Current Protection Status</h3>
-        <div className="bg-gray-900 rounded-lg p-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-            <div>
-              <span className="text-gray-400">System Status:</span>
-              <span className={`ml-2 font-semibold ${config.enabled ? 'text-green-400' : 'text-red-400'}`}>
-                {config.enabled ? '🛡️ Protected' : '⚠️ Disabled'}
-              </span>
+      <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700 rounded-xl p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <FileText className="w-5 h-5 text-blue-400" />
+          <h3 className="text-lg font-semibold text-white">Configuration Summary</h3>
+        </div>
+        
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700/50">
+            <div className="text-xs text-gray-400 mb-1">System Status</div>
+            <div className={`font-semibold ${config.enabled ? 'text-green-400' : 'text-red-400'}`}>
+              {config.enabled ? '🛡️ Protected' : '⚠️ Disabled'}
             </div>
-            <div>
-              <span className="text-gray-400">Channel Safety:</span>
-              <span className="ml-2 text-yellow-400 font-semibold">{config.channelDeleteThreshold} max</span>
+          </div>
+          
+          <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700/50">
+            <div className="text-xs text-gray-400 mb-1">Channel Safety</div>
+            <div className="font-semibold text-yellow-400">
+              {config.channelDeleteThreshold} max
             </div>
-            <div>
-              <span className="text-gray-400">Role Safety:</span>
-              <span className="ml-2 text-yellow-400 font-semibold">{config.roleDeleteThreshold} max</span>
+          </div>
+          
+          <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700/50">
+            <div className="text-xs text-gray-400 mb-1">Role Safety</div>
+            <div className="font-semibold text-yellow-400">
+              {config.roleDeleteThreshold} max
             </div>
-            <div>
-              <span className="text-gray-400">Ban Protection:</span>
-              <span className="ml-2 text-yellow-400 font-semibold">{config.banThreshold} max</span>
+          </div>
+          
+          <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700/50">
+            <div className="text-xs text-gray-400 mb-1">Ban Protection</div>
+            <div className="font-semibold text-yellow-400">
+              {config.banThreshold} max
             </div>
-            <div>
-              <span className="text-gray-400">Auto-Recovery:</span>
-              <span className={`ml-2 font-semibold ${config.enableRollback ? 'text-green-400' : 'text-gray-500'}`}>
-                {config.enableRollback ? 'Active' : 'Disabled'}
-              </span>
+          </div>
+          
+          <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700/50">
+            <div className="text-xs text-gray-400 mb-1">Auto-Recovery</div>
+            <div className={`font-semibold ${config.enableRollback ? 'text-green-400' : 'text-gray-500'}`}>
+              {config.enableRollback ? 'Active' : 'Disabled'}
             </div>
-            <div>
-              <span className="text-gray-400">Bot Monitoring:</span>
-              <span className={`ml-2 font-semibold ${config.monitorBots ? 'text-cyan-400' : 'text-gray-500'}`}>
-                {config.monitorBots ? `${Math.floor(config.botThresholdMultiplier * 100)}% strict` : 'Off'}
-              </span>
+          </div>
+          
+          <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700/50">
+            <div className="text-xs text-gray-400 mb-1">Bot Monitoring</div>
+            <div className={`font-semibold ${config.monitorBots ? 'text-cyan-400' : 'text-gray-500'}`}>
+              {config.monitorBots ? `${Math.floor(config.botThresholdMultiplier * 100)}% strict` : 'Off'}
             </div>
-            <div>
-              <span className="text-gray-400">Circuit Breaker:</span>
-              <span className="ml-2 text-red-400 font-semibold">{config.circuitBreakerThreshold} in 1s</span>
+          </div>
+          
+          <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700/50">
+            <div className="text-xs text-gray-400 mb-1">Circuit Breaker</div>
+            <div className="font-semibold text-red-400">
+              {config.circuitBreakerThreshold} in 1s
             </div>
-            <div>
-              <span className="text-gray-400">Punishments:</span>
-              <span className="ml-2 text-purple-400 font-semibold">{config.punishmentActions.length} active</span>
+          </div>
+          
+          <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700/50">
+            <div className="text-xs text-gray-400 mb-1">Punishments</div>
+            <div className="font-semibold text-purple-400">
+              {config.punishmentActions.length} active
             </div>
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgb(31, 41, 55);
+          border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgb(75, 85, 99);
+          border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgb(107, 114, 128);
+        }
+      `}</style>
     </div>
   );
 }
