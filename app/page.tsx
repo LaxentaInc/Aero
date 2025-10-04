@@ -678,7 +678,7 @@ const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
   // Add loading="lazy" to video later on ;3
   const videos = [
     "/videos/myCutekoiiii.webm",
-    "/videos/IfYouSeeThis_You_Are_cute_missKoi.webm",
+    // "/videos/IfYouSeeThis_You_Are_cute_missKoi.webm",
     // "/videos/shorekeeper.mp4"  // add if needed
   ]
 // Add loading="lazy" to video
