@@ -80,6 +80,15 @@ const permissionOptions = [
   { value: 'ManageWebhooks', label: 'Manage Webhooks', tooltip: 'Create and manage webhooks' },
   { value: 'ManageGuildExpressions', label: 'Manage Emojis & Stickers', tooltip: 'Manage server emojis and stickers' }
 ];
+const validateNumberInput = (value: string, min: number, max?: number): number => {
+  const numValue = parseInt(value);
+  
+  if (isNaN(numValue)) return min;
+  if (numValue < min) return min;
+  if (max !== undefined && numValue > max) return max;
+  
+  return numValue;
+};
 
 const Tooltip = ({ text, children }: { text: string; children: React.ReactNode }) => {
   const [show, setShow] = useState(false);
@@ -479,7 +488,13 @@ export default function AntiPermissionAbuseConfig({ selectedGuild, onSave }: Mod
                 min="60"
                 max="2419200"
                 value={config.timeoutDuration}
-                onChange={(e) => updateConfig('timeoutDuration', parseInt(e.target.value) || 60)}
+                onChange={(e) => updateConfig('timeoutDuration', validateNumberInput(e.target.value, 60, 2419200))}
+                onBlur={(e) => {
+                  const validated = validateNumberInput(e.target.value, 60, 2419200);
+                  if (validated !== config.timeoutDuration) {
+                    updateConfig('timeoutDuration', validated);
+                  }
+                }}
                 disabled={isFormDisabled}
                 className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               />
@@ -498,8 +513,15 @@ export default function AntiPermissionAbuseConfig({ selectedGuild, onSave }: Mod
                 type="number"
                 min="1"
                 value={config.punishmentCooldown}
-                onChange={(e) => updateConfig('punishmentCooldown', parseInt(e.target.value) || 1)}
+                onChange={(e) => updateConfig('punishmentCooldown', validateNumberInput(e.target.value, 1, 3600))}
+                onBlur={(e) => {
+                  const validated = validateNumberInput(e.target.value, 1, 3600);
+                  if (validated !== config.punishmentCooldown) {
+                    updateConfig('punishmentCooldown', validated);
+                  }
+                }}
                 disabled={isFormDisabled}
+
                 className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
@@ -517,7 +539,13 @@ export default function AntiPermissionAbuseConfig({ selectedGuild, onSave }: Mod
                 type="number"
                 min="1"
                 value={config.auditLogCacheDuration}
-                onChange={(e) => updateConfig('auditLogCacheDuration', parseInt(e.target.value) || 1)}
+                onChange={(e) => updateConfig('auditLogCacheDuration', validateNumberInput(e.target.value, 1, 3600))}
+                onBlur={(e) => {
+                  const validated = validateNumberInput(e.target.value, 1, 3600);
+                  if (validated !== config.auditLogCacheDuration) {
+                    updateConfig('auditLogCacheDuration', validated);
+                  }
+                }}
                 disabled={isFormDisabled}
                 className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               />
@@ -537,7 +565,13 @@ export default function AntiPermissionAbuseConfig({ selectedGuild, onSave }: Mod
                 min="1000"
                 max="30000"
                 value={config.auditLogTimeout}
-                onChange={(e) => updateConfig('auditLogTimeout', parseInt(e.target.value) || 1000)}
+                onChange={(e) => updateConfig('auditLogTimeout', validateNumberInput(e.target.value, 1000, 30000))}
+                onBlur={(e) => {
+                  const validated = validateNumberInput(e.target.value, 1000, 30000);
+                  if (validated !== config.auditLogTimeout) {
+                    updateConfig('auditLogTimeout', validated);
+                  }
+                }}
                 disabled={isFormDisabled}
                 className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               />

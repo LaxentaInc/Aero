@@ -59,7 +59,16 @@ const actionOptions = [
   { value: 'timeout', label: 'Timeout Member', color: 'text-yellow-400' }
 ];
 
-
+const validateNumberInput = (value: string, min: number, max?: number): number => {
+  const numValue = parseInt(value);
+  
+  if (isNaN(numValue)) return min;
+  if (numValue < min) return min;
+  if (max !== undefined && numValue > max) return max;
+  
+  return numValue;
+};
+// Then update each number input with proper validation:
 export default function AccountAgeProtection({ selectedGuild, onSave }: ModuleConfigProps) {
   const [config, setConfig] = useState<AccountAgeConfig>(defaultConfig);
   const [loading, setLoading] = useState(false);

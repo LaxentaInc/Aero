@@ -63,7 +63,16 @@ const punishmentOptions = [
   { value: 'ban', label: 'Ban Member' },
   { value: 'notify', label: 'Notify Owner' }
 ];
-
+const validateNumberInput = (value: string, min: number, max?: number): number => {
+  const numValue = parseInt(value);
+  
+  if (isNaN(numValue)) return min;
+  if (numValue < min) return min;
+  if (max !== undefined && numValue > max) return max;
+  
+  return numValue;
+};
+// Then update each number input with proper validation:
 export default function AMAConfig({ selectedGuild, onSave }: ModuleConfigProps) {
   const [config, setConfig] = useState<AMAConfig>(defaultConfig);
   const [loading, setLoading] = useState(false);

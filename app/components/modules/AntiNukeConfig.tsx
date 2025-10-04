@@ -112,6 +112,17 @@ const punishmentOptions = [
   { value: 'notify', label: 'Notify Owner', description: 'Send DM to server owner with details' }
 ];
 
+const validateNumberInput = (value: string, min: number, max?: number): number => {
+  const numValue = parseInt(value);
+  
+  if (isNaN(numValue)) return min;
+  if (numValue < min) return min;
+  if (max !== undefined && numValue > max) return max;
+  
+  return numValue;
+};
+// Then update each number input with proper validation:
+
 // Tooltip component
 function Tooltip({ text }: { text: string }) {
   const [show, setShow] = useState(false);
