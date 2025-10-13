@@ -3,24 +3,12 @@ import DiscordProvider from 'next-auth/providers/discord'
 import SpotifyProvider from 'next-auth/providers/spotify'
 import { NextRequest } from 'next/server'
 
-// Discord Guild type
-interface Guild {
-  id: string
-  name: string
-  icon: string | null
-  owner: boolean
-  permissions: string
-  features: string[]
-}
-
-// Extend the session object
 declare module 'next-auth' {
   interface Session {
     user: {
       id: string
       name?: string | null
       image?: string | null
-      guilds?: Guild[]
     }
     accessToken: string
     refreshToken?: string
@@ -38,7 +26,6 @@ declare module 'next-auth/jwt' {
     accessToken: string
     refreshToken?: string
     expiresAt?: number
-    guilds?: Guild[]
     provider?: 'discord' | 'spotify'
   }
 }
@@ -64,7 +51,7 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.DISCORD_CLIENT_SECRET!,
       authorization: {
         params: {
-          scope: 'identify guilds',
+          scope: 'identify', // REMOVED guilds from scope - caused 431 - huge headers
         },
       },
     }),
@@ -89,21 +76,8 @@ export const authOptions: NextAuthOptions = {
           token.id = discordProfile.id
           token.username = discordProfile.username
           token.avatar = discordProfile.avatar
-
-          // Fetch Discord guilds
-          try {
-            const res = await fetch('https://discord.com/api/users/@me/guilds', {
-              headers: {
-                Authorization: `Bearer ${account.access_token}`,
-              },
-            })
-            if (res.ok) {
-              const guilds: Guild[] = await res.json()
-              token.guilds = guilds
-            }
-          } catch (err) {
-            console.error('Error fetching guilds:', err)
-          }
+          
+          // REMOVED guilds fetch completely
         }
 
         // Handle Spotify-specific data
@@ -127,7 +101,7 @@ export const authOptions: NextAuthOptions = {
         // Set provider-specific data
         if (token.provider === 'discord') {
           session.user.image = `https://cdn.discordapp.com/avatars/${token.id}/${token.avatar}.png`
-          session.user.guilds = token.guilds
+          // REMOVED guilds assignment
         }
 
         if (token.provider === 'spotify') {
