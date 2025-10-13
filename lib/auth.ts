@@ -1,9 +1,8 @@
 import { NextAuthOptions } from 'next-auth'
-import DiscordProvider from 'next-auth/providers/discord'
-import { JWT } from 'next-auth/jwt'
-import { Session } from 'next-auth'
-import { NextRequest } from 'next/server'
-
+import SpotifyProvider from 'next-auth/providers/spotify'
+// import { JWT } from 'next-auth/jwt'
+// import { Session } from 'next-auth'
+// declare module handles types on its own
 // Extend the session object
 declare module 'next-auth' {
   interface Session {
@@ -11,8 +10,10 @@ declare module 'next-auth' {
       id: string
       name?: string | null
       image?: string | null
-      guilds?: Guild[]
     }
+    accessToken: string
+    refreshToken?: string
+    expiresAt?: number
   }
 }
 
@@ -20,87 +21,56 @@ declare module 'next-auth' {
 declare module 'next-auth/jwt' {
   interface JWT {
     id: string
-    username: string
-    avatar: string
     accessToken: string
+    refreshToken?: string
+    expiresAt?: number
   }
 }
 
-// Discord profile definition
-interface DiscordProfile {
+// Spotify profile definition
+interface SpotifyProfile {
   id: string
-  username: string
-  avatar: string
-}
-
-// Discord Guild type
-interface Guild {
-  id: string
-  name: string
-  icon: string | null
-  owner: boolean
-  permissions: string
-  features: string[]
+  display_name: string
+  images: Array<{ url: string }>
 }
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    DiscordProvider({
-      clientId: process.env.DISCORD_CLIENT_ID!,
-      clientSecret: process.env.DISCORD_CLIENT_SECRET!,
-      authorization: {
-        params: {
-          scope: 'identify guilds',
-        },
-      },
+    SpotifyProvider({
+      clientId: process.env.SPOTIFY_CLIENT_ID!,
+      clientSecret: process.env.SPOTIFY_CLIENT_SECRET!,
+      allowDangerousEmailAccountLinking: true,
     }),
   ],
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
     async jwt({ token, account, profile }) {
       if (account && profile) {
-        const discordProfile = profile as DiscordProfile
-        token.id = discordProfile.id
-        token.username = discordProfile.username
-        token.avatar = discordProfile.avatar
+        const spotifyProfile = profile as SpotifyProfile
+        token.id = spotifyProfile.id
         token.accessToken = account.access_token!
+        token.refreshToken = account.refresh_token
+        token.expiresAt = account.expires_at
       }
       return token
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string
-        session.user.name = token.username
-        session.user.image = `https://cdn.discordapp.com/avatars/${token.id}/${token.avatar}.png`
-
-        // Fetch guilds
-        if (token.accessToken) {
-          try {
-            const res = await fetch('https://discord.com/api/users/@me/guilds', {
-              headers: {
-                Authorization: `Bearer ${token.accessToken}`,
-              },
-            })
-
-            if (res.ok) {
-              const guilds: Guild[] = await res.json()
-              session.user.guilds = guilds
-            }
-          } catch (err) {
-            console.error('Error fetching guilds:', err)
-          }
-        }
+        session.accessToken = token.accessToken as string
+        session.refreshToken = token.refreshToken as string
+        session.expiresAt = token.expiresAt as number
       }
       return session
     },
   },
   pages: {
-    signIn: '/login',
-    error: '/error',
+    signIn: '/auth/signin',
+    error: '/auth/error',
   },
 }
 
-export function authenticate(req: NextRequest) {
+export function authenticate(req: any) {
   const authHeader = req.headers.get('Authorization')
   if (!authHeader?.startsWith('Bearer ')) {
     return false
