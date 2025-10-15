@@ -176,7 +176,7 @@ export async function GET(request: NextRequest) {
     const canManage = await userCanManageGuild(session.user.id, guildId);
     if (!canManage) {
       return NextResponse.json(
-        { error: 'Nu uh console cowboy, You do not have permission to manage this guild' },
+        { error: 'Swwy, You do not have permission to manage this guild' },
         { status: 403 }
       );
     }

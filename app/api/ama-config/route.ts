@@ -237,7 +237,7 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
       return NextResponse.json(
-        { error: 'Authentication required. Please log in.' },
+        { error: 'No console cowboys allowed | Authentication required. Please log in.' },
         { status: 401 }
       );
     }
@@ -256,7 +256,7 @@ export async function POST(request: NextRequest) {
     const canManage = await userCanManageGuild(session.user.id, guildId);
     if (!canManage) {
       return NextResponse.json(
-        { error: 'You do not have permission to manage this guild' },
+        { error: 'No console cowboys allowed | You do not have permission to manage this guild' },
         { status: 403 }
       );
     }

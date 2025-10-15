@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { MongoClient, Db, Collection } from 'mongodb';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth'; // Adjust path to your auth config
+import { authOptions } from '@/lib/auth';
 
 // Types
 interface BotProtectionConfig {
@@ -29,14 +29,6 @@ interface BotProtectionDocument {
   createdAt: Date;
 }
 
-interface Guild {
-  id: string;
-  name: string;
-  icon: string | null;
-  owner: boolean;
-  permissions: string;
-}
-
 // MongoDB connection
 let cachedClient: MongoClient | null = null;
 let cachedDb: Db | null = null;
@@ -60,7 +52,6 @@ async function connectToMongoDB(): Promise<{ db: Db; collection: Collection<BotP
   const db = client.db('antiraid');
   const collection = db.collection<BotProtectionDocument>('bot_protection_configs');
 
-  // Cache the connection
   cachedClient = client;
   cachedDb = db;
 
@@ -86,27 +77,30 @@ const defaultConfig: BotProtectionConfig = {
   punishAdders: true
 };
 
-// Security: Check if user has permission to manage a guild
-const userCanManageGuild = (guilds: Guild[] | undefined, guildId: string): boolean => {
-  if (!guilds || !Array.isArray(guilds)) {
+// Check if user can manage guild using bot_guilds collection
+async function userCanManageGuild(userId: string, guildId: string): Promise<boolean> {
+  try {
+    const { db } = await connectToMongoDB();
+    const guildsCollection = db.collection('bot_guilds');
+    
+    // Check if guild exists in DB with this user as owner and bot has permissions
+    const guild = await guildsCollection.findOne({
+      guildId: guildId,
+      ownerId: userId,
+      botHasPermissions: true
+    });
+    
+    return guild !== null;
+  } catch (error) {
+    console.error('Error checking guild permissions:', error);
     return false;
   }
-
-  const guild = guilds.find(g => g.id === guildId);
-  if (!guild) {
-    return false;
-  }
-
-  // Check if user is owner OR has MANAGE_GUILD permission (0x20)
-  const hasManagePermission = (BigInt(guild.permissions) & BigInt(0x20)) === BigInt(0x20);
-  return guild.owner || hasManagePermission;
-};
+}
 
 // Validation functions
 const validateConfig = (config: any): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];
 
-  // Required boolean fields
   const booleanFields = [
     'enabled', 'checkUnverified', 'bypassTrusted', 
     'notifyOwner', 'logActions', 'debug',
@@ -119,7 +113,6 @@ const validateConfig = (config: any): { isValid: boolean; errors: string[] } => 
     }
   });
 
-  // Numeric validations
   if (typeof config.minAccountAge !== 'number' || config.minAccountAge < 1 || config.minAccountAge > 8760) {
     errors.push('minAccountAge must be a number between 1 and 8760 hours (1 year)');
   }
@@ -128,7 +121,6 @@ const validateConfig = (config: any): { isValid: boolean; errors: string[] } => 
     errors.push('timeoutDuration must be a number between 60 and 2419200 seconds');
   }
 
-  // Array validations
   if (!Array.isArray(config.trustedUsers)) {
     errors.push('trustedUsers must be an array');
   } else {
@@ -173,7 +165,6 @@ const validateConfig = (config: any): { isValid: boolean; errors: string[] } => 
     });
   }
 
-  // Optional fields
   if (config.logChannelId !== null && (typeof config.logChannelId !== 'string' || !/^\d+$/.test(config.logChannelId))) {
     errors.push('logChannelId must be null or a valid Discord channel ID (numeric string)');
   }
@@ -191,7 +182,6 @@ const validateGuildId = (guildId: string): boolean => {
 // GET handler - Fetch configuration for a guild
 export async function GET(request: NextRequest) {
   try {
-    // SECURITY LAYER 1: Authentication
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
       return NextResponse.json(
@@ -217,8 +207,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // SECURITY LAYER 2: Authorization
-    if (!userCanManageGuild(session.user.guilds, guildId)) {
+    // Use new permission check
+    const canManage = await userCanManageGuild(session.user.id, guildId);
+    if (!canManage) {
       return NextResponse.json(
         { error: 'You do not have permission to manage this guild' },
         { status: 403 }
@@ -238,7 +229,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(document);
 
   } catch (error) {
-    console.error('Bot Protection Config GET Error:', error);
+    console.error('[Bot-Protection GET] Error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -249,11 +240,10 @@ export async function GET(request: NextRequest) {
 // POST handler - Create or update configuration for a guild
 export async function POST(request: NextRequest) {
   try {
-    // SECURITY LAYER 1: Authentication
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
       return NextResponse.json(
-        { error: 'Authentication required. Please log in.' },
+        { error: 'No console cowboys allowed | Authentication required. Please log in.' },
         { status: 401 }
       );
     }
@@ -261,7 +251,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { guildId, config } = body;
 
-    // SECURITY LAYER 2: Validate guild ID
     if (!guildId || !validateGuildId(guildId)) {
       return NextResponse.json(
         { error: 'Valid guild ID is required' },
@@ -269,15 +258,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // SECURITY LAYER 3: Authorization - Check if user can manage this guild
-    if (!userCanManageGuild(session.user.guilds, guildId)) {
+    // Use new permission check
+    const canManage = await userCanManageGuild(session.user.id, guildId);
+    if (!canManage) {
       return NextResponse.json(
-        { error: 'You do not have permission to manage this guild' },
+        { error: 'No console cowboys allowed | You do not have permission to manage this guild' },
         { status: 403 }
       );
     }
 
-    // SECURITY LAYER 4: Validate configuration
     if (!config) {
       return NextResponse.json(
         { error: 'Configuration is required' },
@@ -297,7 +286,6 @@ export async function POST(request: NextRequest) {
 
     const now = new Date();
     
-    // Prepare the document with sanitized data
     const document: BotProtectionDocument = {
       guildId,
       config: {
@@ -321,7 +309,6 @@ export async function POST(request: NextRequest) {
       createdAt: now
     };
 
-    // Use upsert to create or update the document
     const result = await collection.replaceOne(
       { guildId },
       {
@@ -339,9 +326,8 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('Bot Protection Config POST Error:', error);
+    console.error('[Bot-Protection POST] Error:', error);
     
-    // Handle specific MongoDB errors
     if (error instanceof Error) {
       if (error.message.includes('connection')) {
         return NextResponse.json(
@@ -368,7 +354,6 @@ export async function POST(request: NextRequest) {
 // DELETE handler - Remove configuration for a guild
 export async function DELETE(request: NextRequest) {
   try {
-    // SECURITY LAYER 1: Authentication
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
       return NextResponse.json(
@@ -394,8 +379,9 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // SECURITY LAYER 2: Authorization
-    if (!userCanManageGuild(session.user.guilds, guildId)) {
+    // Use new permission check
+    const canManage = await userCanManageGuild(session.user.id, guildId);
+    if (!canManage) {
       return NextResponse.json(
         { error: 'You do not have permission to manage this guild' },
         { status: 403 }
@@ -418,7 +404,7 @@ export async function DELETE(request: NextRequest) {
     );
 
   } catch (error) {
-    console.error('Bot Protection Config DELETE Error:', error);
+    console.error('[Bot-Protection DELETE] Error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -429,7 +415,6 @@ export async function DELETE(request: NextRequest) {
 // PUT handler - Reset configuration to defaults for a guild
 export async function PUT(request: NextRequest) {
   try {
-    // SECURITY LAYER 1: Authentication
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
       return NextResponse.json(
@@ -455,8 +440,9 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // SECURITY LAYER 2: Authorization
-    if (!userCanManageGuild(session.user.guilds, guildId)) {
+    // Use new permission check
+    const canManage = await userCanManageGuild(session.user.id, guildId);
+    if (!canManage) {
       return NextResponse.json(
         { error: 'You do not have permission to manage this guild' },
         { status: 403 }
@@ -489,7 +475,7 @@ export async function PUT(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('Bot Protection Config PUT Error:', error);
+    console.error('[Bot-Protection PUT] Error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
