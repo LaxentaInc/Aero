@@ -1,3 +1,4 @@
+//@lib/auth.ts
 import { NextAuthOptions } from 'next-auth'
 import DiscordProvider from 'next-auth/providers/discord'
 import SpotifyProvider from 'next-auth/providers/spotify'

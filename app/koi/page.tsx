@@ -945,194 +945,243 @@ const ProjectsPage = () => {
     );
 };
 
+// Updated SkillsPage component with better humor and UI
+
 const SkillsPage = () => {
     const { theme } = useTheme();
     const skillCategories = [
         {
-            category: "Her Professional Talents",
-            description: "Core life competencies that define her excellence!",
+            category: "Academic Excellence",
+            description: "How she conquers the classroom (sort of)",
             items: [
                 { 
-                    name: "Procrastination", 
+                    name: "Procrastination Mastery", 
                     level: 99, 
-                    description: "Can turn a 2-hour assignment into a 2-week anxiety marathon" 
+                    description: "Turns every assignment into a thrilling last-minute adventure" 
                 },
                 { 
-                    name: "Overthinking", 
+                    name: "Strategic Planning", 
                     level: 95, 
-                    description: "Will analyze and reply to a simple 'hi' text for 2 DAYS (yea no more 5 mins lol)" 
+                    description: "Overthinks a simple 'hi' text for precisely 2 days before responding" 
                 },
                 { 
-                    name: "Caffeine Dependence", 
-                    level: 69, 
-                    description: "Cannot function without at least 5 mouthful spoons of raw coffee per day" 
+                    name: "Coffee Optimization", 
+                    level: 88, 
+                    description: "Has unlocked the secret to surviving on pure caffeine and determination" 
                 },
                 { 
-                    name: "Tab Hoarding", 
-                    level: 50, 
-                    description: "Currently has 50 browser tabs open and refuses to close any" 
+                    name: "Research Skills", 
+                    level: 92, 
+                    description: "Currently maintaining 50 browser tabs like a digital library" 
                 },
                 {
-                    name: "Bored"
-                    , level: 69,
-                    description: "thats her whole personality lol, i aint even gotta explain, if she sees this, she will be mad at me internally ;=;"
+                    name: "Perpetual Boredom",
+                    level: 100,
+                    description: "A fundamental state of existence. It's not a bug, it's her feature"
                 }
-                    
             ],
-            color: "from-red-400 to-pink-500"
+            color: "from-red-400 to-pink-500",
+            icon: "📚"
         },
         {
-            category: "Social Skills",
-            description: "Totally normal",
+            category: "Social Dynamics",
+            description: "Navigating human interaction with style",
             items: [
                 { 
-                    name: "Hobby", 
+                    name: "Extreme Sports Enthusiasm", 
                     level: 100, 
-                    description: "OH you thought sutdying or coding? NAHH she Likes to jump off cliffs for all the reasons in the world" 
+                    description: "Finds cliff jumping surprisingly therapeutic for stress relief" 
                 },
                 { 
-                    name: "Emoji Knowledge", 
+                    name: "Digital Communication", 
                     level: 96, 
-                    description: "She is enlightened and Can communicate entirely through anime reaction gifs and emojis .-." 
+                    description: "Fluent in the universal language of anime gifs and emojis" 
                 },
                 { 
-                    name: "Adorable", 
+                    name: "Charm Statistics", 
                     level: 100, 
-                    description: "Being this adorable? Yea thats a social skill ig?" 
+                    description: "Naturally adorable. Some say it's a supernatural ability" 
                 },
-                           { 
-                    name: "Love?", 
-                    level: 100, 
-                    description: "NAHHHHH, too Expensive in this Economy!" 
+                { 
+                    name: "Emotional Economics", 
+                    level: 85, 
+                    description: "Love is temporarily unavailable due to current market conditions" 
                 },
                 {
-                    name: "Crazy",
-                    level: 85,  
-                    description: "Is she normal? NOPE, is she crazy? weird? annoying? have mood swings? miscommunication? DEFINITELY, is that a good thing??? maybe not for others, but for me; YES its acceptable"
+                    name: "Chaotic Energy",
+                    level: 90,  
+                    description: "Mood swings, miscommunication, and controlled chaos. A delightful package deal"
                 }
             ],
-            color: "from-blue-400 to-purple-500"
+            color: "from-blue-400 to-purple-500",
+            icon: "🌊"
         },
         {
-            category: "Her Life Skills!",
-            description: "How she survives in this cruel world",
+            category: "Life Management",
+            description: "Surviving the daily grind with grace",
             items: [
                 { 
-                    name: "Sleep", 
-                    level: 50, 
-                    description: "whats that?" 
+                    name: "Sleep Schedule", 
+                    level: 35, 
+                    description: "Sleep? Never heard of her. Definitely not missing from her vocabulary" 
                 },
                 { 
-                    name: "Rest Schedule?", 
-                    level: 26, 
-                    description: "What is a consistent bedtime? its just her ghost that uses pc all night, def not her" 
+                    name: "Circadian Rhythm", 
+                    level: 22, 
+                    description: "Bedtime is a social construct she's chosen to ignore" 
                 },
                 { 
-                    name: "Snack Discovery", 
+                    name: "Culinary Discovery", 
                     level: 91, 
-                    description: "Can't find the perfect midnight snack in her kitchen (want me to help?)" 
+                    description: "Expert at finding the perfect midnight snack in record time" 
                 },
                 { 
-                    name: "Playlist Curation", 
+                    name: "Music Curation", 
                     level: 99, 
-                    description: "Has 26 different mood playlists and refuses to share any with me ;c" 
+                    description: "Maintains 26 mood-specific playlists with military precision" 
                 },
-                              { 
-                    name: "she is a fish?", 
+                { 
+                    name: "Aquatic Identity", 
                     level: 100, 
-                    description: "Yes, beat me to it" 
+                    description: "Yes, she's a fish. Koike = Koi. The math checks out" 
                 }
             ],
-            color: "from-green-400 to-teal-500"
+            color: "from-green-400 to-teal-500",
+            icon: "🐟"
         }
     ];
-return (
-<div className={`relative min-h-screen pt-32 pb-16 px-6 transition-all duration-500 ${
-    theme === 'dark' 
-        ? 'bg-gradient-to-br from-gray-900 via-gray-900 to-purple-900/20' 
-        : 'bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50'
-}`}>
-           <Skillsbg theme={theme} />
-       
-       <div className="relative max-w-7xl mx-auto z-10">
-           <motion.div
-               className="text-center mb-16"
-               initial={{ opacity: 0, y: 30 }}
-               animate={{ opacity: 1, y: 0 }}
-               transition={{ duration: 0.8 }}
-           >
-               <h1 className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-blue-600 to-purple-600 dark:from-white dark:via-blue-400 dark:to-purple-400 mb-6">
-                   Her Skills
-               </h1>
-               <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-                   A breakdown of her.. ahem unique professional competencies (defnitely real)
-               </p>
-               <p className="text-lg text-gray-500 dark:text-gray-400 italic mt-2">
-                   these will keep on stacking the more i know about her personality, because why not lmao?
-               </p>
-           </motion.div>
 
-           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
-               {skillCategories.map((category, index) => (
-                   <motion.div
-                       key={category.category}
-                       className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl p-8 border border-gray-200/50 dark:border-gray-700/50 shadow-lg hover:shadow-2xl transition-all duration-300"
-                       initial={{ opacity: 0, y: 50 }}
-                       animate={{ opacity: 1, y: 0 }}
-                       transition={{ delay: index * 0.2, duration: 0.6 }}
-                       whileHover={{ y: -4, scale: 1.02 }}
-                   >
-                       <div className="mb-8">
-                           <h2 className="text-3xl font-black text-gray-900 dark:text-white mb-3">
-                               {category.category}
-                           </h2>
-                           <p className="text-lg text-gray-600 dark:text-gray-300">
-                               {category.description}
-                           </p>
-                       </div>
+    return (
+        <div className={`relative min-h-screen pt-32 pb-16 px-6 transition-all duration-500 ${
+            theme === 'dark' 
+                ? 'bg-gradient-to-br from-gray-900 via-gray-900 to-purple-900/20' 
+                : 'bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50'
+        }`}>
+            <Skillsbg theme={theme} />
+           
+            <div className="relative max-w-7xl mx-auto z-10">
+                <motion.div
+                    className="text-center mb-16"
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8 }}
+                >
+                    <h1 className={`text-6xl font-black mb-6 ${
+                        theme === 'dark' ? 'text-white' : 'text-gray-900'
+                    }`}>
+                        Skill Portfolio
+                    </h1>
+                    <p className={`text-xl mb-4 max-w-2xl mx-auto ${
+                        theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
+                    }`}>
+                        A comprehensive analysis of her unique talents and capabilities
+                    </p>
+                    <p className={`text-sm italic ${
+                        theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                    }`}>
+                        *This list grows with each new discovery about her personality
+                    </p>
+                </motion.div>
 
-                       <div className="space-y-8">
-                           {category.items.map((skill, skillIndex) => (
-                               <motion.div
-                                   key={skill.name}
-                                   className="space-y-4"
-                                   initial={{ opacity: 0, x: -20 }}
-                                   animate={{ opacity: 1, x: 0 }}
-                                   transition={{ delay: (index * 0.2) + (skillIndex * 0.1) }}
-                                   whileHover={{ scale: 1.02 }}
-                               >
-                                   <div className="flex justify-between items-center">
-                                       <span className="text-xl font-bold text-gray-800 dark:text-gray-100">
-                                           {skill.name}
-                                       </span>
-                                       <span className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-600">
-                                           {skill.level}%
-                                       </span>
-                                   </div>
-                                   <div className="relative w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 overflow-hidden">
-                                       <motion.div
-                                           className={`h-full rounded-full bg-gradient-to-r ${category.color}`}
-                                           initial={{ width: 0 }}
-                                           animate={{ width: `${skill.level}%` }}
-                                           transition={{ 
-                                               duration: 1.5, 
-                                               delay: (index * 0.2) + (skillIndex * 0.1) + 0.5,
-                                               ease: "easeOut"
-                                           }}
-                                       />
-                                   </div>
-                                   <p className="text-base text-gray-600 dark:text-gray-300 font-medium leading-relaxed">
-                                       {skill.description}
-                                   </p>
-                               </motion.div>
-                           ))}
-                       </div>
-                   </motion.div>
-               ))}
-           </div>
-       </div>
-   </div>
-);
+                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+                    {skillCategories.map((category, index) => (
+                        <motion.div
+                            key={category.category}
+                            className={`backdrop-blur-xl rounded-3xl p-8 border shadow-xl hover:shadow-2xl transition-all duration-300 ${
+                                theme === 'dark' 
+                                    ? 'bg-gray-800/60 border-gray-700/30' 
+                                    : 'bg-white/60 border-gray-200/30'
+                            }`}
+                            initial={{ opacity: 0, y: 50 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.15, duration: 0.6 }}
+                            whileHover={{ y: -8, scale: 1.02 }}
+                        >
+                            <div className="mb-8">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <span className="text-4xl">{category.icon}</span>
+                                    <h2 className={`text-2xl font-black ${
+                                        theme === 'dark' ? 'text-white' : 'text-gray-900'
+                                    }`}>
+                                        {category.category}
+                                    </h2>
+                                </div>
+                                <p className={`text-sm ${
+                                    theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                                }`}>
+                                    {category.description}
+                                </p>
+                            </div>
+
+                            <div className="space-y-6">
+                                {category.items.map((skill, skillIndex) => (
+                                    <motion.div
+                                        key={skill.name}
+                                        className={`p-4 rounded-xl ${
+                                            theme === 'dark' 
+                                                ? 'bg-gray-900/40' 
+                                                : 'bg-white/40'
+                                        }`}
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: (index * 0.15) + (skillIndex * 0.08) }}
+                                        whileHover={{ scale: 1.03, x: 4 }}
+                                    >
+                                        <div className="flex justify-between items-center mb-3">
+                                            <span className={`text-base font-bold ${
+                                                theme === 'dark' ? 'text-gray-100' : 'text-gray-800'
+                                            }`}>
+                                                {skill.name}
+                                            </span>
+                                            <span className={`text-sm font-bold px-3 py-1 rounded-full bg-gradient-to-r ${category.color} text-white`}>
+                                                {skill.level}%
+                                            </span>
+                                        </div>
+                                        <div className={`relative w-full rounded-full h-2 mb-3 overflow-hidden ${
+                                            theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'
+                                        }`}>
+                                            <motion.div
+                                                className={`h-full rounded-full bg-gradient-to-r ${category.color}`}
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${skill.level}%` }}
+                                                transition={{ 
+                                                    duration: 1.2, 
+                                                    delay: (index * 0.15) + (skillIndex * 0.08) + 0.3,
+                                                    ease: "easeOut"
+                                                }}
+                                            />
+                                        </div>
+                                        <p className={`text-sm leading-relaxed ${
+                                            theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                                        }`}>
+                                            {skill.description}
+                                        </p>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+
+                <motion.div
+                    className={`mt-12 text-center p-6 rounded-2xl backdrop-blur-xl ${
+                        theme === 'dark' 
+                            ? 'bg-gray-800/40 border border-gray-700/30' 
+                            : 'bg-white/40 border border-gray-200/30'
+                    }`}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 1 }}
+                >
+                    <p className={`text-sm italic ${
+                        theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+                    }`}>
+                        "Being this interesting is exhausting, but someone's gotta do it." - Koike, probably
+                    </p>
+                </motion.div>
+            </div>
+        </div>
+    );
 };
 
 const KoiPortfolio = () => {
