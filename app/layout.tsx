@@ -5,7 +5,6 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import { Providers } from './components/Providers';
 import { Analytics } from '@vercel/analytics/next';
-import { ThemeProvider } from './contexts/ThemeContext'
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -128,11 +127,9 @@ export const metadata: Metadata = {
   },
   category: 'technology',
   other: {
-    // Apple specific
     'apple-mobile-web-app-capable': 'yes',
     'apple-mobile-web-app-status-bar-style': 'default',
     'apple-mobile-web-app-title': 'Laxenta Inc',
-    // Theme colors
     'theme-color': '#5865F2',
     'msapplication-TileColor': '#5865F2',
   }
@@ -163,7 +160,6 @@ export default function RootLayout({
     url: 'https://www.laxenta.tech',
     sameAs: [
       'https://github.com/shelleyloosespatience',
-      // Add other social profiles here
     ],
     knowsAbout: [
       'Fullstack Development',
@@ -191,11 +187,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* Preconnect for performance */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         
-        {/* Explicit meta tags for Discord (because Discord is picky AF) */}
         <meta property="og:type" content="website" />
         <meta property="og:title" content="Laxenta Inc" />
         <meta property="og:description" content="Welcome to my Portfolio/Api website" />
@@ -206,13 +200,11 @@ export default function RootLayout({
         <meta property="og:image:alt" content="Laxenta Inc" />
         <meta property="og:site_name" content="Laxenta Inc" />
         
-        {/* Twitter card – SMALL PREVIEW */}
-<meta name="twitter:card" content="summary" />
-<meta name="twitter:title" content="Laxenta Inc" />
-<meta name="twitter:description" content="Welcome to my Portfolio/Api website" />
-<meta name="twitter:image" content="https://www.laxenta.tech/KoiLogo.png" />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="Laxenta Inc" />
+        <meta name="twitter:description" content="Welcome to my Portfolio/Api website" />
+        <meta name="twitter:image" content="https://www.laxenta.tech/KoiLogo.png" />
 
-        {/* Structured data */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
@@ -223,14 +215,12 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <Providers>
-          <ThemeProvider>
-            <Navbar />
-            <main>
-              {children}
-            </main>
-            <Footer />
-            <Analytics />
-          </ThemeProvider>
+          <Navbar />
+          <main>
+            {children}
+          </main>
+          <Footer />
+          <Analytics />
         </Providers>
       </body>
     </html>
