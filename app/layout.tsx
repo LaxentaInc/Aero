@@ -33,18 +33,28 @@ export const metadata: Metadata = {
   keywords: [
     // Personal Brand
     "laxenta",
-    "fullstack developer",
+    "lax",
+    "Laxenta Inc",
+    "laxanta",
+    "luxenta",
+    "laxenta ayumi",
+    "laxena",
+    "laxeta",
+    "lx",
+    "lacenta",
+    "developer",
     "system engineer", 
     "web developer",
     "software engineer",
     "me_straight",
-    "developer portfolio",
-    "indie developer",
+    "laxenta portfolio",
+    "fulldeveloper",
     
     // Skills & Technologies  
     "React developer",
-    "Next.js developer",
-    "TypeScript developer",
+    "Next.js dev",
+    "Rust developer",
+    "TypeScript dev",
     "Node.js developer",
     "JavaScript developer",
     "fullstack engineer",
@@ -52,15 +62,13 @@ export const metadata: Metadata = {
     "web development",
     "software development",
     "code collaboration",
-    "open source developer",
     
-    // Services
     "code commissions",
     "freelance developer",
     "custom development",
     "web applications",
-    "system solutions",
-    "developer tools",
+    "system",
+    "dev tool",
     "code editor online",
     "development tools",
     
@@ -68,14 +76,9 @@ export const metadata: Metadata = {
     "building useless things",
     "hobby projects",
     "experimental code",
-    "creative coding",
     "dev tools creator",
-    "standalone developer",
     
     // Location/Availability
-    "remote developer",
-    "freelance programmer",
-    "hire developer",
     "collaborative coding"
   ],
   authors: [{ name: "Laxenta", url: "https://github.com/shelleyloosespatience" }],
