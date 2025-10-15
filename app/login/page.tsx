@@ -36,13 +36,13 @@ const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
   )
 }
 
-// Main login content
 const LoginContent = () => {
   const { theme } = useTheme()
   const { data: session, status } = useSession()
   const searchParams = useSearchParams()
   const router = useRouter()
-  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
+  // const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
+  const callbackUrl = searchParams.get('callbackUrl') || document.referrer || '/'
   const [isRedirecting, setIsRedirecting] = useState(false)
   const [agreeToTerms, setAgreeToTerms] = useState(false)
   const [agreeToPrivacy, setAgreeToPrivacy] = useState(false)

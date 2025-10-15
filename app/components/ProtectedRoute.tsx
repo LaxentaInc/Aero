@@ -130,7 +130,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
           </p>
           
           <motion.button
-            onClick={() => signIn('discord')}
+            onClick={() => (window.location.href = '/login')}
             className="w-full px-6 py-4 bg-[#5865F2] hover:bg-[#4752C4] text-white rounded-xl font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center gap-3"
             whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.98 }}
