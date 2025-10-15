@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { MongoClient, Db, Collection } from 'mongodb';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth'; // Adjust path to your auth config
+import { authOptions } from '@/lib/auth';
 
-// Types
 interface AccountAgeConfig {
   enabled: boolean;
   minAccountAge: number;
@@ -24,15 +23,6 @@ interface AccountAgeDocument {
   createdAt: Date;
 }
 
-interface Guild {
-  id: string;
-  name: string;
-  icon: string | null;
-  owner: boolean;
-  permissions: string;
-}
-
-// MongoDB connection
 let cachedClient: MongoClient | null = null;
 let cachedDb: Db | null = null;
 
@@ -55,7 +45,6 @@ async function connectToMongoDB(): Promise<{ db: Db; collection: Collection<Acco
   const db = client.db('antiraid');
   const collection = db.collection<AccountAgeDocument>('account_age_configs');
 
-  // Cache the connection
   cachedClient = client;
   cachedDb = db;
 
@@ -76,27 +65,30 @@ const defaultConfig: AccountAgeConfig = {
   debug: false
 };
 
-// Security: Check if user has permission to manage a guild
-const userCanManageGuild = (guilds: Guild[] | undefined, guildId: string): boolean => {
-  if (!guilds || !Array.isArray(guilds)) {
+// NEW: Check if user can manage guild using your internal API
+async function userCanManageGuild(userId: string, guildId: string): Promise<boolean> {
+  try {
+    const client = await connectToMongoDB();
+    const guildsCollection = client.db.collection('bot_guilds');
+    
+    // Check if guild exists in DB with this user as owner and bot has permissions
+    const guild = await guildsCollection.findOne({
+      guildId: guildId,
+      ownerId: userId,
+      botHasPermissions: true
+    });
+    
+    return guild !== null;
+  } catch (error) {
+    console.error('issues checking guild permissions:', error);
     return false;
   }
-
-  const guild = guilds.find(g => g.id === guildId);
-  if (!guild) {
-    return false;
-  }
-
-  // Check if user is owner OR has MANAGE_GUILD permission (0x20)
-  const hasManagePermission = (BigInt(guild.permissions) & BigInt(0x20)) === BigInt(0x20);
-  return guild.owner || hasManagePermission;
-};
+}
 
 // Validation functions
 const validateConfig = (config: any): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];
 
-  // Required boolean fields
   const booleanFields = ['enabled', 'bypassTrusted', 'logActions', 'debug'];
   
   booleanFields.forEach(field => {
@@ -105,7 +97,6 @@ const validateConfig = (config: any): { isValid: boolean; errors: string[] } => 
     }
   });
 
-  // Numeric validations
   if (typeof config.minAccountAge !== 'number' || config.minAccountAge < 1 || config.minAccountAge > 365) {
     errors.push('minAccountAge must be a number between 1 and 365 days');
   }
@@ -114,13 +105,11 @@ const validateConfig = (config: any): { isValid: boolean; errors: string[] } => 
     errors.push('timeoutDuration must be a number between 60 and 2419200 seconds');
   }
 
-  // Action validation
   const validActions = ['notify', 'kick', 'ban', 'timeout'];
   if (typeof config.action !== 'string' || !validActions.includes(config.action)) {
     errors.push(`action must be one of: ${validActions.join(', ')}`);
   }
 
-  // Array validations
   if (!Array.isArray(config.trustedUsers)) {
     errors.push('trustedUsers must be an array');
   } else {
@@ -141,7 +130,6 @@ const validateConfig = (config: any): { isValid: boolean; errors: string[] } => 
     });
   }
 
-  // Optional fields
   if (config.logChannelId !== null && (typeof config.logChannelId !== 'string' || !/^\d+$/.test(config.logChannelId))) {
     errors.push('logChannelId must be null or a valid Discord channel ID (numeric string)');
   }
@@ -156,14 +144,13 @@ const validateGuildId = (guildId: string): boolean => {
   return typeof guildId === 'string' && /^\d+$/.test(guildId) && guildId.length >= 17 && guildId.length <= 20;
 };
 
-// GET handler - Fetch configuration for a guild
+// GET handler
 export async function GET(request: NextRequest) {
   try {
-    // SECURITY LAYER 1: Authentication
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
       return NextResponse.json(
-        { error: 'Authentication required. Please log in.' },
+        { error: 'SAAADD, Authentication is required. Please log in.' },
         { status: 401 }
       );
     }
@@ -185,10 +172,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // SECURITY LAYER 2: Authorization
-    if (!userCanManageGuild(session.user.guilds, guildId)) {
+    // Use the new permission check
+    const canManage = await userCanManageGuild(session.user.id, guildId);
+    if (!canManage) {
       return NextResponse.json(
-        { error: 'You do not have permission to manage this guild' },
+        { error: 'Nu uh console cowboy, You do not have permission to manage this guild' },
         { status: 403 }
       );
     }
@@ -214,14 +202,13 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST handler - Create or update configuration for a guild
+// POST handler
 export async function POST(request: NextRequest) {
   try {
-    // SECURITY LAYER 1: Authentication
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
       return NextResponse.json(
-        { error: 'Authentication required. Please log in.' },
+        { error: 'Sad, Authentication is required. Please log in.' },
         { status: 401 }
       );
     }
@@ -229,7 +216,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { guildId, config } = body;
 
-    // SECURITY LAYER 2: Validate guild ID
     if (!guildId || !validateGuildId(guildId)) {
       return NextResponse.json(
         { error: 'Valid guild ID is required' },
@@ -237,15 +223,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // SECURITY LAYER 3: Authorization - Check if user can manage this guild
-    if (!userCanManageGuild(session.user.guilds, guildId)) {
+    // Use the new permission check
+    const canManage = await userCanManageGuild(session.user.id, guildId);
+    if (!canManage) {
       return NextResponse.json(
-        { error: 'You do not have permission to manage this guild' },
+        { error: 'NOO CONSOLE COWBOY, You do not have permission to manage this guild' },
         { status: 403 }
       );
     }
 
-    // SECURITY LAYER 4: Validate configuration
     if (!config) {
       return NextResponse.json(
         { error: 'Configuration is required' },
@@ -256,7 +242,7 @@ export async function POST(request: NextRequest) {
     const validation = validateConfig(config);
     if (!validation.isValid) {
       return NextResponse.json(
-        { error: 'Invalid configuration', details: validation.errors },
+        { error: 'WRONG AND INVALID configuration', details: validation.errors },
         { status: 400 }
       );
     }
@@ -265,7 +251,6 @@ export async function POST(request: NextRequest) {
 
     const now = new Date();
     
-    // Prepare the document with sanitized data
     const document: AccountAgeDocument = {
       guildId,
       config: {
@@ -284,7 +269,6 @@ export async function POST(request: NextRequest) {
       createdAt: now
     };
 
-    // Use upsert to create or update the document
     const result = await collection.replaceOne(
       { guildId },
       {
@@ -298,17 +282,16 @@ export async function POST(request: NextRequest) {
       const updatedDocument = await collection.findOne({ guildId });
       return NextResponse.json(updatedDocument, { status: 200 });
     } else {
-      throw new Error('Failed to save configuration');
+      throw new Error('CAN\'T save configuration');
     }
 
   } catch (error) {
     console.error('Account Age Config POST Error:', error);
     
-    // Handle specific MongoDB errors
     if (error instanceof Error) {
       if (error.message.includes('connection')) {
         return NextResponse.json(
-          { error: 'Database connection failed' },
+          { error: 'DB connection failed' },
           { status: 503 }
         );
       }
@@ -328,14 +311,13 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// DELETE handler - Remove configuration for a guild
+// DELETE handler
 export async function DELETE(request: NextRequest) {
   try {
-    // SECURITY LAYER 1: Authentication
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
       return NextResponse.json(
-        { error: 'Authentication required. Please log in.' },
+        { error: 'Nuuu console cowboy, Authentication is required. Please log in.' },
         { status: 401 }
       );
     }
@@ -357,10 +339,11 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // SECURITY LAYER 2: Authorization
-    if (!userCanManageGuild(session.user.guilds, guildId)) {
+    // Use the new permission check
+    const canManage = await userCanManageGuild(session.user.id, guildId);
+    if (!canManage) {
       return NextResponse.json(
-        { error: 'You do not have permission to manage this guild' },
+        { error: 'NO console cowboy, You do not have permission to manage this guild' },
         { status: 403 }
       );
     }
@@ -370,18 +353,18 @@ export async function DELETE(request: NextRequest) {
 
     if (result.deletedCount === 0) {
       return NextResponse.json(
-        { error: 'Configuration not found' },
+        { error: 'Configuration Not yet created for this guild. Create one' },
         { status: 404 }
       );
     }
 
     return NextResponse.json(
-      { message: 'Configuration deleted successfully' },
+      // { message: 'Configuration deleted successfully' },
       { status: 200 }
     );
 
   } catch (error) {
-    console.error('Account Age Config DELETE Error:', error);
+    console.error('AMC DELETE Error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -389,14 +372,13 @@ export async function DELETE(request: NextRequest) {
   }
 }
 
-// PUT handler - Reset configuration to defaults for a guild
+// PUT handler
 export async function PUT(request: NextRequest) {
   try {
-    // SECURITY LAYER 1: Authentication
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
       return NextResponse.json(
-        { error: 'Authentication required. Please log in.' },
+        { error: 'Sorry console cowboy, But Authentication is required. Please log in.' },
         { status: 401 }
       );
     }
@@ -418,10 +400,11 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // SECURITY LAYER 2: Authorization
-    if (!userCanManageGuild(session.user.guilds, guildId)) {
+    // Use the new permission check
+    const canManage = await userCanManageGuild(session.user.id, guildId);
+    if (!canManage) {
       return NextResponse.json(
-        { error: 'You do not have permission to manage this guild' },
+        { error: '  Sorry console cowboy, you do not have permission to manage this guild' },
         { status: 403 }
       );
     }
@@ -448,11 +431,11 @@ export async function PUT(request: NextRequest) {
       const updatedDocument = await collection.findOne({ guildId });
       return NextResponse.json(updatedDocument, { status: 200 });
     } else {
-      throw new Error('Failed to reset configuration');
+      throw new Error('wtf? failed to reset configuration');
     }
 
   } catch (error) {
-    console.error('Account Age Config PUT Error:', error);
+    console.error('AMC PUT err:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

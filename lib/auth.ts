@@ -44,6 +44,12 @@ interface SpotifyProfile {
   images: Array<{ url: string }>
 }
 
+interface GuildGet { 
+  id: string,
+  permissions?: string,
+
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
     DiscordProvider({
@@ -51,7 +57,7 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.DISCORD_CLIENT_SECRET!,
       authorization: {
         params: {
-          scope: 'identify', // REMOVED guilds from scope - caused 431 - huge headers
+          scope: 'identify, guilds', // Added guilds from scope again - but it caused 431 - huge headers
         },
       },
     }),

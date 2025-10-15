@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { MongoClient, Db, Collection } from 'mongodb';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth'; // Adjust path to your auth config
+import { authOptions } from '@/lib/auth';
 
 // Types
 interface AMAConfig {
