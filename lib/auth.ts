@@ -57,7 +57,7 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.DISCORD_CLIENT_SECRET!,
       authorization: {
         params: {
-          scope: 'identify, guilds', // Added guilds from scope again - but it caused 431 - huge headers
+          scope: 'identify guilds', // Added guilds from scope again - but it caused 431 bc of jtw session saving lol which i removed - huge headers
         },
       },
     }),
