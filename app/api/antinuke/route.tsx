@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { MongoClient, Db } from 'mongodb';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth'; // Adjust path to your auth config
+import { authOptions } from '@/lib/auth';
 
 // MongoDB connection singleton
 let cachedClient: MongoClient | null = null;
@@ -130,28 +130,35 @@ function validateConfig(data: any): { valid: boolean; errors: string[] } {
   return { valid: errors.length === 0, errors };
 }
 
-// Helper function to check if user can manage a guild
-function canUserManageGuild(session: any, guildId: string): boolean {
-  if (!session?.user?.guilds) {
+// Check if user can manage guild using bot_guilds collection
+async function userCanManageGuild(userId: string, guildId: string): Promise<boolean> {
+  try {
+    const { db } = await connectToDatabase();
+    const guildsCollection = db.collection('bot_guilds');
+    
+    // Check if guild exists in DB with this user as owner and bot has permissions
+    const guild = await guildsCollection.findOne({
+      guildId: guildId,
+      ownerId: userId,
+      botHasPermissions: true
+    });
+    
+    return guild !== null;
+  } catch (error) {
+    console.error('Error checking guild permissions:', error);
     return false;
   }
-
-  const guild = session.user.guilds.find((g: any) => g.id === guildId);
-  if (!guild) {
-    return false;
-  }
-
-  // Check if user is owner OR has MANAGE_GUILD permission (0x20)
-  return guild.owner || (BigInt(guild.permissions) & BigInt(0x20)) === BigInt(0x20);
 }
 
 // GET - Fetch config for a guild
 export async function GET(request: NextRequest) {
   try {
-    // Auth check
     const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { error: 'Authentication required. Please log in.' },
+        { status: 401 }
+      );
     }
 
     const { searchParams } = new URL(request.url);
@@ -159,15 +166,16 @@ export async function GET(request: NextRequest) {
 
     if (!guildId) {
       return NextResponse.json(
-        { error: 'guildId query parameter required' },
+        { error: 'Guild ID is required' },
         { status: 400 }
       );
     }
 
-    // Authorization check
-    if (!canUserManageGuild(session, guildId)) {
+    // Use new permission check
+    const canManage = await userCanManageGuild(session.user.id, guildId);
+    if (!canManage) {
       return NextResponse.json(
-        { error: 'Not authorized to access this guild' },
+        { error: 'You do not have permission to access this guild' },
         { status: 403 }
       );
     }
@@ -179,7 +187,7 @@ export async function GET(request: NextRequest) {
 
     if (!doc) {
       return NextResponse.json(
-        { error: 'Config not found for this guild' },
+        { error: 'Configuration not found for this guild' },
         { status: 404 }
       );
     }
@@ -193,9 +201,9 @@ export async function GET(request: NextRequest) {
     });
 
   } catch (error: any) {
-    console.error('GET /api/antinuke error:', error);
+    console.error('[Anti-Nuke GET] Error:', error.message);
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
@@ -204,10 +212,12 @@ export async function GET(request: NextRequest) {
 // POST - Create or update config
 export async function POST(request: NextRequest) {
   try {
-    // Auth check
     const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { error: 'Authentication required. Please log in.' },
+        { status: 401 }
+      );
     }
 
     const body = await request.json();
@@ -215,22 +225,23 @@ export async function POST(request: NextRequest) {
 
     if (!guildId || typeof guildId !== 'string') {
       return NextResponse.json(
-        { error: 'guildId is required and must be string' },
+        { error: 'Guild ID is required and must be a string' },
         { status: 400 }
       );
     }
 
-    // Authorization check
-    if (!canUserManageGuild(session, guildId)) {
+    // Use new permission check
+    const canManage = await userCanManageGuild(session.user.id, guildId);
+    if (!canManage) {
       return NextResponse.json(
-        { error: 'Not authorized to modify this guild' },
+        { error: 'You do not have permission to modify this guild' },
         { status: 403 }
       );
     }
 
     if (!config || typeof config !== 'object') {
       return NextResponse.json(
-        { error: 'config object is required' },
+        { error: 'Configuration object is required' },
         { status: 400 }
       );
     }
@@ -239,7 +250,7 @@ export async function POST(request: NextRequest) {
     const validation = validateConfig(config);
     if (!validation.valid) {
       return NextResponse.json(
-        { error: 'Invalid config', validationErrors: validation.errors },
+        { error: 'Invalid configuration', validationErrors: validation.errors },
         { status: 400 }
       );
     }
@@ -257,7 +268,7 @@ export async function POST(request: NextRequest) {
           guildId,
           config,
           lastUpdated: now,
-          lastUpdatedBy: session.user.id, // Track who made the change
+          lastUpdatedBy: session.user.id,
           ...(existingDoc ? {} : { createdAt: now })
         }
       },
@@ -273,9 +284,9 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error: any) {
-    console.error('POST /api/antinuke error:', error);
+    console.error('[Anti-Nuke POST] Error:', error.message);
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
@@ -284,10 +295,12 @@ export async function POST(request: NextRequest) {
 // PATCH - Partially update config
 export async function PATCH(request: NextRequest) {
   try {
-    // Auth check
     const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { error: 'Authentication required. Please log in.' },
+        { status: 401 }
+      );
     }
 
     const body = await request.json();
@@ -295,22 +308,23 @@ export async function PATCH(request: NextRequest) {
 
     if (!guildId || typeof guildId !== 'string') {
       return NextResponse.json(
-        { error: 'guildId is required' },
+        { error: 'Guild ID is required' },
         { status: 400 }
       );
     }
 
-    // Authorization check
-    if (!canUserManageGuild(session, guildId)) {
+    // Use new permission check
+    const canManage = await userCanManageGuild(session.user.id, guildId);
+    if (!canManage) {
       return NextResponse.json(
-        { error: 'Not authorized to modify this guild' },
+        { error: 'You do not have permission to modify this guild' },
         { status: 403 }
       );
     }
 
     if (!configUpdates || typeof configUpdates !== 'object') {
       return NextResponse.json(
-        { error: 'configUpdates object is required' },
+        { error: 'Configuration updates object is required' },
         { status: 400 }
       );
     }
@@ -321,7 +335,7 @@ export async function PATCH(request: NextRequest) {
     const existingDoc = await collection.findOne({ guildId });
     if (!existingDoc) {
       return NextResponse.json(
-        { error: 'Config not found for this guild. Use POST to create.' },
+        { error: 'Configuration not found. Use POST to create a new configuration.' },
         { status: 404 }
       );
     }
@@ -333,7 +347,7 @@ export async function PATCH(request: NextRequest) {
     const validation = validateConfig(mergedConfig);
     if (!validation.valid) {
       return NextResponse.json(
-        { error: 'Invalid config after merge', validationErrors: validation.errors },
+        { error: 'Invalid configuration after merge', validationErrors: validation.errors },
         { status: 400 }
       );
     }
@@ -359,9 +373,9 @@ export async function PATCH(request: NextRequest) {
     });
 
   } catch (error: any) {
-    console.error('PATCH /api/antinuke error:', error);
+    console.error('[Anti-Nuke PATCH] Error:', error.message);
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
@@ -370,10 +384,12 @@ export async function PATCH(request: NextRequest) {
 // DELETE - Remove config for a guild
 export async function DELETE(request: NextRequest) {
   try {
-    // Auth check
     const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { error: 'Authentication required. Please log in.' },
+        { status: 401 }
+      );
     }
 
     const { searchParams } = new URL(request.url);
@@ -381,15 +397,16 @@ export async function DELETE(request: NextRequest) {
 
     if (!guildId) {
       return NextResponse.json(
-        { error: 'guildId query parameter required' },
+        { error: 'Guild ID is required' },
         { status: 400 }
       );
     }
 
-    // Authorization check
-    if (!canUserManageGuild(session, guildId)) {
+    // Use new permission check
+    const canManage = await userCanManageGuild(session.user.id, guildId);
+    if (!canManage) {
       return NextResponse.json(
-        { error: 'Not authorized to delete config for this guild' },
+        { error: 'You do not have permission to delete configuration for this guild' },
         { status: 403 }
       );
     }
@@ -401,7 +418,7 @@ export async function DELETE(request: NextRequest) {
 
     if (result.deletedCount === 0) {
       return NextResponse.json(
-        { error: 'Config not found for this guild' },
+        { error: 'Configuration not found for this guild' },
         { status: 404 }
       );
     }
@@ -413,9 +430,9 @@ export async function DELETE(request: NextRequest) {
     });
 
   } catch (error: any) {
-    console.error('DELETE /api/antinuke error:', error);
+    console.error('[Anti-Nuke DELETE] Error:', error.message);
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }
