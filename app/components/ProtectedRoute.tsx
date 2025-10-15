@@ -19,7 +19,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-t-transparent border-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
           <p className={`text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
-            Checking credentials...
+            Are you a fish? Lets check your session...
           </p>
         </div>
       </div>
@@ -126,7 +126,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
           <p className={`text-base mb-8 ${
             theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
           }`}>
-            I decided to make it only accessible to her. Cz im done dealing with it atp, i have more to do in life than explain my relation with her to randoms
+            I decided to make it only Accessible to Her. Cz im done dealing with it atp, i have more to do in life than explain my relation with her to randoms
           </p>
           
           <motion.button
