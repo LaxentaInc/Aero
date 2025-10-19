@@ -10,8 +10,7 @@ export default function KoiPage() {
     </ProtectedRoute>
   );
 }
-// ```
-
-// **The issue:** You had duplicate providers causing context conflicts. Now the flow is clean:
-// ```
+//
+// The issue: we had duplicate providers causing context conflicts. Now the flow is clean:
+//
 // Layout → Providers (SessionProvider + ThemeProvider + DiscordProvider) → Everything else

@@ -120,7 +120,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
           <p className={`text-lg mb-3 ${
             theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
           }`}>
-            Due to a <span className="font-bold text-red-500">concerning amount of comments</span> to me about her and other cringe shi they said...
+            Due to a <span className="font-bold text-red-500">concerning amount of comments</span> to me about her and other cringe stuff they said
           </p>
 
           <p className={`text-base mb-8 ${

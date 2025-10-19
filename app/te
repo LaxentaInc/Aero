@@ -581,17 +581,7 @@ const DiscordStatus = ({ currentPage }: { currentPage: PageType }) => {
     );
 };
 
-const Navigation = ({ 
-    currentPage, 
-    setCurrentPage,
-    musicEnabled,
-    toggleMusic 
-}: { 
-    currentPage: PageType; 
-    setCurrentPage: (page: PageType) => void;
-    musicEnabled: boolean;
-    toggleMusic: () => void;
-}) => {
+const Navigation = ({ currentPage, setCurrentPage }: { currentPage: PageType; setCurrentPage: (page: PageType) => void }) => {
     const { theme, toggleTheme } = useTheme();
     const navItems = [
         { id: 'home' as PageType, label: 'Home', icon: Home },
@@ -600,101 +590,76 @@ const Navigation = ({
     ];
 
     return (
-        <motion.nav
-            className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 ${
-                theme === 'dark' ? 'bg-gray-900/80' : 'bg-white/80'
-            } backdrop-blur-xl rounded-2xl px-6 sm:px-8 py-4 shadow-2xl ${
-                theme === 'dark' ? 'border border-gray-700/30' : 'border border-gray-200/30'
-            }`}
-            initial={{ y: -100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, type: "spring", bounce: 0.3 }}
-        >
-            <div className="flex items-center space-x-2 sm:space-x-4">
-                {navItems.map((item, index) => (
+        <>
+            <motion.nav
+                className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 ${
+                    theme === 'dark' ? 'bg-gray-900/80' : 'bg-white/80'
+                } backdrop-blur-xl rounded-2xl px-6 sm:px-8 py-4 shadow-2xl ${
+                    theme === 'dark' ? 'border border-gray-700/30' : 'border border-gray-200/30'
+                }`}
+                initial={{ y: -100, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.6, type: "spring", bounce: 0.3 }}
+            >
+                <div className="flex items-center space-x-2 sm:space-x-4">
+                    {navItems.map((item, index) => (
+                        <motion.button
+                            key={item.id}
+                            onClick={() => setCurrentPage(item.id)}
+                            className={`relative px-4 py-2.5 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 text-sm sm:text-base ${
+                                currentPage === item.id
+                                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
+                                    : theme === 'dark' 
+                                        ? 'text-gray-300 hover:text-white hover:bg-gray-800/50' 
+                                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/50'
+                            }`}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.1 }}
+                        >
+                            <item.icon size={18} />
+                            <span className="hidden sm:inline">{item.label}</span>
+                            {currentPage === item.id && (
+                                <motion.div
+                                    className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 -z-10"
+                                    layoutId="activeTab"
+                                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                />
+                            )}
+                        </motion.button>
+                    ))}
                     <motion.button
-                        key={item.id}
-                        onClick={() => setCurrentPage(item.id)}
-                        className={`relative px-4 py-2.5 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 text-sm sm:text-base ${
-                            currentPage === item.id
-                                ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
-                                : theme === 'dark' 
-                                    ? 'text-gray-300 hover:text-white hover:bg-gray-800/50' 
-                                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/50'
+                        onClick={toggleTheme}
+                        className={`p-3 rounded-xl transition-all duration-300 ${
+                            theme === 'dark' 
+                                ? 'text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400' 
+                                : 'text-gray-600 hover:bg-gray-100/50 hover:text-yellow-500'
                         }`}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        whileHover={{ scale: 1.1, rotate: 180 }}
+                        transition={{ duration: 0.3 }}
                     >
-                        <item.icon size={18} />
-                        <span className="hidden sm:inline">{item.label}</span>
-                        {currentPage === item.id && (
+                        <AnimatePresence mode="wait">
                             <motion.div
-                                className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 -z-10"
-                                layoutId="activeTab"
-                                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                            />
-                        )}
+                                key={theme}
+                                initial={{ opacity: 0, rotate: -180 }}
+                                animate={{ opacity: 1, rotate: 0 }}
+                                exit={{ opacity: 0, rotate: 180 }}
+                                transition={{ duration: 0.3 }}
+                            >
+                                {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+                            </motion.div>
+                        </AnimatePresence>
                     </motion.button>
-                ))}
-                
-                {/* MUSIC BUTTON - ADD THIS */}
-                <motion.button
-                    onClick={toggleMusic}
-                    className={`p-3 rounded-xl transition-all duration-300 ${
-                        musicEnabled 
-                            ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg' 
-                            : theme === 'dark' 
-                                ? 'text-gray-300 hover:bg-gray-800/50 hover:text-purple-400' 
-                                : 'text-gray-600 hover:bg-gray-100/50 hover:text-purple-600'
-                    }`}
-                    whileTap={{ scale: 0.9 }}
-                    whileHover={{ scale: 1.1 }}
-                    transition={{ duration: 0.3 }}
-                >
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={musicEnabled ? 'on' : 'off'}
-                            initial={{ opacity: 0, rotate: -180 }}
-                            animate={{ opacity: 1, rotate: 0 }}
-                            exit={{ opacity: 0, rotate: 180 }}
-                            transition={{ duration: 0.3 }}
-                        >
-                            {musicEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
-                        </motion.div>
-                    </AnimatePresence>
-                </motion.button>
-
-                {/* THEME TOGGLE */}
-                <motion.button
-                    onClick={toggleTheme}
-                    className={`p-3 rounded-xl transition-all duration-300 ${
-                        theme === 'dark' 
-                            ? 'text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400' 
-                            : 'text-gray-600 hover:bg-gray-100/50 hover:text-yellow-500'
-                    }`}
-                    whileTap={{ scale: 0.9 }}
-                    whileHover={{ scale: 1.1, rotate: 180 }}
-                    transition={{ duration: 0.3 }}
-                >
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={theme}
-                            initial={{ opacity: 0, rotate: -180 }}
-                            animate={{ opacity: 1, rotate: 0 }}
-                            exit={{ opacity: 0, rotate: 180 }}
-                            transition={{ duration: 0.3 }}
-                        >
-                            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-                        </motion.div>
-                    </AnimatePresence>
-                </motion.button>
-            </div>
-        </motion.nav>
+                </div>
+            </motion.nav>
+            <DiscordStatus currentPage={currentPage} />
+        </>
     );
 };
+
 const HomePage = () => {
     const { theme } = useTheme();
 
@@ -1337,12 +1302,8 @@ useEffect(() => {
         <div className={`min-h-screen transition-all duration-500 ${
             theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
         }`}>
-     <Navigation 
-            currentPage={currentPage} 
-            setCurrentPage={setCurrentPage}
-            musicEnabled={musicEnabled}
-            toggleMusic={toggleMusic}
-        />            
+            <Navigation currentPage={currentPage} setCurrentPage={setCurrentPage} />
+            
             <AnimatePresence mode="wait">
                 <motion.div
                     key={currentPage}

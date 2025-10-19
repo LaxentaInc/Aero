@@ -7,8 +7,6 @@ import { useSession, signIn } from 'next-auth/react'
 import { useTheme } from '../contexts/ThemeContext'
 import Link from 'next/link'
 import Image from 'next/image'
-
-// Add VideoBackground component
 const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
   return (
     <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
