@@ -27,8 +27,12 @@ async function connectToDatabase() {
   return { client, db };
 }
 
+// CORRECTED INTERFACE - Matches bot module exactly
 interface AntiNukeConfig {
+  // Core settings
   enabled: boolean;
+  
+  // Thresholds
   channelDeleteThreshold: number;
   roleDeleteThreshold: number;
   webhookCreateThreshold: number;
@@ -37,14 +41,26 @@ interface AntiNukeConfig {
   banThreshold: number;
   kickThreshold: number;
   timeWindow: number;
-  burstWindow: number;
+  
+  // Trust system
   trustedUsers: string[];
   trustedRoles: string[];
   bypassTrusted: boolean;
-  monitorBots: boolean;
-  botThresholdMultiplier: number;
-  punishmentActions: string[];
+  
+  // BOT HANDLING
+  botAutoban: boolean;
+  
+  // USER PUNISHMENT
+  userPunishmentActions: string[];
   timeoutDuration: number;
+  
+  // RAPID FIRE DETECTION (instant ban system)
+  rapidFireEnabled: boolean;
+  rapidFireThreshold: number;
+  rapidFireWindow: number;
+  rapidFireAction: string;
+  
+  // Rollback system
   enableRollback: boolean;
   rollbackChannels: boolean;
   rollbackRoles: boolean;
@@ -54,27 +70,66 @@ interface AntiNukeConfig {
   maxEmojiBackups: number;
   maxStickerBackups: number;
   backupRetentionHours: number;
+  
+  // Notifications and logging
   notifyOwner: boolean;
-  progressiveAlerts: boolean;
   logChannelId: string | null;
   logActions: boolean;
-  antiWebhookSpam: boolean;
-  antiSelfBot: boolean;
-  maxWebhooksPerChannel: number;
+  
+  // Performance
   auditLogCacheDuration: number;
-  eventBatchWindow: number;
-  circuitBreakerThreshold: number;
   debug: boolean;
+}
+
+function getDefaultConfig(): AntiNukeConfig {
+  return {
+    enabled: true,
+    channelDeleteThreshold: 3,
+    roleDeleteThreshold: 3,
+    webhookCreateThreshold: 3,
+    emojiDeleteThreshold: 5,
+    stickerDeleteThreshold: 3,
+    banThreshold: 3,
+    kickThreshold: 5,
+    timeWindow: 30,
+    trustedUsers: [],
+    trustedRoles: [],
+    bypassTrusted: true,
+    
+    botAutoban: true,
+    userPunishmentActions: ['remove_roles', 'timeout'],
+    timeoutDuration: 1800,
+    
+    rapidFireEnabled: true,
+    rapidFireThreshold: 2,
+    rapidFireWindow: 1000,
+    rapidFireAction: 'ban',
+    
+    enableRollback: true,
+    rollbackChannels: true,
+    rollbackRoles: true,
+    rollbackEmojis: true,
+    maxChannelBackups: 20,
+    maxRoleBackups: 50,
+    maxEmojiBackups: 100,
+    maxStickerBackups: 100,
+    backupRetentionHours: 24,
+    notifyOwner: true,
+    logChannelId: null,
+    logActions: true,
+    auditLogCacheDuration: 2000,
+    debug: false
+  };
 }
 
 function validateConfig(data: any): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
   
   const boolFields = [
-    'enabled', 'bypassTrusted', 'monitorBots',
+    'enabled', 'bypassTrusted', 'botAutoban',
+    'rapidFireEnabled',
     'enableRollback', 'rollbackChannels', 'rollbackRoles', 'rollbackEmojis',
-    'notifyOwner', 'progressiveAlerts', 'logActions', 'antiWebhookSpam', 
-    'antiSelfBot', 'debug'
+    'notifyOwner', 'logActions', 'debug'
   ];
   
   boolFields.forEach(field => {
@@ -86,10 +141,10 @@ function validateConfig(data: any): { valid: boolean; errors: string[] } {
   const thresholds = [
     'channelDeleteThreshold', 'roleDeleteThreshold', 'webhookCreateThreshold',
     'emojiDeleteThreshold', 'stickerDeleteThreshold', 'banThreshold', 
-    'kickThreshold', 'timeWindow', 'burstWindow', 'timeoutDuration', 
-    'maxWebhooksPerChannel', 'maxChannelBackups', 'maxRoleBackups',
-    'maxEmojiBackups', 'maxStickerBackups', 'backupRetentionHours',
-    'auditLogCacheDuration', 'eventBatchWindow', 'circuitBreakerThreshold'
+    'kickThreshold', 'timeWindow', 'timeoutDuration',
+    'rapidFireThreshold', 'rapidFireWindow',
+    'maxChannelBackups', 'maxRoleBackups', 'maxEmojiBackups', 'maxStickerBackups',
+    'backupRetentionHours', 'auditLogCacheDuration'
   ];
   
   thresholds.forEach(field => {
@@ -98,29 +153,28 @@ function validateConfig(data: any): { valid: boolean; errors: string[] } {
     }
   });
 
-  if (typeof data.botThresholdMultiplier !== 'number' || 
-      data.botThresholdMultiplier <= 0 || 
-      data.botThresholdMultiplier > 1) {
-    errors.push('botThresholdMultiplier must be a number between 0 and 1');
-  }
-
   if (!Array.isArray(data.trustedUsers)) {
     errors.push('trustedUsers must be array');
   }
   if (!Array.isArray(data.trustedRoles)) {
     errors.push('trustedRoles must be array');
   }
-  if (!Array.isArray(data.punishmentActions)) {
-    errors.push('punishmentActions must be array');
+  if (!Array.isArray(data.userPunishmentActions)) {
+    errors.push('userPunishmentActions must be array');
   }
 
-  const validActions = ['remove_roles', 'timeout', 'kick', 'ban', 'notify'];
-  if (Array.isArray(data.punishmentActions)) {
-    data.punishmentActions.forEach((action: string) => {
-      if (!validActions.includes(action)) {
-        errors.push(`Invalid punishment action: ${action}`);
+  const validUserActions = ['remove_roles', 'timeout', 'kick', 'ban'];
+  if (Array.isArray(data.userPunishmentActions)) {
+    data.userPunishmentActions.forEach((action: string) => {
+      if (!validUserActions.includes(action)) {
+        errors.push(`Invalid user punishment action: ${action}`);
       }
     });
+  }
+
+  const validRapidFireActions = ['ban', 'kick', 'timeout'];
+  if (data.rapidFireAction && !validRapidFireActions.includes(data.rapidFireAction)) {
+    errors.push(`rapidFireAction must be one of: ${validRapidFireActions.join(', ')}`);
   }
 
   if (data.logChannelId !== null && typeof data.logChannelId !== 'string') {
@@ -136,7 +190,6 @@ async function userCanManageGuild(userId: string, guildId: string): Promise<bool
     const { db } = await connectToDatabase();
     const guildsCollection = db.collection('bot_guilds');
     
-    // Check if guild exists in DB with this user as owner and bot has permissions
     const guild = await guildsCollection.findOne({
       guildId: guildId,
       ownerId: userId,
@@ -171,7 +224,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Use new permission check
     const canManage = await userCanManageGuild(session.user.id, guildId);
     if (!canManage) {
       return NextResponse.json(
@@ -186,18 +238,27 @@ export async function GET(request: NextRequest) {
     const doc = await collection.findOne({ guildId });
 
     if (!doc) {
-      return NextResponse.json(
-        { error: 'Configuration not found for this guild' },
-        { status: 404 }
-      );
+      // Return default config if none exists
+      const defaultConfig = getDefaultConfig();
+      return NextResponse.json({
+        success: true,
+        guildId,
+        config: defaultConfig,
+        isDefault: true,
+        message: 'Using default configuration. Save to persist changes.'
+      });
     }
+
+    // Merge with defaults to ensure all fields exist (handles old configs)
+    const mergedConfig = { ...getDefaultConfig(), ...doc.config };
 
     return NextResponse.json({
       success: true,
       guildId: doc.guildId,
-      config: doc.config,
+      config: mergedConfig,
       lastUpdated: doc.lastUpdated,
-      createdAt: doc.createdAt
+      createdAt: doc.createdAt,
+      isDefault: false
     });
 
   } catch (error: any) {
@@ -215,7 +276,7 @@ export async function POST(request: NextRequest) {
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
       return NextResponse.json(
-        { error: 'No console cowboys allowed |  Authentication required. Please log in.' },
+        { error: 'No console cowboys allowed | Authentication required. Please log in.' },
         { status: 401 }
       );
     }
@@ -230,7 +291,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Use new permission check
     const canManage = await userCanManageGuild(session.user.id, guildId);
     if (!canManage) {
       return NextResponse.json(
@@ -246,8 +306,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Merge with defaults to ensure all fields exist
+    const completeConfig = { ...getDefaultConfig(), ...config };
+
     // Validate config structure
-    const validation = validateConfig(config);
+    const validation = validateConfig(completeConfig);
     if (!validation.valid) {
       return NextResponse.json(
         { error: 'Invalid configuration', validationErrors: validation.errors },
@@ -266,7 +329,7 @@ export async function POST(request: NextRequest) {
       {
         $set: {
           guildId,
-          config,
+          config: completeConfig,
           lastUpdated: now,
           lastUpdatedBy: session.user.id,
           ...(existingDoc ? {} : { createdAt: now })
@@ -278,7 +341,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       guildId,
-      config,
+      config: completeConfig,
       action: existingDoc ? 'updated' : 'created',
       lastUpdated: now.toISOString()
     });
@@ -313,7 +376,6 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    // Use new permission check
     const canManage = await userCanManageGuild(session.user.id, guildId);
     if (!canManage) {
       return NextResponse.json(
@@ -333,15 +395,11 @@ export async function PATCH(request: NextRequest) {
     const collection = db.collection('anti_nuke_protection_configs');
 
     const existingDoc = await collection.findOne({ guildId });
-    if (!existingDoc) {
-      return NextResponse.json(
-        { error: 'Configuration not found. Use POST to create a new configuration.' },
-        { status: 404 }
-      );
-    }
-
-    // Merge existing config with updates
-    const mergedConfig = { ...existingDoc.config, ...configUpdates };
+    
+    // Start with defaults, merge existing, then apply updates
+    const baseConfig = getDefaultConfig();
+    const currentConfig = existingDoc ? existingDoc.config : {};
+    const mergedConfig = { ...baseConfig, ...currentConfig, ...configUpdates };
 
     // Validate merged config
     const validation = validateConfig(mergedConfig);
@@ -357,18 +415,21 @@ export async function PATCH(request: NextRequest) {
       { guildId },
       {
         $set: {
+          guildId,
           config: mergedConfig,
           lastUpdated: now,
-          lastUpdatedBy: session.user.id
+          lastUpdatedBy: session.user.id,
+          ...(!existingDoc ? { createdAt: now } : {})
         }
-      }
+      },
+      { upsert: true }
     );
 
     return NextResponse.json({
       success: true,
       guildId,
       config: mergedConfig,
-      action: 'partially_updated',
+      action: existingDoc ? 'partially_updated' : 'created',
       lastUpdated: now.toISOString()
     });
 
@@ -402,7 +463,6 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Use new permission check
     const canManage = await userCanManageGuild(session.user.id, guildId);
     if (!canManage) {
       return NextResponse.json(
@@ -426,7 +486,8 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({
       success: true,
       guildId,
-      action: 'deleted'
+      action: 'deleted',
+      message: 'Configuration deleted. Default settings will be used.'
     });
 
   } catch (error: any) {
