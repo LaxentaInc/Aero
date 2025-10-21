@@ -1,6 +1,7 @@
 // app/api/spotify-tracks/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { MongoClient } from 'mongodb'
+import { getUserTokens, updateUserTokens } from '@/lib/spotify-utils'
 
 interface SpotifyTrack {
   track: {
@@ -33,57 +34,6 @@ interface UserTokenDoc {
   updatedAt: Date
 }
 
-let cachedClient: MongoClient | null = null
-
-async function connectToDatabase() {
-  if (cachedClient) {
-    return cachedClient
-  }
-
-  const client = await MongoClient.connect(process.env.MONGO_URI!)
-  cachedClient = client
-  return client
-}
-
-async function getUserTokens(userId: string): Promise<UserTokenDoc | null> {
-  const client = await connectToDatabase()
-  const db = client.db()
-  const collection = db.collection<UserTokenDoc>('spotify_tokens')
-  
-  return await collection.findOne({ userId })
-}
-
-async function updateUserTokens(
-  userId: string,
-  accessToken: string,
-  refreshToken: string,
-  expiresAt: number,
-  spotifyId?: string,
-  displayName?: string
-) {
-  const client = await connectToDatabase()
-  const db = client.db()
-  const collection = db.collection<UserTokenDoc>('spotify_tokens')
-  
-  await collection.updateOne(
-    { userId },
-    {
-      $set: {
-        accessToken,
-        refreshToken,
-        expiresAt,
-        updatedAt: new Date(),
-        ...(spotifyId && { spotifyId }),
-        ...(displayName && { displayName }),
-      },
-      $setOnInsert: {
-        userId,
-        createdAt: new Date(),
-      },
-    },
-    { upsert: true }
-  )
-}
 
 async function refreshSpotifyToken(refreshToken: string): Promise<string | null> {
   try {
@@ -264,7 +214,7 @@ function generateTracksSVG(
             font-size="10" 
             fill="#6B6B6B" 
             text-anchor="middle">
-        Updates in real-time • spotify-badge
+        Spotify Inc
       </text>
     </svg>
   `

@@ -2,24 +2,36 @@
 'use client'
 
 import { useSession, signIn, signOut } from 'next-auth/react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function SpotifyBadgePage() {
   const { data: session, status } = useSession()
-  const [copied, setCopied] = useState(false)
+  const [copied, setCopied] = useState<string | null>(null)
+  const [refreshKey, setRefreshKey] = useState(0)
 
   const isSpotifyAuth = session?.provider === 'spotify'
-  const badgeUrl = typeof window !== 'undefined' 
-    ? `${window.location.origin}/api/spotify-tracks`
-    : '/api/spotify-tracks'
+  const userBadgeUrl = session?.spotifyUserId 
+    ? `${window.location.origin}/api/spotify-tracks?user=${session.spotifyUserId}`
+    : `${window.location.origin}/api/spotify-tracks`
   
-  const markdownCode = `![Spotify Recently Played](${badgeUrl})`
+  const markdownCode = `![Spotify Recently Played](${userBadgeUrl})`
+  const htmlCode = `<img src="${userBadgeUrl}" alt="Spotify Recently Played" />`
 
-  const copyToClipboard = (text: string) => {
+  const copyToClipboard = (text: string, type: string) => {
     navigator.clipboard.writeText(text)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    setCopied(type)
+    setTimeout(() => setCopied(null), 2000)
   }
+
+  const refreshPreview = () => {
+    setRefreshKey(prev => prev + 1)
+  }
+
+  useEffect(() => {
+    // Auto-refresh every 60 seconds
+    const interval = setInterval(refreshPreview, 60000)
+    return () => clearInterval(interval)
+  }, [])
 
   if (status === 'loading') {
     return (
@@ -70,11 +82,22 @@ export default function SpotifyBadgePage() {
   return (
     <div className="min-h-screen bg-black py-12 px-4">
       <div className="max-w-3xl mx-auto">
-        {/* Header with Logout */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-1">Your Badge</h1>
-            <p className="text-gray-400">Updates every minute with your latest tracks</p>
+        {/* Header with User Info */}
+        <div className="flex justify-between items-start mb-8">
+          <div className="flex items-center gap-4">
+            {session.user?.image && (
+              <img 
+                src={session.user.image} 
+                alt={session.user.name || 'User'} 
+                className="w-12 h-12 rounded-full border-2 border-green-500"
+              />
+            )}
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-1">Your Badge</h1>
+              <p className="text-gray-400">
+                Welcome back, <span className="text-green-400">{session.user?.name}</span>
+              </p>
+            </div>
           </div>
           <button
             onClick={() => signOut({ callbackUrl: '/spotify-badge' })}
@@ -84,71 +107,131 @@ export default function SpotifyBadgePage() {
           </button>
         </div>
 
-        {/* Preview */}
+        {/* Preview Section */}
         <div className="bg-zinc-900 rounded-xl p-6 mb-6 border border-zinc-800">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-white">Preview</h2>
+            <div>
+              <h2 className="text-lg font-semibold text-white">Live Preview</h2>
+              <p className="text-sm text-gray-400">Auto-updates every 60 seconds</p>
+            </div>
             <button
-              onClick={() => window.location.reload()}
-              className="text-xs bg-zinc-800 hover:bg-zinc-700 text-gray-300 px-3 py-1.5 rounded transition-colors"
+              onClick={refreshPreview}
+              className="flex items-center gap-2 text-sm bg-green-500 hover:bg-green-600 text-black px-4 py-2 rounded-lg transition-colors font-semibold"
             >
-              Refresh
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Refresh Now
             </button>
           </div>
-          <div className="bg-black rounded-lg p-6 flex justify-center">
+          <div className="bg-black rounded-lg p-6 flex justify-center border border-zinc-800">
             <img 
-              src={`${badgeUrl}?t=${Date.now()}`}
+              src={`${userBadgeUrl}&t=${refreshKey}`}
               alt="Spotify Recently Played" 
-              className="max-w-full h-auto"
+              className="max-w-full h-auto rounded-lg"
+              onError={(e) => {
+                // Fallback if image fails to load
+                console.log('Image failed to load, using timestamp refresh')
+                e.currentTarget.src = `${userBadgeUrl}&t=${Date.now()}`
+              }}
             />
           </div>
         </div>
 
-        {/* Embed Code */}
-        <div className="bg-zinc-900 rounded-xl p-6 border border-zinc-800">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold text-white">Markdown Code</h2>
-            <span className="text-xs bg-green-500/10 text-green-400 px-2 py-1 rounded">
-              GitHub README
-            </span>
+        {/* Embed Codes Section */}
+        <div className="space-y-6">
+          {/* Markdown Code */}
+          <div className="bg-zinc-900 rounded-xl p-6 border border-zinc-800">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-lg font-semibold text-white">Markdown Code</h2>
+                <p className="text-sm text-gray-400">Perfect for GitHub READMEs</p>
+              </div>
+              <span className="text-xs bg-blue-500/10 text-blue-400 px-2 py-1 rounded">
+                Markdown
+              </span>
+            </div>
+            <div className="relative group">
+              <pre className="bg-black rounded-lg p-4 text-sm text-green-400 overflow-x-auto border border-zinc-800 pr-24">
+                <code>{markdownCode}</code>
+              </pre>
+              <button
+                onClick={() => copyToClipboard(markdownCode, 'markdown')}
+                className="absolute top-3 right-3 bg-zinc-800 hover:bg-green-500 text-gray-300 hover:text-black px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 border border-zinc-700 hover:border-green-500"
+              >
+                {copied === 'markdown' ? '✓ Copied!' : 'Copy'}
+              </button>
+            </div>
           </div>
-          <div className="relative">
-            <pre className="bg-black rounded-lg p-4 text-sm text-green-400 overflow-x-auto border border-zinc-800">
-              <code>{markdownCode}</code>
-            </pre>
-            <button
-              onClick={() => copyToClipboard(markdownCode)}
-              className="absolute top-3 right-3 bg-green-500 hover:bg-green-600 text-black px-3 py-1.5 rounded text-sm font-semibold transition-all"
-            >
-              {copied ? '✓' : 'Copy'}
-            </button>
+
+          {/* HTML Code */}
+          <div className="bg-zinc-900 rounded-xl p-6 border border-zinc-800">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-lg font-semibold text-white">HTML Code</h2>
+                <p className="text-sm text-gray-400">For websites and blogs</p>
+              </div>
+              <span className="text-xs bg-yellow-500/10 text-yellow-400 px-2 py-1 rounded">
+                HTML
+              </span>
+            </div>
+            <div className="relative group">
+              <pre className="bg-black rounded-lg p-4 text-sm text-yellow-400 overflow-x-auto border border-zinc-800 pr-24">
+                <code>{htmlCode}</code>
+              </pre>
+              <button
+                onClick={() => copyToClipboard(htmlCode, 'html')}
+                className="absolute top-3 right-3 bg-zinc-800 hover:bg-yellow-500 text-gray-300 hover:text-black px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 border border-zinc-700 hover:border-yellow-500"
+              >
+                {copied === 'html' ? '✓ Copied!' : 'Copy'}
+              </button>
+            </div>
+          </div>
+
+          {/* Direct URL */}
+          <div className="bg-zinc-900 rounded-xl p-6 border border-zinc-800">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-lg font-semibold text-white">Direct Image URL</h2>
+                <p className="text-sm text-gray-400">Use anywhere that accepts image URLs</p>
+              </div>
+              <span className="text-xs bg-purple-500/10 text-purple-400 px-2 py-1 rounded">
+                URL
+              </span>
+            </div>
+            <div className="relative group">
+              <input
+                type="text"
+                value={userBadgeUrl}
+                readOnly
+                className="w-full bg-black text-gray-300 px-4 py-3 pr-32 rounded-lg font-mono text-sm border border-zinc-800"
+              />
+              <button
+                onClick={() => copyToClipboard(userBadgeUrl, 'url')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-zinc-800 hover:bg-purple-500 text-gray-300 hover:text-black px-4 py-2 rounded-lg font-semibold transition-all duration-200 border border-zinc-700 hover:border-purple-500 text-sm"
+              >
+                {copied === 'url' ? '✓' : 'Copy URL'}
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Direct URL */}
-        <div className="mt-4 bg-zinc-900 rounded-xl p-6 border border-zinc-800">
-          <h2 className="text-lg font-semibold text-white mb-3">Direct Image URL</h2>
-          <div className="relative">
-            <input
-              type="text"
-              value={badgeUrl}
-              readOnly
-              className="w-full bg-black text-gray-300 px-4 py-3 pr-20 rounded-lg font-mono text-sm border border-zinc-800"
-            />
-            <button
-              onClick={() => copyToClipboard(badgeUrl)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-green-500 hover:bg-green-600 text-black px-3 py-1.5 rounded font-semibold transition-all text-sm"
-            >
-              {copied ? '✓' : 'Copy'}
-            </button>
+        {/* Info Section */}
+        <div className="mt-8 p-6 bg-green-500/5 border border-green-500/20 rounded-xl">
+          <div className="flex items-start gap-3">
+            <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-black text-sm font-bold">💡</span>
+            </div>
+            <div>
+              <h3 className="text-green-400 font-semibold mb-2">Pro Tips</h3>
+              <ul className="text-green-300 text-sm space-y-1">
+                <li>• Your badge auto-updates every 60 seconds with your latest tracks</li>
+                <li>• Use the Markdown version for GitHub, Discord, and documentation</li>
+                <li>• The HTML version works great for personal websites and blogs</li>
+                <li>• The image URL can be used anywhere that accepts direct image links</li>
+              </ul>
+            </div>
           </div>
-        </div>
-
-        {/* Info */}
-        <div className="mt-6 p-4 bg-green-500/5 border border-green-500/20 rounded-lg">
-          <p className="text-green-400 text-sm">
-            💡 Your badge auto-updates every 60 seconds with your most recently played tracks
-          </p>
         </div>
       </div>
     </div>
