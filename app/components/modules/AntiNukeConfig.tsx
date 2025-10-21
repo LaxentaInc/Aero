@@ -150,6 +150,15 @@ const Checkbox = ({ checked, onChange, disabled, label }: { checked: boolean; on
   );
 };
 
+export const moduleInfo = {
+  id: 'antinuke',
+  name: 'Anti-Nuke',
+  description: 'Advanced protection against mass destructive actions and server raids',
+  icon: Shield,
+  color: 'red',
+  category: 'protection'
+};
+
 export default function AntiNukeConfig({ selectedGuild, onSave }: ModuleConfigProps) {
   const [config, setConfig] = useState<AntiNukeConfig>(defaultConfig);
   const [loading, setLoading] = useState(false);
