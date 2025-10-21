@@ -148,6 +148,46 @@ async function imageUrlToDataURL(url: string): Promise<string> {
   }
 }
 
+// Random style generator
+function getRandomStyle(seed: string) {
+  // Use seed for consistent randomness per minute
+  const hash = seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  const random = (hash * 9301 + 49297) % 233280 / 233280
+  
+  const styles = [
+    {
+      name: 'wave',
+      animation: 'wave',
+      glowIntensity: 4,
+      borderOpacity: 0.3,
+      cardOpacity: 0.9,
+    },
+    {
+      name: 'pulse',
+      animation: 'pulse',
+      glowIntensity: 6,
+      borderOpacity: 0.5,
+      cardOpacity: 0.85,
+    },
+    {
+      name: 'slide',
+      animation: 'slide',
+      glowIntensity: 3,
+      borderOpacity: 0.4,
+      cardOpacity: 0.95,
+    },
+    {
+      name: 'glow',
+      animation: 'glow',
+      glowIntensity: 8,
+      borderOpacity: 0.6,
+      cardOpacity: 0.8,
+    },
+  ]
+  
+  return styles[Math.floor(random * styles.length)]
+}
+
 async function generateTracksSVG(
   tracks: SpotifyTrack[],
   username: string,
@@ -160,6 +200,10 @@ async function generateTracksSVG(
   const headerHeight = 80
   const padding = 15
   const height = headerHeight + (tracks.length * itemHeight) + 40
+
+  // Get current minute for consistent styling per minute
+  const currentMinute = Math.floor(Date.now() / 60000)
+  const style = getRandomStyle(currentMinute.toString() + accentColor)
 
   // Convert hex to RGB for gradient
   const hexToRgb = (hex: string) => {
@@ -179,6 +223,56 @@ async function generateTracksSVG(
     userImageDataURL = await imageUrlToDataURL(userImage)
   }
 
+  // Generate animation CSS based on style
+  const getAnimationCSS = () => {
+    switch (style.animation) {
+      case 'wave':
+        return `
+          @keyframes wave {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+          }
+          .track-item { animation: wave 3s ease-in-out infinite; }
+          .track-item:nth-child(1) { animation-delay: 0s; }
+          .track-item:nth-child(2) { animation-delay: 0.2s; }
+          .track-item:nth-child(3) { animation-delay: 0.4s; }
+          .track-item:nth-child(4) { animation-delay: 0.6s; }
+          .track-item:nth-child(5) { animation-delay: 0.8s; }
+        `
+      case 'pulse':
+        return `
+          @keyframes pulse {
+            0%, 100% { opacity: ${style.cardOpacity}; }
+            50% { opacity: ${style.cardOpacity + 0.1}; }
+          }
+          .track-item rect { animation: pulse 2s ease-in-out infinite; }
+          @keyframes pulse-glow {
+            0%, 100% { opacity: 0.1; }
+            50% { opacity: 0.3; }
+          }
+        `
+      case 'slide':
+        return `
+          @keyframes slide {
+            0% { transform: translateX(-3px); }
+            50% { transform: translateX(3px); }
+            100% { transform: translateX(-3px); }
+          }
+          .track-item { animation: slide 4s ease-in-out infinite; }
+        `
+      case 'glow':
+        return `
+          @keyframes glow-pulse {
+            0%, 100% { filter: drop-shadow(0 0 2px ${accentColor}); }
+            50% { filter: drop-shadow(0 0 8px ${accentColor}); }
+          }
+          .track-item { animation: glow-pulse 2s ease-in-out infinite; }
+        `
+      default:
+        return ''
+    }
+  }
+
   const trackItems = await Promise.all(
     tracks.map(async (item, index) => {
       const y = headerHeight + (index * itemHeight)
@@ -195,8 +289,8 @@ async function generateTracksSVG(
       return `
         <g transform="translate(0, ${y})" class="track-item">
           <rect x="${padding}" y="0" width="${width - padding * 2}" height="${itemHeight - 10}" 
-                fill="#282828" rx="6" opacity="0.9">
-            <animate attributeName="opacity" from="0" to="0.9" dur="0.5s" begin="${index * 0.1}s" fill="freeze"/>
+                fill="#282828" rx="6" opacity="${style.cardOpacity}">
+            <animate attributeName="opacity" from="0" to="${style.cardOpacity}" dur="0.5s" begin="${index * 0.1}s" fill="freeze"/>
           </rect>
           
           ${imageDataURL ? `
@@ -260,7 +354,7 @@ async function generateTracksSVG(
           </feMerge>
         </filter>
         <filter id="glow-strong">
-          <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+          <feGaussianBlur stdDeviation="${style.glowIntensity}" result="coloredBlur"/>
           <feMerge>
             <feMergeNode in="coloredBlur"/>
             <feMergeNode in="SourceGraphic"/>
@@ -268,11 +362,15 @@ async function generateTracksSVG(
         </filter>
       </defs>
       
+      <style>
+        ${getAnimationCSS()}
+      </style>
+      
       <rect width="${width}" height="${height}" fill="url(#bg-gradient)" rx="12">
         <animate attributeName="opacity" from="0" to="1" dur="0.5s" fill="freeze"/>
       </rect>
-      <rect width="${width}" height="${height}" fill="none" stroke="${accentColor}" stroke-width="2" rx="12" opacity="0.3">
-        <animate attributeName="opacity" from="0" to="0.3" dur="0.8s" fill="freeze"/>
+      <rect width="${width}" height="${height}" fill="none" stroke="${accentColor}" stroke-width="2" rx="12" opacity="${style.borderOpacity}">
+        <animate attributeName="opacity" from="0" to="${style.borderOpacity}" dur="0.8s" fill="freeze"/>
       </rect>
       
       <!-- Animated Accent Glow -->
@@ -314,14 +412,17 @@ async function generateTracksSVG(
           ${username}
         </text>
         
-        <!-- Spotify Logo with Custom Color -->
-        <g transform="translate(${width - padding - 35}, 10)">
-          <circle cx="15" cy="15" r="15" fill="${accentColor}" filter="url(#glow)">
+        <!-- Spotify Logo with Custom Color (Fixed Centering) -->
+        <g transform="translate(${width - padding - 50}, 10)">
+          <circle cx="20" cy="20" r="18" fill="${accentColor}" filter="url(#glow)">
             <animate attributeName="opacity" from="0" to="1" dur="0.8s" fill="freeze"/>
+            <animate attributeName="r" values="18;19;18" dur="2s" repeatCount="indefinite"/>
           </circle>
-          <svg x="5" y="5" width="20" height="20" viewBox="0 0 24 24" fill="#191414">
-            <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424c-.18.295-.563.387-.857.207-2.35-1.434-5.305-1.76-8.786-.963-.335.077-.67-.133-.746-.469-.077-.335.132-.67.469-.746 3.809-.87 7.076-.496 9.712 1.115.293.18.385.563.206.857zm1.223-2.723c-.226.367-.706.482-1.073.257-2.687-1.652-6.785-2.13-9.965-1.166-.413.127-.848-.106-.977-.517-.125-.413.108-.848.52-.977 3.632-1.102 8.147-.568 11.234 1.328.366.226.48.707.256 1.073zm.105-2.835C14.692 8.95 9.375 8.775 6.297 9.71c-.493.15-1.016-.13-1.166-.624-.148-.495.13-1.017.625-1.167 3.532-1.073 9.404-.865 13.115 1.338.445.264.59.838.327 1.282-.264.443-.838.59-1.282.326z"/>
-          </svg>
+          <g transform="translate(8, 8)">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="#191414">
+              <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424c-.18.295-.563.387-.857.207-2.35-1.434-5.305-1.76-8.786-.963-.335.077-.67-.133-.746-.469-.077-.335.132-.67.469-.746 3.809-.87 7.076-.496 9.712 1.115.293.18.385.563.206.857zm1.223-2.723c-.226.367-.706.482-1.073.257-2.687-1.652-6.785-2.13-9.965-1.166-.413.127-.848-.106-.977-.517-.125-.413.108-.848.52-.977 3.632-1.102 8.147-.568 11.234 1.328.366.226.48.707.256 1.073zm.105-2.835C14.692 8.95 9.375 8.775 6.297 9.71c-.493.15-1.016-.13-1.166-.624-.148-.495.13-1.017.625-1.167 3.532-1.073 9.404-.865 13.115 1.338.445.264.59.838.327 1.282-.264.443-.838.59-1.282.326z"/>
+            </svg>
+          </g>
         </g>
       </g>
       
@@ -356,7 +457,9 @@ function generateErrorSVG(message: string, accentColor: string = '#FF6B6B'): str
       <rect width="500" height="150" fill="#191414" rx="12"/>
       <rect width="500" height="150" fill="none" stroke="${accentColor}" stroke-width="2" rx="12" opacity="0.5"/>
       
-      <circle cx="250" cy="55" r="20" fill="${accentColor}" opacity="0.2" filter="url(#glow)"/>
+      <circle cx="250" cy="55" r="20" fill="${accentColor}" opacity="0.2" filter="url(#glow)">
+        <animate attributeName="opacity" values="0.2;0.4;0.2" dur="2s" repeatCount="indefinite"/>
+      </circle>
       
       <text x="250" y="70" 
             font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" 
