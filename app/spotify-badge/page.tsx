@@ -127,11 +127,30 @@ export default function SpotifyBadgePage() {
     window.location.href = '/api/spotify/auth'
   }
 
-  const disconnectSpotify = () => {
+// Update the disconnectSpotify function
+const disconnectSpotify = async () => {
+  try {
+    // Call API to delete tokens from MongoDB
+    const response = await fetch('/api/spotify/disconnect', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId: user?.userId }),
+    })
+
+    if (response.ok) {
+      console.log('Successfully disconnected from Spotify')
+    }
+  } catch (error) {
+    console.error('Disconnect error:', error)
+  } finally {
+    // Always clear frontend
     localStorage.removeItem('spotify_user')
     setUser(null)
     setRefreshKey(prev => prev + 1)
   }
+}
 
   useEffect(() => {
     const interval = setInterval(refreshPreview, 60000)
