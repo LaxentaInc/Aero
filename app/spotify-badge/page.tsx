@@ -1,11 +1,24 @@
 // app/spotify-badge/page.tsx
 'use client'
 
-import { useSession, signIn, signOut } from 'next-auth/react'
+import { useSession, signOut } from 'next-auth/react' // Only for Discord session
 import { useState, useEffect, useRef } from 'react'
+import { generateSpotifyAuthUrl, getSpotifyUserByUserId, refreshSpotifyToken, isTokenExpired } from '../../lib/spotify-oauth'
+
+// Define types for our manual Spotify session
+interface SpotifySession {
+  userId: string
+  accessToken: string
+  spotifyId: string
+  displayName: string
+  image?: string
+  email?: string
+}
 
 export default function SpotifyBadgePage() {
-  const { data: session, status } = useSession()
+  const { data: discordSession } = useSession() // Discord session from NextAuth
+  const [spotifySession, setSpotifySession] = useState<SpotifySession | null>(null)
+  const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState<string | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
   const [footerText, setFooterText] = useState('Real Time Data • Spotify Incorporations')
@@ -16,10 +29,68 @@ export default function SpotifyBadgePage() {
   const [colorCooldown, setColorCooldown] = useState(false)
   const lastAppliedSettings = useRef({ footerText, accentColor })
 
-  const isSpotifyAuth = session?.provider === 'spotify'
-  
+  // Check for Spotify session on mount
+  useEffect(() => {
+    checkSpotifySession()
+  }, [])
+
+  const checkSpotifySession = async () => {
+    try {
+      // Check if we have a Spotify user ID in localStorage
+      const spotifyUserId = localStorage.getItem('spotify_user')
+      
+      if (spotifyUserId) {
+        // Get user data from database
+        const userData = await getSpotifyUserByUserId(spotifyUserId)
+        
+        if (userData) {
+          // Check if token needs refresh
+          if (isTokenExpired(userData.expiresAt)) {
+            try {
+              const newTokens = await refreshSpotifyToken(userData.refreshToken)
+              // You'd want to update the database here with new tokens
+              // For now, we'll just use the existing data
+            } catch (error) {
+              console.error('Token refresh failed:', error)
+              // Token refresh failed, clear session
+              localStorage.removeItem('spotify_user')
+              setSpotifySession(null)
+              setLoading(false)
+              return
+            }
+          }
+
+          setSpotifySession({
+            userId: userData.userId,
+            accessToken: userData.accessToken,
+            spotifyId: userData.spotifyId,
+            displayName: userData.displayName,
+            email: userData.email
+          })
+        } else {
+          // User data not found in DB, clear session
+          localStorage.removeItem('spotify_user')
+        }
+      }
+    } catch (error) {
+      console.error('Error checking Spotify session:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSpotifyLogin = () => {
+    const { url } = generateSpotifyAuthUrl()
+    window.location.href = url
+  }
+
+  const handleSpotifyLogout = () => {
+    localStorage.removeItem('spotify_user')
+    setSpotifySession(null)
+  }
+
   const buildBadgeUrl = () => {
-    const baseUrl = `${window.location.origin}/api/spotify-tracks?user=${session?.spotifyUserId || ''}`
+    const baseUrl = `${window.location.origin}/api/spotify-tracks?user=${spotifySession?.userId || ''}`
     const params = new URLSearchParams()
     if (lastAppliedSettings.current.footerText !== 'Real Time Data • Spotify Incorporations') {
       params.append('footer', lastAppliedSettings.current.footerText)
@@ -30,7 +101,7 @@ export default function SpotifyBadgePage() {
     return params.toString() ? `${baseUrl}&${params.toString()}` : baseUrl
   }
 
-  const userBadgeUrl = session?.spotifyUserId ? buildBadgeUrl() : `${window.location.origin}/api/spotify-tracks`
+  const userBadgeUrl = spotifySession?.userId ? buildBadgeUrl() : `${window.location.origin}/api/spotify-tracks`
   
   const markdownCode = `![Spotify Recently Played](${userBadgeUrl})`
   const htmlCode = `<img src="${userBadgeUrl}" alt="Spotify Recently Played" />`
@@ -88,7 +159,7 @@ export default function SpotifyBadgePage() {
     return () => clearInterval(interval)
   }, [])
 
-  if (status === 'loading') {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center">
         <div className="relative">
@@ -101,7 +172,7 @@ export default function SpotifyBadgePage() {
     )
   }
 
-  if (!session || !isSpotifyAuth) {
+  if (!spotifySession) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center p-4 relative overflow-hidden">
         <div className="absolute inset-0 overflow-hidden">
@@ -132,7 +203,7 @@ export default function SpotifyBadgePage() {
           </div>
 
           <button
-            onClick={() => signIn('spotify', { callbackUrl: '/spotify-badge' })}
+            onClick={handleSpotifyLogin}
             className="group relative w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-black font-bold py-5 px-6 rounded-2xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-green-500/50 flex items-center justify-center gap-3 overflow-hidden"
           >
             <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
@@ -173,27 +244,25 @@ export default function SpotifyBadgePage() {
         {/* Header */}
         <div className="flex justify-between items-center mb-8 animate-fade-in">
           <div className="flex items-center gap-4">
-            {session.user?.image && (
-              <div className="relative group">
-                <div className="absolute inset-0 bg-green-500/20 rounded-full blur-xl group-hover:bg-green-500/30 transition-colors"></div>
-                <img 
-                  src={session.user.image} 
-                  alt={session.user.name || 'User'} 
-                  className="relative w-14 h-14 rounded-full border-2 border-green-500 shadow-lg shadow-green-500/50"
-                />
+            <div className="relative group">
+              <div className="absolute inset-0 bg-green-500/20 rounded-full blur-xl group-hover:bg-green-500/30 transition-colors"></div>
+              <div className="relative w-14 h-14 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center border-2 border-green-500 shadow-lg shadow-green-500/50">
+                <svg className="w-7 h-7 text-black" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424c-.18.295-.563.387-.857.207-2.35-1.434-5.305-1.76-8.786-.963-.335.077-.67-.133-.746-.469-.077-.335.132-.67.469-.746 3.809-.87 7.076-.496 9.712 1.115.293.18.385.563.206.857zm1.223-2.723c-.226.367-.706.482-1.073.257-2.687-1.652-6.785-2.13-9.965-1.166-.413.127-.848-.106-.977-.517-.125-.413.108-.848.52-.977 3.632-1.102 8.147-.568 11.234 1.328.366.226.48.707.256 1.073zm.105-2.835C14.692 8.95 9.375 8.775 6.297 9.71c-.493.15-1.016-.13-1.166-.624-.148-.495.13-1.017.625-1.167 3.532-1.073 9.404-.865 13.115 1.338.445.264.59.838.327 1.282-.264.443-.838.59-1.282.326z"/>
+                </svg>
               </div>
-            )}
+            </div>
             <div>
               <h1 className="text-3xl font-bold text-white mb-1">
                 Your Badge
               </h1>
               <p className="text-gray-400 text-sm">
-                Welcome back, <span className="text-green-400 font-semibold">{session.user?.name}</span>
+                Welcome, <span className="text-green-400 font-semibold">{spotifySession.displayName}</span>
               </p>
             </div>
           </div>
           <button
-            onClick={() => signOut({ callbackUrl: '/spotify-badge' })}
+            onClick={handleSpotifyLogout}
             className="px-5 py-2.5 bg-zinc-900/50 hover:bg-red-500/20 text-gray-300 hover:text-red-400 rounded-lg transition-all duration-300 border border-zinc-800 hover:border-red-500/50 text-sm font-medium flex items-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -1,10 +1,8 @@
 // lib/auth.ts
 import { NextAuthOptions } from 'next-auth'
 import DiscordProvider from 'next-auth/providers/discord'
-import SpotifyProvider from 'next-auth/providers/spotify'
 import { NextRequest } from 'next/server'
 import { MongoClient } from 'mongodb'
-import { randomBytes } from 'crypto'
 
 declare module 'next-auth' {
   interface Session {
@@ -16,8 +14,7 @@ declare module 'next-auth' {
     accessToken: string
     refreshToken?: string
     expiresAt?: number
-    provider?: 'discord' | 'spotify'
-    spotifyUserId?: string // Add this for the badge URL
+    provider: 'discord'
   }
 }
 
@@ -30,8 +27,7 @@ declare module 'next-auth/jwt' {
     accessToken: string
     refreshToken?: string
     expiresAt?: number
-    provider?: 'discord' | 'spotify'
-    spotifyUserId?: string
+    provider: 'discord'
   }
 }
 
@@ -44,27 +40,21 @@ interface DiscordProfile {
   global_name?: string
 }
 
-// Spotify profile definition
-interface SpotifyProfile {
-  id: string
-  display_name: string
-  images: Array<{ url: string }>
-  email?: string
-}
-
 interface GuildGet { 
   id: string
   permissions?: string
 }
 
-interface UserTokenDoc {
+interface DiscordTokenDoc {
   userId: string
   accessToken: string
   refreshToken: string
   expiresAt: number
-  spotifyId: string
-  displayName: string
-  email?: string
+  discordId: string
+  username: string
+  globalName?: string
+  discriminator: string
+  avatar: string
   createdAt: Date
   updatedAt: Date
 }
@@ -81,18 +71,21 @@ async function connectToDatabase() {
   return client
 }
 
-async function saveSpotifyUser(
+// Discord functions
+async function saveDiscordUser(
   userId: string,
   accessToken: string,
   refreshToken: string,
   expiresAt: number,
-  spotifyId: string,
-  displayName: string,
-  email?: string
+  discordId: string,
+  username: string,
+  globalName?: string,
+  discriminator?: string,
+  avatar?: string
 ) {
   const client = await connectToDatabase()
   const db = client.db()
-  const collection = db.collection<UserTokenDoc>('spotify_tokens')
+  const collection = db.collection<DiscordTokenDoc>('discord_tokens')
   
   await collection.updateOne(
     { userId },
@@ -101,9 +94,11 @@ async function saveSpotifyUser(
         accessToken,
         refreshToken,
         expiresAt,
-        spotifyId,
-        displayName,
-        email,
+        discordId,
+        username,
+        globalName,
+        discriminator,
+        avatar,
         updatedAt: new Date(),
       },
       $setOnInsert: {
@@ -113,34 +108,6 @@ async function saveSpotifyUser(
     },
     { upsert: true }
   )
-}
-
-async function getOrCreateSpotifyUserId(spotifyId: string): Promise<string> {
-  const client = await connectToDatabase()
-  const db = client.db()
-  const collection = db.collection<UserTokenDoc>('spotify_tokens')
-  
-  // Check if user already exists
-  const existing = await collection.findOne({ spotifyId })
-  if (existing) {
-    return existing.userId
-  }
-  
-  // Generate new unique user ID
-  return randomBytes(16).toString('hex')
-}
-
-// Helper function to save user tokens (for use in auth callback and elsewhere)
-export async function saveUserTokens(
-  userId: string,
-  accessToken: string,
-  refreshToken: string,
-  expiresAt: number,
-  spotifyId: string,
-  displayName: string,
-  email?: string
-) {
-  await saveSpotifyUser(userId, accessToken, refreshToken, expiresAt, spotifyId, displayName, email)
 }
 
 export const authOptions: NextAuthOptions = {
@@ -160,24 +127,8 @@ export const authOptions: NextAuthOptions = {
           image: `https://cdn.discordapp.com/avatars/${profile.id}/${profile.avatar}.png`,
           username: profile.username,
           discriminator: profile.discriminator,
-        }
-      },
-    }),
-    SpotifyProvider({
-      clientId: process.env.SPOTIFY_CLIENT_ID!,
-      clientSecret: process.env.SPOTIFY_CLIENT_SECRET!,
-      authorization: {
-        params: {
-          scope: 'user-read-email user-read-recently-played user-top-read user-read-private',
-        },
-      },
-      profile(profile: SpotifyProfile) {
-        return {
-          id: profile.id,
-          name: profile.display_name,
-          email: profile.email,
-          image: profile.images?.[0]?.url,
-          display_name: profile.display_name,
+          avatar: profile.avatar,
+          global_name: profile.global_name,
         }
       },
     }),
@@ -185,23 +136,24 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
     async signIn({ user, account, profile }) {
-      if (account?.provider === 'spotify') {
+      if (account?.provider === 'discord') {
         try {
-          const spotifyProfile = profile as SpotifyProfile
-          const spotifyUserId = await getOrCreateSpotifyUserId(spotifyProfile.id)
+          const discordProfile = profile as DiscordProfile
           
           // Save tokens to MongoDB
-          await saveUserTokens(
-            spotifyUserId,
+          await saveDiscordUser(
+            discordProfile.id, // Use Discord ID as userId
             account.access_token!,
             account.refresh_token!,
             Date.now() + (account.expires_at! * 1000),
-            spotifyProfile.id,
-            spotifyProfile.display_name,
-            spotifyProfile.email
+            discordProfile.id,
+            discordProfile.username,
+            discordProfile.global_name,
+            discordProfile.discriminator,
+            discordProfile.avatar
           )
         } catch (error) {
-          console.error('Error saving Spotify tokens during signin:', error)
+          console.error('Error saving Discord tokens during signin:', error)
           return false
         }
       }
@@ -213,7 +165,7 @@ export const authOptions: NextAuthOptions = {
         token.accessToken = account.access_token!
         token.refreshToken = account.refresh_token
         token.expiresAt = account.expires_at
-        token.provider = account.provider as 'discord' | 'spotify'
+        token.provider = 'discord'
 
         // Handle Discord-specific data
         if (account.provider === 'discord') {
@@ -221,57 +173,6 @@ export const authOptions: NextAuthOptions = {
           token.id = discordProfile.id
           token.username = discordProfile.username
           token.avatar = discordProfile.avatar
-        }
-
-        // Handle Spotify-specific data
-        if (account.provider === 'spotify') {
-          const spotifyProfile = profile as SpotifyProfile
-          token.id = spotifyProfile.id
-          token.username = spotifyProfile.display_name
-          
-          // Get or create unique user ID for badge URL
-          const spotifyUserId = await getOrCreateSpotifyUserId(spotifyProfile.id)
-          token.spotifyUserId = spotifyUserId
-        }
-      }
-      
-      // Handle token refresh for Spotify
-      if (token.provider === 'spotify' && token.expiresAt && Date.now() > token.expiresAt * 1000) {
-        try {
-          const response = await fetch('https://accounts.spotify.com/api/token', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-              'Authorization': 'Basic ' + Buffer.from(
-                `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
-              ).toString('base64'),
-            },
-            body: new URLSearchParams({
-              grant_type: 'refresh_token',
-              refresh_token: token.refreshToken!,
-            }),
-          })
-
-          if (response.ok) {
-            const data = await response.json()
-            token.accessToken = data.access_token
-            token.expiresAt = Math.floor(Date.now() / 1000) + data.expires_in
-            
-            // Update token in database if we have a user ID
-            if (token.spotifyUserId) {
-              await saveUserTokens(
-                token.spotifyUserId,
-                data.access_token,
-                token.refreshToken!,
-                Date.now() + (data.expires_in * 1000),
-                token.id,
-                token.username!,
-                (profile as any)?.email
-              )
-            }
-          }
-        } catch (error) {
-          console.error('Error refreshing token in JWT callback:', error)
         }
       }
       
@@ -285,20 +186,10 @@ export const authOptions: NextAuthOptions = {
         session.accessToken = token.accessToken as string
         session.refreshToken = token.refreshToken as string
         session.expiresAt = token.expiresAt as number
-        session.provider = token.provider
+        session.provider = 'discord'
 
-        // Set provider-specific data
-        if (token.provider === 'discord') {
-          session.user.image = `https://cdn.discordapp.com/avatars/${token.id}/${token.avatar}.png`
-        }
-
-        if (token.provider === 'spotify') {
-          session.spotifyUserId = token.spotifyUserId as string
-          // Use Spotify profile image if available
-          if (!session.user.image && token.picture) {
-            session.user.image = token.picture as string
-          }
-        }
+        // Set Discord avatar
+        session.user.image = `https://cdn.discordapp.com/avatars/${token.id}/${token.avatar}.png`
       }
       return session
     },
@@ -336,25 +227,20 @@ export function authenticate(req: NextRequest) {
   return token === process.env.BOT_API_AUTH
 }
 
-// Helper to get user's badge URL
-export function getUserBadgeUrl(spotifyUserId: string): string {
-  return `/api/spotify-tracks?user=${spotifyUserId}`
-}
-
-// Helper to get user by Spotify ID
-export async function getUserBySpotifyId(spotifyId: string): Promise<UserTokenDoc | null> {
+// Helper to get Discord user by user ID
+export async function getDiscordUserByUserId(userId: string): Promise<DiscordTokenDoc | null> {
   const client = await connectToDatabase()
   const db = client.db()
-  const collection = db.collection<UserTokenDoc>('spotify_tokens')
-  
-  return await collection.findOne({ spotifyId })
-}
-
-// Helper to get user by user ID (for badge URLs)
-export async function getUserByUserId(userId: string): Promise<UserTokenDoc | null> {
-  const client = await connectToDatabase()
-  const db = client.db()
-  const collection = db.collection<UserTokenDoc>('spotify_tokens')
+  const collection = db.collection<DiscordTokenDoc>('discord_tokens')
   
   return await collection.findOne({ userId })
+}
+
+// Helper to get Discord user by Discord ID
+export async function getDiscordUserByDiscordId(discordId: string): Promise<DiscordTokenDoc | null> {
+  const client = await connectToDatabase()
+  const db = client.db()
+  const collection = db.collection<DiscordTokenDoc>('discord_tokens')
+  
+  return await collection.findOne({ discordId })
 }
