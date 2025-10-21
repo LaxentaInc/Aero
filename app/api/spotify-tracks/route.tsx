@@ -1,7 +1,6 @@
 // app/api/spotify-tracks/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { MongoClient } from 'mongodb'
-import { getUserTokens, updateUserTokens } from '@/lib/spotify-utils'
 
 interface SpotifyTrack {
   track: {
@@ -34,6 +33,57 @@ interface UserTokenDoc {
   updatedAt: Date
 }
 
+let cachedClient: MongoClient | null = null
+
+async function connectToDatabase() {
+  if (cachedClient) {
+    return cachedClient
+  }
+
+  const client = await MongoClient.connect(process.env.MONGO_URI!)
+  cachedClient = client
+  return client
+}
+
+async function getUserTokens(userId: string): Promise<UserTokenDoc | null> {
+  const client = await connectToDatabase()
+  const db = client.db()
+  const collection = db.collection<UserTokenDoc>('spotify_tokens')
+  
+  return await collection.findOne({ userId })
+}
+
+async function updateUserTokens(
+  userId: string,
+  accessToken: string,
+  refreshToken: string,
+  expiresAt: number,
+  spotifyId?: string,
+  displayName?: string
+) {
+  const client = await connectToDatabase()
+  const db = client.db()
+  const collection = db.collection<UserTokenDoc>('spotify_tokens')
+  
+  await collection.updateOne(
+    { userId },
+    {
+      $set: {
+        accessToken,
+        refreshToken,
+        expiresAt,
+        updatedAt: new Date(),
+        ...(spotifyId && { spotifyId }),
+        ...(displayName && { displayName }),
+      },
+      $setOnInsert: {
+        userId,
+        createdAt: new Date(),
+      },
+    },
+    { upsert: true }
+  )
+}
 
 async function refreshSpotifyToken(refreshToken: string): Promise<string | null> {
   try {
@@ -83,70 +133,102 @@ async function getSpotifyData(accessToken: string) {
   }
 }
 
-function generateTracksSVG(
+// Convert image URLs to data URLs to avoid CORS issues
+async function imageUrlToDataURL(url: string): Promise<string> {
+  try {
+    const response = await fetch(url)
+    if (!response.ok) throw new Error('Failed to fetch image')
+    
+    const buffer = await response.arrayBuffer()
+    const base64 = Buffer.from(buffer).toString('base64')
+    const mimeType = response.headers.get('content-type') || 'image/jpeg'
+    return `data:${mimeType};base64,${base64}`
+  } catch (error) {
+    console.error('Error converting image to data URL:', error)
+    return '' // Return empty string on error
+  }
+}
+
+async function generateTracksSVG(
   tracks: SpotifyTrack[],
   username: string,
   userImage?: string
-): string {
+): Promise<string> {
   const width = 500
   const itemHeight = 80
   const headerHeight = 80
   const padding = 15
   const height = headerHeight + (tracks.length * itemHeight) + 40
 
-  const trackItems = tracks.map((item, index) => {
-    const y = headerHeight + (index * itemHeight)
-    const track = item.track
-    const imageUrl = track.album.images[0]?.url || ''
-    const artistNames = track.artists.map(a => a.name).join(', ')
-    
-    return `
-      <g transform="translate(0, ${y})">
-        <rect x="${padding}" y="0" width="${width - padding * 2}" height="${itemHeight - 10}" 
-              fill="#282828" rx="6" opacity="0.9"/>
-        
-        ${imageUrl ? `
-          <clipPath id="clip-${index}">
-            <rect x="${padding + 10}" y="7" width="60" height="60" rx="4"/>
-          </clipPath>
-          <image x="${padding + 10}" y="7" width="60" height="60" 
-                 href="${imageUrl}" 
-                 clip-path="url(#clip-${index})"
-                 preserveAspectRatio="xMidYMid slice"/>
-        ` : `
-          <rect x="${padding + 10}" y="7" width="60" height="60" 
-                fill="#404040" rx="4"/>
-          <text x="${padding + 40}" y="45" 
-                font-family="Arial, sans-serif" 
-                font-size="24" 
-                fill="#808080" 
-                text-anchor="middle">♫</text>
-        `}
-        
-        <text x="${padding + 80}" y="28" 
-              font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" 
-              font-size="15" 
-              font-weight="600" 
-              fill="#FFFFFF">
-          ${track.name.length > 32 ? track.name.substring(0, 32) + '...' : track.name}
-        </text>
-        
-        <text x="${padding + 80}" y="48" 
-              font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" 
-              font-size="12" 
-              fill="#B3B3B3">
-          ${artistNames.length > 40 ? artistNames.substring(0, 40) + '...' : artistNames}
-        </text>
-        
-        <text x="${padding + 80}" y="63" 
-              font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" 
-              font-size="11" 
-              fill="#6B6B6B">
-          ${track.album.name.length > 35 ? track.album.name.substring(0, 35) + '...' : track.album.name}
-        </text>
-      </g>
-    `
-  }).join('')
+  // Convert user image to data URL if provided
+  let userImageDataURL = ''
+  if (userImage) {
+    userImageDataURL = await imageUrlToDataURL(userImage)
+  }
+
+  // Process all track images in parallel
+  const trackItems = await Promise.all(
+    tracks.map(async (item, index) => {
+      const y = headerHeight + (index * itemHeight)
+      const track = item.track
+      const imageUrl = track.album.images[0]?.url || ''
+      
+      // Convert track image to data URL
+      let imageDataURL = ''
+      if (imageUrl) {
+        imageDataURL = await imageUrlToDataURL(imageUrl)
+      }
+      
+      const artistNames = track.artists.map(a => a.name).join(', ')
+      
+      return `
+        <g transform="translate(0, ${y})">
+          <rect x="${padding}" y="0" width="${width - padding * 2}" height="${itemHeight - 10}" 
+                fill="#282828" rx="6" opacity="0.9"/>
+          
+          ${imageDataURL ? `
+            <clipPath id="clip-${index}">
+              <rect x="${padding + 10}" y="7" width="60" height="60" rx="4"/>
+            </clipPath>
+            <image x="${padding + 10}" y="7" width="60" height="60" 
+                   href="${imageDataURL}" 
+                   clip-path="url(#clip-${index})"
+                   preserveAspectRatio="xMidYMid slice"/>
+          ` : `
+            <rect x="${padding + 10}" y="7" width="60" height="60" 
+                  fill="#404040" rx="4"/>
+            <text x="${padding + 40}" y="45" 
+                  font-family="Arial, sans-serif" 
+                  font-size="24" 
+                  fill="#808080" 
+                  text-anchor="middle">♫</text>
+          `}
+          
+          <text x="${padding + 80}" y="28" 
+                font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" 
+                font-size="15" 
+                font-weight="600" 
+                fill="#FFFFFF">
+            ${track.name.length > 32 ? track.name.substring(0, 32) + '...' : track.name}
+          </text>
+          
+          <text x="${padding + 80}" y="48" 
+                font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" 
+                font-size="12" 
+                fill="#B3B3B3">
+            ${artistNames.length > 40 ? artistNames.substring(0, 40) + '...' : artistNames}
+          </text>
+          
+          <text x="${padding + 80}" y="63" 
+                font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" 
+                font-size="11" 
+                fill="#6B6B6B">
+            ${track.album.name.length > 35 ? track.album.name.substring(0, 35) + '...' : track.album.name}
+          </text>
+        </g>
+      `
+    })
+  )
 
   return `
     <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
@@ -169,17 +251,17 @@ function generateTracksSVG(
       
       <!-- Header -->
       <g transform="translate(${padding}, 15)">
-        ${userImage ? `
+        ${userImageDataURL ? `
           <clipPath id="user-avatar">
             <circle cx="25" cy="25" r="25"/>
           </clipPath>
           <image x="0" y="0" width="50" height="50" 
-                 href="${userImage}" 
+                 href="${userImageDataURL}" 
                  clip-path="url(#user-avatar)"
                  preserveAspectRatio="xMidYMid slice"/>
         ` : ''}
         
-        <text x="60" y="22" 
+        <text x="${userImageDataURL ? '60' : '0'}" y="22" 
               font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" 
               font-size="11" 
               font-weight="500" 
@@ -188,7 +270,7 @@ function generateTracksSVG(
           RECENTLY PLAYED
         </text>
         
-        <text x="60" y="42" 
+        <text x="${userImageDataURL ? '60' : '0'}" y="42" 
               font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" 
               font-size="18" 
               font-weight="700" 
@@ -206,7 +288,7 @@ function generateTracksSVG(
       </g>
       
       <!-- Tracks -->
-      ${trackItems}
+      ${trackItems.join('')}
       
       <!-- Footer -->
       <text x="${width / 2}" y="${height - 15}" 
@@ -214,7 +296,7 @@ function generateTracksSVG(
             font-size="10" 
             fill="#6B6B6B" 
             text-anchor="middle">
-        Spotify Inc
+        Real Time Data • Spotify Incorporations
       </text>
     </svg>
   `
@@ -247,6 +329,15 @@ function generateErrorSVG(message: string): string {
 }
 
 export async function GET(request: NextRequest) {
+  // Set CORS headers for all responses
+  const headers = {
+    'Content-Type': 'image/svg+xml',
+    'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=120',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  }
+
   try {
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('user')
@@ -256,10 +347,7 @@ export async function GET(request: NextRequest) {
         generateErrorSVG('Missing user ID'),
         {
           status: 400,
-          headers: {
-            'Content-Type': 'image/svg+xml',
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-          },
+          headers,
         }
       )
     }
@@ -269,13 +357,10 @@ export async function GET(request: NextRequest) {
     
     if (!userAuth) {
       return new NextResponse(
-        generateErrorSVG('User not found or not authenticated'),
+        generateErrorSVG('User not found'),
         {
           status: 404,
-          headers: {
-            'Content-Type': 'image/svg+xml',
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-          },
+          headers,
         }
       )
     }
@@ -295,13 +380,19 @@ export async function GET(request: NextRequest) {
           Date.now() + 3600 * 1000 // 1 hour
         )
       } else {
-        throw new Error('Failed to refresh token')
+        return new NextResponse(
+          generateErrorSVG('Failed to refresh Spotify token'),
+          {
+            status: 401,
+            headers,
+          }
+        )
       }
     }
 
     const { user, tracks } = await getSpotifyData(accessToken)
 
-    const svg = generateTracksSVG(
+    const svg = await generateTracksSVG(
       tracks,
       user.display_name || 'Spotify User',
       user.images?.[0]?.url
@@ -309,10 +400,7 @@ export async function GET(request: NextRequest) {
 
     return new NextResponse(svg, {
       status: 200,
-      headers: {
-        'Content-Type': 'image/svg+xml',
-        'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=120',
-      },
+      headers,
     })
 
   } catch (error) {
@@ -325,20 +413,21 @@ export async function GET(request: NextRequest) {
         headers: {
           'Content-Type': 'image/svg+xml',
           'Cache-Control': 'no-cache',
+          'Access-Control-Allow-Origin': '*',
         },
       }
     )
   }
 }
 
-// Helper function to save user tokens after OAuth (export for use in auth callback)
-export async function saveUserTokens(
-  userId: string,
-  accessToken: string,
-  refreshToken: string,
-  expiresAt: number,
-  spotifyId: string,
-  displayName: string
-) {
-  await updateUserTokens(userId, accessToken, refreshToken, expiresAt, spotifyId, displayName)
+export async function OPTIONS() {
+  // Handle preflight requests
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
+  })
 }

@@ -1,6 +1,5 @@
 import type { NextConfig } from "next";
 
-//test
 const nextConfig: NextConfig = {
   async headers() {
     return [
@@ -12,6 +11,24 @@ const nextConfig: NextConfig = {
             value: 'public, max-age=31536000, immutable'
           }
         ]
+      },
+      // Add this for your Spotify tracks API
+      {
+        source: '/api/spotify-tracks',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*'
+          },
+          {
+            key: 'Access-Control-Allow-Methods', 
+            value: 'GET, OPTIONS'
+          },
+          {
+            key: 'Access-Control-Allow-Headers',
+            value: 'Content-Type'
+          }
+        ],
       }
     ];
   },
@@ -37,8 +54,27 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'assets-v2.lottiefiles.com',
         pathname: '/**',
+      },
+      // Add Spotify image domains
+      {
+        protocol: 'https',
+        hostname: 'i.scdn.co',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.discordapp.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'platform-lookaside.fbsbx.com',
+        pathname: '/**',
       }
-    ]
+    ],
+    // Add this to allow external images in SVGs
+    domains: ['i.scdn.co', 'cdn.discordapp.com'],
+    unoptimized: true
   }
 };
 
