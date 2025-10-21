@@ -154,8 +154,7 @@ export const moduleInfo = {
   id: 'antinuke',
   name: 'Anti-Nuke',
   description: 'Advanced protection against mass destructive actions and server raids',
-  icon: Shield,
-  color: 'red',
+//   color: 'red',
   category: 'protection'
 };
 
