@@ -1,6 +1,11 @@
 // app/api/spotify-tracks/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import { MongoClient } from 'mongodb'
+import { 
+  getSpotifyUserByUserId,
+  refreshSpotifyToken,
+  saveSpotifyUser,
+  getSpotifyProfile
+} from '../../../lib/spotify-oauth'
 
 interface SpotifyTrack {
   track: {
@@ -14,100 +19,6 @@ interface SpotifyTrack {
     external_urls: { spotify: string }
   }
   played_at: string
-}
-
-interface SpotifyUser {
-  id: string
-  display_name: string
-  images: { url: string }[]
-}
-
-interface UserTokenDoc {
-  userId: string
-  accessToken: string
-  refreshToken: string
-  expiresAt: number
-  spotifyId: string
-  displayName: string
-  createdAt: Date
-  updatedAt: Date
-}
-
-let cachedClient: MongoClient | null = null
-
-async function connectToDatabase() {
-  if (cachedClient) {
-    return cachedClient
-  }
-
-  const client = await MongoClient.connect(process.env.MONGO_URI!)
-  cachedClient = client
-  return client
-}
-
-async function getUserTokens(userId: string): Promise<UserTokenDoc | null> {
-  const client = await connectToDatabase()
-  const db = client.db()
-  const collection = db.collection<UserTokenDoc>('spotify_tokens')
-  
-  return await collection.findOne({ userId })
-}
-
-async function updateUserTokens(
-  userId: string,
-  accessToken: string,
-  refreshToken: string,
-  expiresAt: number,
-  spotifyId?: string,
-  displayName?: string
-) {
-  const client = await connectToDatabase()
-  const db = client.db()
-  const collection = db.collection<UserTokenDoc>('spotify_tokens')
-  
-  await collection.updateOne(
-    { userId },
-    {
-      $set: {
-        accessToken,
-        refreshToken,
-        expiresAt,
-        updatedAt: new Date(),
-        ...(spotifyId && { spotifyId }),
-        ...(displayName && { displayName }),
-      },
-      $setOnInsert: {
-        userId,
-        createdAt: new Date(),
-      },
-    },
-    { upsert: true }
-  )
-}
-
-async function refreshSpotifyToken(refreshToken: string): Promise<string | null> {
-  try {
-    const response = await fetch('https://accounts.spotify.com/api/token', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': 'Basic ' + Buffer.from(
-          `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`
-        ).toString('base64'),
-      },
-      body: new URLSearchParams({
-        grant_type: 'refresh_token',
-        refresh_token: refreshToken,
-      }),
-    })
-
-    if (!response.ok) return null
-    const data = await response.json()
-    return data.access_token
-  } catch (error) {
-    console.error('Error refreshing token:', error)
-    return null
-  }
 }
 
 async function getSpotifyData(accessToken: string) {
@@ -124,7 +35,7 @@ async function getSpotifyData(accessToken: string) {
     throw new Error('Failed to fetch Spotify data')
   }
 
-  const user: SpotifyUser = await userRes.json()
+  const user = await userRes.json()
   const tracksData = await tracksRes.json()
   
   return {
@@ -522,7 +433,8 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const userAuth = await getUserTokens(userId)
+    // Use the new function from spotify-oauth
+    const userAuth = await getSpotifyUserByUserId(userId)
     
     if (!userAuth) {
       return new NextResponse(
@@ -533,15 +445,19 @@ export async function GET(request: NextRequest) {
 
     let accessToken = userAuth.accessToken
 
+    // Use the new refresh function
     if (Date.now() > userAuth.expiresAt) {
-      const newToken = await refreshSpotifyToken(userAuth.refreshToken)
-      if (newToken) {
-        accessToken = newToken
-        await updateUserTokens(
+      const newTokens = await refreshSpotifyToken(userAuth.refreshToken)
+      if (newTokens) {
+        accessToken = newTokens.access_token
+        await saveSpotifyUser(
           userId,
-          newToken,
-          userAuth.refreshToken,
-          Date.now() + 3600 * 1000
+          newTokens.access_token,
+          newTokens.refresh_token || userAuth.refreshToken, // Spotify might not return new refresh token
+          Date.now() + (newTokens.expires_in * 1000),
+          userAuth.spotifyId,
+          userAuth.displayName,
+          userAuth.email
         )
       } else {
         return new NextResponse(
