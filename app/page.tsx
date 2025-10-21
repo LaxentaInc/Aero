@@ -474,6 +474,7 @@ const SmoothCursor = ({ theme }: { theme: 'dark' | 'light' }) => {
   const particleIdRef = useRef(0);
   const animationRef = useRef<number | null>(null);
   const lastMousePos = useRef({ x: 0, y: 0 });
+  const frameCount = useRef(0);
 
   // Check if mobile
   useEffect(() => {
@@ -485,46 +486,54 @@ const SmoothCursor = ({ theme }: { theme: 'dark' | 'light' }) => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Particle animation
+  // Optimized particle animation - runs every 2 frames instead of every frame
   const animateParticles = useCallback(() => {
-    setParticles(prev => {
-      const updated = prev
-        .map(p => ({
-          ...p,
-          x: p.x + p.vx,
-          y: p.y + p.vy,
-          opacity: p.opacity - 0.03,
-          scale: p.scale * 0.97,
-        }))
-        .filter(p => p.opacity > 0.1);
-      
-      return updated;
-    });
+    frameCount.current++;
+    
+    // Only update every 2 frames for better performance
+    if (frameCount.current % 2 === 0) {
+      setParticles(prev => {
+        const updated = prev
+          .map(p => ({
+            ...p,
+            x: p.x + p.vx,
+            y: p.y + p.vy,
+            opacity: p.opacity - 0.03,
+            scale: p.scale * 0.97,
+          }))
+          .filter(p => p.opacity > 0.1);
+        
+        return updated;
+      });
+    }
     
     animationRef.current = requestAnimationFrame(animateParticles);
   }, []);
 
-  // Add particles on mouse move
+  // Throttled particle addition
   const addParticles = useCallback((x: number, y: number) => {
+    // Only add particles every 3rd call
+    if (frameCount.current % 3 !== 0) return;
+    
     setParticles(prev => {
       const newParticles = [];
       
-      for (let i = 0; i < 2; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const speed = Math.random() * 1.5;
-        
-        newParticles.push({
-          id: particleIdRef.current++,
-          x: x + (Math.random() - 0.5) * 6,
-          y: y + (Math.random() - 0.5) * 6,
-          opacity: 0.7,
-          scale: Math.random() * 0.5 + 0.5,
-          vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed,
-        });
-      }
+      // Reduced from 2 to 1 particle per call
+      const angle = Math.random() * Math.PI * 2;
+      const speed = Math.random() * 1.5;
       
-      return [...prev, ...newParticles].slice(-20);
+      newParticles.push({
+        id: particleIdRef.current++,
+        x: x + (Math.random() - 0.5) * 6,
+        y: y + (Math.random() - 0.5) * 6,
+        opacity: 0.7,
+        scale: Math.random() * 0.5 + 0.5,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+      });
+      
+      // Reduced max particles from 20 to 15
+      return [...prev, ...newParticles].slice(-15);
     });
   }, []);
 
@@ -537,7 +546,7 @@ const SmoothCursor = ({ theme }: { theme: 'dark' | 'light' }) => {
       addParticles(e.clientX, e.clientY);
     };
 
-    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mousemove', handleMouseMove, { passive: true });
     animationRef.current = requestAnimationFrame(animateParticles);
 
     return () => {
@@ -563,13 +572,13 @@ const SmoothCursor = ({ theme }: { theme: 'dark' | 'light' }) => {
             top: particle.y,
             opacity: particle.opacity,
             transform: `scale(${particle.scale})`,
+            willChange: 'transform, opacity',
           }}
         />
       ))}
     </div>
   );
 };
-
 const useProtection = () => {
   useEffect(() => {
     const preventDefaultKeys = (e: KeyboardEvent) => {
@@ -619,6 +628,7 @@ const ServiceCard = ({ service, index, theme }: { service: typeof services[0], i
 			<motion.div
 				initial={{ opacity: 0, y: 50 }}
 				whileInView={{ opacity: 1, y: 0 }}
+				viewport={{ once: true, margin: "-100px" }}  // ← THIS IS THE KEY CHANGE
 				transition={{ delay: index * 0.1 }}
 				whileHover={{ y: -10 }}
 				className={`relative p-8 rounded-3xl overflow-hidden cursor-pointer ${
@@ -675,26 +685,35 @@ const ServiceCard = ({ service, index, theme }: { service: typeof services[0], i
 }
 
 const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
-  // Add loading="lazy" to video later on ;3
+  const [isLoaded, setIsLoaded] = useState(false);
+  
   const videos = [
     "/videos/myCutekoiiii.webm",
     // "/videos/IfYouSeeThis_You_Are_cute_missKoi.webm",
-    // "/videos/shorekeeper.mp4"  // add if needed
+    // "/videos/shorekeeper.mp4"
   ]
-// Add loading="lazy" to video
+
   const randomVideo = videos[Math.floor(Math.random() * videos.length)]
 
   return (
     <div className="absolute inset-0 z-0 overflow-hidden">
+      {!isLoaded && (
+        <div className={`absolute inset-0 ${
+          theme === 'dark' ? 'bg-black' : 'bg-white'
+        }`} />
+      )}
       <video
         autoPlay
         muted
         loop
         playsInline
         crossOrigin="anonymous"
-        className={`absolute top-0 left-0 w-full h-full object-cover ${
-          theme === 'dark' ? 'opacity-40' : 'opacity-60'  // Higher opacity in light mode
-        }`}   
+        preload="auto"
+        onLoadedData={() => setIsLoaded(true)}
+        className={`absolute top-0 left-0 w-full h-full object-cover transition-opacity duration-700 ${
+          isLoaded ? 'opacity-100' : 'opacity-0'
+        } ${theme === 'dark' ? 'opacity-40' : 'opacity-60'}`}
+        style={{ willChange: 'opacity' }}
       >
         <source src={randomVideo} type="video/webm" />
       </video>
@@ -702,7 +721,7 @@ const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
       <div className={`absolute inset-0 ${
         theme === 'dark' 
           ? 'bg-gradient-to-b from-black/50 via-black/30 to-black/50'
-          : 'bg-transparent'  // Fully transparent in light mode
+          : 'bg-transparent'
       }`} />
     </div>
   )
@@ -764,7 +783,7 @@ const AboutSection = ({ theme }: { theme: 'dark' | 'light' }) => {
 	},
 	   {
       title: "i love koi san",
-      description: "LOL i had to say it bro, i know she will notice and read it someday XD",
+      description: "i had to say it bro, i know she will notice and read it someday XD",
       icon: (
         <svg width="60" height="60" viewBox="0 0 24 24" fill="none" className="transition-transform duration-300 group-hover:rotate-45">
           <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="currentColor" strokeWidth="2"/>
@@ -775,7 +794,6 @@ const AboutSection = ({ theme }: { theme: 'dark' | 'light' }) => {
 
   return (
     <section className="py-20 relative overflow-hidden">
-      {/* Minimal background elements */}
       <div className="absolute inset-0 opacity-30">
         <div className={`absolute top-20 left-20 w-32 h-32 rounded-full ${
           theme === 'dark' ? 'bg-blue-500/10' : 'bg-blue-500/5'
@@ -968,6 +986,7 @@ export default function HomePage() {
    	<motion.h1
    		initial={{ opacity: 0, y: 50 }}
    		whileInView={{ opacity: 1, y: 0 }}
+		viewport={{ once: true, margin: "-100px" }}
    		transition={{ duration: 0.7 }}
    		className={`text-4xl md:text-6xl font-extrabold leading-tight mb-6 ${
    			theme === 'dark' ? 'text-white' : 'text-black'
@@ -982,6 +1001,7 @@ export default function HomePage() {
    		}`}
    		initial={{ opacity: 0, y: 40 }}
    		whileInView={{ opacity: 1, y: 0 }}
+		viewport={{ once: true, margin: "-100px" }}
    		transition={{ duration: 0.5, delay: 0.5 }}
    	>
    		<Typewriter
@@ -1060,8 +1080,6 @@ export default function HomePage() {
 
 			{/* About Section - IMPROVED */}
 			<AboutSection theme={theme} />
-			{/* Tech Stack Section */}
-			{/* <ImprovedTechStack theme={theme} /> */}
 			<Techs theme={theme} />
 			{/* Services Section */}
 			<section className="py-20">
@@ -1069,6 +1087,7 @@ export default function HomePage() {
 					<motion.div
 						initial={{ opacity: 0, y: 50 }}
 						whileInView={{ opacity: 1, y: 0 }}
+						viewport={{ once: true, margin: "-50px" }}  // ← THIS
 						transition={{ duration: 0.7 }}
 						className={`text-center mb-16 ${
 							theme === 'dark' ? 'text-white' : 'text-black'
@@ -1098,6 +1117,7 @@ export default function HomePage() {
 					<motion.div
 						initial={{ opacity: 0, scale: 0.9 }}
 						whileInView={{ opacity: 1, scale: 1 }}
+						viewport={{ once: true, margin: "-100px" }}
 						className={`p-12 rounded-3xl ${
 							theme === 'dark' ? 'bg-white/5' : 'bg-black/5'
 						} backdrop-blur-sm`}
