@@ -224,120 +224,123 @@ async function generateTracksSVG(
   }
 
   // Generate animation CSS based on style
-  const getAnimationCSS = () => {
-    switch (style.animation) {
-      case 'wave':
-        return `
-          @keyframes wave {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-5px); }
-          }
-          .track-item { animation: wave 3s ease-in-out infinite; }
-          .track-item:nth-child(1) { animation-delay: 0s; }
-          .track-item:nth-child(2) { animation-delay: 0.2s; }
-          .track-item:nth-child(3) { animation-delay: 0.4s; }
-          .track-item:nth-child(4) { animation-delay: 0.6s; }
-          .track-item:nth-child(5) { animation-delay: 0.8s; }
-        `
-      case 'pulse':
-        return `
-          @keyframes pulse {
-            0%, 100% { opacity: ${style.cardOpacity}; }
-            50% { opacity: ${style.cardOpacity + 0.1}; }
-          }
-          .track-item rect { animation: pulse 2s ease-in-out infinite; }
-          @keyframes pulse-glow {
-            0%, 100% { opacity: 0.1; }
-            50% { opacity: 0.3; }
-          }
-        `
-      case 'slide':
-        return `
-          @keyframes slide {
-            0% { transform: translateX(-3px); }
-            50% { transform: translateX(3px); }
-            100% { transform: translateX(-3px); }
-          }
-          .track-item { animation: slide 4s ease-in-out infinite; }
-        `
-      case 'glow':
-        return `
-          @keyframes glow-pulse {
-            0%, 100% { filter: drop-shadow(0 0 2px ${accentColor}); }
-            50% { filter: drop-shadow(0 0 8px ${accentColor}); }
-          }
-          .track-item { animation: glow-pulse 2s ease-in-out infinite; }
-        `
-      default:
-        return ''
-    }
-  }
-
-  const trackItems = await Promise.all(
-    tracks.map(async (item, index) => {
-      const y = headerHeight + (index * itemHeight)
-      const track = item.track
-      const imageUrl = track.album.images[0]?.url || ''
-      
-      let imageDataURL = ''
-      if (imageUrl) {
-        imageDataURL = await imageUrlToDataURL(imageUrl)
-      }
-      
-      const artistNames = track.artists.map(a => a.name).join(', ')
-      
+const getAnimationCSS = () => {
+  switch (style.animation) {
+    case 'wave':
       return `
-        <g transform="translate(0, ${y})" class="track-item">
-          <rect x="${padding}" y="0" width="${width - padding * 2}" height="${itemHeight - 10}" 
-                fill="#282828" rx="6" opacity="${style.cardOpacity}">
-            <animate attributeName="opacity" from="0" to="${style.cardOpacity}" dur="0.5s" begin="${index * 0.1}s" fill="freeze"/>
-          </rect>
-          
-          ${imageDataURL ? `
-            <clipPath id="clip-${index}">
-              <rect x="${padding + 10}" y="7" width="60" height="60" rx="4"/>
-            </clipPath>
-            <image x="${padding + 10}" y="7" width="60" height="60" 
-                   href="${imageDataURL}" 
-                   clip-path="url(#clip-${index})"
-                   preserveAspectRatio="xMidYMid slice">
-              <animate attributeName="opacity" from="0" to="1" dur="0.5s" begin="${index * 0.1}s" fill="freeze"/>
-            </image>
-          ` : `
-            <rect x="${padding + 10}" y="7" width="60" height="60" 
-                  fill="#404040" rx="4"/>
-            <text x="${padding + 40}" y="45" 
-                  font-family="Arial, sans-serif" 
-                  font-size="24" 
-                  fill="#808080" 
-                  text-anchor="middle">♫</text>
-          `}
-          
-          <text x="${padding + 80}" y="28" 
-                font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" 
-                font-size="15" 
-                font-weight="600" 
-                fill="#FFFFFF">
-            ${track.name.length > 32 ? track.name.substring(0, 32) + '...' : track.name}
-          </text>
-          
-          <text x="${padding + 80}" y="48" 
-                font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" 
-                font-size="12" 
-                fill="#B3B3B3">
-            ${artistNames.length > 40 ? artistNames.substring(0, 40) + '...' : artistNames}
-          </text>
-          
-          <text x="${padding + 80}" y="63" 
-                font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" 
-                font-size="11" 
-                fill="#6B6B6B">
-            ${track.album.name.length > 35 ? track.album.name.substring(0, 35) + '...' : track.album.name}
-          </text>
-        </g>
+        @keyframes wave {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-2px); }
+        }
+        .track-item { animation: wave 4s ease-in-out infinite; }
+        .track-item:nth-child(1) { animation-delay: 0s; }
+        .track-item:nth-child(2) { animation-delay: 0.5s; }
+        .track-item:nth-child(3) { animation-delay: 1s; }
+        .track-item:nth-child(4) { animation-delay: 1.5s; }
+        .track-item:nth-child(5) { animation-delay: 2s; }
       `
-    })
-  )
+    case 'pulse':
+      return `
+        @keyframes pulse {
+          0%, 100% { opacity: ${style.cardOpacity}; }
+          50% { opacity: ${style.cardOpacity + 0.15}; }
+        }
+        .track-item rect { animation: pulse 3s ease-in-out infinite; }
+        .track-item:nth-child(1) rect { animation-delay: 0s; }
+        .track-item:nth-child(2) rect { animation-delay: 0.3s; }
+        .track-item:nth-child(3) rect { animation-delay: 0.6s; }
+        .track-item:nth-child(4) rect { animation-delay: 0.9s; }
+        .track-item:nth-child(5) rect { animation-delay: 1.2s; }
+      `
+    case 'slide':
+      // Remove slide animation as it causes horizontal movement
+      return `
+        @keyframes gentle-glow {
+          0%, 100% { opacity: ${style.cardOpacity}; }
+          50% { opacity: ${style.cardOpacity + 0.1}; }
+        }
+        .track-item rect { animation: gentle-glow 3s ease-in-out infinite; }
+      `
+    case 'glow':
+      return `
+        @keyframes glow-pulse {
+          0%, 100% { filter: drop-shadow(0 0 1px ${accentColor}33); }
+          50% { filter: drop-shadow(0 0 3px ${accentColor}66); }
+        }
+        .track-item rect { animation: glow-pulse 3s ease-in-out infinite; }
+      `
+    default:
+      return ''
+  }
+}
+
+const trackItems = await Promise.all(
+  tracks.map(async (item, index) => {
+    const y = headerHeight + (index * itemHeight)
+    const track = item.track
+    const imageUrl = track.album.images[0]?.url || ''
+    
+    let imageDataURL = ''
+    if (imageUrl) {
+      imageDataURL = await imageUrlToDataURL(imageUrl)
+    }
+    
+    const artistNames = track.artists.map(a => a.name).join(', ')
+    
+    return `
+      <g class="track-item">
+        <!-- Remove transform from the group and use absolute positioning -->
+        <rect x="${padding}" y="${y}" width="${width - padding * 2}" height="${itemHeight - 10}" 
+              fill="#282828" rx="6" opacity="${style.cardOpacity}">
+          <animate attributeName="opacity" from="0" to="${style.cardOpacity}" dur="0.5s" begin="${index * 0.1}s" fill="freeze"/>
+        </rect>
+        
+        ${imageDataURL ? `
+          <clipPath id="clip-${index}">
+            <rect x="${padding + 10}" y="${y + 7}" width="60" height="60" rx="4"/>
+          </clipPath>
+          <image x="${padding + 10}" y="${y + 7}" width="60" height="60" 
+                 href="${imageDataURL}" 
+                 clip-path="url(#clip-${index})"
+                 preserveAspectRatio="xMidYMid slice">
+            <animate attributeName="opacity" from="0" to="1" dur="0.5s" begin="${index * 0.1}s" fill="freeze"/>
+          </image>
+        ` : `
+          <rect x="${padding + 10}" y="${y + 7}" width="60" height="60" 
+                fill="#404040" rx="4"/>
+          <text x="${padding + 40}" y="${y + 45}" 
+                font-family="Arial, sans-serif" 
+                font-size="24" 
+                fill="#808080" 
+                text-anchor="middle">♫</text>
+        `}
+        
+        <text x="${padding + 80}" y="${y + 28}" 
+              font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" 
+              font-size="15" 
+              font-weight="600" 
+              fill="#FFFFFF">
+          ${track.name.length > 32 ? track.name.substring(0, 32) + '...' : track.name}
+        </text>
+        
+        <text x="${padding + 80}" y="${y + 48}" 
+              font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" 
+              font-size="12" 
+              fill="#B3B3B3">
+          ${artistNames.length > 40 ? artistNames.substring(0, 40) + '...' : artistNames}
+        </text>
+        
+        <text x="${padding + 80}" y="${y + 63}" 
+              font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" 
+              font-size="11" 
+              fill="#6B6B6B">
+          ${track.album.name.length > 35 ? track.album.name.substring(0, 35) + '...' : track.album.name}
+        </text>
+      </g>
+    `
+  })
+)
+
 
   return `
     <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
