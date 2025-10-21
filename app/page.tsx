@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, JSX } from 'react'
 import { motion, useScroll, useTransform, AnimatePresence, useMotionValue, useSpring, useInView } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -10,7 +10,8 @@ import { SpotifyNowPlaying } from './components/SpotifyNowPlaying'
 import { Typewriter } from 'react-simple-typewriter';
 import { Mochiy_Pop_One } from 'next/font/google'
 import  Techs from './components/Scrollstack'
-
+type ServiceSize = 'large' | 'medium' | 'small';
+// First, update your services array to include size and bgImage properties
 const services = [
 	{
 		id: 1,
@@ -89,6 +90,7 @@ const services = [
 		),
 		gradient: 'from-purple-500 to-blue-500',
 		bgImage: 'radial-gradient(ellipse at top right, rgba(88, 101, 242, 0.1), transparent 50%)',
+		size: 'large', // Takes 2 columns on desktop
 	},
 	{
 		id: 2,
@@ -179,6 +181,7 @@ const services = [
 		),
 		gradient: 'from-blue-500 to-cyan-500',
 		bgImage: 'radial-gradient(ellipse at bottom left, rgba(0, 212, 255, 0.1), transparent 50%)',
+		size: 'medium',
 	},
 	{
 		id: 3,
@@ -265,12 +268,13 @@ const services = [
 		),
 		gradient: 'from-green-500 to-emerald-500',
 		bgImage: 'radial-gradient(ellipse at top left, rgba(16, 185, 129, 0.1), transparent 50%)',
+		size: 'medium',
 	},
 	{
 		id: 4,
 		title: 'Hosting & Panel Setup',
-		description: 'Complete server setup with custom panels, monitoring, and deployment pipelines for your applications',
-		features: ['Server Configuration', 'Control Panels', 'Domain Setup', 'SSL/Security'],
+		description: 'Complete server setup with custom panels, monitoring, and deployment pipelines',
+		features: ['Server Config', 'Control Panels', 'Domain Setup', 'SSL/Security'],
 		icon: (
 			<motion.svg 
 				width="80" height="80" viewBox="0 0 80 80"
@@ -297,12 +301,13 @@ const services = [
 		),
 		gradient: 'from-blue-600 to-blue-800',
 		bgImage: 'radial-gradient(ellipse at center, rgba(37, 99, 235, 0.1), transparent 50%)',
+		size: 'small',
 	},
 	{
 		id: 5,
 		title: 'Backend Services',
 		description: 'Scalable backend solutions with database design, authentication, and real-time functionality',
-		features: ['Database Design', 'Auth Systems', 'Real-time Services', 'Microservices'],
+		features: ['Database Design', 'Auth Systems', 'Real-time', 'Microservices'],
 		icon: (
 			<motion.svg 
 				width="80" height="80" viewBox="0 0 80 80"
@@ -333,12 +338,13 @@ const services = [
 		),
 		gradient: 'from-indigo-600 to-indigo-800',
 		bgImage: 'radial-gradient(ellipse at center, rgba(99, 102, 241, 0.1), transparent 50%)',
+		size: 'small',
 	},
 	{
 		id: 6,
 		title: 'UI/UX Redesign',
 		description: 'Transform your existing interfaces with modern design principles and improved user experience',
-		features: ['Modern UI', 'User Experience', 'Responsive Design', 'Animation'],
+		features: ['Modern UI', 'User Experience', 'Responsive', 'Animation'],
 		icon: (
 			<motion.svg 
 				width="80" height="80" viewBox="0 0 80 80"
@@ -364,6 +370,7 @@ const services = [
 		),
 		gradient: 'from-pink-600 to-fuchsia-600',
 		bgImage: 'radial-gradient(ellipse at center, rgba(236, 72, 153, 0.1), transparent 50%)',
+		size: 'small',
 	},
 	{
 		id: 7,
@@ -456,8 +463,138 @@ const services = [
 		),
 		gradient: 'from-orange-500 to-red-500',
 		bgImage: 'radial-gradient(ellipse at bottom right, rgba(245, 158, 11, 0.1), transparent 50%)',
+		size: 'large',
 	},
 ]
+
+// NEW BENTO GRID SERVICE CARD COMPONENT
+const ServiceCard = ({ service, index, theme }: { service: typeof services[0], index: number, theme: 'dark' | 'light' }) => {
+	const sizeClasses = {
+		large: 'md:col-span-2 md:row-span-2',
+		medium: 'md:col-span-1 md:row-span-2',
+		small: 'md:col-span-1 md:row-span-1',
+	};
+
+	return (
+		<Link href="/contact">
+			<motion.div
+				initial={{ opacity: 0, scale: 0.9 }}
+				whileInView={{ opacity: 1, scale: 1 }}
+				viewport={{ once: true, margin: "-50px" }}
+				transition={{ delay: index * 0.05, duration: 0.3 }}
+				whileHover={{ scale: 1.02, y: -5 }}
+				className={`${sizeClasses[service.size  as 'large' | 'medium' | 'small']} group relative overflow-hidden rounded-3xl cursor-pointer ${
+					theme === 'dark'
+						? 'bg-gradient-to-br from-gray-900/80 to-gray-800/80 border border-white/10'
+						: 'bg-gradient-to-br from-gray-100/80 to-gray-200/80 border border-black/10'
+				} backdrop-blur-lg h-full`}
+				style={{ backgroundImage: service.bgImage }}
+			>
+				{/* Animated gradient overlay */}
+				<div
+					className={`absolute inset-0 bg-gradient-to-br ${service.gradient} opacity-0 group-hover:opacity-20 transition-opacity duration-500`}
+				/>
+
+				{/* Subtle floating particles - OPTIMIZED */}
+				<div className="absolute inset-0 overflow-hidden pointer-events-none">
+					{service.size !== 'small' && [...Array(2)].map((_, i) => (
+						<motion.div
+							key={i}
+							className={`absolute w-1.5 h-1.5 rounded-full ${
+								theme === 'dark' ? 'bg-white/20' : 'bg-black/20'
+							}`}
+							animate={{
+								x: [0, 25, 0],
+								y: [0, -30, 0],
+								opacity: [0, 0.4, 0],
+							}}
+							transition={{
+								duration: 3 + i,
+								repeat: Infinity,
+								delay: i * 1.5,
+								ease: "easeInOut"
+							}}
+							style={{
+								left: `${30 + i * 40}%`,
+								top: `${60 + i * 10}%`,
+							}}
+						/>
+					))}
+				</div>
+
+				{/* Content */}
+				<div className="relative z-10 h-full p-6 flex flex-col justify-between">
+					<div>
+						{/* Icon - scales down for small cards */}
+						<motion.div
+							className={`mb-4 ${service.size === 'small' ? 'scale-75 origin-top-left' : ''}`}
+							whileHover={{ rotate: 5, scale: service.size === 'small' ? 0.8 : 1.05 }}
+							transition={{ type: "spring", stiffness: 300 }}
+						>
+							{service.icon}
+						</motion.div>
+
+						<h3
+							className={`${service.size === 'large' ? 'text-2xl md:text-3xl' : service.size === 'medium' ? 'text-xl md:text-2xl' : 'text-lg md:text-xl'} font-bold mb-3 ${
+								theme === 'dark' ? 'text-white' : 'text-black'
+							}`}
+						>
+							{service.title}
+						</h3>
+
+						<p
+							className={`text-sm leading-relaxed mb-4 ${
+								theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
+							} ${service.size === 'small' ? 'line-clamp-2' : service.size === 'medium' ? 'line-clamp-3' : ''}`}
+						>
+							{service.description}
+						</p>
+					</div>
+
+					{/* Feature tags */}
+					<div className="flex flex-wrap gap-2">
+						{service.features.map((feature, idx) => (
+							<motion.span
+								key={idx}
+								initial={{ opacity: 0, scale: 0.8 }}
+								whileInView={{ opacity: 1, scale: 1 }}
+								viewport={{ once: true }}
+								transition={{ delay: idx * 0.03 }}
+								className={`px-3 py-1 rounded-full text-xs font-mono ${
+									theme === 'dark'
+										? 'bg-white/10 text-white/70'
+										: 'bg-black/10 text-black/70'
+								} backdrop-blur-sm`}
+							>
+								{feature}
+							</motion.span>
+						))}
+					</div>
+
+					{/* Hover arrow - only on hover */}
+					<motion.div
+						className={`absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity ${
+							theme === 'dark' ? 'text-white' : 'text-black'
+						}`}
+						animate={{ x: [0, 3, 0] }}
+						transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
+					>
+						<svg
+							width="20"
+							height="20"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							strokeWidth="2"
+						>
+							<path d="M5 12h14M12 5l7 7-7 7" />
+						</svg>
+					</motion.div>
+				</div>
+			</motion.div>
+		</Link>
+	)
+}
 
 const SmoothCursor = ({ theme }: { theme: 'dark' | 'light' }) => {
   const [isMobile, setIsMobile] = useState(false);
@@ -619,69 +756,6 @@ const useProtection = () => {
       });
     };
   }, [])
-}
-
-// Service Card Component with Link
-const ServiceCard = ({ service, index, theme }: { service: typeof services[0], index: number, theme: 'dark' | 'light' }) => {
-	return (
-		<Link href="/contact">
-			<motion.div
-				initial={{ opacity: 0, y: 50 }}
-				whileInView={{ opacity: 1, y: 0 }}
-				viewport={{ once: true, margin: "-100px" }}  // ← THIS IS THE KEY CHANGE
-				transition={{ delay: index * 0.1 }}
-				whileHover={{ y: -10 }}
-				className={`relative p-8 rounded-3xl overflow-hidden cursor-pointer ${
-					theme === 'dark' 
-						? 'bg-gradient-to-br from-gray-900/90 to-black/90 border border-white/20' 
-						: 'bg-gradient-to-br from-white/90 to-gray-100/90 border border-black/20'
-				} backdrop-blur-xl shadow-2xl group`}
-				style={{ backgroundImage: service.bgImage }}
-			>
-				<div className={`absolute inset-0 bg-gradient-to-r ${service.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
-				
-				<div className="relative z-10">
-					<motion.div 
-						className="mb-6"
-						whileHover={{ scale: 1.1, rotate: 5 }}
-						transition={{ type: "spring", stiffness: 300 }}
-					>
-						{service.icon}
-					</motion.div>
-					
-					<h3 className={`text-2xl font-bold mb-4 ${
-						theme === 'dark' ? 'text-white' : 'text-black'
-					}`}>
-						{service.title}
-					</h3>
-					
-					<p className={`mb-6 ${
-						theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-					}`}>
-						{service.description}
-					</p>
-					
-					<div className="flex flex-wrap gap-2">
-						{service.features.map((feature, idx) => (
-							<motion.span
-								key={idx}
-								initial={{ opacity: 0, scale: 0.8 }}
-								whileInView={{ opacity: 1, scale: 1 }}
-								transition={{ delay: idx * 0.05 }}
-								className={`px-3 py-1 rounded-full text-xs font-mono ${
-									theme === 'dark' 
-										? 'bg-white/10 text-white/70' 
-										: 'bg-black/10 text-black/70'
-								}`}
-							>
-								{feature}
-							</motion.span>
-						))}
-					</div>
-				</div>
-			</motion.div>
-		</Link>
-	)
 }
 
 const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
