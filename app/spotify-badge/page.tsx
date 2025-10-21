@@ -2,7 +2,7 @@
 'use client'
 
 import { useSession, signIn, signOut } from 'next-auth/react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 export default function SpotifyBadgePage() {
   const { data: session, status } = useSession()
@@ -10,18 +10,22 @@ export default function SpotifyBadgePage() {
   const [refreshKey, setRefreshKey] = useState(0)
   const [footerText, setFooterText] = useState('Real Time Data • Spotify Incorporations')
   const [accentColor, setAccentColor] = useState('#1ed760')
-  const [showCustomizer, setShowCustomizer] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [isApplying, setIsApplying] = useState(false)
+  const [colorCooldown, setColorCooldown] = useState(false)
+  const lastAppliedSettings = useRef({ footerText, accentColor })
 
   const isSpotifyAuth = session?.provider === 'spotify'
   
   const buildBadgeUrl = () => {
     const baseUrl = `${window.location.origin}/api/spotify-tracks?user=${session?.spotifyUserId || ''}`
     const params = new URLSearchParams()
-    if (footerText !== 'Real Time Data • Spotify Incorporations') {
-      params.append('footer', footerText)
+    if (lastAppliedSettings.current.footerText !== 'Real Time Data • Spotify Incorporations') {
+      params.append('footer', lastAppliedSettings.current.footerText)
     }
-    if (accentColor !== '#1ed760') {
-      params.append('color', accentColor.replace('#', ''))
+    if (lastAppliedSettings.current.accentColor !== '#1ed760') {
+      params.append('color', lastAppliedSettings.current.accentColor.replace('#', ''))
     }
     return params.toString() ? `${baseUrl}&${params.toString()}` : baseUrl
   }
@@ -40,14 +44,43 @@ export default function SpotifyBadgePage() {
     { name: 'Mint Fresh', value: '#00f5d4' },
   ]
 
+  useEffect(() => {
+    const hasChanged = 
+      footerText !== lastAppliedSettings.current.footerText ||
+      accentColor !== lastAppliedSettings.current.accentColor
+    setHasUnsavedChanges(hasChanged)
+  }, [footerText, accentColor])
+
   const copyToClipboard = (text: string, type: string) => {
     navigator.clipboard.writeText(text)
     setCopied(type)
     setTimeout(() => setCopied(null), 2000)
   }
 
-  const refreshPreview = () => {
+  const refreshPreview = async () => {
+    if (isRefreshing) return
+    setIsRefreshing(true)
     setRefreshKey(prev => prev + 1)
+    setTimeout(() => setIsRefreshing(false), 1000)
+  }
+
+  const applyChanges = async () => {
+    if (isApplying) return
+    setIsApplying(true)
+    
+    await new Promise(resolve => setTimeout(resolve, 600))
+    
+    lastAppliedSettings.current = { footerText, accentColor }
+    setHasUnsavedChanges(false)
+    setRefreshKey(prev => prev + 1)
+    setIsApplying(false)
+  }
+
+  const handleColorChange = (color: string) => {
+    if (colorCooldown) return
+    setAccentColor(color)
+    setColorCooldown(true)
+    setTimeout(() => setColorCooldown(false), 300)
   }
 
   useEffect(() => {
@@ -71,7 +104,6 @@ export default function SpotifyBadgePage() {
   if (!session || !isSpotifyAuth) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 flex items-center justify-center p-4 relative overflow-hidden">
-        {/* Animated background elements */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute -top-40 -right-40 w-80 h-80 bg-green-500/10 rounded-full blur-3xl animate-pulse"></div>
           <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-green-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
@@ -79,7 +111,6 @@ export default function SpotifyBadgePage() {
 
         <div className="max-w-md w-full relative z-10 animate-fade-in">
           <div className="text-center mb-8">
-            {/* Animated Spotify Logo */}
             <div className="relative inline-block mb-6">
               <div className="absolute inset-0 bg-green-500/20 rounded-full blur-xl animate-pulse"></div>
               <div className="relative w-24 h-24 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center transform hover:scale-110 transition-transform duration-300 shadow-2xl shadow-green-500/50">
@@ -132,16 +163,15 @@ export default function SpotifyBadgePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 py-12 px-4 relative overflow-hidden">
-      {/* Animated background */}
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 py-8 px-4 relative overflow-hidden">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 right-20 w-96 h-96 bg-green-500/5 rounded-full blur-3xl animate-pulse"></div>
         <div className="absolute bottom-20 left-20 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
       </div>
 
-      <div className="max-w-4xl mx-auto relative z-10">
+      <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
-        <div className="flex justify-between items-start mb-8 animate-fade-in">
+        <div className="flex justify-between items-center mb-8 animate-fade-in">
           <div className="flex items-center gap-4">
             {session.user?.image && (
               <div className="relative group">
@@ -149,291 +179,327 @@ export default function SpotifyBadgePage() {
                 <img 
                   src={session.user.image} 
                   alt={session.user.name || 'User'} 
-                  className="relative w-16 h-16 rounded-full border-2 border-green-500 shadow-lg shadow-green-500/50 group-hover:scale-110 transition-transform"
+                  className="relative w-14 h-14 rounded-full border-2 border-green-500 shadow-lg shadow-green-500/50"
                 />
               </div>
             )}
             <div>
-              <h1 className="text-4xl font-bold text-white mb-1 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+              <h1 className="text-3xl font-bold text-white mb-1">
                 Your Badge
               </h1>
-              <p className="text-gray-400">
+              <p className="text-gray-400 text-sm">
                 Welcome back, <span className="text-green-400 font-semibold">{session.user?.name}</span>
               </p>
             </div>
           </div>
           <button
             onClick={() => signOut({ callbackUrl: '/spotify-badge' })}
-            className="group px-6 py-3 bg-zinc-900/50 hover:bg-red-500/20 text-gray-300 hover:text-red-400 rounded-xl transition-all duration-300 border border-zinc-800 hover:border-red-500/50 backdrop-blur-sm"
+            className="px-5 py-2.5 bg-zinc-900/50 hover:bg-red-500/20 text-gray-300 hover:text-red-400 rounded-lg transition-all duration-300 border border-zinc-800 hover:border-red-500/50 text-sm font-medium flex items-center gap-2"
           >
-            <span className="flex items-center gap-2">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
-              Logout
-            </span>
-          </button>
-        </div>
-
-        {/* Customization Panel */}
-        <div className="mb-6 animate-fade-in" style={{ animationDelay: '0.1s' }}>
-          <button
-            onClick={() => setShowCustomizer(!showCustomizer)}
-            className="w-full p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 hover:from-purple-500/20 hover:to-pink-500/20 border border-purple-500/30 rounded-xl transition-all duration-300 flex items-center justify-between group"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center shadow-lg shadow-purple-500/50 group-hover:scale-110 transition-transform">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-                </svg>
-              </div>
-              <div className="text-left">
-                <h3 className="text-white font-semibold">Customize Your Badge</h3>
-                <p className="text-sm text-gray-400">Change colors and footer text</p>
-              </div>
-            </div>
-            <svg className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${showCustomizer ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
+            Logout
           </button>
+        </div>
 
-          {showCustomizer && (
-            <div className="mt-4 p-6 bg-zinc-900/50 border border-zinc-800 rounded-xl backdrop-blur-sm space-y-6 animate-slide-down">
-              {/* Color Picker */}
-              <div>
-                <label className="block text-sm font-semibold text-white mb-3">Accent Color</label>
-                <div className="grid grid-cols-3 gap-3 mb-4">
-                  {presetColors.map((color) => (
-                    <button
-                      key={color.value}
-                      onClick={() => setAccentColor(color.value)}
-                      className={`group relative p-3 bg-zinc-800/50 hover:bg-zinc-700/50 rounded-lg transition-all duration-200 border-2 ${
-                        accentColor === color.value ? 'border-white' : 'border-transparent'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div 
-                          className="w-8 h-8 rounded-full shadow-lg group-hover:scale-110 transition-transform" 
-                          style={{ backgroundColor: color.value, boxShadow: `0 0 20px ${color.value}40` }}
-                        ></div>
-                        <span className="text-sm text-gray-300 font-medium">{color.name}</span>
-                      </div>
-                    </button>
-                  ))}
+        {/* Two Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left Column - Preview */}
+          <div className="space-y-6">
+            {/* Preview */}
+            <div className="bg-zinc-900/50 rounded-xl p-6 border border-zinc-800 backdrop-blur-sm animate-fade-in sticky top-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-lg font-bold text-white">Live Preview</h2>
+                  <p className="text-xs text-gray-500">Updates every 60s</p>
                 </div>
-                <div className="flex gap-3 items-center">
-                  <input
-                    type="color"
-                    value={accentColor}
-                    onChange={(e) => setAccentColor(e.target.value)}
-                    className="w-16 h-12 rounded-lg cursor-pointer bg-zinc-800 border-2 border-zinc-700"
-                  />
-                  <input
-                    type="text"
-                    value={accentColor}
-                    onChange={(e) => setAccentColor(e.target.value)}
-                    className="flex-1 px-4 py-3 bg-zinc-800 text-gray-300 rounded-lg border border-zinc-700 focus:border-green-500 focus:outline-none transition-colors font-mono"
-                    placeholder="#1ed760"
-                  />
-                </div>
+                <button
+                  onClick={refreshPreview}
+                  disabled={isRefreshing}
+                  className="flex items-center gap-2 text-sm bg-green-500 hover:bg-green-400 disabled:bg-green-500/50 text-black px-4 py-2 rounded-lg transition-all duration-200 font-semibold disabled:cursor-not-allowed"
+                >
+                  <svg className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  {isRefreshing ? 'Refreshing...' : 'Refresh'}
+                </button>
               </div>
-
-              {/* Footer Text */}
-              <div>
-                <label className="block text-sm font-semibold text-white mb-3">Footer Text</label>
-                <input
-                  type="text"
-                  value={footerText}
-                  onChange={(e) => setFooterText(e.target.value)}
-                  maxLength={50}
-                  className="w-full px-4 py-3 bg-zinc-800 text-gray-300 rounded-lg border border-zinc-700 focus:border-green-500 focus:outline-none transition-colors"
-                  placeholder="Real Time Data • Spotify Incorporations"
+              <div className="bg-black/50 rounded-lg p-6 flex justify-center border border-zinc-800 relative overflow-hidden">
+                <img 
+                  src={`${userBadgeUrl}&t=${refreshKey}`}
+                  alt="Spotify Recently Played" 
+                  className="max-w-full h-auto rounded-lg shadow-2xl transition-opacity duration-300"
+                  onError={(e) => {
+                    e.currentTarget.src = `${userBadgeUrl}&t=${Date.now()}`
+                  }}
                 />
-                <p className="text-xs text-gray-500 mt-2">{footerText.length}/50 characters</p>
-              </div>
-
-              <button
-                onClick={refreshPreview}
-                className="w-full py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-black font-semibold rounded-lg transition-all duration-200 transform hover:scale-105"
-              >
-                Apply Changes
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Preview */}
-        <div className="bg-zinc-900/50 rounded-2xl p-6 mb-6 border border-zinc-800 backdrop-blur-sm animate-fade-in" style={{ animationDelay: '0.2s' }}>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-xl font-bold text-white">Live Preview</h2>
-              <p className="text-sm text-gray-400">Auto-updates every 60 seconds</p>
-            </div>
-            <button
-              onClick={refreshPreview}
-              className="group flex items-center gap-2 text-sm bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-black px-5 py-3 rounded-lg transition-all duration-200 font-semibold shadow-lg shadow-green-500/30 hover:shadow-green-500/50 transform hover:scale-105"
-            >
-              <svg className="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              Refresh
-            </button>
-          </div>
-          <div className="bg-black/50 rounded-xl p-8 flex justify-center border border-zinc-800">
-            <img 
-              src={`${userBadgeUrl}&t=${refreshKey}`}
-              alt="Spotify Recently Played" 
-              className="max-w-full h-auto rounded-lg shadow-2xl hover:scale-105 transition-transform duration-300"
-              onError={(e) => {
-                e.currentTarget.src = `${userBadgeUrl}&t=${Date.now()}`
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Embed Codes */}
-        <div className="space-y-4">
-          {/* Markdown */}
-          <div className="group bg-zinc-900/50 rounded-2xl p-6 border border-zinc-800 backdrop-blur-sm hover:border-blue-500/50 transition-all duration-300 animate-fade-in" style={{ animationDelay: '0.3s' }}>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/50">
-                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M20.56 18.44l-4.67-4.67 4.67-4.67a2 2 0 000-2.83l-2.83-2.83a2 2 0 00-2.83 0L10.23 8.1 5.56 3.44a2 2 0 00-2.83 0L.9 5.27a2 2 0 000 2.83l4.67 4.67-4.67 4.67a2 2 0 000 2.83l2.83 2.83a2 2 0 002.83 0l4.67-4.67 4.67 4.67a2 2 0 002.83 0l2.83-2.83a2 2 0 000-2.83z"/>
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="text-lg font-bold text-white">Markdown</h2>
-                  <p className="text-sm text-gray-400">Perfect for GitHub READMEs</p>
-                </div>
+                {isRefreshing && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-sm">
+                    <div className="w-8 h-8 border-3 border-green-500/30 border-t-green-500 rounded-full animate-spin"></div>
+                  </div>
+                )}
               </div>
             </div>
-            <div className="relative">
-              <pre className="bg-black/50 rounded-xl p-4 text-sm text-blue-400 overflow-x-auto border border-zinc-800 font-mono">
-                <code>{markdownCode}</code>
-              </pre>
-              <button
-                onClick={() => copyToClipboard(markdownCode, 'markdown')}
-                className="absolute top-3 right-3 bg-zinc-800 hover:bg-blue-500 text-gray-300 hover:text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 border border-zinc-700 hover:border-blue-500 shadow-lg"
-              >
-                {copied === 'markdown' ? (
-                  <span className="flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    Copied!
-                  </span>
-                ) : 'Copy'}
-              </button>
-            </div>
           </div>
 
-          {/* HTML */}
-          <div className="group bg-zinc-900/50 rounded-2xl p-6 border border-zinc-800 backdrop-blur-sm hover:border-yellow-500/50 transition-all duration-300 animate-fade-in" style={{ animationDelay: '0.4s' }}>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-lg flex items-center justify-center shadow-lg shadow-yellow-500/50">
-                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M1.5 2L3 21.5l9 2.5 9-2.5L22.5 2H1.5zm17.09 4.39H7.41l.15 2h10.88l-.45 5.3L12 16.17l-5.94-2.48-.3-3.69h2.9l.15 1.8 3.23 1.35 3.23-1.35.34-3.8H5.41L4.64 4h14.72l-.77 2.39z"/>
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="text-lg font-bold text-white">HTML</h2>
-                  <p className="text-sm text-gray-400">For websites and blogs</p>
-                </div>
-              </div>
-            </div>
-            <div className="relative">
-              <pre className="bg-black/50 rounded-xl p-4 text-sm text-yellow-400 overflow-x-auto border border-zinc-800 font-mono">
-                <code>{htmlCode}</code>
-              </pre>
-              <button
-                onClick={() => copyToClipboard(htmlCode, 'html')}
-                className="absolute top-3 right-3 bg-zinc-800 hover:bg-yellow-500 text-gray-300 hover:text-black px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 border border-zinc-700 hover:border-yellow-500 shadow-lg"
-              >
-                {copied === 'html' ? (
-                  <span className="flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    Copied!
-                  </span>
-                ) : 'Copy'}
-              </button>
-            </div>
-          </div>
-
-          {/* Direct URL */}
-          <div className="group bg-zinc-900/50 rounded-2xl p-6 border border-zinc-800 backdrop-blur-sm hover:border-purple-500/50 transition-all duration-300 animate-fade-in" style={{ animationDelay: '0.5s' }}>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
+          {/* Right Column - Customization & Embed Codes */}
+          <div className="space-y-6">
+            {/* Customization Panel */}
+            <div className="bg-zinc-900/50 rounded-xl p-6 border border-zinc-800 backdrop-blur-sm animate-fade-in" style={{ animationDelay: '0.1s' }}>
+              <div className="flex items-center gap-3 mb-6">
                 <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center shadow-lg shadow-purple-500/50">
                   <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-white">Direct URL</h2>
-                  <p className="text-sm text-gray-400">Use anywhere that accepts image URLs</p>
+                  <h3 className="text-white font-bold text-lg">Customize Badge</h3>
+                  <p className="text-xs text-gray-500">Change colors and text</p>
                 </div>
               </div>
-            </div>
-            <div className="relative flex gap-2">
-              <input
-                type="text"
-                value={userBadgeUrl}
-                readOnly
-                className="flex-1 bg-black/50 text-gray-300 px-4 py-3 rounded-lg font-mono text-sm border border-zinc-800 focus:outline-none"
-              />
-              <button
-                onClick={() => copyToClipboard(userBadgeUrl, 'url')}
-                className="bg-zinc-800 hover:bg-purple-500 text-gray-300 hover:text-white px-6 py-3 rounded-lg font-semibold transition-all duration-200 border border-zinc-700 hover:border-purple-500 shadow-lg whitespace-nowrap"
-              >
-                {copied === 'url' ? (
-                  <span className="flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    Copied!
-                  </span>
-                ) : 'Copy URL'}
-              </button>
-            </div>
-          </div>
-        </div>
 
-        {/* Info Section */}
-        <div className="mt-6 p-6 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-2xl backdrop-blur-sm animate-fade-in" style={{ animationDelay: '0.6s' }}>
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg shadow-green-500/50">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-              </svg>
+              <div className="space-y-5">
+                {/* Color Picker */}
+                <div>
+                  <label className="block text-sm font-semibold text-white mb-3">Accent Color</label>
+                  <div className="grid grid-cols-2 gap-2 mb-3">
+                    {presetColors.map((color) => (
+                      <button
+                        key={color.value}
+                        onClick={() => handleColorChange(color.value)}
+                        disabled={colorCooldown}
+                        className={`p-3 bg-zinc-800/50 hover:bg-zinc-700/50 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-all duration-200 border-2 ${
+                          accentColor === color.value ? 'border-white shadow-lg' : 'border-transparent'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-6 h-6 rounded-full shadow-lg transition-transform hover:scale-110" 
+                            style={{ backgroundColor: color.value, boxShadow: `0 0 15px ${color.value}40` }}
+                          ></div>
+                          <span className="text-xs text-gray-300 font-medium">{color.name}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="color"
+                      value={accentColor}
+                      onChange={(e) => handleColorChange(e.target.value)}
+                      disabled={colorCooldown}
+                      className="w-14 h-10 rounded-lg cursor-pointer bg-zinc-800 border-2 border-zinc-700 disabled:opacity-50"
+                    />
+                    <input
+                      type="text"
+                      value={accentColor}
+                      onChange={(e) => setAccentColor(e.target.value)}
+                      className="flex-1 px-3 py-2 bg-zinc-800 text-gray-300 rounded-lg border border-zinc-700 focus:border-green-500 focus:outline-none transition-colors font-mono text-sm"
+                      placeholder="#1ed760"
+                    />
+                  </div>
+                </div>
+
+                {/* Footer Text */}
+                <div>
+                  <label className="block text-sm font-semibold text-white mb-3">Footer Text</label>
+                  <input
+                    type="text"
+                    value={footerText}
+                    onChange={(e) => setFooterText(e.target.value)}
+                    maxLength={50}
+                    className="w-full px-3 py-2.5 bg-zinc-800 text-gray-300 rounded-lg border border-zinc-700 focus:border-green-500 focus:outline-none transition-colors text-sm"
+                    placeholder="Real Time Data • Spotify Incorporations"
+                  />
+                  <p className="text-xs text-gray-500 mt-1.5">{footerText.length}/50 characters</p>
+                </div>
+
+                {/* Apply Button */}
+                <button
+                  onClick={applyChanges}
+                  disabled={!hasUnsavedChanges || isApplying}
+                  className={`w-full py-3 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
+                    hasUnsavedChanges && !isApplying
+                      ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-black shadow-lg shadow-green-500/30'
+                      : 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+                  }`}
+                >
+                  {isApplying ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
+                      Applying...
+                    </>
+                  ) : hasUnsavedChanges ? (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Apply Changes
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      No Changes
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
-            <div className="flex-1">
-              <h3 className="text-green-400 font-bold text-lg mb-3">Pro Tips & Features</h3>
-              <ul className="text-green-300 text-sm space-y-2">
-                <li className="flex items-start gap-2">
-                  <span className="text-green-500 mt-0.5">🎵</span>
-                  <span>Your badge auto-updates every 60 seconds with your latest tracks</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-500 mt-0.5">🎨</span>
-                  <span>Customize colors and footer text to match your personal style</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-500 mt-0.5">💻</span>
-                  <span>Use Markdown for GitHub, Discord, and documentation sites</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-500 mt-0.5">🌐</span>
-                  <span>HTML version works perfectly for personal websites and blogs</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-green-500 mt-0.5">🔗</span>
-                  <span>Direct URL works anywhere that accepts image links</span>
-                </li>
-              </ul>
+
+            {/* Embed Codes */}
+            <div className="space-y-3">
+              <h3 className="text-white font-bold text-lg px-1">Embed Your Badge</h3>
+              
+              {/* Markdown */}
+              <div className="bg-zinc-900/50 rounded-xl p-5 border border-zinc-800 backdrop-blur-sm hover:border-blue-500/50 transition-all duration-300">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M20.56 18.44l-4.67-4.67 4.67-4.67a2 2 0 000-2.83l-2.83-2.83a2 2 0 00-2.83 0L10.23 8.1 5.56 3.44a2 2 0 00-2.83 0L.9 5.27a2 2 0 000 2.83l4.67 4.67-4.67 4.67a2 2 0 000 2.83l2.83 2.83a2 2 0 002.83 0l4.67-4.67 4.67 4.67a2 2 0 002.83 0l2.83-2.83a2 2 0 000-2.83z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-white">Markdown</h4>
+                    <p className="text-xs text-gray-500">For GitHub READMEs</p>
+                  </div>
+                </div>
+                <div className="bg-black/50 rounded-lg p-3 border border-zinc-800 mb-3">
+                  <pre className="text-xs text-blue-400 overflow-x-auto font-mono">
+                    <code>{markdownCode}</code>
+                  </pre>
+                </div>
+                <button
+                  onClick={() => copyToClipboard(markdownCode, 'markdown')}
+                  className="w-full bg-blue-500 hover:bg-blue-400 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2"
+                >
+                  {copied === 'markdown' ? (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                      Copy Code
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* HTML */}
+              <div className="bg-zinc-900/50 rounded-xl p-5 border border-zinc-800 backdrop-blur-sm hover:border-yellow-500/50 transition-all duration-300">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-lg flex items-center justify-center">
+                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M1.5 2L3 21.5l9 2.5 9-2.5L22.5 2H1.5zm17.09 4.39H7.41l.15 2h10.88l-.45 5.3L12 16.17l-5.94-2.48-.3-3.69h2.9l.15 1.8 3.23 1.35 3.23-1.35.34-3.8H5.41L4.64 4h14.72l-.77 2.39z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-white">HTML</h4>
+                    <p className="text-xs text-gray-500">For websites</p>
+                  </div>
+                </div>
+                <div className="bg-black/50 rounded-lg p-3 border border-zinc-800 mb-3">
+                  <pre className="text-xs text-yellow-400 overflow-x-auto font-mono">
+                    <code>{htmlCode}</code>
+                  </pre>
+                </div>
+                <button
+                  onClick={() => copyToClipboard(htmlCode, 'html')}
+                  className="w-full bg-yellow-500 hover:bg-yellow-400 text-black px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2"
+                >
+                  {copied === 'html' ? (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                      Copy Code
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Direct URL */}
+              <div className="bg-zinc-900/50 rounded-xl p-5 border border-zinc-800 backdrop-blur-sm hover:border-purple-500/50 transition-all duration-300">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-white">Direct URL</h4>
+                    <p className="text-xs text-gray-500">Use anywhere</p>
+                  </div>
+                </div>
+                <div className="bg-black/50 rounded-lg p-3 border border-zinc-800 mb-3">
+                  <p className="text-xs text-purple-400 overflow-x-auto font-mono break-all">
+                    {userBadgeUrl}
+                  </p>
+                </div>
+                <button
+                  onClick={() => copyToClipboard(userBadgeUrl, 'url')}
+                  className="w-full bg-purple-500 hover:bg-purple-400 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2"
+                >
+                  {copied === 'url' ? (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                      Copy URL
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Pro Tips */}
+            <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/30 rounded-xl p-5 backdrop-blur-sm">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-lg flex items-center justify-center flex-shrink-0 shadow-lg shadow-green-500/50">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-green-400 font-bold text-sm mb-2">Pro Tips</h3>
+                  <ul className="text-green-300 text-xs space-y-1.5">
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-500 mt-0.5">•</span>
+                      <span>Badge auto-updates every 60 seconds</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-500 mt-0.5">•</span>
+                      <span>Customize and apply changes to see updates</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-500 mt-0.5">•</span>
+                      <span>Works on GitHub, Discord, and websites</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -451,23 +517,8 @@ export default function SpotifyBadgePage() {
           }
         }
 
-        @keyframes slide-down {
-          from {
-            opacity: 0;
-            max-height: 0;
-          }
-          to {
-            opacity: 1;
-            max-height: 500px;
-          }
-        }
-
         .animate-fade-in {
           animation: fade-in 0.6s ease-out forwards;
-        }
-
-        .animate-slide-down {
-          animation: slide-down 0.4s ease-out forwards;
         }
       `}</style>
     </div>
