@@ -6,7 +6,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useTheme } from '../contexts/ThemeContext'
 import { useDiscord } from '../contexts/DiscordContext'
 
-const AUTO_HIDE_ROUTES = ['/ai', '/image-gen', '/login', '/koi', "/dashboard"]
+const AUTO_HIDE_ROUTES = ['/ai', '/image-gen', '/login', '/koi', '/dashboard', '/spotify-badge']
 
 const LoadingAnimation = ({ 
   theme, 
@@ -327,7 +327,7 @@ export default function Navbar() {
     toggleTheme()
   }
 
-  const navItems = ['dashboard', 'image-gen', 'nsfw', 'contact', 'privacy', 'koi']
+  const navItems = ['dashboard', 'ImageGen', 'nsfw', 'spotify-badge' ,'contact', 'koi']
 
   const getNavPositionStyles = () => {
     const isHorizontal = navPosition === 'top' || navPosition === 'bottom'
