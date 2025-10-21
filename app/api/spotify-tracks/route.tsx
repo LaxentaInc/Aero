@@ -133,7 +133,6 @@ async function getSpotifyData(accessToken: string) {
   }
 }
 
-// Convert image URLs to data URLs to avoid CORS issues
 async function imageUrlToDataURL(url: string): Promise<string> {
   try {
     const response = await fetch(url)
@@ -145,14 +144,16 @@ async function imageUrlToDataURL(url: string): Promise<string> {
     return `data:${mimeType};base64,${base64}`
   } catch (error) {
     console.error('Error converting image to data URL:', error)
-    return '' // Return empty string on error
+    return ''
   }
 }
 
 async function generateTracksSVG(
   tracks: SpotifyTrack[],
   username: string,
-  userImage?: string
+  userImage?: string,
+  accentColor: string = '#1ed760',
+  footerText: string = 'Real Time Data • Spotify Incorporations'
 ): Promise<string> {
   const width = 500
   const itemHeight = 80
@@ -160,20 +161,30 @@ async function generateTracksSVG(
   const padding = 15
   const height = headerHeight + (tracks.length * itemHeight) + 40
 
-  // Convert user image to data URL if provided
+  // Convert hex to RGB for gradient
+  const hexToRgb = (hex: string) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : { r: 30, g: 215, b: 96 }
+  }
+
+  const rgb = hexToRgb(accentColor)
+  const gradientColor = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`
+
   let userImageDataURL = ''
   if (userImage) {
     userImageDataURL = await imageUrlToDataURL(userImage)
   }
 
-  // Process all track images in parallel
   const trackItems = await Promise.all(
     tracks.map(async (item, index) => {
       const y = headerHeight + (index * itemHeight)
       const track = item.track
       const imageUrl = track.album.images[0]?.url || ''
       
-      // Convert track image to data URL
       let imageDataURL = ''
       if (imageUrl) {
         imageDataURL = await imageUrlToDataURL(imageUrl)
@@ -182,9 +193,11 @@ async function generateTracksSVG(
       const artistNames = track.artists.map(a => a.name).join(', ')
       
       return `
-        <g transform="translate(0, ${y})">
+        <g transform="translate(0, ${y})" class="track-item">
           <rect x="${padding}" y="0" width="${width - padding * 2}" height="${itemHeight - 10}" 
-                fill="#282828" rx="6" opacity="0.9"/>
+                fill="#282828" rx="6" opacity="0.9">
+            <animate attributeName="opacity" from="0" to="0.9" dur="0.5s" begin="${index * 0.1}s" fill="freeze"/>
+          </rect>
           
           ${imageDataURL ? `
             <clipPath id="clip-${index}">
@@ -193,7 +206,9 @@ async function generateTracksSVG(
             <image x="${padding + 10}" y="7" width="60" height="60" 
                    href="${imageDataURL}" 
                    clip-path="url(#clip-${index})"
-                   preserveAspectRatio="xMidYMid slice"/>
+                   preserveAspectRatio="xMidYMid slice">
+              <animate attributeName="opacity" from="0" to="1" dur="0.5s" begin="${index * 0.1}s" fill="freeze"/>
+            </image>
           ` : `
             <rect x="${padding + 10}" y="7" width="60" height="60" 
                   fill="#404040" rx="4"/>
@@ -234,7 +249,7 @@ async function generateTracksSVG(
     <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <linearGradient id="bg-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" style="stop-color:#1ed760;stop-opacity:0.15" />
+          <stop offset="0%" style="stop-color:${gradientColor};stop-opacity:0.15" />
           <stop offset="100%" style="stop-color:#121212;stop-opacity:1" />
         </linearGradient>
         <filter id="glow">
@@ -244,10 +259,26 @@ async function generateTracksSVG(
             <feMergeNode in="SourceGraphic"/>
           </feMerge>
         </filter>
+        <filter id="glow-strong">
+          <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+          <feMerge>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
       </defs>
       
-      <rect width="${width}" height="${height}" fill="url(#bg-gradient)" rx="12"/>
-      <rect width="${width}" height="${height}" fill="none" stroke="#1ed760" stroke-width="2" rx="12" opacity="0.3"/>
+      <rect width="${width}" height="${height}" fill="url(#bg-gradient)" rx="12">
+        <animate attributeName="opacity" from="0" to="1" dur="0.5s" fill="freeze"/>
+      </rect>
+      <rect width="${width}" height="${height}" fill="none" stroke="${accentColor}" stroke-width="2" rx="12" opacity="0.3">
+        <animate attributeName="opacity" from="0" to="0.3" dur="0.8s" fill="freeze"/>
+      </rect>
+      
+      <!-- Animated Accent Glow -->
+      <circle cx="${width - padding - 25}" cy="40" r="20" fill="${accentColor}" opacity="0.1" filter="url(#glow-strong)">
+        <animate attributeName="opacity" values="0.1;0.2;0.1" dur="3s" repeatCount="indefinite"/>
+      </circle>
       
       <!-- Header -->
       <g transform="translate(${padding}, 15)">
@@ -255,10 +286,15 @@ async function generateTracksSVG(
           <clipPath id="user-avatar">
             <circle cx="25" cy="25" r="25"/>
           </clipPath>
+          <circle cx="25" cy="25" r="27" fill="none" stroke="${accentColor}" stroke-width="2" opacity="0.5">
+            <animate attributeName="stroke-dasharray" from="0 170" to="170 0" dur="1.5s" fill="freeze"/>
+          </circle>
           <image x="0" y="0" width="50" height="50" 
                  href="${userImageDataURL}" 
                  clip-path="url(#user-avatar)"
-                 preserveAspectRatio="xMidYMid slice"/>
+                 preserveAspectRatio="xMidYMid slice">
+            <animate attributeName="opacity" from="0" to="1" dur="0.8s" fill="freeze"/>
+          </image>
         ` : ''}
         
         <text x="${userImageDataURL ? '60' : '0'}" y="22" 
@@ -278,9 +314,11 @@ async function generateTracksSVG(
           ${username}
         </text>
         
-        <!-- Spotify Logo -->
+        <!-- Spotify Logo with Custom Color -->
         <g transform="translate(${width - padding - 35}, 10)">
-          <circle cx="15" cy="15" r="15" fill="#1DB954" filter="url(#glow)"/>
+          <circle cx="15" cy="15" r="15" fill="${accentColor}" filter="url(#glow)">
+            <animate attributeName="opacity" from="0" to="1" dur="0.8s" fill="freeze"/>
+          </circle>
           <svg x="5" y="5" width="20" height="20" viewBox="0 0 24 24" fill="#191414">
             <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424c-.18.295-.563.387-.857.207-2.35-1.434-5.305-1.76-8.786-.963-.335.077-.67-.133-.746-.469-.077-.335.132-.67.469-.746 3.809-.87 7.076-.496 9.712 1.115.293.18.385.563.206.857zm1.223-2.723c-.226.367-.706.482-1.073.257-2.687-1.652-6.785-2.13-9.965-1.166-.413.127-.848-.106-.977-.517-.125-.413.108-.848.52-.977 3.632-1.102 8.147-.568 11.234 1.328.366.226.48.707.256 1.073zm.105-2.835C14.692 8.95 9.375 8.775 6.297 9.71c-.493.15-1.016-.13-1.166-.624-.148-.495.13-1.017.625-1.167 3.532-1.073 9.404-.865 13.115 1.338.445.264.59.838.327 1.282-.264.443-.838.59-1.282.326z"/>
           </svg>
@@ -296,23 +334,35 @@ async function generateTracksSVG(
             font-size="10" 
             fill="#6B6B6B" 
             text-anchor="middle">
-        Real Time Data • Spotify Incorporations
+        ${footerText}
       </text>
     </svg>
   `
 }
 
-function generateErrorSVG(message: string): string {
+function generateErrorSVG(message: string, accentColor: string = '#FF6B6B'): string {
   return `
     <svg width="500" height="150" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+          <feMerge>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+      </defs>
+      
       <rect width="500" height="150" fill="#191414" rx="12"/>
-      <rect width="500" height="150" fill="none" stroke="#FF6B6B" stroke-width="2" rx="12" opacity="0.5"/>
+      <rect width="500" height="150" fill="none" stroke="${accentColor}" stroke-width="2" rx="12" opacity="0.5"/>
+      
+      <circle cx="250" cy="55" r="20" fill="${accentColor}" opacity="0.2" filter="url(#glow)"/>
       
       <text x="250" y="70" 
             font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" 
             font-size="16" 
             font-weight="600"
-            fill="#FF6B6B" 
+            fill="${accentColor}" 
             text-anchor="middle">
         ⚠️ ${message}
       </text>
@@ -322,14 +372,13 @@ function generateErrorSVG(message: string): string {
             font-size="12" 
             fill="#B3B3B3" 
             text-anchor="middle">
-        Please check your user ID
+        Please check your configuration
       </text>
     </svg>
   `
 }
 
 export async function GET(request: NextRequest) {
-  // Set CORS headers for all responses
   const headers = {
     'Content-Type': 'image/svg+xml',
     'Cache-Control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=120',
@@ -341,51 +390,57 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('user')
+    const customFooter = searchParams.get('footer')
+    const customColor = searchParams.get('color')
+
+    // Parse and validate custom color (hex without #)
+    let accentColor = '#1ed760'
+    if (customColor) {
+      const hexPattern = /^[0-9A-Fa-f]{6}$/
+      if (hexPattern.test(customColor)) {
+        accentColor = `#${customColor}`
+      }
+    }
+
+    // Validate and sanitize footer text
+    let footerText = 'Real Time Data • Spotify Incorporations'
+    if (customFooter && customFooter.length <= 50) {
+      // Basic sanitization - remove any HTML/XML tags
+      footerText = customFooter.replace(/<[^>]*>/g, '').trim()
+    }
 
     if (!userId) {
       return new NextResponse(
-        generateErrorSVG('Missing user ID'),
-        {
-          status: 400,
-          headers,
-        }
+        generateErrorSVG('Missing user ID', accentColor),
+        { status: 400, headers }
       )
     }
 
-    // Get user's stored tokens from MongoDB
     const userAuth = await getUserTokens(userId)
     
     if (!userAuth) {
       return new NextResponse(
-        generateErrorSVG('User not found'),
-        {
-          status: 404,
-          headers,
-        }
+        generateErrorSVG('User not found', accentColor),
+        { status: 404, headers }
       )
     }
 
     let accessToken = userAuth.accessToken
 
-    // Refresh token if expired
     if (Date.now() > userAuth.expiresAt) {
       const newToken = await refreshSpotifyToken(userAuth.refreshToken)
       if (newToken) {
         accessToken = newToken
-        // Update token in MongoDB
         await updateUserTokens(
           userId,
           newToken,
           userAuth.refreshToken,
-          Date.now() + 3600 * 1000 // 1 hour
+          Date.now() + 3600 * 1000
         )
       } else {
         return new NextResponse(
-          generateErrorSVG('Failed to refresh Spotify token'),
-          {
-            status: 401,
-            headers,
-          }
+          generateErrorSVG('Failed to refresh Spotify token', accentColor),
+          { status: 401, headers }
         )
       }
     }
@@ -395,7 +450,9 @@ export async function GET(request: NextRequest) {
     const svg = await generateTracksSVG(
       tracks,
       user.display_name || 'Spotify User',
-      user.images?.[0]?.url
+      user.images?.[0]?.url,
+      accentColor,
+      footerText
     )
 
     return new NextResponse(svg, {
@@ -421,7 +478,6 @@ export async function GET(request: NextRequest) {
 }
 
 export async function OPTIONS() {
-  // Handle preflight requests
   return new NextResponse(null, {
     status: 200,
     headers: {
