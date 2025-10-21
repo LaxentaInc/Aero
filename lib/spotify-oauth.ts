@@ -26,15 +26,20 @@ async function connectToDatabase() {
 }
 
 // Generate Spotify OAuth URL
+// lib/spotify-oauth.ts
 export function generateSpotifyAuthUrl() {
   const state = randomBytes(16).toString('hex')
   const scope = 'user-read-email user-read-recently-played user-top-read user-read-private'
+  
+  // Fix: Ensure proper URL construction without double slashes
+  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
+  const redirectUri = `${baseUrl.replace(/\/$/, '')}/api/spotify/callback`
   
   const params = new URLSearchParams({
     response_type: 'code',
     client_id: process.env.SPOTIFY_CLIENT_ID!,
     scope: scope,
-    redirect_uri: `${process.env.NEXTAUTH_URL}/api/spotify/callback`,
+    redirect_uri: redirectUri,
     state: state,
     show_dialog: 'false'
   })
@@ -46,7 +51,11 @@ export function generateSpotifyAuthUrl() {
 }
 
 // Exchange authorization code for access token
+// lib/spotify-oauth.ts
 export async function exchangeCodeForTokens(code: string) {
+  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
+  const redirectUri = `${baseUrl.replace(/\/$/, '')}/api/spotify/callback`
+
   const response = await fetch('https://accounts.spotify.com/api/token', {
     method: 'POST',
     headers: {
@@ -58,7 +67,7 @@ export async function exchangeCodeForTokens(code: string) {
     body: new URLSearchParams({
       grant_type: 'authorization_code',
       code: code,
-      redirect_uri: `${process.env.NEXTAUTH_URL}/api/spotify/callback`,
+      redirect_uri: redirectUri,
     }),
   })
 
