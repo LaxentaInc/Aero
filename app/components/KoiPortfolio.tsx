@@ -985,8 +985,8 @@ const SkillsPage = () => {
     const { theme } = useTheme();
     const skillCategories = [
         {
-            category: "Academic Excellence",
-            description: "How she conquers the classroom (sort of)",
+            category: "Her Majesty's Excellence",
+            description: "How she conquers the fish world",
             items: [
                 { 
                     name: "Procrastination", 
@@ -1055,9 +1055,9 @@ const SkillsPage = () => {
             description: "Surviving the daily fish life",
             items: [
                 { 
-                    name: "Sleep Schedule", 
+                    name: "Being a femboy", 
                     level: 30, 
-                    description: "Sleep? Never heard of her. Definitely not missing from her vocabulary" 
+                    description: "Surely not a femboy, definitely not, right??" 
                 },
                 { 
                     name: "Bedtime and proper sleep?", 
