@@ -989,47 +989,47 @@ const SkillsPage = () => {
             description: "How she conquers the classroom (sort of)",
             items: [
                 { 
-                    name: "Procrastination Mastery", 
+                    name: "Procrastination", 
                     level: 99, 
-                    description: "Turns every assignment into a thrilling last-minute adventure" 
+                    description: "Turns every assignment into a thrilling last-minute anxiety marathon" 
                 },
                 { 
-                    name: "Strategic Planning", 
+                    name: "Overthinking", 
                     level: 95, 
                     description: "Overthinks a simple 'hi' text for precisely 2 days before responding" 
                 },
                 { 
-                    name: "Coffee Optimization", 
+                    name: "Caffine Addiction", 
                     level: 88, 
-                    description: "Has unlocked the secret to surviving on pure caffeine and determination" 
+                    description: "Has unlocked the secret to surviving on pure caffeine and determination, eating does not matter anymore" 
                 },
                 { 
-                    name: "Research Skills", 
+                    name: "Tab hoarding", 
                     level: 92, 
-                    description: "Currently maintaining 50 browser tabs like a digital library" 
+                    description: "Currently have 34 browser tabs and refuses to close any" 
                 },
                 {
                     name: "Perpetual Boredom",
                     level: 100,
-                    description: "A fundamental state of existence. It's not a bug, it's her feature"
+                    description: "A fundamental state of existence"
                 }
             ],
             color: "from-red-400 to-pink-500",
             icon: "📚"
         },
         {
-            category: "Social Dynamics",
-            description: "Navigating human interaction with style",
+            category: "Social Stats?",
+            description: "NOt awkward at all, trust me",
             items: [
                 { 
-                    name: "Extreme Sports Enthusiasm", 
+                    name: "Hobby?", 
                     level: 100, 
-                    description: "Finds cliff jumping surprisingly therapeutic for stress relief" 
+                    description: "NO, not coding, not studying, jumping off cliffs" 
                 },
                 { 
-                    name: "Digital Communication", 
+                    name: "Communication", 
                     level: 96, 
-                    description: "Fluent in the universal language of anime gifs and emojis" 
+                    description: "Can communicate entirely by anime gifs and emojis" 
                 },
                 { 
                     name: "Charm Statistics", 
@@ -1037,14 +1037,14 @@ const SkillsPage = () => {
                     description: "Naturally adorable. Some say it's a supernatural ability" 
                 },
                 { 
-                    name: "Emotional Economics", 
+                    name: "Love?", 
                     level: 85, 
                     description: "Love is temporarily unavailable due to current market conditions" 
                 },
                 {
-                    name: "Chaotic Energy",
+                    name: "Life Stats?",
                     level: 90,  
-                    description: "Mood swings, miscommunication, and controlled chaos. A delightful package deal"
+                    description: "Its all about Mood swings, miscommunication, and jumping around. A package deal perhaps"
                 }
             ],
             color: "from-blue-400 to-purple-500",
@@ -1052,27 +1052,27 @@ const SkillsPage = () => {
         },
         {
             category: "Life Management",
-            description: "Surviving the daily grind with grace",
+            description: "Surviving the daily fish life",
             items: [
                 { 
                     name: "Sleep Schedule", 
-                    level: 35, 
+                    level: 30, 
                     description: "Sleep? Never heard of her. Definitely not missing from her vocabulary" 
                 },
                 { 
-                    name: "Circadian Rhythm", 
+                    name: "Bedtime and proper sleep?", 
                     level: 22, 
                     description: "Bedtime is a social construct she's chosen to ignore" 
                 },
                 { 
-                    name: "Culinary Discovery", 
+                    name: "Snack Discovery", 
                     level: 91, 
-                    description: "Expert at finding the perfect midnight snack in record time" 
+                    description: "Sucks at finding the perfect midnight snack in her kitchen, maybe i should help?" 
                 },
                 { 
                     name: "Music Curation", 
                     level: 99, 
-                    description: "Maintains 26 mood-specific playlists with military precision" 
+                    description: "Maintains 26 mood-specific playlists for diffrent moods" 
                 },
                 { 
                     name: "Aquatic Identity", 
