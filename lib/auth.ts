@@ -1,8 +1,7 @@
-// lib/auth.ts
+//@lib/auth.ts
 import { NextAuthOptions } from 'next-auth'
 import DiscordProvider from 'next-auth/providers/discord'
 import { NextRequest } from 'next/server'
-import { MongoClient } from 'mongodb'
 
 declare module 'next-auth' {
   interface Session {
@@ -14,7 +13,7 @@ declare module 'next-auth' {
     accessToken: string
     refreshToken?: string
     expiresAt?: number
-    provider: 'discord'
+    provider?: 'discord'
   }
 }
 
@@ -27,7 +26,7 @@ declare module 'next-auth/jwt' {
     accessToken: string
     refreshToken?: string
     expiresAt?: number
-    provider: 'discord'
+    provider?: 'discord'
   }
 }
 
@@ -36,78 +35,11 @@ interface DiscordProfile {
   id: string
   username: string
   avatar: string
-  discriminator: string
-  global_name?: string
 }
 
 interface GuildGet { 
-  id: string
-  permissions?: string
-}
-
-interface DiscordTokenDoc {
-  userId: string
-  accessToken: string
-  refreshToken: string
-  expiresAt: number
-  discordId: string
-  username: string
-  globalName?: string
-  discriminator: string
-  avatar: string
-  createdAt: Date
-  updatedAt: Date
-}
-
-let cachedClient: MongoClient | null = null
-
-async function connectToDatabase() {
-  if (cachedClient) {
-    return cachedClient
-  }
-
-  const client = await MongoClient.connect(process.env.MONGO_URI!)
-  cachedClient = client
-  return client
-}
-
-// Discord functions
-async function saveDiscordUser(
-  userId: string,
-  accessToken: string,
-  refreshToken: string,
-  expiresAt: number,
-  discordId: string,
-  username: string,
-  globalName?: string,
-  discriminator?: string,
-  avatar?: string
-) {
-  const client = await connectToDatabase()
-  const db = client.db()
-  const collection = db.collection<DiscordTokenDoc>('discord_tokens')
-  
-  await collection.updateOne(
-    { userId },
-    {
-      $set: {
-        accessToken,
-        refreshToken,
-        expiresAt,
-        discordId,
-        username,
-        globalName,
-        discriminator,
-        avatar,
-        updatedAt: new Date(),
-      },
-      $setOnInsert: {
-        userId,
-        createdAt: new Date(),
-      },
-    },
-    { upsert: true }
-  )
+  id: string,
+  permissions?: string,
 }
 
 export const authOptions: NextAuthOptions = {
@@ -120,52 +52,16 @@ export const authOptions: NextAuthOptions = {
           scope: 'identify guilds',
         },
       },
-      profile(profile: DiscordProfile) {
-        return {
-          id: profile.id,
-          name: profile.global_name || profile.username,
-          image: `https://cdn.discordapp.com/avatars/${profile.id}/${profile.avatar}.png`,
-          username: profile.username,
-          discriminator: profile.discriminator,
-          avatar: profile.avatar,
-          global_name: profile.global_name,
-        }
-      },
     }),
   ],
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
-    async signIn({ user, account, profile }) {
-      if (account?.provider === 'discord') {
-        try {
-          const discordProfile = profile as DiscordProfile
-          
-          // Save tokens to MongoDB
-          await saveDiscordUser(
-            discordProfile.id, // Use Discord ID as userId
-            account.access_token!,
-            account.refresh_token!,
-            Date.now() + (account.expires_at! * 1000),
-            discordProfile.id,
-            discordProfile.username,
-            discordProfile.global_name,
-            discordProfile.discriminator,
-            discordProfile.avatar
-          )
-        } catch (error) {
-          console.error('Error saving Discord tokens during signin:', error)
-          return false
-        }
-      }
-      return true
-    },
-    
-    async jwt({ token, account, profile, user }) {
+    async jwt({ token, account, profile }) {
       if (account && profile) {
         token.accessToken = account.access_token!
         token.refreshToken = account.refresh_token
         token.expiresAt = account.expires_at
-        token.provider = 'discord'
+        token.provider = account.provider as 'discord'
 
         // Handle Discord-specific data
         if (account.provider === 'discord') {
@@ -175,47 +71,29 @@ export const authOptions: NextAuthOptions = {
           token.avatar = discordProfile.avatar
         }
       }
-      
       return token
     },
-    
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string
-        session.user.name = token.username || session.user.name
+        session.user.name = token.username
         session.accessToken = token.accessToken as string
         session.refreshToken = token.refreshToken as string
         session.expiresAt = token.expiresAt as number
-        session.provider = 'discord'
+        session.provider = token.provider
 
-        // Set Discord avatar
-        session.user.image = `https://cdn.discordapp.com/avatars/${token.id}/${token.avatar}.png`
+        // Set Discord-specific data
+        if (token.provider === 'discord') {
+          session.user.image = `https://cdn.discordapp.com/avatars/${token.id}/${token.avatar}.png`
+        }
       }
       return session
-    },
-    
-    async redirect({ url, baseUrl }) {
-      // Allows relative callback URLs
-      if (url.startsWith('/')) return `${baseUrl}${url}`
-      // Allows callback URLs on the same origin
-      else if (new URL(url).origin === baseUrl) return url
-      return baseUrl
     },
   },
   pages: {
     signIn: '/login',
-    signOut: '/',
     error: '/error',
-    verifyRequest: '/verify-request',
   },
-  session: {
-    strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-  },
-  jwt: {
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-  },
-  debug: process.env.NODE_ENV === 'development',
 }
 
 export function authenticate(req: NextRequest) {
@@ -225,22 +103,4 @@ export function authenticate(req: NextRequest) {
   }
   const token = authHeader.split(' ')[1]
   return token === process.env.BOT_API_AUTH
-}
-
-// Helper to get Discord user by user ID
-export async function getDiscordUserByUserId(userId: string): Promise<DiscordTokenDoc | null> {
-  const client = await connectToDatabase()
-  const db = client.db()
-  const collection = db.collection<DiscordTokenDoc>('discord_tokens')
-  
-  return await collection.findOne({ userId })
-}
-
-// Helper to get Discord user by Discord ID
-export async function getDiscordUserByDiscordId(discordId: string): Promise<DiscordTokenDoc | null> {
-  const client = await connectToDatabase()
-  const db = client.db()
-  const collection = db.collection<DiscordTokenDoc>('discord_tokens')
-  
-  return await collection.findOne({ discordId })
 }
