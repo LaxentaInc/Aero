@@ -8,6 +8,11 @@ interface SpotifyUser {
   userId: string
   displayName: string
   email?: string
+  spotifyId?: string
+  profileImage?: string
+  followerCount?: number
+  country?: string
+  product?: string
 }
 
 export default function SpotifyBadgePage() {
@@ -22,16 +27,47 @@ export default function SpotifyBadgePage() {
   const [isApplying, setIsApplying] = useState(false)
   const [colorCooldown, setColorCooldown] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [isDisconnecting, setIsDisconnecting] = useState(false)
   const lastAppliedSettings = useRef({ footerText, accentColor })
+
+  // Fetch full user profile from Spotify
+  const fetchUserProfile = async (userId: string, accessToken?: string) => {
+    try {
+      // If we have access token in localStorage, use it
+      const response = await fetch(`/api/spotify/profile?user=${userId}`)
+      if (response.ok) {
+        const profile = await response.json()
+        return profile
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error)
+    }
+    return null
+  }
 
   // Check if user is logged in with Spotify
   useEffect(() => {
-    const checkAuth = () => {
+    const checkAuth = async () => {
       const spotifyUser = localStorage.getItem('spotify_user')
       if (spotifyUser) {
         try {
           const userData = JSON.parse(spotifyUser)
           setUser(userData)
+          
+          // Fetch full profile data
+          const profile = await fetchUserProfile(userData.userId)
+          if (profile) {
+            const enrichedUser = {
+              ...userData,
+              profileImage: profile.images?.[0]?.url,
+              followerCount: profile.followers?.total,
+              country: profile.country,
+              product: profile.product,
+              spotifyId: profile.id
+            }
+            setUser(enrichedUser)
+            localStorage.setItem('spotify_user', JSON.stringify(enrichedUser))
+          }
         } catch (e) {
           console.error('Error parsing user data:', e)
           localStorage.removeItem('spotify_user')
@@ -50,6 +86,22 @@ export default function SpotifyBadgePage() {
       const userData = { userId, displayName }
       setUser(userData)
       localStorage.setItem('spotify_user', JSON.stringify(userData))
+      
+      // Fetch full profile
+      fetchUserProfile(userId).then(profile => {
+        if (profile) {
+          const enrichedUser = {
+            ...userData,
+            profileImage: profile.images?.[0]?.url,
+            followerCount: profile.followers?.total,
+            country: profile.country,
+            product: profile.product,
+            spotifyId: profile.id
+          }
+          setUser(enrichedUser)
+          localStorage.setItem('spotify_user', JSON.stringify(enrichedUser))
+        }
+      })
       
       // Clean up URL
       router.replace('/spotify-badge')
@@ -127,30 +179,34 @@ export default function SpotifyBadgePage() {
     window.location.href = '/api/spotify/auth'
   }
 
-// Update the disconnectSpotify function
-const disconnectSpotify = async () => {
-  try {
-    // Call API to delete tokens from MongoDB
-    const response = await fetch('/api/spotify/disconnect', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ userId: user?.userId }),
-    })
+  const disconnectSpotify = async () => {
+    if (isDisconnecting) return
+    setIsDisconnecting(true)
+    
+    try {
+      const response = await fetch('/api/spotify/disconnect', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: user?.userId }),
+      })
 
-    if (response.ok) {
-      console.log('Successfully disconnected from Spotify')
+      if (response.ok) {
+        console.log('Successfully disconnected from Spotify')
+      } else {
+        console.error('Disconnect failed:', await response.text())
+      }
+    } catch (error) {
+      console.error('Disconnect error:', error)
+    } finally {
+      // Always clear frontend regardless of API response
+      localStorage.removeItem('spotify_user')
+      setUser(null)
+      setRefreshKey(prev => prev + 1)
+      setIsDisconnecting(false)
     }
-  } catch (error) {
-    console.error('Disconnect error:', error)
-  } finally {
-    // Always clear frontend
-    localStorage.removeItem('spotify_user')
-    setUser(null)
-    setRefreshKey(prev => prev + 1)
   }
-}
 
   useEffect(() => {
     const interval = setInterval(refreshPreview, 60000)
@@ -239,34 +295,85 @@ const disconnectSpotify = async () => {
       </div>
 
       <div className="max-w-7xl mx-auto relative z-10">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8 animate-fade-in">
+        {/* Header with User Profile */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6 animate-fade-in">
           <div className="flex items-center gap-4">
             <div className="relative group">
               <div className="absolute inset-0 bg-green-500/20 rounded-full blur-xl group-hover:bg-green-500/30 transition-colors"></div>
-              <div className="relative w-14 h-14 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center shadow-lg shadow-green-500/50">
-                <svg className="w-7 h-7 text-black" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424c-.18.295-.563.387-.857.207-2.35-1.434-5.305-1.76-8.786-.963-.335.077-.67-.133-.746-.469-.077-.335.132-.67.469-.746 3.809-.87 7.076-.496 9.712 1.115.293.18.385.563.206.857zm1.223-2.723c-.226.367-.706.482-1.073.257-2.687-1.652-6.785-2.13-9.965-1.166-.413.127-.848-.106-.977-.517-.125-.413.108-.848.52-.977 3.632-1.102 8.147-.568 11.234 1.328.366.226.48.707.256 1.073zm.105-2.835C14.692 8.95 9.375 8.775 6.297 9.71c-.493.15-1.016-.13-1.166-.624-.148-.495.13-1.017.625-1.167 3.532-1.073 9.404-.865 13.115 1.338.445.264.59.838.327 1.282-.264.443-.838.59-1.282.326z"/>
-                </svg>
-              </div>
+              {user.profileImage ? (
+                <img 
+                  src={user.profileImage} 
+                  alt={user.displayName}
+                  className="relative w-20 h-20 rounded-full object-cover shadow-lg shadow-green-500/50 ring-4 ring-green-500/20"
+                />
+              ) : (
+                <div className="relative w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center shadow-lg shadow-green-500/50 ring-4 ring-green-500/20">
+                  <svg className="w-10 h-10 text-black" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.586 14.424c-.18.295-.563.387-.857.207-2.35-1.434-5.305-1.76-8.786-.963-.335.077-.67-.133-.746-.469-.077-.335.132-.67.469-.746 3.809-.87 7.076-.496 9.712 1.115.293.18.385.563.206.857zm1.223-2.723c-.226.367-.706.482-1.073.257-2.687-1.652-6.785-2.13-9.965-1.166-.413.127-.848-.106-.977-.517-.125-.413.108-.848.52-.977 3.632-1.102 8.147-.568 11.234 1.328.366.226.48.707.256 1.073zm.105-2.835C14.692 8.95 9.375 8.775 6.297 9.71c-.493.15-1.016-.13-1.166-.624-.148-.495.13-1.017.625-1.167 3.532-1.073 9.404-.865 13.115 1.338.445.264.59.838.327 1.282-.264.443-.838.59-1.282.326z"/>
+                  </svg>
+                </div>
+              )}
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-white mb-1">
-                Your Badge
+              <h1 className="text-3xl font-bold text-white mb-1 flex items-center gap-2">
+                {user.displayName}
+                {user.product === 'premium' && (
+                  <span className="px-2 py-0.5 bg-gradient-to-r from-yellow-400 to-orange-500 text-black text-xs font-bold rounded-full">
+                    PREMIUM
+                  </span>
+                )}
               </h1>
-              <p className="text-gray-400 text-sm">
-                Welcome, <span className="text-green-400 font-semibold">{user.displayName}</span>
-              </p>
+              <div className="flex items-center gap-3 text-sm text-gray-400">
+                {user.followerCount !== undefined && (
+                  <span className="flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    {user.followerCount.toLocaleString()} followers
+                  </span>
+                )}
+                {user.country && (
+                  <span className="flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {user.country.toUpperCase()}
+                  </span>
+                )}
+                {user.spotifyId && (
+                  <a 
+                    href={`https://open.spotify.com/user/${user.spotifyId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-green-400 hover:text-green-300 transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                    View on Spotify
+                  </a>
+                )}
+              </div>
             </div>
           </div>
           <button
             onClick={disconnectSpotify}
-            className="px-5 py-2.5 bg-zinc-900/50 hover:bg-red-500/20 text-gray-300 hover:text-red-400 rounded-lg transition-all duration-300 border border-zinc-800 hover:border-red-500/50 text-sm font-medium flex items-center gap-2"
+            disabled={isDisconnecting}
+            className="px-5 py-2.5 bg-zinc-900/50 hover:bg-red-500/20 text-gray-300 hover:text-red-400 disabled:text-gray-500 disabled:cursor-not-allowed rounded-lg transition-all duration-300 border border-zinc-800 hover:border-red-500/50 text-sm font-medium flex items-center gap-2"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-            Disconnect
+            {isDisconnecting ? (
+              <>
+                <div className="w-4 h-4 border-2 border-gray-500/30 border-t-gray-500 rounded-full animate-spin"></div>
+                Disconnecting...
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Disconnect
+              </>
+            )}
           </button>
         </div>
 
@@ -554,15 +661,19 @@ const disconnectSpotify = async () => {
                   <ul className="text-green-300 text-xs space-y-1.5">
                     <li className="flex items-start gap-2">
                       <span className="text-green-500 mt-0.5">•</span>
-                      <span>Badge auto-updates every 60 seconds</span>
+                      <span>Badge auto-updates every 60 seconds with your latest tracks</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-green-500 mt-0.5">•</span>
-                      <span>Customize and apply changes to see updates</span>
+                      <span>Customize colors and text, then click Apply to see changes</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-green-500 mt-0.5">•</span>
-                      <span>Works on GitHub, Discord, and websites</span>
+                      <span>Perfect for GitHub READMEs, Discord profiles, and websites</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-500 mt-0.5">•</span>
+                      <span>Your data is secure - we only read your listening history</span>
                     </li>
                   </ul>
                 </div>
