@@ -69,9 +69,7 @@ async function imageUrlToDataURL(url: string): Promise<string> {
   }
 }
 
-// Random style generator
 function getRandomStyle(seed: string) {
-  // Use seed for consistent randomness per minute
   const hash = seed.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
   const random = (hash * 9301 + 49297) % 233280 / 233280
   
@@ -122,11 +120,9 @@ async function generateTracksSVG(
   const padding = 15
   const height = headerHeight + (tracks.length * itemHeight) + 40
 
-  // Get current minute for consistent styling per minute
   const currentMinute = Math.floor(Date.now() / 60000)
   const style = getRandomStyle(currentMinute.toString() + accentColor)
 
-  // Convert hex to RGB for gradient
   const hexToRgb = (hex: string) => {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
     return result ? {
@@ -144,7 +140,6 @@ async function generateTracksSVG(
     userImageDataURL = await imageUrlToDataURL(userImage)
   }
 
-  // Generate animation CSS based on style
   const getAnimationCSS = () => {
     switch (style.animation) {
       case 'wave':
@@ -207,7 +202,6 @@ async function generateTracksSVG(
       
       const artistNames = track.artists.map(a => a.name).join(', ')
       
-      // Escape all text content
       const trackName = escapeXml(track.name.length > 32 ? track.name.substring(0, 32) + '...' : track.name)
       const artists = escapeXml(artistNames.length > 40 ? artistNames.substring(0, 40) + '...' : artistNames)
       const albumName = escapeXml(track.album.name.length > 35 ? track.album.name.substring(0, 35) + '...' : track.album.name)
@@ -265,7 +259,6 @@ async function generateTracksSVG(
     })
   )
 
-  // Escape username and footer text
   const escapedUsername = escapeXml(username)
   const escapedFooter = escapeXml(footerText)
 
@@ -423,7 +416,6 @@ export async function GET(request: NextRequest) {
     const customFooter = searchParams.get('footer')
     const customColor = searchParams.get('color')
 
-    // Parse and validate custom color (hex without #)
     let accentColor = '#1ed760'
     if (customColor) {
       const hexPattern = /^[0-9A-Fa-f]{6}$/
@@ -432,7 +424,6 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Validate and sanitize footer text
     let footerText = 'Real Time Data • Spotify Incorporations'
     if (customFooter && customFooter.length <= 50) {
       // Basic sanitization - remove any HTML/XML tags
