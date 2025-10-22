@@ -21,6 +21,16 @@ interface SpotifyTrack {
   played_at: string
 }
 
+// XML escape function to prevent parsing errors
+function escapeXml(unsafe: string): string {
+  return unsafe
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;')
+}
+
 async function getSpotifyData(accessToken: string) {
   const [userRes, tracksRes] = await Promise.all([
     fetch('https://api.spotify.com/v1/me', {
@@ -135,123 +145,129 @@ async function generateTracksSVG(
   }
 
   // Generate animation CSS based on style
-const getAnimationCSS = () => {
-  switch (style.animation) {
-    case 'wave':
-      return `
-        @keyframes wave {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-2px); }
-        }
-        .track-item { animation: wave 4s ease-in-out infinite; }
-        .track-item:nth-child(1) { animation-delay: 0s; }
-        .track-item:nth-child(2) { animation-delay: 0.5s; }
-        .track-item:nth-child(3) { animation-delay: 1s; }
-        .track-item:nth-child(4) { animation-delay: 1.5s; }
-        .track-item:nth-child(5) { animation-delay: 2s; }
-      `
-    case 'pulse':
-      return `
-        @keyframes pulse {
-          0%, 100% { opacity: ${style.cardOpacity}; }
-          50% { opacity: ${style.cardOpacity + 0.15}; }
-        }
-        .track-item rect { animation: pulse 3s ease-in-out infinite; }
-        .track-item:nth-child(1) rect { animation-delay: 0s; }
-        .track-item:nth-child(2) rect { animation-delay: 0.3s; }
-        .track-item:nth-child(3) rect { animation-delay: 0.6s; }
-        .track-item:nth-child(4) rect { animation-delay: 0.9s; }
-        .track-item:nth-child(5) rect { animation-delay: 1.2s; }
-      `
-    case 'slide':
-      // Remove slide animation as it causes horizontal movement
-      return `
-        @keyframes gentle-glow {
-          0%, 100% { opacity: ${style.cardOpacity}; }
-          50% { opacity: ${style.cardOpacity + 0.1}; }
-        }
-        .track-item rect { animation: gentle-glow 3s ease-in-out infinite; }
-      `
-    case 'glow':
-      return `
-        @keyframes glow-pulse {
-          0%, 100% { filter: drop-shadow(0 0 1px ${accentColor}33); }
-          50% { filter: drop-shadow(0 0 3px ${accentColor}66); }
-        }
-        .track-item rect { animation: glow-pulse 3s ease-in-out infinite; }
-      `
-    default:
-      return ''
-  }
-}
-
-const trackItems = await Promise.all(
-  tracks.map(async (item, index) => {
-    const y = headerHeight + (index * itemHeight)
-    const track = item.track
-    const imageUrl = track.album.images[0]?.url || ''
-    
-    let imageDataURL = ''
-    if (imageUrl) {
-      imageDataURL = await imageUrlToDataURL(imageUrl)
+  const getAnimationCSS = () => {
+    switch (style.animation) {
+      case 'wave':
+        return `
+          @keyframes wave {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-2px); }
+          }
+          .track-item { animation: wave 4s ease-in-out infinite; }
+          .track-item:nth-child(1) { animation-delay: 0s; }
+          .track-item:nth-child(2) { animation-delay: 0.5s; }
+          .track-item:nth-child(3) { animation-delay: 1s; }
+          .track-item:nth-child(4) { animation-delay: 1.5s; }
+          .track-item:nth-child(5) { animation-delay: 2s; }
+        `
+      case 'pulse':
+        return `
+          @keyframes pulse {
+            0%, 100% { opacity: ${style.cardOpacity}; }
+            50% { opacity: ${style.cardOpacity + 0.15}; }
+          }
+          .track-item rect { animation: pulse 3s ease-in-out infinite; }
+          .track-item:nth-child(1) rect { animation-delay: 0s; }
+          .track-item:nth-child(2) rect { animation-delay: 0.3s; }
+          .track-item:nth-child(3) rect { animation-delay: 0.6s; }
+          .track-item:nth-child(4) rect { animation-delay: 0.9s; }
+          .track-item:nth-child(5) rect { animation-delay: 1.2s; }
+        `
+      case 'slide':
+        return `
+          @keyframes gentle-glow {
+            0%, 100% { opacity: ${style.cardOpacity}; }
+            50% { opacity: ${style.cardOpacity + 0.1}; }
+          }
+          .track-item rect { animation: gentle-glow 3s ease-in-out infinite; }
+        `
+      case 'glow':
+        return `
+          @keyframes glow-pulse {
+            0%, 100% { filter: drop-shadow(0 0 1px ${accentColor}33); }
+            50% { filter: drop-shadow(0 0 3px ${accentColor}66); }
+          }
+          .track-item rect { animation: glow-pulse 3s ease-in-out infinite; }
+        `
+      default:
+        return ''
     }
-    
-    const artistNames = track.artists.map(a => a.name).join(', ')
-    
-    return `
-      <g class="track-item">
-        <!-- Remove transform from the group and use absolute positioning -->
-        <rect x="${padding}" y="${y}" width="${width - padding * 2}" height="${itemHeight - 10}" 
-              fill="#282828" rx="6" opacity="${style.cardOpacity}">
-          <animate attributeName="opacity" from="0" to="${style.cardOpacity}" dur="0.5s" begin="${index * 0.1}s" fill="freeze"/>
-        </rect>
-        
-        ${imageDataURL ? `
-          <clipPath id="clip-${index}">
-            <rect x="${padding + 10}" y="${y + 7}" width="60" height="60" rx="4"/>
-          </clipPath>
-          <image x="${padding + 10}" y="${y + 7}" width="60" height="60" 
-                 href="${imageDataURL}" 
-                 clip-path="url(#clip-${index})"
-                 preserveAspectRatio="xMidYMid slice">
-            <animate attributeName="opacity" from="0" to="1" dur="0.5s" begin="${index * 0.1}s" fill="freeze"/>
-          </image>
-        ` : `
-          <rect x="${padding + 10}" y="${y + 7}" width="60" height="60" 
-                fill="#404040" rx="4"/>
-          <text x="${padding + 40}" y="${y + 45}" 
-                font-family="Arial, sans-serif" 
-                font-size="24" 
-                fill="#808080" 
-                text-anchor="middle">♫</text>
-        `}
-        
-        <text x="${padding + 80}" y="${y + 28}" 
-              font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" 
-              font-size="15" 
-              font-weight="600" 
-              fill="#FFFFFF">
-          ${track.name.length > 32 ? track.name.substring(0, 32) + '...' : track.name}
-        </text>
-        
-        <text x="${padding + 80}" y="${y + 48}" 
-              font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" 
-              font-size="12" 
-              fill="#B3B3B3">
-          ${artistNames.length > 40 ? artistNames.substring(0, 40) + '...' : artistNames}
-        </text>
-        
-        <text x="${padding + 80}" y="${y + 63}" 
-              font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" 
-              font-size="11" 
-              fill="#6B6B6B">
-          ${track.album.name.length > 35 ? track.album.name.substring(0, 35) + '...' : track.album.name}
-        </text>
-      </g>
-    `
-  })
-)
+  }
 
+  const trackItems = await Promise.all(
+    tracks.map(async (item, index) => {
+      const y = headerHeight + (index * itemHeight)
+      const track = item.track
+      const imageUrl = track.album.images[0]?.url || ''
+      
+      let imageDataURL = ''
+      if (imageUrl) {
+        imageDataURL = await imageUrlToDataURL(imageUrl)
+      }
+      
+      const artistNames = track.artists.map(a => a.name).join(', ')
+      
+      // Escape all text content
+      const trackName = escapeXml(track.name.length > 32 ? track.name.substring(0, 32) + '...' : track.name)
+      const artists = escapeXml(artistNames.length > 40 ? artistNames.substring(0, 40) + '...' : artistNames)
+      const albumName = escapeXml(track.album.name.length > 35 ? track.album.name.substring(0, 35) + '...' : track.album.name)
+      
+      return `
+        <g class="track-item">
+          <rect x="${padding}" y="${y}" width="${width - padding * 2}" height="${itemHeight - 10}" 
+                fill="#282828" rx="6" opacity="${style.cardOpacity}">
+            <animate attributeName="opacity" from="0" to="${style.cardOpacity}" dur="0.5s" begin="${index * 0.1}s" fill="freeze"/>
+          </rect>
+          
+          ${imageDataURL ? `
+            <clipPath id="clip-${index}">
+              <rect x="${padding + 10}" y="${y + 7}" width="60" height="60" rx="4"/>
+            </clipPath>
+            <image x="${padding + 10}" y="${y + 7}" width="60" height="60" 
+                   href="${imageDataURL}" 
+                   clip-path="url(#clip-${index})"
+                   preserveAspectRatio="xMidYMid slice">
+              <animate attributeName="opacity" from="0" to="1" dur="0.5s" begin="${index * 0.1}s" fill="freeze"/>
+            </image>
+          ` : `
+            <rect x="${padding + 10}" y="${y + 7}" width="60" height="60" 
+                  fill="#404040" rx="4"/>
+            <text x="${padding + 40}" y="${y + 45}" 
+                  font-family="Arial, sans-serif" 
+                  font-size="24" 
+                  fill="#808080" 
+                  text-anchor="middle">♫</text>
+          `}
+          
+          <text x="${padding + 80}" y="${y + 28}" 
+                font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" 
+                font-size="15" 
+                font-weight="600" 
+                fill="#FFFFFF">
+            ${trackName}
+          </text>
+          
+          <text x="${padding + 80}" y="${y + 48}" 
+                font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" 
+                font-size="12" 
+                fill="#B3B3B3">
+            ${artists}
+          </text>
+          
+          <text x="${padding + 80}" y="${y + 63}" 
+                font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" 
+                font-size="11" 
+                fill="#6B6B6B">
+            ${albumName}
+          </text>
+        </g>
+      `
+    })
+  )
+
+  // Escape username and footer text
+  const escapedUsername = escapeXml(username)
+  const escapedFooter = escapeXml(footerText)
 
   return `
     <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
@@ -287,12 +303,10 @@ const trackItems = await Promise.all(
         <animate attributeName="opacity" from="0" to="${style.borderOpacity}" dur="0.8s" fill="freeze"/>
       </rect>
       
-      <!-- Animated Accent Glow -->
       <circle cx="${width - padding - 25}" cy="40" r="20" fill="${accentColor}" opacity="0.1" filter="url(#glow-strong)">
         <animate attributeName="opacity" values="0.1;0.2;0.1" dur="3s" repeatCount="indefinite"/>
       </circle>
       
-      <!-- Header -->
       <g transform="translate(${padding}, 15)">
         ${userImageDataURL ? `
           <clipPath id="user-avatar">
@@ -323,10 +337,9 @@ const trackItems = await Promise.all(
               font-size="18" 
               font-weight="700" 
               fill="#FFFFFF">
-          ${username}
+          ${escapedUsername}
         </text>
         
-        <!-- Spotify Logo with Custom Color (Fixed Centering) -->
         <g transform="translate(${width - padding - 50}, 10)">
           <circle cx="20" cy="20" r="18" fill="${accentColor}" filter="url(#glow)">
             <animate attributeName="opacity" from="0" to="1" dur="0.8s" fill="freeze"/>
@@ -340,22 +353,22 @@ const trackItems = await Promise.all(
         </g>
       </g>
       
-      <!-- Tracks -->
       ${trackItems.join('')}
       
-      <!-- Footer -->
       <text x="${width / 2}" y="${height - 15}" 
             font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" 
             font-size="10" 
             fill="#6B6B6B" 
             text-anchor="middle">
-        ${footerText}
+        ${escapedFooter}
       </text>
     </svg>
   `
 }
 
 function generateErrorSVG(message: string, accentColor: string = '#FF6B6B'): string {
+  const escapedMessage = escapeXml(message)
+  
   return `
     <svg width="500" height="150" xmlns="http://www.w3.org/2000/svg">
       <defs>
@@ -381,7 +394,7 @@ function generateErrorSVG(message: string, accentColor: string = '#FF6B6B'): str
             font-weight="600"
             fill="${accentColor}" 
             text-anchor="middle">
-        ⚠️ ${message}
+        ⚠️ ${escapedMessage}
       </text>
       
       <text x="250" y="95" 
@@ -433,7 +446,6 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // Use the new function from spotify-oauth
     const userAuth = await getSpotifyUserByUserId(userId)
     
     if (!userAuth) {
@@ -445,7 +457,6 @@ export async function GET(request: NextRequest) {
 
     let accessToken = userAuth.accessToken
 
-    // Use the new refresh function
     if (Date.now() > userAuth.expiresAt) {
       const newTokens = await refreshSpotifyToken(userAuth.refreshToken)
       if (newTokens) {
@@ -453,7 +464,7 @@ export async function GET(request: NextRequest) {
         await saveSpotifyUser(
           userId,
           newTokens.access_token,
-          newTokens.refresh_token || userAuth.refreshToken, // Spotify might not return new refresh token
+          newTokens.refresh_token || userAuth.refreshToken,
           Date.now() + (newTokens.expires_in * 1000),
           userAuth.spotifyId,
           userAuth.displayName,
