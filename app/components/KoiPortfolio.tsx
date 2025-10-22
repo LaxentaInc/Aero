@@ -17,6 +17,15 @@ const projectsData = [
         url: "https://github.com/koimoee/ProCommit",
         color: "from-blue-400 to-blue-600"
     },
+        {
+        name: "ArchiveTune",
+        description: "📝 Enhanced Music Streaming Client for Android With Material 3 Expressive.",
+        tech: ["Kotlin"],
+        license: "GNU General Public License v3.0",
+        updated: "Yesterday",
+        url: "https://github.com/koiverse/ArchiveTune",
+        color: "from-blue-400 to-blue-600"
+    },
     {
         name: "Kizzy",
         description: "Discord Rich Presence for Android. Made with jetpack compose and material3",
