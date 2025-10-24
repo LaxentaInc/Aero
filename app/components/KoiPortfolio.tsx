@@ -261,7 +261,7 @@ const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
 const Skillsbg = ({ theme }: { theme: 'dark' | 'light' }) => {
     // list of possible video sources
     const videos = [
-        "/videos/IfYouSeeThis_You_Are_cute_missKoi.webm",
+        "/videos/myCutekoiiii.webm",
     ]
 
     // pick one at random every render
