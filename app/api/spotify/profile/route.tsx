@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Missing user ID' }, { status: 400 })
     }
 
+    // ✨ userId is now just the Spotify ID - works perfectly!
     // Get user auth from database
     const userAuth = await getSpotifyUserByUserId(userId)
     
@@ -25,12 +26,13 @@ export async function GET(request: NextRequest) {
       const newTokens = await refreshSpotifyToken(userAuth.refreshToken)
       if (newTokens) {
         accessToken = newTokens.access_token
+        // ✨ Save with Spotify ID as userId (same value for both params now)
         await saveSpotifyUser(
-          userId,
+          userAuth.spotifyId, // userId is now the Spotify ID
           newTokens.access_token,
           newTokens.refresh_token || userAuth.refreshToken,
           Date.now() + (newTokens.expires_in * 1000),
-          userAuth.spotifyId,
+          userAuth.spotifyId, // Same as userId
           userAuth.displayName,
           userAuth.email
         )
