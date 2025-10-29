@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { MongoClient } from 'mongodb';
 
-// MongoDB connection
+// connection
 let cachedClient: MongoClient | null = null;
 
 async function connectToDatabase() {
@@ -23,7 +23,6 @@ async function connectToDatabase() {
   return client;
 }
 
-// Types
 interface Guild {
   guildId: string;
   name: string;
@@ -51,7 +50,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
 
-    // Validate required parameter
+    // required parameter
     if (!userId) {
       return NextResponse.json(
         { error: 'userId query parameter is required' },
@@ -59,21 +58,20 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Connect to MongoDB
     const client = await connectToDatabase();
     const db = client.db('antiraid');
     const guildsCollection = db.collection<Guild>('bot_guilds');
 
-    // Query guilds owned by the user where bot has permissions
+    // query guilds owned by the user where bot has permissions
     const guilds = await guildsCollection
       .find({
         ownerId: userId,
         botHasPermissions: true,
       })
-      .sort({ name: 1 }) // Sort alphabetically by name
+      .sort({ name: 1 }) // sort alphabetically by name
       .toArray();
 
-    // Transform the data for frontend consumption
+    // transform the data for frontend
     const response: GuildResponse[] = guilds.map((guild) => ({
       guildId: guild.guildId,
       name: guild.name,
@@ -100,52 +98,5 @@ export async function GET(request: NextRequest) {
       },
       { status: 500 }
     );
-  }
-}
-
-// Optional: Add POST method for webhook updates or manual sync triggers
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { action, guildId, userId } = body;
-
-    if (action === 'refresh' && userId) {
-      // Trigger a refresh for specific user's guilds
-      // You could add logic here to notify the bot to resync
-      
-      return NextResponse.json({
-        success: true,
-        message: 'Refresh triggered'
-      });
-    }
-
-    return NextResponse.json(
-      { error: 'Invalid action or missing parameters' },
-      { status: 400 }
-    );
-
-  } catch (error) {
-    console.error('Error in POST /api/guilds:', error);
-    
-    return NextResponse.json(
-      { 
-        error: 'Internal server error',
-        message: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
-  }
-}
-
-// Optional: Add additional utility methods
-export async function HEAD(request: NextRequest) {
-  // Health check endpoint
-  try {
-    const client = await connectToDatabase();
-    await client.db('antiraid').admin().ping();
-    
-    return new NextResponse(null, { status: 200 });
-  } catch (error) {
-    return new NextResponse(null, { status: 503 });
   }
 }
