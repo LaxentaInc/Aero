@@ -327,7 +327,7 @@ export default function Navbar() {
     toggleTheme()
   }
 
-  const navItems = ['dashboard', 'ImageGen', 'github-charts', 'git-stats', 'nsfw' ,'contact', 'koi']
+  const navItems = ['dashboard', 'ImageGen', 'github-charts', 'github-stats', 'nsfw' ,'contact', 'koi']
 
   const getNavPositionStyles = () => {
     const isHorizontal = navPosition === 'top' || navPosition === 'bottom'
