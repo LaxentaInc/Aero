@@ -185,21 +185,6 @@ export default function GitHubStatsPage() {
           <p className="text-lg text-gray-400 max-w-2xl">
             Generate beautiful anime-style rank badges for your GitHub profile
           </p>
-          
-          {isAuthenticated && (
-            <div className="flex items-center gap-3 mt-6 animate-[fadeIn_0.5s_ease-in]">
-              <div className="flex items-center gap-2 px-4 py-2 bg-[#21262d] rounded-lg border border-[#30363d]">
-                <div className="w-6 h-6 bg-gradient-to-br from-green-400 to-blue-500 rounded-full animate-pulse" />
-                <span className="text-sm font-medium">{authUsername}</span>
-              </div>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 bg-[#21262d] hover:bg-[#30363d] border border-[#30363d] rounded-lg text-sm transition-all hover:scale-105"
-              >
-                Logout
-              </button>
-            </div>
-          )}
         </div>
       </div>
 
@@ -217,19 +202,36 @@ export default function GitHubStatsPage() {
                 </h2>
                 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-300">
-                    GitHub Username
+                  <label className="text-sm font-medium text-gray-300 flex items-center justify-between">
+                    <span>GitHub Username</span>
+                    {isAuthenticated && (
+                      <span className="text-xs px-2 py-1 bg-green-500/10 text-green-400 rounded-md flex items-center gap-1 animate-[fadeIn_0.3s_ease-in]">
+                        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                        Authenticated
+                      </span>
+                    )}
                   </label>
                   <div className="flex gap-3">
-                    <input
-                      type="text"
-                      value={includePrivate && isAuthenticated ? authUsername : username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && generateStats()}
-                      placeholder="shelleyloosespatience"
-                      disabled={includePrivate && isAuthenticated}
-                      className="flex-1 px-4 py-2.5 bg-[#0d1117] border border-[#30363d] rounded-lg focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                    />
+                    <div className="flex-1 relative">
+                      <input
+                        type="text"
+                        value={includePrivate && isAuthenticated ? authUsername : username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && generateStats()}
+                        placeholder="octocat"
+                        disabled={includePrivate && isAuthenticated}
+                        className="w-full px-4 py-2.5 bg-[#0d1117] border border-[#30363d] rounded-lg focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      />
+                      {isAuthenticated && includePrivate && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1 text-xs text-gray-500">
+                          <div className="w-3 h-3 text-green-400">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                              <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+                            </svg>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                     <button
                       onClick={generateStats}
                       disabled={!username && !(includePrivate && isAuthenticated) || isGenerating}
@@ -246,9 +248,17 @@ export default function GitHubStatsPage() {
                     </button>
                   </div>
                   {includePrivate && isAuthenticated && (
-                    <p className="text-xs text-gray-500 animate-[fadeIn_0.3s_ease-in]">
-                      Using authenticated account: {authUsername}
-                    </p>
+                    <div className="flex items-center justify-between text-xs animate-[fadeIn_0.3s_ease-in]">
+                      <p className="text-gray-500">
+                        Using authenticated account: <span className="text-gray-300 font-medium">{authUsername}</span>
+                      </p>
+                      <button
+                        onClick={handleLogout}
+                        className="text-red-400 hover:text-red-300 transition-colors"
+                      >
+                        Logout
+                      </button>
+                    </div>
                   )}
                 </div>
 
@@ -276,11 +286,16 @@ export default function GitHubStatsPage() {
                         <div className="w-3 h-3 text-gray-500">
                           <LockIcon />
                         </div>
+                        {!isAuthenticated && (
+                          <span className="ml-auto text-xs px-2 py-0.5 bg-yellow-500/10 text-yellow-400 rounded">
+                            Auth Required
+                          </span>
+                        )}
                       </div>
                       <p className="text-xs text-gray-500 mt-1">
                         {isAuthenticated 
-                          ? 'Toggle to include/exclude private repository stats' 
-                          : 'Requires GitHub OAuth authentication'}
+                          ? '✓ Authenticated - Toggle to include/exclude private repository stats' 
+                          : 'Click toggle to authenticate with GitHub OAuth'}
                       </p>
                     </div>
                   </div>
