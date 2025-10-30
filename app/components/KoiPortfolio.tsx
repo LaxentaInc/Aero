@@ -220,6 +220,15 @@ const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
 
+    // Restore random selection with three sources
+    const videos = [
+        // "/videos/Raphtalia_Girl_By_laxenta .mp4",
+        "/videos/IfYouSeeThis_You_Are_cute_missKoi.webm",
+        "videos/MHM.webm",
+    ];
+    const randomVideo = videos[Math.floor(Math.random() * videos.length)];
+    const videoType = randomVideo.endsWith('.webm') ? 'video/webm' : 'video/mp4';
+
     useEffect(() => {
         const timer = setTimeout(() => setIsPlaying(true), 100);
         return () => clearTimeout(timer);
@@ -241,8 +250,8 @@ const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
                     }`}
                 >
                     <source 
-                        src="/videos/MHM.webm"
-                        type="video/webm" 
+                        src={randomVideo}
+                        type={videoType} 
                     />
                 </video>
             )}
