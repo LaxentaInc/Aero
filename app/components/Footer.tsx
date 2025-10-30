@@ -8,7 +8,7 @@ import { useTheme } from '../contexts/ThemeContext'
 import { Youtube, Twitter, Github, Instagram, Shield, FileText, Network, Globe, Palette } from 'lucide-react'
 
 //Routes where footer should be hidden
-const HIDE_FOOTER_ROUTES = ['/ai', '/image-gen', '/dashboard']
+const HIDE_FOOTER_ROUTES = ['/ai', '/image-gen', '/dashboard', '/koi']
 
 const DISCORD_API_URL = "https://api.lanyard.rest/v1/users/886971572668219392";
 const ME_DISCORD_API_URL = "https://api.lanyard.rest/v1/users/953527567808356404";
@@ -183,13 +183,46 @@ export default function Footer() {
         <motion.footer 
           className={`relative ${
             theme === 'dark' 
-              ? 'bg-black/95 border-t border-white/10' 
-              : 'bg-white/95 border-t border-black/10'
+              ? 'bg-black/95' 
+              : 'bg-white/95'
           } backdrop-blur-xl`}
           initial={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 20 }}
           transition={{ duration: 0.3 }}
         >
+          {/* Gradient Border Line */}
+          <div className="absolute top-0 left-0 right-0 h-[1px] overflow-hidden">
+            <motion.div
+              className={`h-full ${
+                theme === 'dark'
+                  ? 'bg-gradient-to-r from-transparent via-cyan-400/60 to-transparent'
+                  : 'bg-gradient-to-r from-transparent via-blue-500/60 to-transparent'
+              }`}
+              animate={{
+                opacity: [0.5, 1, 0.5],
+              }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            />
+            <motion.div
+              className={`absolute top-0 h-full w-1/3 ${
+                theme === 'dark'
+                  ? 'bg-gradient-to-r from-transparent via-blue-400/40 to-transparent'
+                  : 'bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent'
+              } blur-sm`}
+              animate={{
+                left: ['-33%', '100%'],
+              }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: "linear"
+              }}
+            />
+          </div>
           {/* Animated Background Pattern */}
           <div className="absolute inset-0 overflow-hidden">
             <motion.div
