@@ -217,41 +217,40 @@ const useProtection = () => {
 }
 
 const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
-    // list of possible video sources
-    const videos = [
-    "/videos/Raphtalia_Girl_By_laxenta .mp4",
-    "/videos/IfYouSeeThis_You_Are_cute_missKoi.webm",
-    "videos/MHM.webm", //aa
-    ]
+    const [isPlaying, setIsPlaying] = useState(false);
+    const videoRef = useRef<HTMLVideoElement>(null);
 
-    // pick one at random every render
-    const randomVideo = videos[Math.floor(Math.random() * videos.length)]
+    useEffect(() => {
+        const timer = setTimeout(() => setIsPlaying(true), 100);
+        return () => clearTimeout(timer);
+    }, []);
 
     return (
         <div className="absolute inset-0 z-0 overflow-hidden">
-          <video
-        autoPlay
-        muted
-        loop
-        playsInline
-        crossOrigin="anonymous"
-        className={`absolute top-0 left-0 w-full h-[62vh] object-cover ${
-          theme === 'dark' ? 'opacity-40' : 'opacity-60'  //higher opacity in light mode
-        }`}   
-      >
-                {/* https://static.tradingview.com/static/bundles/northern-lights-pricing-desktop.86b1853e628d56f03bc8.webm */}
-                {/* https://prplmoe.me/assets/animation/Kochan_2.mp4 */}
-                <source 
-                    src={randomVideo} //also add shorekeeper.mp4
-                    type="video/webm" 
-                />
-            </video>
+            {isPlaying && (
+                <video
+                    ref={videoRef}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload="metadata"
+                    crossOrigin="anonymous"
+                    className={`absolute top-0 left-0 w-full h-[62vh] object-cover ${
+                        theme === 'dark' ? 'opacity-40' : 'opacity-60'
+                    }`}
+                >
+                    <source 
+                        src="/videos/MHM.webm"
+                        type="video/webm" 
+                    />
+                </video>
+            )}
 
-
-            <div className={`absolute inset-0 bg-gradient-to-b ${
+            <div className={`absolute inset-0 ${
                 theme === 'dark' 
-                    ? 'from-black/50 via-black/30 to-black/50' 
-                    : 'from-white/50 via-white/30 to-white/50'
+                    ? 'bg-gradient-to-b from-black/60 to-black/40' 
+                    : 'bg-gradient-to-b from-white/60 to-white/40'
             }`} />
         </div>
     )
@@ -259,31 +258,35 @@ const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
 
 
 const Skillsbg = ({ theme }: { theme: 'dark' | 'light' }) => {
-    // list of possible video sources
-    const videos = [
-        "/videos/myCutekoiiii.webm",
-    ]
+    const [isPlaying, setIsPlaying] = useState(false);
+    const videoRef = useRef<HTMLVideoElement>(null);
 
-    // pick one at random every render
-    const randomVideo = videos[Math.floor(Math.random() * videos.length)]
+    useEffect(() => {
+        const timer = setTimeout(() => setIsPlaying(true), 100);
+        return () => clearTimeout(timer);
+    }, []);
 
     return (
         <div className="absolute inset-0 z-0 overflow-hidden">
-            <video
-                autoPlay
-                muted
-                loop
-                playsInline
-                crossOrigin="anonymous"
-                className={`absolute top-0 left-0 w-full h-full object-cover ${
-                    theme === 'dark' ? 'opacity-40' : 'opacity-20'
-                }`}
-            >
-                <source 
-                    src={randomVideo} 
-                    type="video/webm" 
-                />
-            </video>
+            {isPlaying && (
+                <video
+                    ref={videoRef}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    preload="metadata"
+                    crossOrigin="anonymous"
+                    className={`absolute top-0 left-0 w-full h-full object-cover ${
+                        theme === 'dark' ? 'opacity-40' : 'opacity-20'
+                    }`}
+                >
+                    <source 
+                        src="/videos/myCutekoiiii.webm"
+                        type="video/webm" 
+                    />
+                </video>
+            )}
 
             <div className={`fixed inset-0 bg-gradient-to-b ${
                 theme === 'dark' 
@@ -340,6 +343,37 @@ type DiscordData = {
     };
 };
 
+// Lazy-load image component
+const LazyImage = ({ src, alt, className }: { src: string; alt: string; className?: string }) => {
+    const [isLoaded, setIsLoaded] = useState(false);
+    const imgRef = useRef<HTMLImageElement>(null);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setIsLoaded(true);
+                    observer.disconnect();
+                }
+            },
+            { rootMargin: '50px' }
+        );
+
+        if (imgRef.current) observer.observe(imgRef.current);
+        return () => observer.disconnect();
+    }, []);
+
+    return (
+        <img
+            ref={imgRef}
+            src={isLoaded ? src : 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg"/%3E'}
+            alt={alt}
+            className={className}
+            loading="lazy"
+        />
+    );
+};
+
 const DiscordStatus = ({ currentPage }: { currentPage: PageType }) => {
     const { theme } = useTheme();
     const [discordData, setDiscordData] = useState<DiscordData | null>(null);
@@ -347,12 +381,18 @@ const DiscordStatus = ({ currentPage }: { currentPage: PageType }) => {
     const [showPopup, setShowPopup] = useState(false);
 
     useEffect(() => {
+        const CACHE_KEY = 'discordDataCache';
+        const CACHE_TTL_MS = 60000; // 60s
+
         const fetchDiscordData = async () => {
             setLoading(true);
             try {
                 const response = await fetch(API_URL);
                 const { data } = await response.json();
                 setDiscordData(data);
+                try {
+                    localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data }));
+                } catch {}
             } catch (error) {
                 console.error("Failed to fetch Discord data:", error);
             }
@@ -360,8 +400,19 @@ const DiscordStatus = ({ currentPage }: { currentPage: PageType }) => {
         };
 
         if (currentPage === 'home') {
+            try {
+                const raw = localStorage.getItem(CACHE_KEY);
+                if (raw) {
+                    const cached = JSON.parse(raw);
+                    if (cached?.ts && Date.now() - cached.ts < CACHE_TTL_MS) {
+                        setDiscordData(cached.data);
+                        setLoading(false);
+                    }
+                }
+            } catch {}
+
             fetchDiscordData();
-            const interval = setInterval(fetchDiscordData, 10000);
+            const interval = setInterval(fetchDiscordData, 30000);
             return () => clearInterval(interval);
         }
     }, [currentPage]);
@@ -456,7 +507,7 @@ const DiscordStatus = ({ currentPage }: { currentPage: PageType }) => {
                         </div>
                     ) : (
                         <>
-                            <img 
+                            <LazyImage 
                                 src={avatarUrl}
                                 alt={discordData?.discord_user?.global_name || discordData?.discord_user?.username || 'Discord Avatar'}
                                 className="w-full h-full rounded-xl object-cover"
@@ -492,7 +543,7 @@ const DiscordStatus = ({ currentPage }: { currentPage: PageType }) => {
                         }`}></div>
                         
                         <div className="flex items-center gap-3 mb-3">
-                            <img 
+                            <LazyImage 
                                 src={avatarUrl}
                                 alt="Discord Avatar"
                                 className="w-10 h-10 rounded-full object-cover"
@@ -715,10 +766,10 @@ const HomePage = () => {
         } transition-all duration-500`}>
                         <VideoBackground theme={theme} />
 
-<img
+<LazyImage
   src="/MillenniumEvent.png"
   alt="Anime girl"
-className="absolute top-[35vh] left-1/2 -translate-x-[160%] w-[min(590px,45vw)] h-auto z-10"
+  className="absolute top-[35vh] left-1/2 -translate-x-[160%] w-[min(590px,45vw)] h-auto z-10"
 />
 
 
@@ -732,7 +783,7 @@ className="absolute top-[35vh] left-1/2 -translate-x-[160%] w-[min(590px,45vw)] 
                     whileHover={{ scale: 1.1 }}
                 >
                     <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400 to-purple-600 animate-spin-slow opacity-20 group-hover:opacity-40 transition-opacity"></div>
-                    <img
+                    <LazyImage
                         src="https://avatars.githubusercontent.com/u/107134739?v=4"
                         alt="Koi Natsuko"
                         className={`relative w-full h-full rounded-full object-cover border-4 shadow-2xl z-10 ${
@@ -827,11 +878,16 @@ className="absolute top-[35vh] left-1/2 -translate-x-[160%] w-[min(590px,45vw)] 
 const ProjectsPage = () => {
     const { theme } = useTheme();
     const [filter, setFilter] = useState('all');
+    const [visibleProjects, setVisibleProjects] = useState(9);
     const languages = ['all', 'TypeScript', 'JavaScript', 'Python', 'Kotlin', 'CSS', 'C++', 'Elixir', 'Markdown'];
 
     const filteredProjects = filter === 'all' 
         ? projectsData 
         : projectsData.filter(project => project.tech.includes(filter));
+
+    useEffect(() => {
+        setVisibleProjects(9);
+    }, [filter]);
 
     return (
         <div className={`min-h-screen pt-32 pb-16 px-6 transition-all duration-500 ${
@@ -888,13 +944,13 @@ const ProjectsPage = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     <AnimatePresence>
-                        {filteredProjects.map((project, i) => (
+                        {filteredProjects.slice(0, visibleProjects).map((project, i) => (
                             <motion.div
                                 key={project.name}
-                                className={`group backdrop-blur-xl rounded-2xl p-8 border transition-all duration-300 shadow-lg hover:shadow-2xl ${
+                                className={`group rounded-2xl p-8 border transition-all duration-300 shadow-lg hover:shadow-2xl ${
                                     theme === 'dark' 
-                                        ? 'bg-gray-800/80 border-gray-700/50 hover:border-gray-600' 
-                                        : 'bg-white/80 border-gray-200/50 hover:border-gray-300'
+                                        ? 'bg-gray-800/95 border-gray-700/50 hover:border-gray-600' 
+                                        : 'bg-white/95 border-gray-200/50 hover:border-gray-300'
                                 }`}
                                 initial={{ opacity: 0, y: 50, scale: 0.9 }}
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -983,6 +1039,20 @@ const ProjectsPage = () => {
                         ))}
                     </AnimatePresence>
                 </div>
+                {visibleProjects < filteredProjects.length && (
+                    <div className="flex justify-center mt-8">
+                        <button
+                            onClick={() => setVisibleProjects(prev => prev + 6)}
+                            className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
+                                theme === 'dark' 
+                                    ? 'bg-gray-800 text-gray-200 hover:bg-gray-700 border border-gray-700/50' 
+                                    : 'bg-white text-gray-800 hover:bg-gray-100 border border-gray-200/50'
+                            }`}
+                        >
+                            Load More
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -1130,10 +1200,10 @@ const SkillsPage = () => {
                     {skillCategories.map((category, index) => (
                         <motion.div
                             key={category.category}
-                            className={`backdrop-blur-xl rounded-3xl p-8 border shadow-xl hover:shadow-2xl transition-all duration-300 ${
+                            className={`rounded-3xl p-8 border shadow-xl hover:shadow-2xl transition-all duration-300 ${
                                 theme === 'dark' 
-                                    ? 'bg-gray-800/60 border-gray-700/30' 
-                                    : 'bg-white/60 border-gray-200/30'
+                                    ? 'bg-gray-800/90 border-gray-700/30' 
+                                    : 'bg-white/90 border-gray-200/30'
                             }`}
                             initial={{ opacity: 0, y: 50 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -1207,10 +1277,10 @@ const SkillsPage = () => {
                 </div>
 
                 <motion.div
-                    className={`mt-12 text-center p-6 rounded-2xl backdrop-blur-xl ${
+                    className={`mt-12 text-center p-6 rounded-2xl ${
                         theme === 'dark' 
-                            ? 'bg-gray-800/40 border border-gray-700/30' 
-                            : 'bg-white/40 border border-gray-200/30'
+                            ? 'bg-gray-800/90 border border-gray-700/30' 
+                            : 'bg-white/90 border border-gray-200/30'
                     }`}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -1373,7 +1443,7 @@ useEffect(() => {
                     : theme === 'dark' ? 'bg-gray-800/90 border border-gray-700' : 'bg-white/90 border border-gray-200'
             }`}
             whileHover={{ scale: 1.1, rotate: 5 }}
-            whileTap={{ scale: 0.95 }}
+            whileTap={{ scale: 0.95 }}to u
             initial={{ opacity: 0, scale: 0 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.5 }}
