@@ -225,7 +225,7 @@ export default function GitHubHeatmapGenerator() {
                     <div className="space-y-6">
                         <div className="bg-[#161B22] rounded-xl p-8 border border-gray-800">
                             <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
-                                <span className="text-[#6366F1]"></span> Preview 8---
+                                <span className="text-[#6366F1]"></span> Preview!
                             </h2>
                             <div className="bg-[#0D1117] rounded-lg p-6 border border-gray-700 flex items-center justify-center min-h-[200px]">
                                 <img
