@@ -1,1461 +1,924 @@
-'use client';
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useTheme } from "../contexts/ThemeContext";
-import { Home, Briefcase, Code, Sun, Moon, ExternalLink, Star, GitFork, Calendar, Volume2, VolumeX } from 'lucide-react';
-// Page Types
-type PageType = 'home' | 'projects' | 'skills';
+// app/api/github-heatmap/route.ts
+import { NextRequest, NextResponse } from 'next/server'
 
-// Project data
-const projectsData = [
-    {
-        name: "ProCommit",
-        description: "📝 A Customizable VS Code extension for AI-generated commit messages.",
-        tech: ["TypeScript"],
-        license: "MIT License",
-        updated: "Jul 19",
-        url: "https://github.com/koimoee/ProCommit",
-        color: "from-blue-400 to-blue-600"
-    },
-        {
-        name: "ArchiveTune",
-        description: "📝 Enhanced Music Streaming Client for Android With Material 3 Expressive.",
-        tech: ["Kotlin"],
-        license: "GNU General Public License v3.0",
-        updated: "Yesterday",
-        url: "https://github.com/koiverse/ArchiveTune",
-        color: "from-blue-400 to-blue-600"
-    },
-    {
-        name: "Kizzy",
-        description: "Discord Rich Presence for Android. Made with jetpack compose and material3",
-        tech: ["Kotlin"],
-        license: "GNU General Public License v3.0",
-        updated: "May 25",
-        url: "https://github.com/koimoee/Kizzy",
-        forked: true,
-        stars: 1,
-        color: "from-purple-400 to-purple-600"
-    },
-    {
-        name: "VSNordTheme",
-        description: "🎨 A Multi awesome Nord theme For Visual Studio Code",
-        tech: ["CSS"],
-        license: "GNU General Public License v3.0",
-        updated: "Jan 9",
-        url: "https://github.com/koimoee/VSNordTheme",
-        color: "from-cyan-400 to-cyan-600"
-    },
-    {
-        name: "GameServerMonitorFork",
-        description: "📺 A discord bot that monitors your game server and tracks the live data of your game servers. Supports over 260 game servers.",
-        tech: ["Python"],
-        license: "MIT License",
-        updated: "Jan 6",
-        url: "https://github.com/koimoee/GameServerMonitorFork",
-        forked: true,
-        stars: 1,
-        color: "from-green-400 to-green-600"
-    },
-    {
-        name: "lanyard",
-        description: "🏷️ Expose your Discord presence and activities to a RESTful API and WebSocket in less than 10 seconds",
-        tech: ["Elixir"],
-        license: "MIT License",
-        updated: "Dec 29, 2024",
-        url: "https://github.com/koimoee/lanyard",
-        forked: true,
-        color: "from-red-400 to-red-600"
-    },
-    {
-        name: "EllenJoeNextGlass",
-        description: "🎨 A Clean Frosted Glass Themed Ellen Joe's For Discord.",
-        tech: ["CSS"],
-        license: "GNU General Public License v3.0",
-        updated: "Dec 20, 2024",
-        url: "https://github.com/koimoee/EllenJoeNextGlass",
-        color: "from-pink-400 to-pink-600"
-    },
-    {
-        name: "GHSocialPreview",
-        description: "Create Your Github Social Image!",
-        tech: ["JavaScript"],
-        license: "MIT License",
-        updated: "Dec 19, 2024",
-        url: "https://github.com/koimoee/GHSocialPreview",
-        color: "from-yellow-400 to-yellow-600"
-    },
-    {
-        name: "GeminiCommit",
-        description: "AI-powered commit message generator",
-        tech: ["TypeScript"],
-        license: "MIT License",
-        updated: "Dec 13, 2024",
-        url: "https://github.com/koimoee/GeminiCommit",
-        forked: true,
-        color: "from-indigo-400 to-indigo-600"
-    },
-    {
-        name: "koimoee",
-        description: "Just My Readme",
-        tech: ["Markdown"],
-        updated: "Dec 12, 2024",
-        url: "https://github.com/koimoee/koimoee",
-        stars: 2,
-        color: "from-gray-400 to-gray-600"
-    },
-    {
-        name: "lavalink-list",
-        description: "A list of free and available public Lavalink nodes with their live status.",
-        tech: ["TypeScript"],
-        license: "GNU General Public License v3.0",
-        updated: "Oct 26, 2024",
-        url: "https://github.com/koimoee/lavalink-list",
-        forked: true,
-        color: "from-blue-500 to-blue-700"
-    },
-    {
-        name: "ActivityCord",
-        description: "Allows you to create streaming, playing, and listening status on Discord.",
-        tech: ["JavaScript"],
-        license: "GNU General Public License v3.0",
-        updated: "May 24, 2024",
-        url: "https://github.com/koimoee/ActivityCord",
-        stars: 8,
-        color: "from-purple-500 to-purple-700"
-    },
-    {
-        name: "PrismLog",
-        description: "Simple logging utility for Node.js applications, providing colorful and formatted console logs.",
-        tech: ["JavaScript"],
-        license: "MIT License",
-        updated: "Mar 31, 2024",
-        url: "https://github.com/koimoee/PrismLog",
-        color: "from-emerald-400 to-emerald-600"
-    },
-    {
-        name: "thorium",
-        description: "Chromium fork named after radioactive element No. 90.",
-        tech: ["C++"],
-        license: "BSD 3-Clause License",
-        updated: "Mar 27, 2024",
-        url: "https://github.com/koimoee/thorium",
-        forked: true,
-        color: "from-orange-400 to-orange-600"
-    },
-    {
-        name: "Welcomify",
-        description: "A cutting-edge canvas library for creating futuristic welcome cards.",
-        tech: ["JavaScript"],
-        license: "GNU General Public License v3.0",
-        updated: "Mar 7, 2024",
-        url: "https://github.com/koimoee/Welcomify",
-        color: "from-violet-400 to-violet-600"
-    },
-    {
-        name: "register",
-        description: "Grab your own sweet-looking '.is-a.dev' subdomain",
-        tech: ["JavaScript"],
-        license: "GNU General Public License v3.0",
-        updated: "Nov 19, 2023",
-        url: "https://github.com/koimoee/register",
-        forked: true,
-        stars: 1,
-        color: "from-teal-400 to-teal-600"
-    },
-    {
-        name: "ServerCloner2.0",
-        description: "Clone a Discord server, including channels, categories, roles and permissions.",
-        tech: ["Python"],
-        updated: "Sep 22, 2023",
-        url: "https://github.com/koimoee/ServerCloner2.0",
-        color: "from-rose-400 to-rose-600"
+interface ContributionDay {
+  date: string
+  count: number
+  level: number
+}
+
+async function fetchGitHubContributions(username: string): Promise<ContributionDay[]> {
+  const query = `
+    query($username: String!) {
+      user(login: $username) {
+        contributionsCollection {
+          contributionCalendar {
+            totalContributions
+            weeks {
+              contributionDays {
+                contributionCount
+                date
+              }
+            }
+          }
+        }
+      }
     }
-];
-//hehe
+  `
 
-const useProtection = () => {
-  useEffect(() => {
-    const preventDefaultKeys = (e: KeyboardEvent) => {
-      if (
-        (e.ctrlKey && (e.key === 'c' || e.key === 'C' || e.key === 'u' || e.key === 'U')) ||
-        e.key === 'F12' ||
-        (e.ctrlKey && e.shiftKey && e.key === 'i') ||
-        (e.ctrlKey && e.shiftKey && e.key === 'I')
-      ) {
-        e.preventDefault();
-        return false;
-      }
-    };
+  const response = await fetch('https://api.github.com/graphql', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${process.env.GITHUB_TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      query,
+      variables: { username }
+    }),
+    next: { revalidate: 3600 }
+  })
 
-    const preventContextMenu = (e: Event) => {
-      const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.closest('.allow-select')) {
-        return;
-      }
-      e.preventDefault();
-      return false;
-    };
+  if (!response.ok) {
+    throw new Error(`GitHub API error: ${response.status}`)
+  }
 
-    document.addEventListener('contextmenu', preventContextMenu);
-    document.addEventListener('keydown', preventDefaultKeys);
+  const data = await response.json()
+  
+  if (data.errors) {
+    throw new Error(data.errors[0].message)
+  }
 
-    const images = document.getElementsByTagName('img');
-    Array.from(images).forEach(img => {
-      img.addEventListener('dragstart', (e) => e.preventDefault());
-      img.setAttribute('draggable', 'false');
-    });
+  const weeks = data.data.user.contributionsCollection.contributionCalendar.weeks
+  const days: ContributionDay[] = []
 
-    return () => {
-      document.removeEventListener('contextmenu', preventContextMenu);
-      document.removeEventListener('keydown', preventDefaultKeys);
-      Array.from(images).forEach(img => {
-        img.removeEventListener('dragstart', (e) => e.preventDefault());
-      });
-    };
-  }, [])
+  weeks.forEach((week: any) => {
+    week.contributionDays.forEach((day: any) => {
+      let level = 0
+      if (day.contributionCount > 0) level = 1
+      if (day.contributionCount >= 3) level = 2
+      if (day.contributionCount >= 6) level = 3
+      if (day.contributionCount >= 10) level = 4
+
+      days.push({
+        date: day.date,
+        count: day.contributionCount,
+        level
+      })
+    })
+  })
+
+  return days
 }
 
-const VideoBackground = ({ theme }: { theme: 'dark' | 'light' }) => {
-    const [isPlaying, setIsPlaying] = useState(false);
-    const videoRef = useRef<HTMLVideoElement>(null);
+function generateLineChart(days: ContributionDay[], color: string, bgColor: string, username: string): string {
+  const width = 800
+  const height = 400
+  const padding = { top: 60, right: 40, bottom: 60, left: 60 }
+  const chartWidth = width - padding.left - padding.right
+  const chartHeight = height - padding.top - padding.bottom
 
-    useEffect(() => {
-        const timer = setTimeout(() => setIsPlaying(true), 100);
-        return () => clearTimeout(timer);
-    }, []);
+  // Aggregate by week
+  const weeklyData: { week: string; count: number }[] = []
+  for (let i = 0; i < days.length; i += 7) {
+    const weekDays = days.slice(i, i + 7)
+    const weekCount = weekDays.reduce((sum, d) => sum + d.count, 0)
+    weeklyData.push({
+      week: weekDays[0].date,
+      count: weekCount
+    })
+  }
 
-    return (
-        <div className="absolute inset-0 z-0 overflow-hidden">
-            {isPlaying && (
-                <video
-                    ref={videoRef}
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    preload="metadata"
-                    crossOrigin="anonymous"
-                    className={`absolute top-0 left-0 w-full h-[62vh] object-cover ${
-                        theme === 'dark' ? 'opacity-40' : 'opacity-60'
-                    }`}
-                >
-                    <source 
-                        src="/videos/MHM.webm"
-                        type="video/webm" 
-                    />
-                </video>
-            )}
+  const maxCount = Math.max(...weeklyData.map(d => d.count), 1)
+  const totalContributions = days.reduce((sum, day) => sum + day.count, 0)
 
-            <div className={`absolute inset-0 ${
-                theme === 'dark' 
-                    ? 'bg-gradient-to-b from-black/60 to-black/40' 
-                    : 'bg-gradient-to-b from-white/60 to-white/40'
-            }`} />
-        </div>
-    )
-}
+  // Generate path
+  const points = weeklyData.map((d, i) => {
+    const x = padding.left + (i / (weeklyData.length - 1)) * chartWidth
+    const y = padding.top + chartHeight - (d.count / maxCount) * chartHeight
+    return { x, y, count: d.count, week: d.week }
+  })
 
+  const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x},${p.y}`).join(' ')
+  const areaPath = pathD + ` L ${points[points.length - 1].x},${padding.top + chartHeight} L ${padding.left},${padding.top + chartHeight} Z`
+  
+  const pathLength = points.length * 50
 
-const Skillsbg = ({ theme }: { theme: 'dark' | 'light' }) => {
-    const [isPlaying, setIsPlaying] = useState(false);
-    const videoRef = useRef<HTMLVideoElement>(null);
-
-    useEffect(() => {
-        const timer = setTimeout(() => setIsPlaying(true), 100);
-        return () => clearTimeout(timer);
-    }, []);
-
-    return (
-        <div className="absolute inset-0 z-0 overflow-hidden">
-            {isPlaying && (
-                <video
-                    ref={videoRef}
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    preload="metadata"
-                    crossOrigin="anonymous"
-                    className={`absolute top-0 left-0 w-full h-full object-cover ${
-                        theme === 'dark' ? 'opacity-40' : 'opacity-20'
-                    }`}
-                >
-                    <source 
-                        src="/videos/myCutekoiiii.webm"
-                        type="video/webm" 
-                    />
-                </video>
-            )}
-
-            <div className={`fixed inset-0 bg-gradient-to-b ${
-                theme === 'dark' 
-                    ? 'from-black/50 via-black/30 to-black/50' 
-                    : 'from-white/50 via-white/30 to-white/50'
-            }`} />
-        </div>
-    )
-}
-
-
-const API_URL = "https://api.lanyard.rest/v1/users/886971572668219392";
-
-type DiscordStatus = 'online' | 'dnd' | 'idle' | 'offline';
-type DiscordData = {
-    discord_status: DiscordStatus;
-    discord_user: {
-        username: string;
-        global_name: string;
-        avatar: string;
-        id: string;
-        clan?: string;
-        avatar_decoration_data?: {
-            sku_id: string;
-            asset: string;
-            expires_at: string | null;
-        };
-        primary_guild?: {
-            tag: string;
-            identity_guild_id: string;
-            badge: string;
-            identity_enabled: boolean;
-        };
-    };
-    activities: Array<{
-        name: string;
-        type: number;
-        timestamps?: {
-            start: number;
-        };
-        assets?: {
-            large_image: string;
-        };
-        platform?: string;
-    }>;
-    active_on_discord_desktop?: boolean;
-    active_on_discord_mobile?: boolean;
-    active_on_discord_web?: boolean;
-    active_on_discord_embedded?: boolean;
-    listening_to_spotify?: boolean;
-    spotify?: {
-        song: string;
-        artist: string;
-    };
-};
-
-// Lazy-load image component
-const LazyImage = ({ src, alt, className }: { src: string; alt: string; className?: string }) => {
-    const [isLoaded, setIsLoaded] = useState(false);
-    const imgRef = useRef<HTMLImageElement>(null);
-
-    useEffect(() => {
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                if (entry.isIntersecting) {
-                    setIsLoaded(true);
-                    observer.disconnect();
-                }
-            },
-            { rootMargin: '50px' }
-        );
-
-        if (imgRef.current) observer.observe(imgRef.current);
-        return () => observer.disconnect();
-    }, []);
-
-    return (
-        <img
-            ref={imgRef}
-            src={isLoaded ? src : 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg"/%3E'}
-            alt={alt}
-            className={className}
-            loading="lazy"
+  return `
+    <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="lineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" style="stop-color:${color};stop-opacity:0.4" />
+          <stop offset="100%" style="stop-color:${color};stop-opacity:0" />
+        </linearGradient>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+          <feMerge>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+        <style>
+          .title { 
+            font: 600 18px 'Segoe UI', sans-serif; 
+            fill: #e6edf3;
+            animation: slideDown 0.6s ease-out forwards;
+            opacity: 0;
+          }
+          .stat-value { 
+            font: 700 28px 'Segoe UI', sans-serif; 
+            fill: ${color}; 
+            animation: countUp 2s ease-out forwards;
+            opacity: 0;
+          }
+          .stat-label { 
+            font: 400 12px 'Segoe UI', sans-serif; 
+            fill: #7d8590;
+            animation: fadeIn 0.8s ease-out 0.3s forwards;
+            opacity: 0;
+          }
+          .axis-label { 
+            font: 400 11px 'Segoe UI', sans-serif; 
+            fill: #7d8590;
+            animation: fadeIn 0.5s ease-out 0.5s forwards;
+            opacity: 0;
+          }
+          .grid-line { 
+            stroke: #30363d; 
+            stroke-width: 1;
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out 0.3s forwards;
+          }
+          .data-point { 
+            animation: pointPop 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+            opacity: 0;
+            filter: url(#glow);
+          }
+          .line-path {
+            stroke-dasharray: ${pathLength};
+            stroke-dashoffset: ${pathLength};
+            animation: drawLine 2.5s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+            filter: url(#glow);
+          }
+          .area-path {
+            opacity: 0;
+            animation: fadeInArea 1s ease-out 2s forwards;
+          }
+          @keyframes drawLine {
+            to { stroke-dashoffset: 0; }
+          }
+          @keyframes fadeInArea {
+            to { opacity: 1; }
+          }
+          @keyframes pointPop {
+            0% { 
+              opacity: 0; 
+              transform: scale(0) rotate(0deg); 
+            }
+            50% { 
+              transform: scale(1.4) rotate(180deg); 
+            }
+            100% { 
+              opacity: 1; 
+              transform: scale(1) rotate(360deg); 
+            }
+          }
+          @keyframes countUp {
+            0% { 
+              opacity: 0; 
+              transform: translateY(-20px);
+            }
+            100% { 
+              opacity: 1; 
+              transform: translateY(0);
+            }
+          }
+          @keyframes slideDown {
+            0% { 
+              opacity: 0; 
+              transform: translateY(-10px);
+            }
+            100% { 
+              opacity: 1; 
+              transform: translateY(0);
+            }
+          }
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+        </style>
+      </defs>
+      
+      <rect width="${width}" height="${height}" fill="${bgColor}" rx="12"/>
+      
+      <!-- Header -->
+      <text x="30" y="35" class="title">${username}'s Contribution Activity</text>
+      <text x="${width - 30}" y="40" text-anchor="end" class="stat-value">${totalContributions}</text>
+      <text x="${width - 30}" y="52" text-anchor="end" class="stat-label">Total Contributions</text>
+      
+      <!-- Grid lines -->
+      ${[0, 0.25, 0.5, 0.75, 1].map(ratio => `
+        <line 
+          x1="${padding.left}" 
+          y1="${padding.top + chartHeight * (1 - ratio)}" 
+          x2="${width - padding.right}" 
+          y2="${padding.top + chartHeight * (1 - ratio)}" 
+          class="grid-line"
         />
-    );
-};
+        <text 
+          x="${padding.left - 10}" 
+          y="${padding.top + chartHeight * (1 - ratio) + 4}" 
+          text-anchor="end" 
+          class="axis-label"
+        >${Math.round(maxCount * ratio)}</text>
+      `).join('')}
+      
+      <!-- Area under curve -->
+      <path d="${areaPath}" fill="url(#lineGradient)" class="area-path" />
+      
+      <!-- Line -->
+      <path 
+        d="${pathD}" 
+        fill="none" 
+        stroke="${color}" 
+        stroke-width="3" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"
+        class="line-path"
+      />
+      
+      <!-- Data points -->
+      ${points.map((p, i) => `
+        <circle 
+          cx="${p.x}" 
+          cy="${p.y}" 
+          r="5" 
+          fill="${color}" 
+          class="data-point"
+          style="animation-delay: ${2.2 + i * 0.04}s"
+        >
+          <title>${p.week}: ${p.count} contributions</title>
+        </circle>
+      `).join('')}
+      
+      <!-- X-axis labels -->
+      ${[0, Math.floor(weeklyData.length / 2), weeklyData.length - 1].map(i => {
+        const date = new Date(weeklyData[i].week)
+        const label = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+        const x = padding.left + (i / (weeklyData.length - 1)) * chartWidth
+        return `<text x="${x}" y="${height - 20}" text-anchor="middle" class="axis-label">${label}</text>`
+      }).join('')}
+    </svg>
+  `
+}
 
-const DiscordStatus = ({ currentPage }: { currentPage: PageType }) => {
-    const { theme } = useTheme();
-    const [discordData, setDiscordData] = useState<DiscordData | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [showPopup, setShowPopup] = useState(false);
+function generateBarChart(days: ContributionDay[], color: string, bgColor: string, username: string): string {
+  const width = 800
+  const height = 400
+  const padding = { top: 60, right: 40, bottom: 60, left: 60 }
+  
+  const monthlyData: { [key: string]: number } = {}
+  days.forEach(day => {
+    const month = day.date.substring(0, 7)
+    monthlyData[month] = (monthlyData[month] || 0) + day.count
+  })
+  
+  const months = Object.keys(monthlyData).slice(-12)
+  const counts = months.map(m => monthlyData[m])
+  const maxCount = Math.max(...counts, 1)
+  const totalContributions = days.reduce((sum, day) => sum + day.count, 0)
+  
+  const barWidth = (width - padding.left - padding.right) / months.length - 10
+  const chartHeight = height - padding.top - padding.bottom
 
-    useEffect(() => {
-        const CACHE_KEY = 'discordDataCache';
-        const CACHE_TTL_MS = 60000; // 60s
-
-        const fetchDiscordData = async () => {
-            setLoading(true);
-            try {
-                const response = await fetch(API_URL);
-                const { data } = await response.json();
-                setDiscordData(data);
-                try {
-                    localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data }));
-                } catch {}
-            } catch (error) {
-                console.error("Failed to fetch Discord data:", error);
+  return `
+    <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="barGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" style="stop-color:${color};stop-opacity:1" />
+          <stop offset="100%" style="stop-color:${color};stop-opacity:0.6" />
+        </linearGradient>
+        <filter id="barGlow">
+          <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+          <feMerge>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+        <style>
+          .title { 
+            font: 600 18px 'Segoe UI', sans-serif; 
+            fill: #e6edf3;
+            animation: slideDown 0.6s ease-out forwards;
+            opacity: 0;
+          }
+          .stat-value { 
+            font: 700 28px 'Segoe UI', sans-serif; 
+            fill: ${color};
+            animation: countUp 2s ease-out forwards;
+            opacity: 0;
+          }
+          .stat-label { 
+            font: 400 12px 'Segoe UI', sans-serif; 
+            fill: #7d8590;
+            animation: fadeIn 0.8s ease-out 0.3s forwards;
+            opacity: 0;
+          }
+          .axis-label { 
+            font: 400 11px 'Segoe UI', sans-serif; 
+            fill: #7d8590;
+            animation: fadeIn 0.5s ease-out forwards;
+            opacity: 0;
+          }
+          .bar { 
+            filter: url(#barGlow);
+          }
+          @keyframes countUp {
+            0% { 
+              opacity: 0; 
+              transform: translateY(-20px) rotate(-10deg);
             }
-            setLoading(false);
-        };
+            100% { 
+              opacity: 1; 
+              transform: translateY(0) rotate(0deg);
+            }
+          }
+          @keyframes slideDown {
+            0% { 
+              opacity: 0; 
+              transform: translateY(-10px);
+            }
+            100% { 
+              opacity: 1; 
+              transform: translateY(0);
+            }
+          }
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+        </style>
+      </defs>
+      
+      <rect width="${width}" height="${height}" fill="${bgColor}" rx="12"/>
+      
+      <text x="30" y="35" class="title">${username}'s Monthly Contributions</text>
+      <text x="${width - 30}" y="40" text-anchor="end" class="stat-value">${totalContributions}</text>
+      <text x="${width - 30}" y="52" text-anchor="end" class="stat-label">Total Contributions</text>
+      
+      ${months.map((month, i) => {
+        const count = counts[i]
+        const barHeight = (count / maxCount) * chartHeight
+        const x = padding.left + i * (barWidth + 10)
+        const y = padding.top + chartHeight - barHeight
+        const monthLabel = new Date(month + '-01').toLocaleDateString('en-US', { month: 'short' })
+        
+        return `
+          <rect 
+            x="${x}" 
+            y="${padding.top + chartHeight}" 
+            width="${barWidth}" 
+            height="0" 
+            fill="url(#barGradient)"
+            rx="4"
+            filter="url(#barGlow)"
+          >
+            <animate attributeName="height" from="0" to="${barHeight}" dur="1.2s" begin="${i * 0.1}s" fill="freeze" calcMode="spline" keySplines="0.68 -0.55 0.265 1.55" />
+            <animate attributeName="y" from="${padding.top + chartHeight}" to="${y}" dur="1.2s" begin="${i * 0.1}s" fill="freeze" calcMode="spline" keySplines="0.68 -0.55 0.265 1.55" />
+            <title>${monthLabel}: ${count} contributions</title>
+          </rect>
+          <text 
+            x="${x + barWidth / 2}" 
+            y="${height - 20}" 
+            text-anchor="middle" 
+            class="axis-label"
+            style="animation-delay: ${i * 0.1 + 0.5}s"
+          >${monthLabel}</text>
+        `
+      }).join('')}
+    </svg>
+  `
+}
 
-        if (currentPage === 'home') {
-            try {
-                const raw = localStorage.getItem(CACHE_KEY);
-                if (raw) {
-                    const cached = JSON.parse(raw);
-                    if (cached?.ts && Date.now() - cached.ts < CACHE_TTL_MS) {
-                        setDiscordData(cached.data);
-                        setLoading(false);
-                    }
-                }
-            } catch {}
-
-            fetchDiscordData();
-            const interval = setInterval(fetchDiscordData, 30000);
-            return () => clearInterval(interval);
-        }
-    }, [currentPage]);
-
-    if (currentPage !== 'home') return null;
-
-    const statusColors = {
-        online: 'bg-green-500',
-        dnd: 'bg-red-500',
-        idle: 'bg-yellow-500',
-        offline: 'bg-gray-500'
-    };
-
-    const avatarUrl = discordData?.discord_user?.avatar 
-        ? `https://cdn.discordapp.com/avatars/${discordData.discord_user.id}/${discordData.discord_user.avatar}.png?size=128`
-        : '';
-
-    const getStatusMessage = (status: DiscordStatus) => {
-        switch (status) {
-            case 'online':
-                return "She's online!!!!";
-            case 'dnd':
-                return "Do not disturb";
-            case 'idle':
-                return "Away from keyboard, maybe getting snacks?";
-            case 'offline':
-                return "Might be trying to jump off a cliff to cure her depression 🏔️";
-            default:
-                return "Unknown status";
-        }
-    };
-
-    const SoundWaveAnimation = () => (
-        <svg 
-            className="absolute inset-0 w-full h-full opacity-30" 
-            viewBox="0 0 100 100" 
-            xmlns="http://www.w3.org/2000/svg"
-        >
-            <defs>
-                <linearGradient id="waveGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor={theme === 'dark' ? '#3B82F6' : '#6366F1'} stopOpacity="0.4" />
-                    <stop offset="50%" stopColor={theme === 'dark' ? '#8B5CF6' : '#A855F7'} stopOpacity="0.3" />
-                    <stop offset="100%" stopColor={theme === 'dark' ? '#EC4899' : '#EC4899'} stopOpacity="0.2" />
-                </linearGradient>
-            </defs>
-            
-            {[...Array(3)].map((_, i) => (
-                <motion.circle
-                    key={i}
-                    cx="50"
-                    cy="50"
-                    r={15 + i * 10}
-                    fill="none"
-                    stroke="url(#waveGradient)"
-                    strokeWidth="1"
-                    initial={{ r: 15, opacity: 0.6 }}
-                    animate={{ 
-                        r: [15 + i * 10, 40 + i * 10, 15 + i * 10],
-                        opacity: [0.6, 0.1, 0.6]
-                    }}
-                    transition={{
-                        duration: 2.5 + i * 0.5,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                        delay: i * 0.4
-                    }}
-                />
-            ))}
-        </svg>
-    );
-
-    return (
-        <>
-            {/* Discord Status Icon */}
-            <motion.div
-                className={`fixed top-80 right-6 cursor-pointer w-16 h-16 rounded-xl ${
-                    theme === 'dark' ? 'bg-gray-800/90' : 'bg-white/90'
-                } backdrop-blur-xl border ${
-                    theme === 'dark' ? 'border-gray-700/50' : 'border-gray-200/50'
-                } shadow-lg overflow-hidden z-40`}
-                initial={{ opacity: 0, scale: 0.8, x: 50 }}
-                animate={{ opacity: 1, scale: 1, x: 0 }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-                whileHover={{ scale: 1.1, rotate: 5 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setShowPopup(!showPopup)}
-            >
-                <div className="relative w-full h-full">
-                    {loading ? (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-8 h-8 border-3 border-t-transparent border-blue-500 rounded-full animate-spin"></div>
-                        </div>
-                    ) : (
-                        <>
-                            <LazyImage 
-                                src={avatarUrl}
-                                alt={discordData?.discord_user?.global_name || discordData?.discord_user?.username || 'Discord Avatar'}
-                                className="w-full h-full rounded-xl object-cover"
-                            />
-                            <div className={`absolute bottom-0 right-0 w-5 h-5 rounded-full border-3 ${
-                                theme === 'dark' ? 'border-gray-800' : 'border-white'
-                            } ${statusColors[discordData?.discord_status || 'offline']}`} />
-                            <SoundWaveAnimation />
-                        </>
-                    )}
-                </div>
-            </motion.div>
-
-            {/* Status Message Popup - Under Profile Pic */}
-            <AnimatePresence>
-                {showPopup && discordData && (
-                    <motion.div
-                        className={`fixed top-96 right-6 w-80 rounded-xl p-4 ${
-                            theme === 'dark' ? 'bg-gray-800/95' : 'bg-white/95'
-                        } backdrop-blur-xl border ${
-                            theme === 'dark' ? 'border-gray-700/50' : 'border-gray-200/50'
-                        } shadow-xl z-50`}
-                        initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                        transition={{ duration: 0.3 }}
-                    >
-                        {/* Arrow pointing up */}
-                        <div className={`absolute -top-2 right-8 w-4 h-4 rotate-45 ${
-                            theme === 'dark' ? 'bg-gray-800' : 'bg-white'
-                        } border-l border-t ${
-                            theme === 'dark' ? 'border-gray-700/50' : 'border-gray-200/50'
-                        }`}></div>
-                        
-                        <div className="flex items-center gap-3 mb-3">
-                            <LazyImage 
-                                src={avatarUrl}
-                                alt="Discord Avatar"
-                                className="w-10 h-10 rounded-full object-cover"
-                            />
-                            <div className="flex-1">
-                                <p className={`font-semibold text-sm ${
-                                    theme === 'dark' ? 'text-white' : 'text-gray-900'
-                                }`}>
-                                    {discordData.discord_user.global_name || discordData.discord_user.username}
-                                </p>
-                                <div className="flex items-center gap-2">
-                                    <div className={`w-2 h-2 rounded-full ${statusColors[discordData.discord_status]}`}></div>
-                                    <span className={`text-xs capitalize ${
-                                        theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                                    }`}>
-                                        {discordData.discord_status}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <p className={`text-sm mb-4 ${
-                            theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                        }`}>
-                            {getStatusMessage(discordData.discord_status)}
-                        </p>
-
-                        {discordData.activities.length > 0 && (
-                            <div className={`mb-4 p-3 rounded-lg ${
-                                theme === 'dark' ? 'bg-gray-700/50' : 'bg-gray-100/70'
-                            }`}>
-                                <p className={`text-xs font-medium mb-1 ${
-                                    theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                                }`}>
-                                    Current Activity
-                                </p>
-                                <p className={`text-sm font-semibold ${
-                                    theme === 'dark' ? 'text-white' : 'text-gray-900'
-                                }`}>
-                                    {discordData.activities[0].name}
-                                </p>
-                            </div>
-                        )}
-
-                        {discordData.spotify && (
-                            <div className={`mb-4 p-3 rounded-lg ${
-                                theme === 'dark' ? 'bg-green-900/30' : 'bg-green-100/70'
-                            }`}>
-                                <p className={`text-xs font-medium mb-1 ${
-                                    theme === 'dark' ? 'text-green-400' : 'text-green-600'
-                                }`}>
-                                    Listening to Spotify
-                                </p>
-                                <p className={`text-sm font-semibold ${
-                                    theme === 'dark' ? 'text-white' : 'text-gray-900'
-                                }`}>
-                                    {discordData.spotify.song}
-                                </p>
-                                <p className={`text-xs ${
-                                    theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                                }`}>
-                                    by {discordData.spotify.artist}
-                                </p>
-                            </div>
-                        )}
-
-                        <div className="flex gap-2">
-                            <a
-                                href={`https://discord.com/users/953527567808356404`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={`flex-1 px-3 py-2 rounded-lg text-center text-sm font-semibold transition-all duration-200 ${
-                                    theme === 'dark' 
-                                        ? 'bg-blue-600 text-white hover:bg-blue-500' 
-                                        : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                                }`}
-                            >
-                                View Profile
-                            </a>
-                            <button
-                                onClick={() => setShowPopup(false)}
-                                className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                                    theme === 'dark' 
-                                        ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' 
-                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                                }`}
-                            >
-                                Close
-                            </button>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </>
-    );
-};
-
-const Navigation = ({ 
-    currentPage, 
-    setCurrentPage,
-    musicEnabled,
-    toggleMusic 
-}: { 
-    currentPage: PageType; 
-    setCurrentPage: (page: PageType) => void;
-    musicEnabled: boolean;
-    toggleMusic: () => void;
-}) => {
-    const { theme, toggleTheme } = useTheme();
-    const navItems = [
-        { id: 'home' as PageType, label: 'Home', icon: Home },
-        { id: 'projects' as PageType, label: 'Projects', icon: Briefcase },
-        { id: 'skills' as PageType, label: 'Skills', icon: Code },
-    ];
-
-    return (
-        <motion.nav
-            className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 ${
-                theme === 'dark' ? 'bg-gray-900/80' : 'bg-white/80'
-            } backdrop-blur-xl rounded-2xl px-6 sm:px-8 py-4 shadow-2xl ${
-                theme === 'dark' ? 'border border-gray-700/30' : 'border border-gray-200/30'
-            }`}
-            initial={{ y: -100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, type: "spring", bounce: 0.3 }}
-        >
-            <div className="flex items-center space-x-2 sm:space-x-4">
-                {navItems.map((item, index) => (
-                    <motion.button
-                        key={item.id}
-                        onClick={() => setCurrentPage(item.id)}
-                        className={`relative px-4 py-2.5 rounded-xl font-semibold transition-all duration-300 flex items-center gap-2 text-sm sm:text-base ${
-                            currentPage === item.id
-                                ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
-                                : theme === 'dark' 
-                                    ? 'text-gray-300 hover:text-white hover:bg-gray-800/50' 
-                                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/50'
-                        }`}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                    >
-                        <item.icon size={18} />
-                        <span className="hidden sm:inline">{item.label}</span>
-                        {currentPage === item.id && (
-                            <motion.div
-                                className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 -z-10"
-                                layoutId="activeTab"
-                                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                            />
-                        )}
-                    </motion.button>
-                ))}
-                
-                {/* MUSIC BUTTON - ADD THIS */}
-                <motion.button
-                    onClick={toggleMusic}
-                    className={`p-3 rounded-xl transition-all duration-300 ${
-                        musicEnabled 
-                            ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg' 
-                            : theme === 'dark' 
-                                ? 'text-gray-300 hover:bg-gray-800/50 hover:text-purple-400' 
-                                : 'text-gray-600 hover:bg-gray-100/50 hover:text-purple-600'
-                    }`}
-                    whileTap={{ scale: 0.9 }}
-                    whileHover={{ scale: 1.1 }}
-                    transition={{ duration: 0.3 }}
-                >
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={musicEnabled ? 'on' : 'off'}
-                            initial={{ opacity: 0, rotate: -180 }}
-                            animate={{ opacity: 1, rotate: 0 }}
-                            exit={{ opacity: 0, rotate: 180 }}
-                            transition={{ duration: 0.3 }}
-                        >
-                            {musicEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
-                        </motion.div>
-                    </AnimatePresence>
-                </motion.button>
-
-                {/* THEME TOGGLE */}
-                <motion.button
-                    onClick={toggleTheme}
-                    className={`p-3 rounded-xl transition-all duration-300 ${
-                        theme === 'dark' 
-                            ? 'text-gray-300 hover:bg-gray-800/50 hover:text-yellow-400' 
-                            : 'text-gray-600 hover:bg-gray-100/50 hover:text-yellow-500'
-                    }`}
-                    whileTap={{ scale: 0.9 }}
-                    whileHover={{ scale: 1.1, rotate: 180 }}
-                    transition={{ duration: 0.3 }}
-                >
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={theme}
-                            initial={{ opacity: 0, rotate: -180 }}
-                            animate={{ opacity: 1, rotate: 0 }}
-                            exit={{ opacity: 0, rotate: 180 }}
-                            transition={{ duration: 0.3 }}
-                        >
-                            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-                        </motion.div>
-                    </AnimatePresence>
-                </motion.button>
-            </div>
-        </motion.nav>
-    );
-};
-const HomePage = () => {
-    const { theme } = useTheme();
-
-    return (
-<div className={`relative min-h-screen flex items-center justify-center p-6 pt-32 ${
-                theme === 'dark' 
-                ? 'bg-gradient-to-br from-gray-900 via-gray-900 to-purple-900/20' 
-                : 'bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50'
-        } transition-all duration-500`}>
-                        <VideoBackground theme={theme} />
-
-<LazyImage
-  src="/MillenniumEvent.png"
-  alt="Anime girl"
-  className="absolute top-[35vh] left-1/2 -translate-x-[160%] w-[min(590px,45vw)] h-auto z-10"
-/>
-
-
-
-            <div className="text-center max-w-4xl">
-                <motion.div
-                    className="relative w-40 h-40 sm:w-48 sm:h-48 mx-auto mb-8 sm:mb-12 group"
-                    initial={{ scale: 0, opacity: 0, rotate: -180 }}
-                    animate={{ scale: 1, opacity: 1, rotate: 0 }}
-                    transition={{ duration: 1, delay: 0.2, type: "spring", bounce: 0.4 }}
-                    whileHover={{ scale: 1.1 }}
-                >
-                    <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400 to-purple-600 animate-spin-slow opacity-20 group-hover:opacity-40 transition-opacity"></div>
-                    <LazyImage
-                        src="https://avatars.githubusercontent.com/u/107134739?v=4"
-                        alt="Koi Natsuko"
-                        className={`relative w-full h-full rounded-full object-cover border-4 shadow-2xl z-10 ${
-                            theme === 'dark' ? 'border-gray-800' : 'border-white'
-                        }`}
-                    />
-                    <motion.div
-                        className="absolute inset-0 rounded-full border-4 border-transparent bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-border opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                    />
-                </motion.div>
-
-                <motion.div
-                    initial={{ opacity: 0, y: 50 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.4 }}
-                >
-                    <motion.h1 
-                        className={`text-5xl sm:text-7xl font-black mb-4 ${
-                            theme === 'dark' ? 'text-white' : 'text-gray-900'
-                        }`}
-                        style={{ fontFamily: '"Mochiy Pop One", serif' }}
-                        initial={{ opacity: 0, scale: 0.5 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.8, delay: 0.6 }}
-                    >
-                      Koi Natsuko!
-                    </motion.h1>
-                    <motion.p 
-                        className={`text-xl sm:text-2xl font-medium mb-3 ${
-                            theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-                        }`}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.8 }}
-                    >
-                        코이 나츠코
-                    </motion.p>
-                    <motion.p 
-                        className={`text-lg sm:text-xl italic mb-8 ${
-                            theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                        }`}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 1 }}
-                    >
-                        (From がらなつこ)
-                    </motion.p>
-                </motion.div>
-
-                {/* <motion.div
-                    className={`backdrop-blur-lg rounded-2xl p-8 mb-8 border shadow-xl ${
-                        theme === 'dark' 
-                            ? 'bg-gray-800/70 border-gray-700/50' 
-                            : 'bg-white/70 border-gray-200/50'
-                    }`}
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 1.2, duration: 0.8 }}
-                > */}
-                    <p className={`text-lg sm:text-xl leading-relaxed ${
-                        theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                        She a student who always is bored and jumps off cliffs for fun.
-                        <br />
-                        Always eager to dive into new knowledge, experiences and off cliffs
-                        <br />
-                        When she is not studying, you'll probably find her coding, talking to me or trying to jump off another cliff Or well listening to music ngl.
-                    </p>
-
-                    <div className="mb-8"></div>
-
-                <motion.p
-                    className={`text-lg sm:text-xl font-medium italic mb-12 ${
-                        theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                    }`}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 1.4, duration: 0.8 }}
-                >
-                    That's all I wanna describe about her ngl
-                </motion.p>
-
-                <div className="mb-12"></div>
-
-            </div>
-        </div>
-    );
-};
-
-const ProjectsPage = () => {
-    const { theme } = useTheme();
-    const [filter, setFilter] = useState('all');
-    const [visibleProjects, setVisibleProjects] = useState(9);
-    const languages = ['all', 'TypeScript', 'JavaScript', 'Python', 'Kotlin', 'CSS', 'C++', 'Elixir', 'Markdown'];
-
-    const filteredProjects = filter === 'all' 
-        ? projectsData 
-        : projectsData.filter(project => project.tech.includes(filter));
-
-    useEffect(() => {
-        setVisibleProjects(9);
-    }, [filter]);
-
-    return (
-        <div className={`min-h-screen pt-32 pb-16 px-6 transition-all duration-500 ${
-            theme === 'dark' 
-                ? 'bg-gradient-to-br from-gray-900 via-gray-900 to-purple-900/20' 
-                : 'bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50'
-        }`}>
-            <div className="max-w-7xl mx-auto">
-                <motion.div
-                    className="text-center mb-16"
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8 }}
-                >
-                    <h1 className={`text-6xl font-black mb-6 ${
-                        theme === 'dark' ? 'text-white' : 'text-gray-900'
-                    }`}>
-                        Her goofy Projects
-                    </h1>
-                    <p className={`text-xl mb-8 max-w-2xl mx-auto ${
-                        theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-                    }`}>
-                        A collection of open source projects and contributions that showcase her luv for development :3
-                    </p>
-                </motion.div>
-
-                <motion.div
-                    className="flex flex-wrap justify-center gap-3 mb-12"
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2, duration: 0.6 }}
-                >
-                    {languages.map((lang, index) => (
-                        <motion.button
-                            key={lang}
-                            onClick={() => setFilter(lang)}
-                            className={`px-6 py-3 rounded-2xl text-sm font-bold transition-all duration-300 ${
-                                filter === lang
-                                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
-                                    : theme === 'dark' 
-                                        ? 'bg-gray-800/70 backdrop-blur-lg text-gray-300 hover:bg-gray-700/70 border border-gray-700/50' 
-                                        : 'bg-white/70 backdrop-blur-lg text-gray-600 hover:bg-gray-100 border border-gray-200/50'
-                            }`}
-                            whileHover={{ scale: 1.05, y: -2 }}
-                            whileTap={{ scale: 0.95 }}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.1 }}
-                        >
-                            {lang}
-                        </motion.button>
-                    ))}
-                </motion.div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    <AnimatePresence>
-                        {filteredProjects.slice(0, visibleProjects).map((project, i) => (
-                            <motion.div
-                                key={project.name}
-                                className={`group rounded-2xl p-8 border transition-all duration-300 shadow-lg hover:shadow-2xl ${
-                                    theme === 'dark' 
-                                        ? 'bg-gray-800/95 border-gray-700/50 hover:border-gray-600' 
-                                        : 'bg-white/95 border-gray-200/50 hover:border-gray-300'
-                                }`}
-                                initial={{ opacity: 0, y: 50, scale: 0.9 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                exit={{ opacity: 0, y: -50, scale: 0.9 }}
-                                transition={{ delay: i * 0.1, duration: 0.5 }}
-                                whileHover={{ y: -8, scale: 1.02 }}
-                                layout
-                            >
-                                <div className="flex items-start justify-between mb-6">
-                                    <div className="flex-1">
-                                        <h3 className={`text-2xl font-bold mb-2 transition-colors ${
-                                            theme === 'dark' 
-                                                ? 'text-white group-hover:text-blue-400' 
-                                                : 'text-gray-900 group-hover:text-blue-600'
-                                        }`}>
-                                            {project.name}
-                                        </h3>
-                                        <div className="flex items-center gap-3 mb-4">
-                                            {project.forked && (
-                                                <span className={`flex items-center gap-1 text-xs px-3 py-1 rounded-full border ${
-                                                    theme === 'dark' 
-                                                        ? 'bg-amber-900/30 text-amber-300 border-amber-700' 
-                                                        : 'bg-amber-100 text-amber-700 border-amber-200'
-                                                }`}>
-                                                    <GitFork size={12} />
-                                                    Forked
-                                                </span>
-                                            )}
-                                            {project.stars && project.stars > 0 && (
-                                                <span className={`flex items-center gap-1 text-xs px-3 py-1 rounded-full border ${
-                                                    theme === 'dark' 
-                                                        ? 'bg-yellow-900/30 text-yellow-300 border-yellow-700' 
-                                                        : 'bg-yellow-100 text-yellow-700 border-yellow-200'
-                                                }`}>
-                                                    <Star size={12} />
-                                                    {project.stars}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <p className={`leading-relaxed mb-6 text-lg ${
-                                    theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-                                }`}>
-                                    {project.description}
-                                </p>
-
-                                <div className="flex flex-wrap gap-2 mb-6">
-                                    {project.tech.map((tech) => (
-                                        <span
-                                            key={tech}
-                                            className={`px-3 py-1 rounded-lg text-sm font-medium ${
-                                                theme === 'dark' 
-                                                    ? 'bg-gradient-to-r from-gray-700 to-gray-600 text-gray-300' 
-                                                    : 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700'
-                                            }`}
-                                        >
-                                            {tech}
-                                        </span>
-                                    ))}
-                                </div>
-
-                                <div className={`flex items-center justify-between text-sm mb-6 ${
-                                    theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                                }`}>
-                                    <span className="flex items-center gap-1">
-                                        <Calendar size={14} />
-                                        {project.updated}
-                                    </span>
-                                    <span className="text-xs">{project.license}</span>
-                                </div>
-
-                                <motion.a
-                                    href={project.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl w-full justify-center"
-                                    whileHover={{ scale: 1.05 }}
-                                    whileTap={{ scale: 0.95 }}
-                                >
-                                    <span>View Project</span>
-                                    <ExternalLink size={16} />
-                                </motion.a>
-                            </motion.div>
-                        ))}
-                    </AnimatePresence>
-                </div>
-                {visibleProjects < filteredProjects.length && (
-                    <div className="flex justify-center mt-8">
-                        <button
-                            onClick={() => setVisibleProjects(prev => prev + 6)}
-                            className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
-                                theme === 'dark' 
-                                    ? 'bg-gray-800 text-gray-200 hover:bg-gray-700 border border-gray-700/50' 
-                                    : 'bg-white text-gray-800 hover:bg-gray-100 border border-gray-200/50'
-                            }`}
-                        >
-                            Load More
-                        </button>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-};
-
-// Updated SkillsPage component with better humor and UI
-
-const SkillsPage = () => {
-    const { theme } = useTheme();
-    const skillCategories = [
-        {
-            category: "Her Majesty's Excellence",
-            description: "How she conquers the fish world",
-            items: [
-                { 
-                    name: "Procrastination", 
-                    level: 99, 
-                    description: "Turns every assignment into a thrilling last-minute anxiety marathon" 
-                },
-                { 
-                    name: "Overthinking", 
-                    level: 95, 
-                    description: "Overthinks a simple 'hi' text for precisely 2 days before responding" 
-                },
-                { 
-                    name: "Caffine Addiction", 
-                    level: 88, 
-                    description: "Has unlocked the secret to surviving on pure caffeine and determination, eating does not matter anymore" 
-                },
-                { 
-                    name: "Tab hoarding", 
-                    level: 92, 
-                    description: "Currently have 34 browser tabs and refuses to close any" 
-                },
-                {
-                    name: "Perpetual Boredom",
-                    level: 100,
-                    description: "A fundamental state of existence"
-                }
-            ],
-            color: "from-red-400 to-pink-500",
-            icon: "📚"
-        },
-        {
-            category: "Social Stats?",
-            description: "NOt awkward at all, trust me",
-            items: [
-                { 
-                    name: "Hobby?", 
-                    level: 100, 
-                    description: "NO, not coding, not studying, jumping off cliffs" 
-                },
-                { 
-                    name: "Communication", 
-                    level: 96, 
-                    description: "Can communicate entirely by anime gifs and emojis" 
-                },
-                { 
-                    name: "Charm Statistics", 
-                    level: 100, 
-                    description: "Naturally adorable. Some say it's a supernatural ability" 
-                },
-                { 
-                    name: "Love?", 
-                    level: 85, 
-                    description: "Love is temporarily unavailable due to current market conditions" 
-                },
-                {
-                    name: "Life Stats?",
-                    level: 90,  
-                    description: "Its all about Mood swings, miscommunication, and jumping around. A package deal perhaps"
-                }
-            ],
-            color: "from-blue-400 to-purple-500",
-            icon: "🌊"
-        },
-        {
-            category: "Life Management",
-            description: "Surviving the daily fish life",
-            items: [
-                { 
-                    name: "Being a femboy", 
-                    level: 30, 
-                    description: "Surely not a femboy, definitely not, right??" 
-                },
-                { 
-                    name: "Bedtime and proper sleep?", 
-                    level: 22, 
-                    description: "Bedtime is a social construct she's chosen to ignore" 
-                },
-                { 
-                    name: "Snack Discovery", 
-                    level: 91, 
-                    description: "Sucks at finding the perfect midnight snack in her kitchen, maybe i should help?" 
-                },
-                { 
-                    name: "Music Curation", 
-                    level: 99, 
-                    description: "Maintains 26 mood-specific playlists for diffrent moods" 
-                },
-                { 
-                    name: "Aquatic Identity", 
-                    level: 100, 
-                    description: "Yes, she's a fish. Koike = Koi. The math checks out" 
-                }
-            ],
-            color: "from-green-400 to-teal-500",
-            icon: "🐟"
-        }
-    ];
-
-    return (
-        <div className={`relative min-h-screen pt-32 pb-16 px-6 transition-all duration-500 ${
-            theme === 'dark' 
-                ? 'bg-gradient-to-br from-gray-900 via-gray-900 to-purple-900/20' 
-                : 'bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50'
-        }`}>
-            <Skillsbg theme={theme} />
-           
-            <div className="relative max-w-7xl mx-auto z-10">
-                <motion.div
-                    className="text-center mb-16"
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8 }}
-                >
-                    <h1 className={`text-6xl font-black mb-6 ${
-                        theme === 'dark' ? 'text-white' : 'text-gray-900'
-                    }`}>
-                        Skill Portfolio
-                    </h1>
-                    <p className={`text-xl mb-4 max-w-2xl mx-auto ${
-                        theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
-                    }`}>
-                        A comprehensive analysis of her unique talents and capabilities
-                    </p>
-                    <p className={`text-sm italic ${
-                        theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                    }`}>
-                        *This list grows with each new discovery about her personality
-                    </p>
-                </motion.div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
-                    {skillCategories.map((category, index) => (
-                        <motion.div
-                            key={category.category}
-                            className={`rounded-3xl p-8 border shadow-xl hover:shadow-2xl transition-all duration-300 ${
-                                theme === 'dark' 
-                                    ? 'bg-gray-800/90 border-gray-700/30' 
-                                    : 'bg-white/90 border-gray-200/30'
-                            }`}
-                            initial={{ opacity: 0, y: 50 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.15, duration: 0.6 }}
-                            whileHover={{ y: -8, scale: 1.02 }}
-                        >
-                            <div className="mb-8">
-                                <div className="flex items-center gap-3 mb-4">
-                                    <span className="text-4xl">{category.icon}</span>
-                                    <h2 className={`text-2xl font-black ${
-                                        theme === 'dark' ? 'text-white' : 'text-gray-900'
-                                    }`}>
-                                        {category.category}
-                                    </h2>
-                                </div>
-                                <p className={`text-sm ${
-                                    theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                                }`}>
-                                    {category.description}
-                                </p>
-                            </div>
-
-                            <div className="space-y-6">
-                                {category.items.map((skill, skillIndex) => (
-                                    <motion.div
-                                        key={skill.name}
-                                        className={`p-4 rounded-xl ${
-                                            theme === 'dark' 
-                                                ? 'bg-gray-900/40' 
-                                                : 'bg-white/40'
-                                        }`}
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: (index * 0.15) + (skillIndex * 0.08) }}
-                                        whileHover={{ scale: 1.03, x: 4 }}
-                                    >
-                                        <div className="flex justify-between items-center mb-3">
-                                            <span className={`text-base font-bold ${
-                                                theme === 'dark' ? 'text-gray-100' : 'text-gray-800'
-                                            }`}>
-                                                {skill.name}
-                                            </span>
-                                            <span className={`text-sm font-bold px-3 py-1 rounded-full bg-gradient-to-r ${category.color} text-white`}>
-                                                {skill.level}%
-                                            </span>
-                                        </div>
-                                        <div className={`relative w-full rounded-full h-2 mb-3 overflow-hidden ${
-                                            theme === 'dark' ? 'bg-gray-800' : 'bg-gray-200'
-                                        }`}>
-                                            <motion.div
-                                                className={`h-full rounded-full bg-gradient-to-r ${category.color}`}
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${skill.level}%` }}
-                                                transition={{ 
-                                                    duration: 1.2, 
-                                                    delay: (index * 0.15) + (skillIndex * 0.08) + 0.3,
-                                                    ease: "easeOut"
-                                                }}
-                                            />
-                                        </div>
-                                        <p className={`text-sm leading-relaxed ${
-                                            theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                                        }`}>
-                                            {skill.description}
-                                        </p>
-                                    </motion.div>
-                                ))}
-                            </div>
-                        </motion.div>
-                    ))}
-                </div>
-
-                <motion.div
-                    className={`mt-12 text-center p-6 rounded-2xl ${
-                        theme === 'dark' 
-                            ? 'bg-gray-800/90 border border-gray-700/30' 
-                            : 'bg-white/90 border border-gray-200/30'
-                    }`}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 1 }}
-                >
-                    <p className={`text-sm italic ${
-                        theme === 'dark' ? 'text-gray-400' : 'text-gray-600'
-                    }`}>
-                        "Being this interesting is exhausting, but someone's gotta do it." - Koike, probably
-                    </p>
-                </motion.div>
-            </div>
-        </div>
-    );
-};
-// Initialize audio
-
-const KoiPortfolio = () => {
-    const [currentPage, setCurrentPage] = useState<PageType>('home');
-    const { theme } = useTheme();
-    const [musicEnabled, setMusicEnabled] = useState(false);
-    const [hasInteracted, setHasInteracted] = useState(false);
-    const audioRef = useRef<HTMLAudioElement | null>(null);
-    // Initialize audio
-useEffect(() => {
-    audioRef.current = new Audio('/christmas.mp3'); // Your music file
-    audioRef.current.loop = true;
-    audioRef.current.volume = 0.3;
-    
-    return () => {
-        if (audioRef.current) {
-            audioRef.current.pause();
-            audioRef.current = null;
-        }
-    };
-}, []);
-
-
-// Add this helper function for first interaction
-const handleFirstInteraction = useCallback(() => {
-    if (!hasInteracted) {
-        setHasInteracted(true);
-        if (audioRef.current && musicEnabled) {
-            audioRef.current.play().catch(console.error);
-        }
+function generateRadarChart(days: ContributionDay[], color: string, bgColor: string, username: string): string {
+  const size = 400
+  const center = size / 2
+  const radius = 140
+  
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  const dayTotals = Array(7).fill(0)
+  
+  days.forEach(day => {
+    const dayOfWeek = new Date(day.date).getDay()
+    dayTotals[dayOfWeek] += day.count
+  })
+  
+  const maxValue = Math.max(...dayTotals, 1)
+  const totalContributions = days.reduce((sum, day) => sum + day.count, 0)
+  
+  const points = dayTotals.map((value, i) => {
+    const angle = (i * 2 * Math.PI / 7) - Math.PI / 2
+    const r = (value / maxValue) * radius
+    return {
+      x: center + r * Math.cos(angle),
+      y: center + r * Math.sin(angle),
+      value,
+      label: dayNames[i]
     }
-}, [hasInteracted, musicEnabled]);
-
-const toggleMusic = useCallback(() => {
-    setHasInteracted(true);
-    setMusicEnabled(prev => {
-        const newState = !prev;
-        if (audioRef.current) {
-            if (newState) {
-                audioRef.current.play().catch(err => {
-                    console.error('Audio play failed:', err);
-                    // Retry after a short delay
-                    setTimeout(() => {
-                        audioRef.current?.play().catch(console.error);
-                    }, 100);
-                });
-            } else {
-                audioRef.current.pause();
+  })
+  
+  const polygonPoints = points.map(p => `${p.x},${p.y}`).join(' ')
+  const webLevels = [0.2, 0.4, 0.6, 0.8, 1]
+  
+  return `
+    <svg width="${size}" height="${size + 100}" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="radarGlow">
+          <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+          <feMerge>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+        <style>
+          .title { 
+            font: 600 18px 'Segoe UI', sans-serif; 
+            fill: #e6edf3;
+            animation: fadeIn 0.8s ease-out forwards;
+            opacity: 0;
+          }
+          .stat-value { 
+            font: 700 24px 'Segoe UI', sans-serif; 
+            fill: ${color};
+            animation: rotateIn 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+            opacity: 0;
+            transform-origin: center;
+          }
+          .stat-label { 
+            font: 400 12px 'Segoe UI', sans-serif; 
+            fill: #7d8590;
+            animation: fadeIn 0.8s ease-out 0.3s forwards;
+            opacity: 0;
+          }
+          .day-label { 
+            font: 600 12px 'Segoe UI', sans-serif; 
+            fill: #e6edf3;
+            animation: fadeIn 0.5s ease-out forwards;
+            opacity: 0;
+          }
+          .web-line { 
+            stroke: #30363d; 
+            stroke-width: 1; 
+            fill: none;
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out forwards;
+          }
+          .axis-line {
+            stroke: #30363d;
+            stroke-width: 1;
+            opacity: 0;
+            animation: drawAxis 0.8s ease-out forwards;
+          }
+          .data-polygon {
+            animation: expandRadar 2s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+            transform-origin: center;
+            opacity: 0;
+            filter: url(#radarGlow);
+          }
+          .data-point {
+            animation: pointBurst 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+            opacity: 0;
+            transform-origin: center;
+            filter: url(#radarGlow);
+          }
+          @keyframes expandRadar {
+            0% { 
+              transform: scale(0) rotate(-180deg);
+              opacity: 0;
             }
-        }
-        return newState;
-    });
-}, []);
-
-
-// Auto-enable music on first click anywhere
-useEffect(() => {
-    const enableMusicOnInteraction = () => {
-        if (!hasInteracted && audioRef.current) {
-            setHasInteracted(true);
-            setMusicEnabled(true);
-            audioRef.current.play().catch(console.error);
-        }
-    };
-
-    // Listen for any click or touch
-    document.addEventListener('click', enableMusicOnInteraction);
-    document.addEventListener('touchstart', enableMusicOnInteraction);
-
-    return () => {
-        document.removeEventListener('click', enableMusicOnInteraction);
-        document.removeEventListener('touchstart', enableMusicOnInteraction);
-    };
-}, [hasInteracted]);
-
-    useProtection();
-
-    useEffect(() => {
-        const link = document.createElement('link');
-        link.href = 'https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&display=swap';
-        link.rel = 'stylesheet';
-        document.head.appendChild(link);
-
-        document.body.style.fontFamily = '"Mochiy Pop One", serif';
-
-        return () => {
-            document.head.removeChild(link);
-            document.body.style.fontFamily = '';
-        };
-    }, []);
-
-    const pageVariants = {
-        initial: { opacity: 0, x: -50 },
-        in: { opacity: 1, x: 0 },
-        out: { opacity: 0, x: 50 }
-    };
-
-    const pageTransition = {
-        type: "tween",
-        ease: "easeInOut",
-        duration: 0.4
-    };
-
-    const renderCurrentPage = () => {
-        switch (currentPage) {
-            case 'home':
-                return <HomePage />;
-            case 'projects':
-                return <ProjectsPage />;
-            case 'skills':
-                return <SkillsPage />;
-            default:
-                return <HomePage />;
-        }
-    };
-
-    return (
-        <div className={`min-h-screen transition-all duration-500 ${
-            theme === 'dark' ? 'bg-gray-900' : 'bg-gray-50'
-        }`}>
-     <Navigation 
-            currentPage={currentPage} 
-            setCurrentPage={setCurrentPage}
-            musicEnabled={musicEnabled}
-            toggleMusic={toggleMusic}
-        />            
-            <AnimatePresence mode="wait">
-                <motion.div
-                    key={currentPage}
-                    initial="initial"
-                    animate="in"
-                    exit="out"
-                    variants={pageVariants}
-                    transition={pageTransition}
-                >
-                    {renderCurrentPage()}
-                </motion.div>
-            </AnimatePresence>
-{/* 
-                   <motion.button
-            onClick={toggleMusic}
-            className={`fixed bottom-6 right-6 z-50 p-4 rounded-full shadow-2xl transition-all duration-300 ${
-                musicEnabled 
-                    ? 'bg-gradient-to-r from-purple-500 to-pink-500' 
-                    : theme === 'dark' ? 'bg-gray-800/90 border border-gray-700' : 'bg-white/90 border border-gray-200'
-            }`}
-            whileHover={{ scale: 1.1, rotate: 5 }}
-            whileTap={{ scale: 0.95 }}to u
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.5 }}
+            60% {
+              transform: scale(1.1) rotate(10deg);
+              opacity: 0.7;
+            }
+            100% { 
+              transform: scale(1) rotate(0deg);
+              opacity: 1;
+            }
+          }
+          @keyframes pointBurst {
+            0% { 
+              opacity: 0; 
+              transform: scale(0) rotate(-180deg); 
+            }
+            50% { 
+              transform: scale(1.5) rotate(180deg); 
+            }
+            100% { 
+              opacity: 1; 
+              transform: scale(1) rotate(360deg); 
+            }
+          }
+          @keyframes rotateIn {
+            0% { 
+              opacity: 0; 
+              transform: rotate(-360deg) scale(0);
+            }
+            100% { 
+              opacity: 1; 
+              transform: rotate(0deg) scale(1);
+            }
+          }
+          @keyframes drawAxis {
+            from { 
+              opacity: 0;
+              stroke-dasharray: 1000;
+              stroke-dashoffset: 1000;
+            }
+            to { 
+              opacity: 1;
+              stroke-dasharray: 1000;
+              stroke-dashoffset: 0;
+            }
+          }
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+        </style>
+      </defs>
+      
+      <rect width="${size}" height="${size + 100}" fill="${bgColor}" rx="12"/>
+      
+      <text x="${size / 2}" y="35" text-anchor="middle" class="title">${username}'s Activity by Day</text>
+      <text x="${size / 2}" y="65" text-anchor="middle" class="stat-value">${totalContributions}</text>
+      <text x="${size / 2}" y="82" text-anchor="middle" class="stat-label">Total Contributions</text>
+      
+      <g transform="translate(0, 90)">
+        <!-- Web levels -->
+        ${webLevels.map((level, idx) => {
+          const pts = dayTotals.map((_, i) => {
+            const angle = (i * 2 * Math.PI / 7) - Math.PI / 2
+            const r = level * radius
+            return `${center + r * Math.cos(angle)},${center + r * Math.sin(angle)}`
+          }).join(' ')
+          return `<polygon points="${pts}" class="web-line" style="animation-delay: ${idx * 0.1}s" />`
+        }).join('')}
+        
+        <!-- Axis lines -->
+        ${points.map((p, i) => {
+          const angle = (i * 2 * Math.PI / 7) - Math.PI / 2
+          const endX = center + radius * Math.cos(angle)
+          const endY = center + radius * Math.sin(angle)
+          return `<line x1="${center}" y1="${center}" x2="${endX}" y2="${endY}" class="axis-line" style="animation-delay: ${i * 0.08}s" />`
+        }).join('')}
+        
+        <!-- Data polygon -->
+        <polygon 
+          points="${polygonPoints}" 
+          fill="${color}" 
+          fill-opacity="0" 
+          stroke="${color}" 
+          stroke-width="2"
+          filter="url(#radarGlow)"
+          transform="translate(${center}, ${center}) scale(0) translate(-${center}, -${center})"
         >
-            {musicEnabled ? (
-                <Volume2 className="w-6 h-6 text-white" />
-            ) : (
-                <VolumeX className={`w-6 h-6 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`} />
-            )}
-        </motion.button> */}
-        </div>
-    );
-};
+          <animateTransform
+            attributeName="transform"
+            type="scale"
+            from="0"
+            to="1"
+            dur="2s"
+            begin="0.8s"
+            fill="freeze"
+            calcMode="spline"
+            keySplines="0.68 -0.55 0.265 1.55"
+            additive="sum"
+          />
+          <animate
+            attributeName="fill-opacity"
+            from="0"
+            to="0.3"
+            dur="2s"
+            begin="0.8s"
+            fill="freeze"
+          />
+        </polygon>
+        
+        <!-- Data points -->
+        ${points.map((p, i) => `
+          <circle 
+            cx="${p.x}" 
+            cy="${p.y}" 
+            r="0" 
+            fill="${color}"
+            filter="url(#radarGlow)"
+          >
+            <animate attributeName="r" from="0" to="6" dur="0.6s" begin="${2 + i * 0.1}s" fill="freeze" calcMode="spline" keySplines="0.68 -0.55 0.265 1.55" />
+            <animateTransform
+              attributeName="transform"
+              type="rotate"
+              from="0 ${p.x} ${p.y}"
+              to="360 ${p.x} ${p.y}"
+              dur="0.6s"
+              begin="${2 + i * 0.1}s"
+              fill="freeze"
+            />
+            <title>${p.label}: ${p.value} contributions</title>
+          </circle>
+        `).join('')}
+        
+        <!-- Labels -->
+        ${points.map((p, i) => {
+          const angle = (i * 2 * Math.PI / 7) - Math.PI / 2
+          const labelR = radius + 30
+          const labelX = center + labelR * Math.cos(angle)
+          const labelY = center + labelR * Math.sin(angle)
+          return `<text x="${labelX}" y="${labelY}" text-anchor="middle" dominant-baseline="middle" class="day-label" style="animation-delay: ${2.5 + i * 0.08}s">${p.label}</text>`
+        }).join('')}
+      </g>
+    </svg>
+  `
+}
 
-export default KoiPortfolio;
+function generateHeatmapSVG(
+  days: ContributionDay[],
+  options: {
+    color: string
+    bgColor: string
+    showStats: boolean
+    theme: 'default' | 'compact' | 'minimal'
+  }
+): string {
+  const { color, bgColor, showStats, theme } = options
+  
+  const totalContributions = days.reduce((sum, day) => sum + day.count, 0)
+  const maxStreak = calculateMaxStreak(days)
+  
+  const colors = [
+    '#161b22',
+    adjustColorOpacity(color, 0.3),
+    adjustColorOpacity(color, 0.5),
+    adjustColorOpacity(color, 0.7),
+    color
+  ]
+
+  const weeks: ContributionDay[][] = []
+  for (let i = 0; i < days.length; i += 7) {
+    weeks.push(days.slice(i, i + 7))
+  }
+
+  const cellSize = theme === 'compact' ? 10 : 12
+  const cellGap = theme === 'compact' ? 3 : 4
+  const width = weeks.length * (cellSize + cellGap) + 80
+  const baseHeight = theme === 'minimal' ? 120 : 170
+  const statsHeight = showStats ? 100 : 0
+  const height = baseHeight + statsHeight
+
+  let svg = `
+    <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="cellGlow">
+          <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+          <feMerge>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+        <style>
+          .title { 
+            font: 600 14px 'Segoe UI', 'Arial', sans-serif; 
+            fill: #c9d1d9;
+            animation: slideIn 0.6s ease-out forwards;
+            opacity: 0;
+          }
+          .stat { 
+            font: 400 12px 'Segoe UI', 'Arial', sans-serif; 
+            fill: #8b949e;
+            animation: fadeIn 0.8s ease-out forwards;
+            opacity: 0;
+          }
+          .cell { 
+            rx: 2;
+            animation: cellPop 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+            opacity: 0;
+            transform-origin: center;
+          }
+          .cell:hover { 
+            stroke: ${color}; 
+            stroke-width: 1.5;
+            filter: url(#cellGlow);
+          }
+          .day-label {
+            font: 400 10px 'Segoe UI', 'Arial', sans-serif;
+            fill: #7d8590;
+            animation: fadeIn 0.5s ease-out 0.3s forwards;
+            opacity: 0;
+          }
+          @keyframes cellPop {
+            0% {
+              opacity: 0;
+              transform: scale(0) rotate(-90deg);
+            }
+            60% {
+              transform: scale(1.15) rotate(10deg);
+            }
+            100% {
+              opacity: 1;
+              transform: scale(1) rotate(0deg);
+            }
+          }
+          @keyframes slideIn {
+            0% { 
+              opacity: 0; 
+              transform: translateX(-20px);
+            }
+            100% { 
+              opacity: 1; 
+              transform: translateX(0);
+            }
+          }
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+        </style>
+      </defs>
+      
+      <rect width="${width}" height="${height}" fill="${bgColor}" rx="6"/>
+  `
+
+  if (theme !== 'minimal') {
+    svg += `<text x="15" y="25" class="title">GitHub Contributions</text>`
+  }
+
+  // Add day labels on the left
+  const dayLabels = ['Mon', 'Wed', 'Fri']
+  const dayIndices = [1, 3, 5]
+  const startY = theme === 'minimal' ? 20 : 45
+
+  dayLabels.forEach((label, idx) => {
+    const y = startY + dayIndices[idx] * (cellSize + cellGap) + cellSize / 2
+    svg += `<text x="8" y="${y}" dominant-baseline="middle" text-anchor="start" class="day-label">${label}</text>`
+  })
+
+  weeks.forEach((week, weekIndex) => {
+    week.forEach((day, dayIndex) => {
+      const x = 40 + weekIndex * (cellSize + cellGap)
+      const y = startY + dayIndex * (cellSize + cellGap)
+      const delay = (weekIndex * 7 + dayIndex) * 0.002
+      
+      svg += `
+        <rect 
+          class="cell"
+          x="${x}" 
+          y="${y}" 
+          width="${cellSize}" 
+          height="${cellSize}" 
+          fill="${colors[day.level]}"
+          style="animation-delay: ${delay}s"
+        >
+          <title>${day.date}: ${day.count} contributions</title>
+        </rect>
+      `
+    })
+  })
+
+  if (showStats && theme !== 'minimal') {
+    const statsY = startY + 100
+    svg += `
+      <text x="15" y="${statsY}" class="stat" style="animation-delay: 0.8s">
+        Total: ${totalContributions} contributions
+      </text>
+      <text x="15" y="${statsY + 20}" class="stat" style="animation-delay: 0.9s">
+        Longest streak: ${maxStreak} days
+      </text>
+    `
+    
+    const legendY = statsY + 50
+    svg += `<text x="15" y="${legendY}" class="stat" style="animation-delay: 1s">Less</text>`
+    colors.forEach((c, i) => {
+      svg += `
+        <rect 
+          x="${60 + i * (cellSize + cellGap)}" 
+          y="${legendY - 10}" 
+          width="${cellSize}" 
+          height="${cellSize}" 
+          fill="${c}"
+          rx="2"
+          opacity="0"
+          style="animation: fadeIn 0.5s ease-out ${1.1 + i * 0.1}s forwards"
+        />
+      `
+    })
+    svg += `<text x="${60 + colors.length * (cellSize + cellGap) + 10}" y="${legendY}" class="stat" style="animation-delay: 1.5s">More</text>`
+  }
+
+  svg += '</svg>'
+  return svg
+}
+
+function adjustColorOpacity(hex: string, opacity: number): string {
+  hex = hex.replace('#', '')
+  const r = parseInt(hex.substring(0, 2), 16)
+  const g = parseInt(hex.substring(2, 4), 16)
+  const b = parseInt(hex.substring(4, 6), 16)
+  
+  const bgR = 22, bgG = 27, bgB = 34
+  const mixR = Math.round(bgR + (r - bgR) * opacity)
+  const mixG = Math.round(bgG + (g - bgG) * opacity)
+  const mixB = Math.round(bgB + (b - bgB) * opacity)
+  return `rgb(${mixR}, ${mixG}, ${mixB})`
+}
+
+function calculateMaxStreak(days: ContributionDay[]): number {
+  let maxStreak = 0
+  let currentStreak = 0
+  days.forEach(day => {
+    if (day.count > 0) {
+      currentStreak++
+      maxStreak = Math.max(maxStreak, currentStreak)
+    } else {
+      currentStreak = 0
+    }
+  })
+  return maxStreak
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const username = searchParams.get('user')
+    
+    if (!username) {
+      return new NextResponse('Missing username parameter', { status: 400 })
+    }
+
+    const color = searchParams.get('color') || '6366F1'
+    const bgColor = searchParams.get('bg') || '0D1117'
+    const showStats = searchParams.get('stats') !== 'false'
+    const theme = (searchParams.get('theme') || 'default') as 'default' | 'compact' | 'minimal'
+    const chartType = (searchParams.get('chart') || 'heatmap') as 'heatmap' | 'line' | 'bar' | 'radar'
+    const animate = searchParams.get('animate') !== 'false'
+    
+    const contributions = await fetchGitHubContributions(username)
+    
+    let svg: string
+    
+    switch (chartType) {
+      case 'line':
+        svg = generateLineChart(contributions, `#${color}`, `#${bgColor}`, username)
+        break
+      case 'bar':
+        svg = generateBarChart(contributions, `#${color}`, `#${bgColor}`, username)
+        break
+      case 'radar':
+        svg = generateRadarChart(contributions, `#${color}`, `#${bgColor}`, username)
+        break
+      case 'heatmap':
+      default:
+        svg = generateHeatmapSVG(contributions, {
+          color: `#${color}`,
+          bgColor: `#${bgColor}`,
+          showStats,
+          theme
+        })
+    }
+
+    return new NextResponse(svg, {
+      headers: {
+        'Content-Type': 'image/svg+xml',
+        'Cache-Control': 'public, max-age=3600',
+      },
+    })
+
+  } catch (error: any) {
+    console.error('[GITHUB-HEATMAP] Error:', error)
+    const errorSvg = `
+      <svg width="600" height="100" xmlns="http://www.w3.org/2000/svg">
+        <rect width="600" height="100" fill="#0D1117" rx="6"/>
+        <text x="300" y="50" text-anchor="middle" font-family="Segoe UI" font-size="14" fill="#f85149">
+          Error: ${error.message || 'Failed to fetch GitHub data'}
+        </text>
+      </svg>
+    `
+    
+    return new NextResponse(errorSvg, {
+      status: 500,
+      headers: {
+        'Content-Type': 'image/svg+xml',
+      },
+    })
+  }
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
+  })
+}
