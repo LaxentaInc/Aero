@@ -6,7 +6,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useTheme } from '../contexts/ThemeContext'
 import { useDiscord } from '../contexts/DiscordContext'
 
-const AUTO_HIDE_ROUTES = ['/ai', '/image-gen', '/login', '/koi', '/dashboard', '/spotify-badge']
+const AUTO_HIDE_ROUTES = ['/ai', '/image-gen', '/login', '/koi', '/dashboard']
 
 const LoadingAnimation = ({ 
   theme, 
