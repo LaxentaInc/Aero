@@ -3,16 +3,22 @@ import { randomBytes } from 'crypto'
 import { MongoClient } from 'mongodb'
 
 interface SpotifyTokenDoc {
-  userId: string // Now just the Spotify ID
+  userId: string
   accessToken: string
   refreshToken: string
   expiresAt: number
-  spotifyId: string // Same as userId
+  spotifyId: string
   displayName: string
   email?: string
   createdAt: Date
   updatedAt: Date
   lastAccessedAt?: Date
+}
+
+interface OAuthState {
+  state: string
+  createdAt: Date
+  expiresAt: Date
 }
 
 let cachedClient: MongoClient | null = null
@@ -26,13 +32,65 @@ async function connectToDatabase() {
   return client
 }
 
-// Generate Spotify OAuth URL
-export function generateSpotifyAuthUrl() {
+// ============ STATE MANAGEMENT (FIX #1) ============
+
+export async function saveOAuthState(state: string) {
+  const client = await connectToDatabase()
+  const db = client.db()
+  const collection = db.collection<OAuthState>('oauth_states')
+  
+  await collection.insertOne({
+    state,
+    createdAt: new Date(),
+    expiresAt: new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
+  })
+}
+
+export async function verifyAndConsumeState(state: string): Promise<boolean> {
+  const client = await connectToDatabase()
+  const db = client.db()
+  const collection = db.collection<OAuthState>('oauth_states')
+  
+  const stateDoc = await collection.findOne({
+    state,
+    expiresAt: { $gt: new Date() }
+  })
+  
+  if (!stateDoc) {
+    return false
+  }
+  
+  // Delete the state (one-time use)
+  await collection.deleteOne({ state })
+  
+  return true
+}
+
+// Clean up expired states (call periodically)
+export async function cleanupExpiredStates() {
+  const client = await connectToDatabase()
+  const db = client.db()
+  const collection = db.collection<OAuthState>('oauth_states')
+  
+  const result = await collection.deleteMany({
+    expiresAt: { $lt: new Date() }
+  })
+  
+  return result.deletedCount
+}
+
+// ============ OAUTH URL GENERATION (FIX #2) ============
+
+export async function generateSpotifyAuthUrl() {
   const state = randomBytes(16).toString('hex')
   const scope = 'user-read-email user-read-recently-played user-top-read user-read-private'
   
-  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
-  const redirectUri = `${baseUrl.replace(/\/$/, '')}/api/spotify/callback`
+  // ✅ CRITICAL: Ensure consistent URL formatting
+  const baseUrl = (process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/$/, '')
+  const redirectUri = `${baseUrl}/api/spotify/callback`
+  
+  // Save state for verification
+  await saveOAuthState(state)
   
   const params = new URLSearchParams({
     response_type: 'code',
@@ -45,14 +103,16 @@ export function generateSpotifyAuthUrl() {
 
   return {
     url: `https://accounts.spotify.com/authorize?${params.toString()}`,
-    state
+    state,
+    redirectUri // Return for debugging
   }
 }
 
-// Exchange authorization code for access token
+// ============ TOKEN EXCHANGE (FIX #3) ============
+
 export async function exchangeCodeForTokens(code: string) {
-  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
-  const redirectUri = `${baseUrl.replace(/\/$/, '')}/api/spotify/callback`
+  const baseUrl = (process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/$/, '')
+  const redirectUri = `${baseUrl}/api/spotify/callback`
 
   const response = await fetch('https://accounts.spotify.com/api/token', {
     method: 'POST',
@@ -71,6 +131,7 @@ export async function exchangeCodeForTokens(code: string) {
 
   if (!response.ok) {
     const error = await response.text()
+    console.error('Token exchange failed:', error)
     throw new Error(`Failed to exchange code for tokens: ${error}`)
   }
 
@@ -119,13 +180,12 @@ export async function getSpotifyProfile(accessToken: string) {
 
 // ============ DATABASE FUNCTIONS ============
 
-// ✨ UPDATED: Save or update Spotify user (upserts by spotifyId)
 export async function saveSpotifyUser(
-  userId: string, // Now just the Spotify ID
+  userId: string,
   accessToken: string,
   refreshToken: string,
   expiresAt: number,
-  spotifyId: string, // Same as userId
+  spotifyId: string,
   displayName: string,
   email?: string
 ) {
@@ -133,12 +193,11 @@ export async function saveSpotifyUser(
   const db = client.db()
   const collection = db.collection<SpotifyTokenDoc>('spotify_tokens')
   
-  // ✨ Upsert by spotifyId (the true unique key)
   await collection.updateOne(
-    { spotifyId }, // Match by Spotify ID
+    { spotifyId },
     {
       $set: {
-        userId, // Will be the same as spotifyId
+        userId,
         accessToken,
         refreshToken,
         expiresAt,
@@ -156,7 +215,6 @@ export async function saveSpotifyUser(
   )
 }
 
-// Get Spotify user by internal user ID (which is now just spotifyId)
 export async function getSpotifyUserByUserId(userId: string): Promise<SpotifyTokenDoc | null> {
   const client = await connectToDatabase()
   const db = client.db()
@@ -164,7 +222,6 @@ export async function getSpotifyUserByUserId(userId: string): Promise<SpotifyTok
   
   const user = await collection.findOne({ userId })
   
-  // Update last accessed timestamp
   if (user) {
     await collection.updateOne(
       { userId },
@@ -175,7 +232,6 @@ export async function getSpotifyUserByUserId(userId: string): Promise<SpotifyTok
   return user
 }
 
-// Get Spotify user by Spotify ID (for public badges)
 export async function getSpotifyUserBySpotifyId(spotifyId: string): Promise<SpotifyTokenDoc | null> {
   const client = await connectToDatabase()
   const db = client.db()
@@ -183,7 +239,6 @@ export async function getSpotifyUserBySpotifyId(spotifyId: string): Promise<Spot
   
   const user = await collection.findOne({ spotifyId })
   
-  // Update last accessed timestamp
   if (user) {
     await collection.updateOne(
       { spotifyId },
@@ -194,7 +249,6 @@ export async function getSpotifyUserBySpotifyId(spotifyId: string): Promise<Spot
   return user
 }
 
-// ✨ NEW: Find user by Spotify ID (simpler helper)
 export async function findUserBySpotifyId(spotifyId: string) {
   try {
     const client = await connectToDatabase()
@@ -209,7 +263,6 @@ export async function findUserBySpotifyId(spotifyId: string) {
   }
 }
 
-// Get all Spotify users (admin function)
 export async function getAllSpotifyUsers(): Promise<SpotifyTokenDoc[]> {
   const client = await connectToDatabase()
   const db = client.db()
@@ -220,7 +273,6 @@ export async function getAllSpotifyUsers(): Promise<SpotifyTokenDoc[]> {
 
 // ============ DELETION FUNCTIONS ============
 
-// Delete Spotify user by internal user ID
 export async function deleteSpotifyUser(userId: string): Promise<boolean> {
   const client = await connectToDatabase()
   const db = client.db()
@@ -230,7 +282,6 @@ export async function deleteSpotifyUser(userId: string): Promise<boolean> {
   return result.deletedCount > 0
 }
 
-// Delete Spotify user by Spotify ID
 export async function deleteSpotifyUserBySpotifyId(spotifyId: string): Promise<boolean> {
   const client = await connectToDatabase()
   const db = client.db()
@@ -240,7 +291,6 @@ export async function deleteSpotifyUserBySpotifyId(spotifyId: string): Promise<b
   return result.deletedCount > 0
 }
 
-// Revoke Spotify access (delete tokens + log)
 export async function revokeSpotifyAccess(userId: string): Promise<{ success: boolean; message: string }> {
   try {
     const spotifyUser = await getSpotifyUserByUserId(userId)
@@ -248,10 +298,6 @@ export async function revokeSpotifyAccess(userId: string): Promise<{ success: bo
     if (!spotifyUser) {
       return { success: false, message: 'User not found' }
     }
-    
-    // Note: Spotify doesn't have a standard API endpoint to revoke tokens
-    // Users can manually revoke at: https://www.spotify.com/account/apps/
-    // For now, we just delete from our database
     
     const deleted = await deleteSpotifyUser(userId)
     
@@ -269,7 +315,6 @@ export async function revokeSpotifyAccess(userId: string): Promise<{ success: bo
 
 // ============ CLEANUP FUNCTIONS ============
 
-// Delete inactive users (not accessed in X days)
 export async function cleanupInactiveUsers(inactiveDays: number = 90): Promise<number> {
   const client = await connectToDatabase()
   const db = client.db()
@@ -289,17 +334,12 @@ export async function cleanupInactiveUsers(inactiveDays: number = 90): Promise<n
   return result.deletedCount
 }
 
-// Delete users with expired refresh tokens (manual cleanup)
 export async function cleanupExpiredTokens(): Promise<number> {
   const client = await connectToDatabase()
   const db = client.db()
   const collection = db.collection<SpotifyTokenDoc>('spotify_tokens')
   
-  // Spotify refresh tokens don't expire, but access tokens do
-  // This function is for future use if needed
   const now = Date.now()
-  
-  // Find users whose access token has been expired for more than 7 days
   const sevenDaysAgo = now - (7 * 24 * 60 * 60 * 1000)
   
   const result = await collection.deleteMany({
@@ -312,21 +352,15 @@ export async function cleanupExpiredTokens(): Promise<number> {
 
 // ============ UTILITY FUNCTIONS ============
 
-// ❌ REMOVED: generateSpotifyUserId() - no longer needed!
-// We just use Spotify ID directly now
-
-// Check if token is expired
 export function isTokenExpired(expiresAt: number): boolean {
   return Date.now() >= expiresAt
 }
 
-// Get user's badge URL
 export function getSpotifyBadgeUrl(spotifyUserId: string): string {
-  const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
+  const baseUrl = (process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/$/, '')
   return `${baseUrl}/api/spotify-tracks?user=${spotifyUserId}`
 }
 
-// Get user's connection status
 export async function getSpotifyConnectionStatus(userId: string): Promise<{
   connected: boolean
   displayName?: string
@@ -347,7 +381,6 @@ export async function getSpotifyConnectionStatus(userId: string): Promise<{
   }
 }
 
-// Audit log for GDPR compliance
 export async function logDataAccess(userId: string, action: string, details?: string) {
   const client = await connectToDatabase()
   const db = client.db()
@@ -358,6 +391,6 @@ export async function logDataAccess(userId: string, action: string, details?: st
     action,
     details,
     timestamp: new Date(),
-    ip: null // Add IP if needed
+    ip: null
   })
 }
