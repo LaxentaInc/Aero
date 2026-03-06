@@ -27,12 +27,14 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://laxenta.io";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Aero · Discord Security Bot",
-    template: "%s | Aero"
+    default: "Laxenta Aero · Advanced Discord Security Bot",
+    template: "%s | Laxenta Aero"
   },
-  description: "Aero is a powerful Discord security bot with 6 anti-raid modules. Protect your server with AntiNuke, AntiSpam, Anti-Permission Abuse, and more — all configurable from a web dashboard.",
+  description: "Laxenta Aero is the ultimate Discord security bot featuring 6 powerful anti-raid modules. Protect your server with AntiNuke, AntiSpam, Anti-Permission Abuse, and more — all managed via a real-time web dashboard.",
   keywords: [
-    "discord bot",
+    "laxenta",
+    "laxenta discord bot",
+    "laxenta aero",
     "discord security bot",
     "anti raid bot",
     "anti nuke discord",
@@ -42,10 +44,10 @@ export const metadata: Metadata = {
     "aero bot",
     "server security discord",
   ],
-  authors: [{ name: "Aero", url: SITE_URL }],
-  creator: "Aero",
-  publisher: "Aero",
-  applicationName: "Aero",
+  authors: [{ name: "Laxenta", url: SITE_URL }],
+  creator: "Laxenta",
+  publisher: "Laxenta",
+  applicationName: "Laxenta Aero",
   generator: "Next.js",
   formatDetection: {
     email: false,
@@ -61,23 +63,23 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     url: SITE_URL,
-    siteName: 'Aero',
-    title: 'Aero · Discord Security Bot',
-    description: 'Protect your Discord server with 6 anti-raid modules. AntiNuke, AntiSpam, Anti-Permission Abuse, Account Age Protection, and more.',
+    siteName: 'Laxenta Aero',
+    title: 'Laxenta Aero · Advanced Discord Security Bot',
+    description: 'Protect your Discord server with Laxenta Aero\'s 6 anti-raid modules. AntiNuke, AntiSpam, Anti-Permission Abuse, Account Age Protection, and more.',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Aero Discord Security Bot',
+        alt: 'Laxenta Aero Discord Security Bot',
         type: 'image/png',
       },
     ],
   },
   twitter: {
-    card: 'summary',
-    title: 'Aero · Discord Security Bot',
-    description: 'Protect your Discord server with 6 anti-raid modules. Configurable from a web dashboard.',
+    card: 'summary_large_image',
+    title: 'Laxenta Aero · Discord Security Bot',
+    description: 'Protect your Discord server with Laxenta Aero\'s 6 anti-raid modules. Configurable from a beautiful web dashboard.',
     images: ['/og-image.png'],
   },
   robots: {
