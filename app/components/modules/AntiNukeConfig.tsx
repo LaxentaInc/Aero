@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useConfigCache } from '../../hooks/useConfigCache';
-import { Shield, RotateCcw, Zap } from 'lucide-react';
+import { Shield, RotateCcw, Zap, Settings2 } from 'lucide-react';
 import {
   Toggle, Card, Row, SectionHeader, Select, NumberInput, Slider,
-  IdList, CheckboxGroup, SaveBar, ConfigLoading, AdvancedToggle, promptId
+  IdList, CheckboxGroup, SaveBar, ConfigLoading, AdvancedToggle, promptId, MasterToggle
 } from './ui';
 
 // --- types (matches api exactly) ---
@@ -97,10 +97,10 @@ const detectPreset = (c: AntiNukeConfig): string => {
 };
 
 const punishmentOpts = [
-  { value: 'remove_roles', label: 'Strip Roles' },
-  { value: 'timeout', label: 'Timeout' },
-  { value: 'kick', label: 'Kick' },
-  { value: 'ban', label: 'Ban' },
+  { value: 'remove_roles', label: 'STRIP ROLES' },
+  { value: 'timeout', label: 'TIMEOUT' },
+  { value: 'kick', label: 'KICK' },
+  { value: 'ban', label: 'BAN' },
 ];
 
 export const moduleInfo = {
@@ -147,7 +147,7 @@ export default function AntiNukeConfig({ selectedGuild, onSave }: {
     if (!selectedGuild) return;
     const now = Date.now();
     if (now - lastSave < 15000) {
-      onSave?.(false, `wait ${Math.ceil((15000 - (now - lastSave)) / 1000)}s`);
+      onSave?.(false, `Please wait ${Math.ceil((15000 - (now - lastSave)) / 1000)}s before saving again.`);
       return;
     }
     setSaving(true);
@@ -160,9 +160,9 @@ export default function AntiNukeConfig({ selectedGuild, onSave }: {
       if (res.ok) {
         setCached(`antinuke-${selectedGuild}`, config);
         setLastSave(now);
-        onSave?.(true, 'anti-nuke config saved');
+        onSave?.(true, 'Anti-Nuke configuration saved successfully.');
       } else throw new Error();
-    } catch { onSave?.(false, 'failed to save'); }
+    } catch { onSave?.(false, 'Failed to save configuration.'); }
     finally { setSaving(false); }
   };
 
@@ -175,109 +175,119 @@ export default function AntiNukeConfig({ selectedGuild, onSave }: {
   const dis = saving;
 
   return (
-    <div className="space-y-4">
-      {/* module on/off */}
-      <Card>
-        <Row label="Anti-Nuke Protection" hint="master switch for all anti-nuke features">
-          <Toggle checked={config.enabled} onChange={v => u('enabled', v)} disabled={dis} />
-        </Row>
-      </Card>
+    <div className="space-y-6 pb-24">
+      {/* master module on/off */}
+      <MasterToggle
+        label="Enable Anti-Nuke Protection"
+        checked={config.enabled}
+        onChange={v => u('enabled', v)}
+        disabled={dis}
+      />
 
-      {/* protection level */}
-      <Card>
-        <SectionHeader icon={<Shield size={16} />} title="Protection Level" />
-        <div className="grid grid-cols-4 gap-2">
-          {(['low', 'medium', 'high', 'max'] as const).map(level => (
-            <button
-              key={level}
-              onClick={() => setConfig(p => ({ ...p, ...presets[level] }))}
-              disabled={dis}
-              className={`py-2.5 rounded-lg text-xs font-semibold capitalize transition-all duration-200 border ${preset === level
-                  ? 'bg-[#5865F2]/15 border-[#5865F2]/30 text-[#5865F2]'
-                  : 'bg-white/[0.03] border-white/[0.06] text-white/40 hover:text-white/60 hover:border-white/10'
-                }`}
-            >
-              {level}
-            </button>
-          ))}
-        </div>
-        {preset === 'custom' && (
-          <p className="text-xs text-white/20 mt-2">custom thresholds — use advanced mode to edit</p>
-        )}
-      </Card>
+      <div className={`space-y-6 transition-all duration-500 ${!config.enabled ? 'opacity-50 pointer-events-none grayscale-[0.2]' : ''}`}>
+        {/* protection level */}
+        <Card>
+          <SectionHeader icon={<Shield size={20} />} title="Sensitivity Preset" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {(['low', 'medium', 'high', 'max'] as const).map(level => (
+              <button
+                key={level}
+                onClick={() => setConfig(p => ({ ...p, ...presets[level] }))}
+                disabled={dis}
+                className={`py-4 rounded-xl text-sm font-black tracking-widest uppercase transition-all duration-300 border-2 ${preset === level
+                  ? 'bg-[#5865F2]/20 border-[#5865F2] text-white shadow-[0_0_20px_rgba(88,101,242,0.2)] scale-105'
+                  : 'bg-[#0f1419] border-white/5 text-white/40 hover:text-white hover:border-white/20 hover:bg-white/5'
+                  }`}
+              >
+                {level}
+              </button>
+            ))}
+          </div>
+          {preset === 'custom' && (
+            <p className="text-sm font-medium text-[#5865F2] mt-4 flex items-center gap-2">
+              <Settings2 size={16} /> Custom thresholds detected. Review changes in Advanced Mode.
+            </p>
+          )}
+        </Card>
 
-      {/* punishment */}
-      <Card>
-        <SectionHeader icon={<Zap size={16} />} title="Punishment" />
-        <CheckboxGroup
-          options={punishmentOpts}
-          selected={config.userPunishmentActions}
-          onChange={v => u('userPunishmentActions', v)}
-          disabled={dis}
-        />
-        <div className="mt-3">
-          <Row label="Auto-ban malicious bots" hint="instantly ban bot accounts that trigger protection">
-            <Toggle checked={config.botAutoban} onChange={v => u('botAutoban', v)} disabled={dis} />
+        {/* punishment */}
+        <Card>
+          <SectionHeader icon={<Zap size={20} />} title="Action & Punishment" />
+          <div className="space-y-6">
+            <div>
+              <p className="text-sm font-bold text-white/50 mb-3 uppercase tracking-widest">Punishment for Attackers</p>
+              <CheckboxGroup
+                options={punishmentOpts}
+                selected={config.userPunishmentActions}
+                onChange={v => u('userPunishmentActions', v)}
+                disabled={dis}
+              />
+            </div>
+
+            <Row label="Auto-ban Malicious Bots" hint="Instantly ban unverified bots that trigger anti-nuke regardless of the punishment above.">
+              <Toggle checked={config.botAutoban} onChange={v => u('botAutoban', v)} disabled={dis} />
+            </Row>
+          </div>
+        </Card>
+
+        {/* rollback */}
+        <Card>
+          <SectionHeader icon={<RotateCcw size={20} />} title="Damage Recovery" />
+          <Row label="Automatic Rollback" hint="Automatically reconstruct deleted channels, roles, and emojis after an attack is neutralized.">
+            <Toggle checked={config.enableRollback} onChange={v => u('enableRollback', v)} disabled={dis} />
           </Row>
-        </div>
-      </Card>
+        </Card>
 
-      {/* rollback */}
-      <Card>
-        <SectionHeader icon={<RotateCcw size={16} />} title="Auto-Restore" />
-        <Row label="Automatic rollback" hint="restore deleted channels, roles, and emojis after an attack">
-          <Toggle checked={config.enableRollback} onChange={v => u('enableRollback', v)} disabled={dis} />
-        </Row>
-      </Card>
-
-      {/* notifications */}
-      <Card>
-        <Row label="Notify owner via DM">
-          <Toggle checked={config.notifyOwner} onChange={v => u('notifyOwner', v)} disabled={dis} />
-        </Row>
-        <Row label="Log channel">
-          <input
-            type="text"
-            placeholder="channel id"
-            value={config.logChannelId || ''}
-            onChange={e => u('logChannelId', e.target.value || null)}
-            disabled={dis}
-            className="w-44 bg-white/[0.05] border border-white/[0.08] rounded-lg px-3 py-1.5 text-xs text-white/70 placeholder-white/20 focus:outline-none focus:border-[#5865F2]/50 transition-colors disabled:opacity-40"
-          />
-        </Row>
-      </Card>
+        {/* notifications */}
+        <Card>
+          <Row label="DM Server Owner" hint="Send a direct message to the server owner when an attack is detected.">
+            <Toggle checked={config.notifyOwner} onChange={v => u('notifyOwner', v)} disabled={dis} />
+          </Row>
+          <Row label="Alert Channel ID" hint="Discord channel ID where security logs will be posted (optional).">
+            <input
+              type="text"
+              placeholder="e.g. 1107155830274523136"
+              value={config.logChannelId || ''}
+              onChange={e => u('logChannelId', e.target.value || null)}
+              disabled={dis}
+              className="w-full sm:w-64 bg-[#0f1419] border border-white/10 rounded-xl px-4 py-3 text-base text-white placeholder-white/30 focus:outline-none focus:border-[#5865F2] focus:ring-1 focus:ring-[#5865F2] transition-colors disabled:opacity-50"
+            />
+          </Row>
+        </Card>
+      </div>
 
       {/* advanced mode */}
-      <div className="flex justify-center">
+      <div className="flex justify-center mt-12">
         <AdvancedToggle open={advanced} onToggle={() => setAdvanced(!advanced)} />
       </div>
 
       {advanced && (
-        <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+        <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-500">
           {/* thresholds */}
           <Card>
-            <SectionHeader title="Destruction Thresholds" />
-            <div className="grid grid-cols-2 gap-x-6 gap-y-2">
-              <Row label="Channels deleted"><NumberInput value={config.channelDeleteThreshold} onChange={v => u('channelDeleteThreshold', v)} min={1} max={20} disabled={dis} /></Row>
-              <Row label="Roles deleted"><NumberInput value={config.roleDeleteThreshold} onChange={v => u('roleDeleteThreshold', v)} min={1} max={20} disabled={dis} /></Row>
-              <Row label="Members banned"><NumberInput value={config.banThreshold} onChange={v => u('banThreshold', v)} min={1} max={20} disabled={dis} /></Row>
-              <Row label="Members kicked"><NumberInput value={config.kickThreshold} onChange={v => u('kickThreshold', v)} min={1} max={30} disabled={dis} /></Row>
-              <Row label="Webhooks created"><NumberInput value={config.webhookCreateThreshold} onChange={v => u('webhookCreateThreshold', v)} min={1} max={20} disabled={dis} /></Row>
-              <Row label="Emojis deleted"><NumberInput value={config.emojiDeleteThreshold} onChange={v => u('emojiDeleteThreshold', v)} min={1} max={50} disabled={dis} /></Row>
-              <Row label="Stickers deleted"><NumberInput value={config.stickerDeleteThreshold} onChange={v => u('stickerDeleteThreshold', v)} min={1} max={50} disabled={dis} /></Row>
-              <Row label="Time window"><NumberInput value={config.timeWindow} onChange={v => u('timeWindow', v)} min={10} max={300} suffix="sec" disabled={dis} /></Row>
+            <SectionHeader title="Granular Threshold Limits" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
+              <Row label="Channels Deleted"><NumberInput value={config.channelDeleteThreshold} onChange={v => u('channelDeleteThreshold', v)} min={1} max={20} disabled={dis} /></Row>
+              <Row label="Roles Deleted"><NumberInput value={config.roleDeleteThreshold} onChange={v => u('roleDeleteThreshold', v)} min={1} max={20} disabled={dis} /></Row>
+              <Row label="Members Banned"><NumberInput value={config.banThreshold} onChange={v => u('banThreshold', v)} min={1} max={20} disabled={dis} /></Row>
+              <Row label="Members Kicked"><NumberInput value={config.kickThreshold} onChange={v => u('kickThreshold', v)} min={1} max={30} disabled={dis} /></Row>
+              <Row label="Webhooks Created"><NumberInput value={config.webhookCreateThreshold} onChange={v => u('webhookCreateThreshold', v)} min={1} max={20} disabled={dis} /></Row>
+              <Row label="Emojis Deleted"><NumberInput value={config.emojiDeleteThreshold} onChange={v => u('emojiDeleteThreshold', v)} min={1} max={50} disabled={dis} /></Row>
+              <Row label="Stickers Deleted"><NumberInput value={config.stickerDeleteThreshold} onChange={v => u('stickerDeleteThreshold', v)} min={1} max={50} disabled={dis} /></Row>
+              <Row label="Time Window"><NumberInput value={config.timeWindow} onChange={v => u('timeWindow', v)} min={10} max={300} suffix="sec" disabled={dis} /></Row>
             </div>
           </Card>
 
           {/* rapid fire */}
           <Card>
-            <Row label="Rapid-fire detection" hint="instant punishment for extremely fast attacks">
+            <SectionHeader title="Rapid-Fire Detection" />
+            <Row label="Enable Rapid-Fire" hint="Instantly punish attackers performing simultaneous destructive API requests bypassing standard rate limits.">
               <Toggle checked={config.rapidFireEnabled} onChange={v => u('rapidFireEnabled', v)} disabled={dis} />
             </Row>
             {config.rapidFireEnabled && (
-              <div className="grid grid-cols-2 gap-x-6 gap-y-2 mt-2">
-                <Row label="Threshold"><NumberInput value={config.rapidFireThreshold} onChange={v => u('rapidFireThreshold', v)} min={1} max={10} disabled={dis} /></Row>
-                <Row label="Window"><NumberInput value={config.rapidFireWindow} onChange={v => u('rapidFireWindow', v)} min={100} max={5000} step={100} suffix="ms" disabled={dis} /></Row>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 pt-4 border-t border-white/[0.03] mt-4">
+                <Row label="Actions Count"><NumberInput value={config.rapidFireThreshold} onChange={v => u('rapidFireThreshold', v)} min={1} max={10} disabled={dis} /></Row>
+                <Row label="Time Window"><NumberInput value={config.rapidFireWindow} onChange={v => u('rapidFireWindow', v)} min={100} max={5000} step={100} suffix="ms" disabled={dis} /></Row>
                 <Row label="Action">
                   <Select value={config.rapidFireAction} onChange={v => u('rapidFireAction', v)} options={[
                     { value: 'ban', label: 'Ban' },
@@ -291,35 +301,45 @@ export default function AntiNukeConfig({ selectedGuild, onSave }: {
 
           {/* punishment details */}
           <Card>
-            <Row label="Timeout duration"><NumberInput value={config.timeoutDuration} onChange={v => u('timeoutDuration', v)} min={60} max={2419200} suffix="sec" disabled={dis} /></Row>
+            <SectionHeader title="Timeout Configuration" />
+            <Row label="Timeout Duration" hint="Duration to isolate attacking users (in seconds). Maximum 28 days (2,419,200).">
+              <NumberInput value={config.timeoutDuration} onChange={v => u('timeoutDuration', v)} min={60} max={2419200} suffix="sec" disabled={dis} />
+            </Row>
           </Card>
 
           {/* rollback details */}
           <Card>
-            <SectionHeader title="Rollback Details" />
-            <div className="grid grid-cols-2 gap-x-6 gap-y-2">
-              <Row label="Recover channels"><Toggle checked={config.rollbackChannels} onChange={v => u('rollbackChannels', v)} disabled={dis || !config.enableRollback} /></Row>
-              <Row label="Recover roles"><Toggle checked={config.rollbackRoles} onChange={v => u('rollbackRoles', v)} disabled={dis || !config.enableRollback} /></Row>
-              <Row label="Recover emojis"><Toggle checked={config.rollbackEmojis} onChange={v => u('rollbackEmojis', v)} disabled={dis || !config.enableRollback} /></Row>
-              <Row label="Backup retention"><NumberInput value={config.backupRetentionHours} onChange={v => u('backupRetentionHours', v)} min={1} max={168} suffix="hrs" disabled={dis} /></Row>
+            <SectionHeader title="Rollback Configuration" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4">
+              <Row label="Recover Channels"><Toggle checked={config.rollbackChannels} onChange={v => u('rollbackChannels', v)} disabled={dis || !config.enableRollback} /></Row>
+              <Row label="Recover Roles"><Toggle checked={config.rollbackRoles} onChange={v => u('rollbackRoles', v)} disabled={dis || !config.enableRollback} /></Row>
+              <Row label="Recover Emojis"><Toggle checked={config.rollbackEmojis} onChange={v => u('rollbackEmojis', v)} disabled={dis || !config.enableRollback} /></Row>
+              <Row label="Backup Retention"><NumberInput value={config.backupRetentionHours} onChange={v => u('backupRetentionHours', v)} min={1} max={168} suffix="hrs" disabled={dis} /></Row>
             </div>
-            <div className="grid grid-cols-4 gap-2 mt-3">
-              <div><span className="text-[10px] text-white/20 block mb-1">ch backups</span><NumberInput value={config.maxChannelBackups} onChange={v => u('maxChannelBackups', v)} min={5} max={100} disabled={dis} /></div>
-              <div><span className="text-[10px] text-white/20 block mb-1">role backups</span><NumberInput value={config.maxRoleBackups} onChange={v => u('maxRoleBackups', v)} min={10} max={200} disabled={dis} /></div>
-              <div><span className="text-[10px] text-white/20 block mb-1">emoji backups</span><NumberInput value={config.maxEmojiBackups} onChange={v => u('maxEmojiBackups', v)} min={20} max={500} disabled={dis} /></div>
-              <div><span className="text-[10px] text-white/20 block mb-1">sticker backups</span><NumberInput value={config.maxStickerBackups} onChange={v => u('maxStickerBackups', v)} min={20} max={500} disabled={dis} /></div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-6 border-t border-white/[0.03] mt-4">
+              <div><span className="text-xs font-bold text-white/40 block mb-2 uppercase tracking-wide">Max Channels</span><NumberInput value={config.maxChannelBackups} onChange={v => u('maxChannelBackups', v)} min={5} max={100} disabled={dis} /></div>
+              <div><span className="text-xs font-bold text-white/40 block mb-2 uppercase tracking-wide">Max Roles</span><NumberInput value={config.maxRoleBackups} onChange={v => u('maxRoleBackups', v)} min={10} max={200} disabled={dis} /></div>
+              <div><span className="text-xs font-bold text-white/40 block mb-2 uppercase tracking-wide">Max Emojis</span><NumberInput value={config.maxEmojiBackups} onChange={v => u('maxEmojiBackups', v)} min={20} max={500} disabled={dis} /></div>
+              <div><span className="text-xs font-bold text-white/40 block mb-2 uppercase tracking-wide">Max Stickers</span><NumberInput value={config.maxStickerBackups} onChange={v => u('maxStickerBackups', v)} min={20} max={500} disabled={dis} /></div>
             </div>
           </Card>
 
           {/* trust / logging */}
           <Card>
-            <SectionHeader title="Trust & Logging" />
-            <Row label="Bypass trusted users/roles"><Toggle checked={config.bypassTrusted} onChange={v => u('bypassTrusted', v)} disabled={dis} /></Row>
-            <Row label="Log actions"><Toggle checked={config.logActions} onChange={v => u('logActions', v)} disabled={dis} /></Row>
-            <Row label="Audit log cache"><NumberInput value={config.auditLogCacheDuration} onChange={v => u('auditLogCacheDuration', v)} min={500} max={10000} step={500} suffix="ms" disabled={dis} /></Row>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-              <IdList ids={config.trustedUsers} onAdd={() => { const id = promptId('User'); if (id) u('trustedUsers', [...config.trustedUsers, id]); }} onRemove={id => u('trustedUsers', config.trustedUsers.filter(i => i !== id))} label="Trusted Users" disabled={dis} />
-              <IdList ids={config.trustedRoles} onAdd={() => { const id = promptId('Role'); if (id) u('trustedRoles', [...config.trustedRoles, id]); }} onRemove={id => u('trustedRoles', config.trustedRoles.filter(i => i !== id))} label="Trusted Roles" disabled={dis} />
+            <SectionHeader title="Trust & Overrides" />
+            <Row label="Bypass Trusted Entities" hint="Ignore actions taken by users or roles explicitly added to the trusted lists below.">
+              <Toggle checked={config.bypassTrusted} onChange={v => u('bypassTrusted', v)} disabled={dis} />
+            </Row>
+            <Row label="Log All Actions" hint="Keep a permanent record of all destructive actions in the database.">
+              <Toggle checked={config.logActions} onChange={v => u('logActions', v)} disabled={dis} />
+            </Row>
+            <Row label="Audit Cache (ms)" hint="Internal caching for performance. Do not tweak unless instructed.">
+              <NumberInput value={config.auditLogCacheDuration} onChange={v => u('auditLogCacheDuration', v)} min={500} max={10000} step={500} suffix="ms" disabled={dis} />
+            </Row>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-8 mt-6 border-t border-white/[0.03]">
+              <IdList ids={config.trustedUsers} onAdd={() => { const id = promptId('User'); if (id) u('trustedUsers', [...config.trustedUsers, id]); }} onRemove={id => u('trustedUsers', config.trustedUsers.filter(i => i !== id))} label="Trusted User IDs" disabled={dis} />
+              <IdList ids={config.trustedRoles} onAdd={() => { const id = promptId('Role'); if (id) u('trustedRoles', [...config.trustedRoles, id]); }} onRemove={id => u('trustedRoles', config.trustedRoles.filter(i => i !== id))} label="Trusted Role IDs" disabled={dis} />
             </div>
           </Card>
         </div>

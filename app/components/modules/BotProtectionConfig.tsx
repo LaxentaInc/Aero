@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useConfigCache } from '../../hooks/useConfigCache';
-import { Bot } from 'lucide-react';
+import { Bot, ShieldAlert, Cpu } from 'lucide-react';
 import {
-  Toggle, Card, Row, SectionHeader, NumberInput, Slider,
-  IdList, CheckboxGroup, SaveBar, ConfigLoading, AdvancedToggle, promptId
+  Toggle, Card, Row, SectionHeader, Select, NumberInput, Slider,
+  IdList, CheckboxGroup, SaveBar, ConfigLoading, AdvancedToggle, promptId, MasterToggle
 } from './ui';
 
 // --- types (matches api + aero bot) ---
@@ -22,7 +22,7 @@ interface BotProtectionConfig {
   logChannelId: string | null;
   logActions: boolean;
   debug: boolean;
-  whitlistedBots: string[];
+  whitlistedBots: string[]; // INTENTIONAL TYPO: Matches backend config schema `whitlistedBots`
   autoKickBots: boolean;
   punishAdders: boolean;
 }
@@ -46,13 +46,12 @@ const defaultConfig: BotProtectionConfig = {
 };
 
 const punishmentOpts = [
-  { value: 'kick_bot', label: 'Kick Bot' },
-  { value: 'ban_bot', label: 'Ban Bot' },
-  { value: 'timeout_adder', label: 'Timeout Adder' },
-  { value: 'kick_adder', label: 'Kick Adder' },
-  { value: 'ban_adder', label: 'Ban Adder' },
-  { value: 'remove_roles_adder', label: 'Strip Adder Roles' },
-  { value: 'notify', label: 'Notify Only' },
+  { value: 'kick_bot', label: 'KICK BOT' },
+  { value: 'ban_bot', label: 'BAN BOT' },
+  { value: 'timeout_adder', label: 'TIMEOUT ADDER' },
+  { value: 'kick_adder', label: 'KICK ADDER' },
+  { value: 'ban_adder', label: 'BAN ADDER' },
+  { value: 'remove_roles_adder', label: 'STRIP ADDER ROLES' },
 ];
 
 export const moduleInfo = {
@@ -87,8 +86,8 @@ export default function BotProtectionConfig({ selectedGuild, onSave }: {
       const res = await fetch(`/api/bot-protection?guildId=${selectedGuild}`);
       if (res.ok) {
         const data = await res.json();
-        setConfig(data.config);
-        setCached(key, data.config);
+        setConfig({ ...defaultConfig, ...data.config });
+        setCached(key, { ...defaultConfig, ...data.config });
       } else {
         setConfig(defaultConfig);
         setCached(key, defaultConfig);
@@ -101,7 +100,7 @@ export default function BotProtectionConfig({ selectedGuild, onSave }: {
     if (!selectedGuild) return;
     const now = Date.now();
     if (now - lastSave < 15000) {
-      onSave?.(false, `wait ${Math.ceil((15000 - (now - lastSave)) / 1000)}s`);
+      onSave?.(false, `Please wait ${Math.ceil((15000 - (now - lastSave)) / 1000)}s before saving.`);
       return;
     }
     setSaving(true);
@@ -114,9 +113,9 @@ export default function BotProtectionConfig({ selectedGuild, onSave }: {
       if (res.ok) {
         setCached(`botprot-${selectedGuild}`, config);
         setLastSave(now);
-        onSave?.(true, 'bot protection config saved');
+        onSave?.(true, 'Bot protection config saved.');
       } else throw new Error();
-    } catch { onSave?.(false, 'failed to save'); }
+    } catch { onSave?.(false, 'Failed to save configuration.'); }
     finally { setSaving(false); }
   };
 
@@ -127,75 +126,85 @@ export default function BotProtectionConfig({ selectedGuild, onSave }: {
   const dis = saving;
 
   return (
-    <div className="space-y-4">
-      <Card>
-        <Row label="Bot Protection" hint="auto-kick suspicious bots and punish their adders">
-          <Toggle checked={config.enabled} onChange={v => u('enabled', v)} disabled={dis} />
-        </Row>
-      </Card>
+    <div className="space-y-6 pb-24">
+      <MasterToggle
+        label="Enable Bot Protection"
+        checked={config.enabled}
+        onChange={v => u('enabled', v)}
+        disabled={dis}
+      />
 
-      {/* core toggles */}
-      <Card>
-        <SectionHeader icon={<Bot size={16} />} title="Protection" />
-        <Row label="Auto-kick suspicious bots" hint="remove bots that look suspicious on join">
-          <Toggle checked={config.autoKickBots} onChange={v => u('autoKickBots', v)} disabled={dis} />
-        </Row>
-        <Row label="Punish bot adders" hint="take action on the person who added the bot">
-          <Toggle checked={config.punishAdders} onChange={v => u('punishAdders', v)} disabled={dis} />
-        </Row>
-        <Row label={`Min bot age — ${formatHours(config.minAccountAge)}`} hint="bots younger than this are flagged">
-          <Slider value={config.minAccountAge} onChange={v => u('minAccountAge', v)} min={1} max={720} label={formatHours(config.minAccountAge)} disabled={dis} />
-        </Row>
-      </Card>
+      <div className={`space-y-6 transition-all duration-500 ${!config.enabled ? 'opacity-50 pointer-events-none grayscale-[0.2]' : ''}`}>
+        {/* core toggles */}
+        <Card>
+          <SectionHeader icon={<Bot size={20} />} title="Automated Defense" />
+          <Row label="Auto-Kick Suspicious Bots" hint="Instantly remove unverified or young bot accounts upon joining.">
+            <Toggle checked={config.autoKickBots} onChange={v => u('autoKickBots', v)} disabled={dis} />
+          </Row>
+          <Row label="Punish Bot Adders" hint="Take automatic disciplinary action against the member who authorized the bot.">
+            <Toggle checked={config.punishAdders} onChange={v => u('punishAdders', v)} disabled={dis} />
+          </Row>
+          <div className="pt-4 mt-2 border-t border-white/[0.03]">
+            <Row label={`Minimum Bot Age — ${formatHours(config.minAccountAge)}`} hint="Bots younger than this threshold are instantly flagged as suspicious limit-testing tokens.">
+              <Slider value={config.minAccountAge} onChange={v => u('minAccountAge', v)} min={1} max={720} label={formatHours(config.minAccountAge)} disabled={dis} />
+            </Row>
+          </div>
+        </Card>
 
-      {/* notifications */}
-      <Card>
-        <Row label="Notify owner via DM">
-          <Toggle checked={config.notifyOwner} onChange={v => u('notifyOwner', v)} disabled={dis} />
-        </Row>
-        <Row label="Log channel">
-          <input
-            type="text"
-            placeholder="channel id"
-            value={config.logChannelId || ''}
-            onChange={e => u('logChannelId', e.target.value || null)}
-            disabled={dis}
-            className="w-44 bg-white/[0.05] border border-white/[0.08] rounded-lg px-3 py-1.5 text-xs text-white/70 placeholder-white/20 focus:outline-none focus:border-[#5865F2]/50 transition-colors disabled:opacity-40"
-          />
-        </Row>
-      </Card>
+        {/* notifications */}
+        <Card>
+          <Row label="DM Server Owner">
+            <Toggle checked={config.notifyOwner} onChange={v => u('notifyOwner', v)} disabled={dis} />
+          </Row>
+          <Row label="Alert Channel ID">
+            <input
+              type="text"
+              placeholder="e.g. 1107155830274523136"
+              value={config.logChannelId || ''}
+              onChange={e => u('logChannelId', e.target.value || null)}
+              disabled={dis}
+              className="w-full sm:w-64 bg-[#0f1419] border border-white/10 rounded-xl px-4 py-3 text-base text-white placeholder-white/30 focus:outline-none focus:border-[#5865F2] focus:ring-1 focus:ring-[#5865F2] transition-colors disabled:opacity-50"
+            />
+          </Row>
+        </Card>
+      </div>
 
       {/* advanced */}
-      <div className="flex justify-center">
+      <div className="flex justify-center mt-12">
         <AdvancedToggle open={advanced} onToggle={() => setAdvanced(!advanced)} />
       </div>
 
       {advanced && (
-        <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+        <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-500">
           <Card>
-            <SectionHeader title="Punishment Actions" />
-            <CheckboxGroup
-              options={punishmentOpts}
-              selected={config.punishmentActions}
-              onChange={v => u('punishmentActions', v)}
-              disabled={dis}
-            />
-            <div className="mt-3">
-              <Row label="Timeout duration"><NumberInput value={config.timeoutDuration} onChange={v => u('timeoutDuration', v)} min={60} max={2419200} suffix="sec" disabled={dis} /></Row>
-              <Row label="Check unverified bots"><Toggle checked={config.checkUnverified} onChange={v => u('checkUnverified', v)} disabled={dis} /></Row>
-              <Row label="Bypass trusted"><Toggle checked={config.bypassTrusted} onChange={v => u('bypassTrusted', v)} disabled={dis} /></Row>
-              <Row label="Log actions"><Toggle checked={config.logActions} onChange={v => u('logActions', v)} disabled={dis} /></Row>
+            <SectionHeader icon={<ShieldAlert size={20} />} title="Punishment Matrix" />
+            <div className="space-y-6">
+              <div>
+                <p className="text-sm font-bold text-white/50 mb-3 uppercase tracking-widest">Selected Penalties</p>
+                <CheckboxGroup
+                  options={punishmentOpts}
+                  selected={config.punishmentActions}
+                  onChange={v => u('punishmentActions', v)}
+                  disabled={dis}
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 pt-6 mt-4 border-t border-white/[0.03]">
+                <Row label="Timeout Duration"><NumberInput value={config.timeoutDuration} onChange={v => u('timeoutDuration', v)} min={60} max={2419200} suffix="sec" disabled={dis} /></Row>
+                <Row label="Check Verification Badge"><Toggle checked={config.checkUnverified} onChange={v => u('checkUnverified', v)} disabled={dis} /></Row>
+                <Row label="Log Actions to DB"><Toggle checked={config.logActions} onChange={v => u('logActions', v)} disabled={dis} /></Row>
+                <Row label="Bypass Trusted Staff"><Toggle checked={config.bypassTrusted} onChange={v => u('bypassTrusted', v)} disabled={dis} /></Row>
+              </div>
             </div>
           </Card>
 
           <Card>
-            <SectionHeader title="Whitelisted Bots" />
-            <IdList ids={config.whitlistedBots} onAdd={() => { const id = promptId('Bot'); if (id) u('whitlistedBots', [...config.whitlistedBots, id]); }} onRemove={id => u('whitlistedBots', config.whitlistedBots.filter(i => i !== id))} label="Bot IDs" addLabel="Add Bot" disabled={dis} />
+            <SectionHeader icon={<Cpu size={20} />} title="Whitelisted Integrations" />
+            <IdList ids={config.whitlistedBots} onAdd={() => { const id = promptId('Bot'); if (id) u('whitlistedBots', [...config.whitlistedBots, id]); }} onRemove={id => u('whitlistedBots', config.whitlistedBots.filter(i => i !== id))} label="Approved Bot Client IDs" addLabel="ALLOW BOT" disabled={dis} />
           </Card>
 
           <Card>
             <SectionHeader title="Trust Settings" />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <IdList ids={config.trustedUsers} onAdd={() => { const id = promptId('User'); if (id) u('trustedUsers', [...config.trustedUsers, id]); }} onRemove={id => u('trustedUsers', config.trustedUsers.filter(i => i !== id))} label="Trusted Users" disabled={dis} />
               <IdList ids={config.trustedRoles} onAdd={() => { const id = promptId('Role'); if (id) u('trustedRoles', [...config.trustedRoles, id]); }} onRemove={id => u('trustedRoles', config.trustedRoles.filter(i => i !== id))} label="Trusted Roles" disabled={dis} />
             </div>
