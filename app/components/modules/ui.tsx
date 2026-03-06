@@ -350,21 +350,21 @@ export function SaveBar({ onSave, saving, disabled }: {
     disabled?: boolean;
 }) {
     return (
-        <div className="sticky bottom-0 pt-6 pb-2 -mx-4 px-4 sm:-mx-8 sm:px-8 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/95 to-transparent z-50">
+        <div className="sticky bottom-0 pt-8 mt-12 mb-4 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/95 to-transparent z-50 rounded-xl overflow-hidden">
             <button
                 onClick={onSave}
                 disabled={disabled || saving}
-                className="w-full py-4 rounded-xl font-black text-base tracking-widest uppercase text-white bg-[#5865F2] hover:bg-[#4752c4] active:scale-[0.98] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(88,101,242,0.3)] hover:shadow-[0_0_40px_rgba(88,101,242,0.5)] border border-[#5865F2]/50"
+                className="w-full py-5 rounded-2xl font-black text-lg tracking-widest uppercase text-white bg-[#5865F2] hover:bg-[#4752c4] active:scale-[0.98] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3 shadow-[0_0_40px_rgba(88,101,242,0.4)] hover:shadow-[0_0_60px_rgba(88,101,242,0.6)] border border-white/20 hover:border-white/40"
             >
                 {saving ? (
                     <>
-                        <Loader2 size={20} className="animate-spin" />
-                        SAVING CHANGES...
+                        <Loader2 size={24} className="animate-spin" />
+                        SAVING...
                     </>
                 ) : (
                     <>
-                        <Check size={20} />
-                        SAVE CHANGES
+                        <Check size={24} strokeWidth={3} />
+                        SAVE SETTINGS
                     </>
                 )}
             </button>
