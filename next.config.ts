@@ -11,24 +11,6 @@ const nextConfig: NextConfig = {
             value: 'public, max-age=31536000, immutable'
           }
         ]
-      },
-      // Add this for your Spotify tracks API
-      {
-        source: '/api/spotify-tracks',
-        headers: [
-          {
-            key: 'Access-Control-Allow-Origin',
-            value: '*'
-          },
-          {
-            key: 'Access-Control-Allow-Methods', 
-            value: 'GET, OPTIONS'
-          },
-          {
-            key: 'Access-Control-Allow-Headers',
-            value: 'Content-Type'
-          }
-        ],
       }
     ];
   },

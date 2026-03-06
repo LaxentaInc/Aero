@@ -3,12 +3,18 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --bg-primary: #ffffff;
+  --text-primary: #171717;
+  --accent: #5865F2;
+  --accent-hover: #4752c4;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --bg-primary: #0a0a0a;
+    --text-primary: #ededed;
   }
 }
 
@@ -18,211 +24,15 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-
-/* Disable text selection */
-/* * {
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-} */
-
-/* PrismJS theme overrides */
-pre[class*="language-"] {
-  margin: 0;
-  padding: 1em;
-  overflow: auto;
-  background: #1e1e1e !important;
-  border-radius: 0.5rem;
-}
-
-code[class*="language-"] {
-  text-shadow: none !important;
-  background: none !important;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
-  font-size: 0.875rem !important;
-  line-height: 1.5 !important;
-}
-
-.line-numbers .line-numbers-rows {
-  border-right: 1px solid #404040 !important;
-  padding: 1em 0;
-}
-
-/* Token colors */
-.token.comment,
-.token.prolog,
-.token.doctype,
-.token.cdata {
-  color: #6a9955 !important;
-}
-
-.token.punctuation {
-  color: #d4d4d4 !important;
-}
-
-.token.property,
-.token.tag,
-.token.boolean,
-.token.number,
-.token.constant,
-.token.symbol,
-.token.deleted {
-  color: #b5cea8 !important;
-}
-
-.token.selector,
-.token.attr-name,
-.token.string,
-.token.char,
-.token.builtin,
-.token.inserted {
-  color: #ce9178 !important;
-}
-
-.token.operator,
-.token.entity,
-.token.url,
-.language-css .token.string,
-.style .token.string {
-  color: #d4d4d4 !important;
-  background: none !important;
-}
-
-.token.atrule,
-.token.attr-value,
-.token.keyword {
-  color: #569cd6 !important;
-}
-
-.token.function,
-.token.class-name {
-  color: #dcdcaa !important;
-}
-
-.token.regex,
-.token.important,
-.token.variable {
-  color: #d16969 !important;
-}
-
-.scroll-arrow {
-  cursor: pointer;
-  z-index: 20;
-}
-
-.scroll-arrow:hover {
-  opacity: 0.8;
-}
-
-/* Disable image dragging */
+/* disable image dragging */
 img {
   -webkit-user-drag: none;
   -khtml-user-drag: none;
   -moz-user-drag: none;
   -o-user-drag: none;
-  user-drag: none;
 }
 
-* {
-  -webkit-user-select: none !important;
-  -moz-user-select: none !important;
-  -ms-user-select: none !important;
-  user-select: none !important;
-  -webkit-user-drag: none !important;
-  -webkit-touch-callout: none !important;
-}
-
-
-
-.prose pre {
-  background-color: #1a1a1a;
-  padding: 1rem;
-  border-radius: 0.5rem;
-  overflow-x: auto;
-}
-
-.prose code {
-  font-family: 'Fira Code', 'Consolas', 'Monaco', monospace;
-  font-size: 0.875rem;
-  line-height: 1.5;
-}
-
-:root {
-  pointer-events: auto !important;
-}
-
-@media (max-width: 640px) {
-  body {
-    overflow-x: hidden;
-  }
-  * {
-    max-width: 100vw;
-  }
-  pre {
-    max-width: calc(100vw - 2rem);
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch;
-  }
-  .prose {
-    max-width: 100%;
-  }
-  .prose pre {
-    margin-left: -0.5rem;
-    margin-right: -0.5rem;
-    border-radius: 0.5rem;
-  }
-  .prose p {
-    word-break: break-word;
-    overflow-wrap: break-word;
-    hyphens: auto;
-  }
-  .prose code {
-    word-break: break-all;
-    font-size: 0.75rem;
-    padding: 0.125rem 0.25rem;
-  }
-  .prose table {
-    display: block;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  .prose a {
-    word-break: break-all;
-    overflow-wrap: break-word;
-  }
-  .prose img {
-    max-width: 100%;
-    height: auto;
-  }
-  .prose ul, .prose ol {
-    padding-left: 1.5rem;
-  }
-  .prose blockquote {
-    margin-left: 0;
-    margin-right: 0;
-    padding-left: 1rem;
-  }
-  .prose h1 { font-size: 1.5rem; }
-  .prose h2 { font-size: 1.25rem; }
-  .prose h3 { font-size: 1.125rem; }
-  .prose h4, .prose h5, .prose h6 { font-size: 1rem; }
-}
-
-.code-scroll-indicator {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  background: linear-gradient(to left, rgba(0,0,0,0.8), transparent);
-  padding: 0.5rem 0 0.5rem 2rem;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-.code-scroll-indicator.show {
-  opacity: 1;
-}
+/* smooth scrollbars */
 .overflow-x-auto {
   -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
@@ -238,32 +48,22 @@ img {
   background: rgba(255,255,255,0.2);
   border-radius: 3px;
 }
-@media (hover: none) and (pointer: coarse) {
-  .prose ::selection {
-    background: rgba(59, 130, 246, 0.5);
-  }
-}
-@supports (padding-bottom: env(safe-area-inset-bottom)) {
-  .pb-safe {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-}
 
+/* animated glow border for inputs */
 .animated-glow-border {
   position: relative;
   z-index: 0;
 }
-
 .animated-glow-border::before {
   content: '';
   position: absolute;
   inset: -2px;
-  background: linear-gradient(90deg, 
-    #60a5fa 0%, 
-    #a78bfa 25%, 
-    #f472b6 50%, 
-    #a78bfa 75%, 
-    #60a5fa 100%
+  background: linear-gradient(90deg,
+    #5865F2 0%,
+    #a78bfa 25%,
+    #f472b6 50%,
+    #a78bfa 75%,
+    #5865F2 100%
   );
   background-size: 200% 100%;
   border-radius: inherit;
@@ -274,42 +74,37 @@ img {
   filter: blur(8px);
   pointer-events: none;
 }
-
 .animated-glow-border:focus-within::before {
   opacity: 1;
 }
 
-.animated-glow-border::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: rgb(31 41 55 / 0.5);
-  backdrop-filter: blur(8px);
-  z-index: -1;
-  pointer-events: none;
+@keyframes border-flow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
 }
 
-.animated-glow-border button {
-  position: relative;
-  z-index: 20;
-  pointer-events: auto;
+/* mobile overflow prevention */
+@media (max-width: 640px) {
+  body {
+    overflow-x: hidden;
+  }
+  * {
+    max-width: 100vw;
+  }
 }
 
-.animated-glow-border textarea {
-  position: relative;
-  z-index: 1;
-}
-
-/* Add to your global styles */
+/* dynamic viewport height for mobile */
 .h-dynamic {
   height: 100vh;
-  height: 100dvh; /* Dynamic viewport height */
-  height: -webkit-fill-available; /* iOS Safari */
+  height: 100dvh;
+  height: -webkit-fill-available;
 }
 
-/* For your main container */
-.mobile-safe-height {
-  height: 100vh;
-  height: calc(var(--vh, 1vh) * 100);
+/* scroll arrow cursor */
+.scroll-arrow {
+  cursor: pointer;
+  z-index: 20;
+}
+.scroll-arrow:hover {
+  opacity: 0.8;
 }
