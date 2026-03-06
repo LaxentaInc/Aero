@@ -38,6 +38,7 @@ interface Guild {
 interface GuildResponse {
   guildId: string;
   name: string;
+  ownerId: string;
   icon: string | null;
   memberCount: number;
   botJoinedAt: string;
@@ -75,6 +76,7 @@ export async function GET(request: NextRequest) {
     const response: GuildResponse[] = guilds.map((guild) => ({
       guildId: guild.guildId,
       name: guild.name,
+      ownerId: guild.ownerId,
       icon: guild.icon,
       memberCount: guild.memberCount,
       botJoinedAt: guild.botJoinedAt.toISOString(),
@@ -90,9 +92,9 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error('Error fetching guilds:', error);
-    
+
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         message: error instanceof Error ? error.message : 'Unknown error'
       },
