@@ -41,7 +41,7 @@ export const StatsSection = ({ theme }: { theme: "dark" | "light" }) => {
                                 {stat.value}
                             </p>
                             <p className={`text-xs font-mono uppercase tracking-widest
-                                ${theme === "dark" ? "text-white/30" : "text-black/30"}`}>
+                                ${theme === "dark" ? "text-white/50" : "text-black/50"}`}>
                                 {stat.label}
                             </p>
                         </div>

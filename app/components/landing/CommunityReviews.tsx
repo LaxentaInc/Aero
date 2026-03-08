@@ -66,7 +66,7 @@ export const CommunityReviews = ({ theme }: { theme: "dark" | "light" }) => {
                                 LX
                             </div>
                             <div>
-                                <h4 className={`font-bold text-base ${isDark ? "text-white" : "text-black"}`}>lex</h4>
+                                <h3 className={`font-bold text-base ${isDark ? "text-white" : "text-black"}`}>lex</h3>
                                 <p className={`text-xs ${isDark ? "text-white/50" : "text-black/50"}`}>Server Owner</p>
                             </div>
                         </div>
@@ -77,7 +77,7 @@ export const CommunityReviews = ({ theme }: { theme: "dark" | "light" }) => {
                             ))}
                         </div>
 
-                        <h5 className={`font-bold text-lg mb-2 ${isDark ? "text-white" : "text-black"}`}>Saves so much time</h5>
+                        <h4 className={`font-bold text-lg mb-2 ${isDark ? "text-white" : "text-black"}`}>Saves so much time</h4>
                         <p className={`text-sm leading-relaxed ${isDark ? "text-white/70" : "text-black/70"}`}>
                             The auto-restore feature is incredible. When a rogue admin tried to delete all our roles, Aero instantly banned them and restored everything before anyone noticed.
                         </p>
@@ -98,7 +98,7 @@ export const CommunityReviews = ({ theme }: { theme: "dark" | "light" }) => {
                             </div>
 
                             <div className="flex flex-col">
-                                <h4 className={`font-bold text-lg ${isDark ? "text-white" : "text-black"}`}>Aero</h4>
+                                <h3 className={`font-bold text-lg ${isDark ? "text-white" : "text-black"}`}>Aero</h3>
                                 <p className={`text-xs mt-0.5 ${isDark ? "text-white/60" : "text-black/60"}`}>Uptime - 99.9%</p>
 
                                 <div className="flex gap-1 mt-1.5 mb-2">

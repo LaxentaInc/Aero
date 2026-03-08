@@ -43,7 +43,7 @@ export const FAQSection = ({ theme }: { theme: "dark" | "light" }) => {
             <div className="max-w-3xl mx-auto">
                 {/* section header */}
                 <div className="text-center mb-16">
-                    <p className={`text-xs font-mono font-semibold tracking-[0.3em] uppercase mb-4 text-[#5865F2]`}>
+                    <p className={`text-xs font-mono font-semibold tracking-[0.3em] uppercase mb-4 text-[#7289da]`}>
                         FAQ
                     </p>
                     <h2 className={`text-3xl sm:text-4xl font-black tracking-tight
@@ -80,13 +80,13 @@ export const FAQSection = ({ theme }: { theme: "dark" | "light" }) => {
                                     size={18}
                                     className={`shrink-0 transition-transform duration-300
                                         ${openIndex === i ? "rotate-180" : ""}
-                                        ${theme === "dark" ? "text-white/30" : "text-black/30"}`}
+                                        ${theme === "dark" ? "text-white/50" : "text-black/50"}`}
                                 />
                             </button>
                             <div className={`overflow-hidden transition-all duration-300
                                 ${openIndex === i ? "max-h-60 pb-4" : "max-h-0"}`}>
                                 <p className={`px-5 text-sm leading-relaxed
-                                    ${theme === "dark" ? "text-white/40" : "text-black/40"}`}>
+                                    ${theme === "dark" ? "text-white/60" : "text-black/60"}`}>
                                     {faq.a}
                                 </p>
                             </div>

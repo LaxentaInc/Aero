@@ -26,9 +26,9 @@ export const HomeShowcase = ({ theme }: { theme: "dark" | "light" }) => {
                     />
                 </div>
 
-                <p className={`text-center mt-6 text-sm font-mono ${theme === "dark" ? "text-white/30" : "text-black/30"}`}>
+                <p className={`text-center mt-6 text-sm font-mono ${theme === "dark" ? "text-white/50" : "text-black/50"}`}>
                     Lightning fast dashboard · granular module controls · live protection <br />
-                    <span className="text-xs text-white/20">more features coming soon... :3</span>
+                    <span className="text-xs text-white/50">more features coming soon... :3</span>
                 </p>
             </div>
         </section>

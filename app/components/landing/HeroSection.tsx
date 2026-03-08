@@ -16,6 +16,7 @@ export const HeroSection = ({ theme }: { theme: "dark" | "light" }) => {
                     muted
                     loop
                     playsInline
+                    aria-hidden="true"
                     className={`w-full h-full object-cover ${theme === "dark" ? "opacity-40" : "opacity-90"}`}
                 >
                     <source src="/videos/myCutekoiiii.webm" type="video/webm" />
@@ -36,6 +37,7 @@ export const HeroSection = ({ theme }: { theme: "dark" | "light" }) => {
                     height={400}
                     className="w-[180px] sm:w-[240px] md:w-[280px] h-auto object-contain drop-shadow-2xl brightness-110"
                     priority
+                    fetchPriority="high"
                 />
 
                 <h2 className={`text-sm sm:text-base font-mono font-medium tracking-widest uppercase opacity-60 mb-1
@@ -111,7 +113,7 @@ export const HeroSection = ({ theme }: { theme: "dark" | "light" }) => {
 
                 {/* platform tags */}
                 <div className={`flex items-center gap-3 text-xs font-mono pt-2
-                    ${theme === "dark" ? "text-white/30" : "text-black/30"}`}
+                    ${theme === "dark" ? "text-white/50" : "text-black/50"}`}
                 >
                     <span className="flex items-center gap-1.5"><Shield size={12} /> 6 Modules</span>
                     <span>·</span>

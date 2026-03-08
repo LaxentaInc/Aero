@@ -54,7 +54,7 @@ export const FeaturesSection = ({ theme }: { theme: "dark" | "light" }) => {
                     className="mb-24"
                 >
                     <p className={`text-xs font-mono uppercase tracking-[0.2em] mb-4 ml-1
-                        ${theme === "dark" ? "text-[#5865F2]" : "text-[#5865F2]"}`}>
+                        ${theme === "dark" ? "text-[#7289da]" : "text-[#5865F2]"}`}>
                         protection_modules
                     </p>
                     <GradientHeading
@@ -83,7 +83,7 @@ export const FeaturesSection = ({ theme }: { theme: "dark" | "light" }) => {
 
                             <div className="flex flex-col gap-4">
                                 <div className="flex items-center justify-between">
-                                    <span className={`text-4xl font-mono font-light tracking-tighter opacity-20 group-hover:opacity-40 transition-opacity duration-300
+                                    <span className={`text-4xl font-mono font-light tracking-tighter opacity-40 group-hover:opacity-80 transition-opacity duration-300
                                         ${theme === "dark" ? "text-white" : "text-black"}`}>
                                         {f.id}
                                     </span>
@@ -117,7 +117,7 @@ export const FeaturesSection = ({ theme }: { theme: "dark" | "light" }) => {
                 <span className={`${theme === "dark" ? "text-white/70" : "text-black/70"} block text-2xl font-bold`}>
                     Seems too good to be true?
                 </span>
-                <span className={`${theme === "dark" ? "text-[#5865F2]/80" : "text-[#5865F2]/80"} block mt-2 text-lg font-semibold italic`}>
+                <span className={`${theme === "dark" ? "text-[#7289da]" : "text-[#5865F2]/90"} block mt-2 text-lg font-semibold italic`}>
                     It is :D That's why I built it
                 </span>
             </p>

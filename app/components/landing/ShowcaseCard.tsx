@@ -66,7 +66,7 @@ export const ShowcaseCard = ({
                     >
                         {/* Minimal Badge */}
                         <div className={`inline-flex items-center gap-2 mb-6 text-sm font-mono tracking-widest uppercase
-                            ${theme === "dark" ? "text-[#5865F2]" : "text-[#5865F2]"}`}
+                            ${theme === "dark" ? "text-[#7289da]" : "text-[#5865F2]"}`}
                         >
                             <span className="w-8 h-[1px] bg-current opacity-50" />
                             {badge}

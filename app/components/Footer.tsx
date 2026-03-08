@@ -19,7 +19,7 @@ export const Footer = ({ theme }: { theme: "dark" | "light" }) => {
                     </div>
 
                     {/* center — links */}
-                    <div className={`flex items-center gap-6 text-sm font-medium ${theme === "dark" ? "text-white/40" : "text-black/40"}`}>
+                    <div className={`flex items-center gap-6 text-sm font-medium ${theme === "dark" ? "text-white/60" : "text-black/60"}`}>
                         <Link href="/privacy" className="hover:opacity-80 transition-opacity">Privacy</Link>
                         <Link href="/terms" className="hover:opacity-80 transition-opacity">Terms</Link>
                         <a
@@ -34,7 +34,7 @@ export const Footer = ({ theme }: { theme: "dark" | "light" }) => {
                     </div>
 
                     {/* right — copyright */}
-                    <p className={`text-xs ${theme === "dark" ? "text-white/20" : "text-black/20"}`}>
+                    <p className={`text-xs ${theme === "dark" ? "text-white/50" : "text-black/50"}`}>
                         © {new Date().getFullYear()} Aero. All rights reserved.
                     </p>
                 </div>
