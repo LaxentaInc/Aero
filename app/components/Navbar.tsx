@@ -1,4 +1,4 @@
-"use client";
+ "use client";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -45,6 +45,7 @@ export const Navbar = () => {
                     x: isVisible || isHovered ? 0 : -100,
                     opacity: isVisible || isHovered ? 1 : 0
                 }}
+                
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}

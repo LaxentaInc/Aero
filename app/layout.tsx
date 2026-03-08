@@ -22,7 +22,7 @@ const geistMono = Geist_Mono({
   adjustFontFallback: true
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://laxenta.io";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.laxenta.tech";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
