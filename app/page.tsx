@@ -74,7 +74,7 @@ export default function Home() {
                 title="DASHBOARD"
                 description="Manage your server's security from anywhere. Access real-time logs, configure thresholds, and override actions via a beautiful web interface."
                 badge="WEB · REAL-TIME · LOGS"
-                imageSrc="/MillenniumEvent.png"
+                imageSrc="/DASHBOARDAERO.PNG"
                 index={0}
                 theme={theme}
             />
@@ -83,12 +83,12 @@ export default function Home() {
                 title="ANTI-NUKE"
                 description="Zero compromises. Detects mass channel deletions, mass kicks, and rogue admins. Automatically stops the attack and restores deleted channels instantly."
                 badge="AUTO-RESTORE · INSTANT"
-                imageSrc="/MillenniumEvent.png"
+                imageSrc="/UFFF.PNG"
                 index={1}
                 theme={theme}
             />
 
-            <ShowcaseCard
+            {/* <ShowcaseCard
                 title="GRANULAR CONTROL"
                 description="Don't want to ban? Just timeout. Need limits? Set exact thresholds. Separate limits for bots and humans to give you total control over how security is handled."
                 badge="THRESHOLDS · PUNISHMENTS"
@@ -97,19 +97,19 @@ export default function Home() {
                 theme={theme}
                 layout="vertical"
                 imageFit="contain"
-            />
+            /> */}
 
-            <HomeShowcase theme={theme} />
+            {/* <HomeShowcase theme={theme} /> */}
 
             <ComparisonTable theme={theme} />
 
-            <CommunityReviews theme={theme} />
+            {/* <CommunityReviews theme={theme} /> */}
 
             <PlannedOpenSource theme={theme} />
 
             <FAQSection theme={theme} />
 
-            <BottomCTA theme={theme} />
+            {/* <BottomCTA theme={theme} /> */}
 
             <Footer theme={theme} />
 
